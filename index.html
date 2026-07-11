@@ -102,6 +102,33 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .pillBtns button.on{background:var(--gold);border-color:var(--gold);color:#161307}
 .miniSel{margin-top:8px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;display:block}
 
+/* fighter dashboard */
+.fightCard{background:linear-gradient(150deg,#1d1a12 0%,#111013 55%,#0b0b0c 100%);border:1.5px solid var(--gold);border-radius:16px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden}
+.fightCard::before{content:"LEGACY";position:absolute;right:-10px;top:6px;font-family:'Oswald',sans-serif;font-size:58px;font-weight:700;color:rgba(201,164,76,.06);letter-spacing:6px;pointer-events:none}
+.fcBanner{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-20px -20px 16px;padding:9px 20px;background:rgba(201,164,76,.1);border-bottom:1px solid var(--gold-dim);position:relative}
+.fcDiv{font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold)}
+.fcTier{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;border-radius:99px;padding:4px 10px;white-space:nowrap}
+.fcTier.bronze{background:linear-gradient(135deg,#8c5a2b,#cd7f32);color:#fff}
+.fcTier.silver{background:linear-gradient(135deg,#8e9196,#d9dbe0);color:#26282c}
+.fcTier.goldT{background:linear-gradient(135deg,#a37e2c,#e6c15c);color:#241c05}
+.fcTier.platinum{background:linear-gradient(135deg,#b8c6d4,#f2f6fa);color:#1e2830}
+.fcTier.none{border:1px solid var(--line);color:var(--muted)}
+.fcTop{display:flex;gap:14px;align-items:center;position:relative}
+.fcPhoto{width:78px;height:78px;border-radius:12px;object-fit:cover;border:2px solid var(--gold);flex-shrink:0}
+.fcPhotoEmpty{display:flex;align-items:center;justify-content:center;background:var(--panel2);color:var(--gold);font-size:28px;font-weight:800}
+.fcRank{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:#161307;background:var(--gold);border-radius:4px;padding:3px 8px;margin-bottom:6px}
+.fcName{font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;line-height:1.05}
+.fcMeta{color:var(--muted);font-size:12px;margin-top:4px;letter-spacing:.5px}
+.fcRecordRow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px;position:relative}
+.fcRec{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;text-align:center;padding:10px 2px}
+.fcRec span{font-size:22px;font-weight:900;display:block;line-height:1.1}
+.fcRec small{font-size:8.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.fcRec.gold{border-color:var(--gold-dim)}
+.fcRec.gold span{color:var(--gold)}
+.rankBar{height:7px;background:var(--panel2);border-radius:99px;margin-top:14px;overflow:hidden;border:1px solid var(--line);position:relative}
+.rankFill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:99px}
+.rankLbl{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-top:6px;text-align:right;font-weight:700}
+
 /* ask me anything */
 .amaTile{display:flex;align-items:center;gap:14px;width:100%;background:linear-gradient(135deg,rgba(201,164,76,.16),rgba(201,164,76,.05) 60%),var(--panel);border:1.5px solid var(--gold);border-radius:14px;padding:18px;margin-bottom:14px;color:var(--text)}
 .amaMicIcon{width:46px;height:46px;border-radius:50%;background:var(--gold);color:#161307;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -626,15 +653,17 @@ function updS(){
 async function loadSparringData(){
   const uid=session.user.id;
   const isC=profile&&profile.is_coach;
-  const [bp,ss,nt,fn,nm,an]=await Promise.all([
+  const [bp,ss,nt,fn,nm,an,cl,ac]=await Promise.all([
     sb.from("boxer_profiles").select("*").eq("user_id",uid).maybeSingle(),
     sb.from("sparring_sessions").select("*").eq("user_id",uid).order("session_date",{ascending:false}).order("created_at",{ascending:false}).limit(500),
     sb.from("sparring_notes").select("*").eq("member_id",uid).order("created_at",{ascending:true}),
     sb.from("fight_nights").select("*").order("event_date",{ascending:true}),
     sb.from("fight_nominations").select("*"),
-    isC?sb.from("sparring_notes").select("*").order("created_at",{ascending:true}).limit(500):Promise.resolve({data:[]})
+    isC?sb.from("sparring_notes").select("*").order("created_at",{ascending:true}).limit(500):Promise.resolve({data:[]}),
+    sb.from("sparring_clips").select("*").eq("user_id",uid).order("created_at",{ascending:false}).limit(30),
+    isC?sb.from("sparring_clips").select("*").order("created_at",{ascending:false}).limit(100):Promise.resolve({data:[]})
   ]);
-  boxData={loaded:true,profile:bp.data||null,sessions:ss.data||[],notes:nt.data||[],fights:fn.data||[],noms:nm.data||[],allNotes:an.data||[]};
+  boxData={loaded:true,profile:bp.data||null,sessions:ss.data||[],notes:nt.data||[],fights:fn.data||[],noms:nm.data||[],allNotes:an.data||[],clips:cl.data||[],allClips:ac.data||[]};
 }
 async function renderSparringClub(){
   $("boxContent").innerHTML=`<div class="loadingDots">Loading your sparring hub…</div>`;
@@ -649,7 +678,7 @@ async function renderSparringClub(){
       <p style="margin-top:6px">Set up your profile — photo, weights, record — then bank your sparring rounds week by week.</p>
       <button class="btnGold" style="margin-top:14px" onclick="startBpEdit()">Build My Profile</button></div>`;
   else html+=boxerCardHtml(bp);
-  if(bp&&!bpEditing)html+=sparringStatsHtml()+logFormHtml()+historyHtml()+notesHtml();
+  if(bp&&!bpEditing)html+=sparringStatsHtml()+logFormHtml()+fightTapeHtml()+historyHtml()+notesHtml();
   html+=fightsHtml();
   if(profile&&profile.is_coach)html+=coachHtml();
   c.innerHTML=html;
@@ -669,6 +698,11 @@ function bpFormHtml(bp){
       </div>
     </div>
     <div class="field"><label>Name</label><input id="bpName" value="${esc(defName)}"></div>
+    <div class="field"><label>Your Division</label><select id="bpDiv">
+      <option value="Legacy Fight Club" ${(!bp.division||bp.division==="Legacy Fight Club")?"selected":""}>Legacy Fight Club</option>
+      <option value="Amateur" ${bp.division==="Amateur"?"selected":""}>Amateur</option>
+      <option value="Professional" ${bp.division==="Professional"?"selected":""}>Professional</option>
+    </select></div>
     <div class="row2">
       <div class="field"><label>Age</label><input id="bpAge" type="number" inputmode="numeric" value="${bp.age??""}"></div>
       <div class="field"><label>Current Weight (kg)</label><input id="bpCw" type="number" step="0.1" inputmode="decimal" value="${bp.current_weight??""}"></div>
@@ -684,22 +718,73 @@ function bpFormHtml(bp){
     ${bp.user_id?`<button class="btnLink" style="margin-top:10px" onclick="bpEditing=false;renderSparringClub()">Cancel</button>`:""}
   </div>`;
 }
+function weightClass(kg){
+  if(kg==null||!Number(kg))return null;
+  const w=Number(kg);
+  const cls=[[48.9,"Light Flyweight"],[50.8,"Flyweight"],[52.2,"Super Flyweight"],[53.5,"Bantamweight"],[55.3,"Super Bantamweight"],[57.2,"Featherweight"],[59,"Super Featherweight"],[61.2,"Lightweight"],[63.5,"Super Lightweight"],[66.7,"Welterweight"],[69.9,"Super Welterweight"],[72.6,"Middleweight"],[76.2,"Super Middleweight"],[79.4,"Light Heavyweight"],[90.7,"Cruiserweight"]];
+  for(const [max,n] of cls)if(w<=max)return n;
+  return "Heavyweight";
+}
+const SPAR_RANKS=[[0,"Prospect"],[50,"Contender"],[150,"Main Eventer"],[300,"Title Challenger"],[600,"Champion"],[1000,"Legacy"]];
+function rankOf(total){
+  let cur=SPAR_RANKS[0],next=null;
+  for(let i=0;i<SPAR_RANKS.length;i++){
+    if(total>=SPAR_RANKS[i][0])cur=SPAR_RANKS[i];
+    else{next=SPAR_RANKS[i];break;}
+  }
+  return {name:cur[1],at:cur[0],next:next?next[1]:null,nextAt:next?next[0]:null};
+}
+function weekStreak(){
+  const wks=new Set(boxData.sessions.map(s=>isoDateLocal(weekStartOf(s.session_date+"T12:00:00"))));
+  let n=0;
+  const w=weekStartOf(new Date());
+  if(!wks.has(isoDateLocal(w)))w.setDate(w.getDate()-7);
+  while(wks.has(isoDateLocal(w))){n++;w.setDate(w.getDate()-7);}
+  return n;
+}
+function topPartner(){
+  const t={};
+  boxData.sessions.forEach(s=>{const p=(s.partner||"").trim();if(p)t[p]=(t[p]||0)+s.rounds;});
+  let best=null;
+  Object.entries(t).forEach(([p,r])=>{if(!best||r>best[1])best=[p,r];});
+  return best;
+}
+const MONTH_TIERS=[[50,"Platinum","platinum"],[35,"Gold","goldT"],[20,"Silver","silver"],[10,"Bronze","bronze"]];
+function monthlyTier(){
+  const mo=new Date();mo.setDate(1);mo.setHours(0,0,0,0);
+  const r=boxData.sessions.filter(s=>new Date(s.session_date+"T12:00:00")>=mo).reduce((a,s)=>a+s.rounds,0);
+  for(const [min,name,cls] of MONTH_TIERS)if(r>=min)return {r,name,cls,next:MONTH_TIERS.filter(t=>t[0]>r).pop()};
+  return {r,name:null,cls:null,next:MONTH_TIERS[MONTH_TIERS.length-1]};
+}
 function boxerCardHtml(bp){
-  const rec=`${bp.wins||0}–${bp.losses||0}–${bp.draws||0}`;
-  return `<div class="card">
-    <div style="display:flex;gap:16px;align-items:center">
-      ${bp.photo_url?`<img class="bpPhoto" src="${esc(bp.photo_url)}" alt="">`:`<div class="bpPhoto bpPhotoEmpty">${esc((bp.name||"?").trim()[0]||"?")}</div>`}
+  const wc=weightClass(bp.fight_weight);
+  const total=boxData.sessions.reduce((a,s)=>a+s.rounds,0);
+  const rank=rankOf(total);
+  const pct=rank.nextAt?Math.min(100,Math.round((total-rank.at)/(rank.nextAt-rank.at)*100)):100;
+  const mt=monthlyTier();
+  return `<div class="fightCard">
+    <div class="fcBanner">
+      <span class="fcDiv">${esc(bp.division||"Legacy Fight Club")}</span>
+      ${mt.name?`<span class="fcTier ${mt.cls}">${mt.name} · ${mt.r} rds this month</span>`
+               :`<span class="fcTier none">${mt.r}/${mt.next[0]} rds to Bronze this month</span>`}
+    </div>
+    <div class="fcTop">
+      ${bp.photo_url?`<img class="fcPhoto" src="${esc(bp.photo_url)}" alt="">`:`<div class="fcPhoto fcPhotoEmpty">${esc((bp.name||"?").trim()[0]||"?")}</div>`}
       <div style="flex:1;min-width:0">
-        <h3 style="margin-bottom:2px">${esc(bp.name)}</h3>
-        <div class="sub" style="margin-bottom:0">Record ${rec}</div>
+        <div class="fcRank">${rank.name}</div>
+        <h3 class="fcName">${esc(bp.name)}</h3>
+        <div class="fcMeta">${wc?wc:""}${wc&&bp.age?" · ":""}${bp.age?bp.age+" yrs":""}${(wc||bp.age)&&bp.current_weight?" · ":""}${bp.current_weight?Number(bp.current_weight)+"kg now":""}</div>
       </div>
-      <button class="btnLink" style="width:auto;padding:9px 14px;margin:0" onclick="startBpEdit()">Edit</button>
+      <button class="btnLink" style="width:auto;padding:8px 12px;margin:0" onclick="startBpEdit()">Edit</button>
     </div>
-    <div class="statGrid" style="margin-top:16px;margin-bottom:0">
-      <div class="statBox"><div class="sv">${bp.age??"–"}</div><div class="sl">Age</div></div>
-      <div class="statBox"><div class="sv">${bp.current_weight!=null?Number(bp.current_weight):"–"}</div><div class="sl">Current kg</div></div>
-      <div class="statBox"><div class="sv">${bp.fight_weight!=null?Number(bp.fight_weight):"–"}</div><div class="sl">Fight kg</div></div>
+    <div class="fcRecordRow">
+      <div class="fcRec"><span>${bp.wins||0}</span><small>Wins</small></div>
+      <div class="fcRec"><span>${bp.losses||0}</span><small>Losses</small></div>
+      <div class="fcRec"><span>${bp.draws||0}</span><small>Draws</small></div>
+      <div class="fcRec gold"><span>${total}</span><small>Rounds</small></div>
     </div>
+    ${rank.nextAt?`<div class="rankBar"><div class="rankFill" style="width:${pct}%"></div></div>
+    <div class="rankLbl">${rank.nextAt-total} rounds to ${rank.next}</div>`:`<div class="rankLbl" style="color:var(--gold)">Top of the mountain.</div>`}
   </div>`;
 }
 
@@ -724,13 +809,74 @@ function sparringStatsHtml(){
     const lbl=i===0?"This week":i===1?"Last week":"Wk of "+w.getDate()+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][w.getMonth()];
     wkRows+=`<div class="weekRow"><span>${lbl}</span><span style="color:${dd?"var(--gold)":"var(--muted)"};font-weight:700">${dd?dd.r+" rounds · "+Math.round(dd.m)+" min":"—"}</span></div>`;
   }
+  const streak=weekStreak(),riv=topPartner();
   return `<div class="secTitle">Rounds In The Bank</div>
+    ${(streak>0||riv)?`<div class="pillRow" style="margin-bottom:12px">
+      ${streak>0?`<span class="pill" style="border-color:var(--gold);color:var(--gold)">${streak}-week streak — keep it alive</span>`:""}
+      ${riv?`<span class="pill">Top rival: ${esc(riv[0])} · ${riv[1]} rounds</span>`:""}
+    </div>`:""}
     <div class="statGrid">
       <div class="statBox"><div class="sv">${wkRounds}</div><div class="sl">This Week</div></div>
       <div class="statBox"><div class="sv">${totRounds}</div><div class="sl">Total Rounds</div></div>
       <div class="statBox"><div class="sv">${Math.round(totMins)}</div><div class="sl">Total Minutes</div></div>
     </div>
     <div class="card"><h3 style="font-size:15px">Last 10 Weeks</h3><div style="margin-top:6px">${wkRows}</div></div>`;
+}
+
+/* ---- Fight Tape (sparring clips + coach review) ---- */
+function fightTapeHtml(){
+  const clips=boxData.clips||[];
+  return `<div class="secTitle">Fight Tape</div>
+  <div class="card">
+    <p style="margin-bottom:12px">Film your spars, load the best 30–60 seconds here, and the coaches will review it right in your corner.</p>
+    <div class="field"><label>What Should The Coach Watch For? (optional)</label><input id="clipCap" placeholder="e.g. Working on my counter right hand"></div>
+    <input type="file" id="clipFile" accept="video/*" style="display:none" onchange="uploadClip(event)">
+    <button class="btnGold" onclick="$('clipFile').click()">Upload A Sparring Clip</button>
+    <p style="color:var(--muted);font-size:11.5px;margin-top:8px">Clips up to 50MB — a short highlight beats a full round.</p>
+  </div>
+  ${clips.map(c=>clipCardHtml(c,false)).join("")}`;
+}
+function clipCardHtml(c,coachView){
+  return `<div class="card">
+    <video src="${esc(c.video_url)}" controls playsinline preload="metadata" style="width:100%;border-radius:10px;background:#000"></video>
+    <div class="sub" style="margin-top:10px">${fmtWhen(c.created_at)}${coachView&&c.name?" · "+esc(c.name):""}</div>
+    ${c.caption?`<p>${esc(c.caption)}</p>`:""}
+    ${c.coach_comment?`<div class="notice" style="margin:10px 0 0"><b>Coach's Corner${c.coach_name?" — "+esc(c.coach_name):""}:</b> ${esc(c.coach_comment)}</div>`
+      :`<div class="pillRow" style="margin-top:10px"><span class="pill" style="border-color:var(--gold-dim);color:var(--gold)">Awaiting coach review</span></div>`}
+    ${coachView?`<div class="chatInput" style="margin-top:10px;border-top:none;padding-top:0">
+      <input id="cc-${c.id}" placeholder="Coach's corner notes…" maxlength="500" onkeydown="if(event.key==='Enter')saveClipComment('${c.id}')">
+      <button onclick="saveClipComment('${c.id}')">➤</button></div>`
+      :`<button class="btnLink" style="margin-top:10px;border-color:var(--danger);color:var(--danger)" onclick="delClip('${c.id}')">Delete Clip</button>`}
+  </div>`;
+}
+async function uploadClip(e){
+  const f=e.target.files[0];if(!f)return;
+  if(f.size>52428800){toast("That clip's over 50MB — trim it to the best 30–60 seconds and try again.");return;}
+  const ext=(f.name.split(".").pop()||"mp4").toLowerCase().replace(/[^a-z0-9]/g,"")||"mp4";
+  const path=session.user.id+"/clip-"+Date.now()+"."+ext;
+  toast("Uploading your tape — hang tight, big files take a minute…");
+  const {error}=await sb.storage.from("sparring-clips").upload(path,f);
+  if(error){toast(error.message);return;}
+  const {data}=sb.storage.from("sparring-clips").getPublicUrl(path);
+  const cap=$("clipCap")?$("clipCap").value.trim():"";
+  const nm=(boxData.profile&&boxData.profile.name)||(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim();
+  const ins=await sb.from("sparring_clips").insert({user_id:session.user.id,name:nm,video_url:data.publicUrl,caption:cap});
+  if(ins.error){toast(ins.error.message);return;}
+  toast("Tape's in. The coaches will take a look.");
+  renderSparringClub();
+}
+async function saveClipComment(id){
+  const el=$("cc-"+id),v=el.value.trim();if(!v)return;
+  const nm=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Coach";
+  const {error}=await sb.from("sparring_clips").update({coach_comment:v,coach_name:nm}).eq("id",id);
+  if(error){toast(error.message);return;}
+  toast("Corner notes saved.");
+  renderSparringClub();
+}
+async function delClip(id){
+  const {error}=await sb.from("sparring_clips").delete().eq("id",id).eq("user_id",session.user.id);
+  toast(error?error.message:"Clip deleted.");
+  renderSparringClub();
 }
 function logFormHtml(){
   return `<div class="secTitle">Log Your Sparring</div>
@@ -802,7 +948,10 @@ function coachHtml(){
         <button onclick="coachReply('${mid}')">➤</button>
       </div></div>`;
   }).join("");
-  return `<div class="secTitle">Coach Panel — Member Notes</div>
+  const pend=(boxData.allClips||[]).filter(c=>!c.coach_comment&&c.user_id!==session.user.id);
+  return `<div class="secTitle">Coach Panel — Fight Tape Review</div>
+    ${pend.length?pend.map(c=>clipCardHtml(c,true)).join(""):'<div class="card"><p>No tape waiting on review — all caught up.</p></div>'}
+    <div class="secTitle">Coach Panel — Member Notes</div>
     ${out||'<div class="card"><p>No member notes yet.</p></div>'}
     <div class="secTitle">Coach Panel — Add Fight Night</div>
     <div class="card">
@@ -831,6 +980,7 @@ async function uploadBoxerPhoto(e){
 async function saveBoxerProfile(){
   const rec={user_id:session.user.id,
     name:$("bpName").value.trim(),
+    division:$("bpDiv").value,
     age:parseInt($("bpAge").value)||null,
     current_weight:parseFloat($("bpCw").value)||null,
     fight_weight:parseFloat($("bpFw").value)||null,
