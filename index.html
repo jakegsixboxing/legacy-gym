@@ -1366,11 +1366,31 @@ function amaPush(m){
   const box=$("amaMsgs");
   if(box){box.insertAdjacentHTML("beforeend",amaMsgHtml(m));box.scrollTop=box.scrollHeight;}
 }
+let amaAwait=null;
 async function amaAsk(){
   const el=$("amaInput"),q=el.value.trim();
   if(!q)return;
   el.value="";
   amaPush({who:"me",txt:q});
+  const me=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"A member";
+  if(amaAwait==="follow"){
+    amaAwait=null;
+    sb.from("ama_misses").insert({user_id:session.user.id,question:"FOLLOW-IN: "+me+" is coming in today on the swipe pass of "+q+"."}).then(()=>{});
+    setTimeout(()=>amaPush({who:"ama",txt:"Logged — the team knows you're following "+q+" in today. All good, see you in there."}),350);
+    return;
+  }
+  const nq=amaNorm(q);
+  const passWord=/(swipe|pass|fob)/.test(nq);
+  if(passWord&&/(forgot|someone|mate|friend|partner|follow|their|else|wife|husband|brother|sister)/.test(nq)){
+    amaAwait="follow";
+    setTimeout(()=>amaPush({who:"ama",txt:"No dramas — what's the full name of the member whose pass you're following in on? I'll log it with the team so everyone's square."}),350);
+    return;
+  }
+  if(passWord&&/(lost|broke|broken|new|replace|replacement|missing|stopped|work|doesnt|damaged|need)/.test(nq)){
+    sb.from("ama_misses").insert({user_id:session.user.id,question:"SWIPE PASS: "+me+" needs a new swipe pass — please have one ready for collection at the front desk."}).then(()=>{});
+    setTimeout(()=>amaPush({who:"ama",txt:"I've notified our admin team — your new swipe pass will be waiting for you at the front desk. Collect it during the staffed afternoon hours, Mon–Fri 4–7pm, or the morning coached hours, Mon–Thu 5:15–7:45am and Saturday 8–11am."}),350);
+    return;
+  }
   const hit=amaMatch(q);
   setTimeout(()=>{
     if(hit)amaPush({who:"ama",txt:hit.a});
@@ -1528,9 +1548,9 @@ function renderStaffChat(){
         <small>${esc(r.duration)} · ${esc(r.preferred)||"any time"}${r.note?" · "+esc(r.note):""} · ${fmtWhen(r.created_at)}</small></div>
       <button class="xBtn" style="border-color:var(--ok);color:var(--ok)" title="Mark handled" onclick="handlePtRequest('${r.id}')">✓</button>
     </div>`).join("")}</div>`:""}
-    ${(staffData.misses||[]).length?`<div class="secTitle">Ask Me Anything — Questions It Couldn't Answer</div>
+    ${(staffData.misses||[]).length?`<div class="secTitle">Ask Me Anything — Requests &amp; Unanswered Questions</div>
     <div class="card">
-      <p style="margin-bottom:10px">Members asked these and the assistant had no answer. Teach it below and they're covered next time.</p>
+      <p style="margin-bottom:10px">Swipe pass requests and follow-ins land here as actions to sort. Anything else is a question it couldn't answer — teach it below and it's covered next time.</p>
       ${staffData.misses.map(q=>`<div class="sessItem"><div><b>"${esc(q.question)}"</b><small>${fmtWhen(q.created_at)}</small></div>
       <button class="xBtn" onclick="delMiss('${q.id}')">×</button></div>`).join("")}
     </div>`:""}
