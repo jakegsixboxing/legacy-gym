@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Legacy Gym</title>
+<meta name="description" content="Legacy Gym Central Coast — boxing, weights, functional fitness, recovery and the members chat.">
+<meta name="theme-color" content="#0b0b0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Legacy Gym">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0b0b0c; --panel:#121214; --panel2:#18181b; --line:#26262b;
+  --gold:#c9a44c; --gold-dim:#8a7136; --text:#f2f0eb; --muted:#9a9891;
+  --danger:#e05252; --ok:#4bc97a;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Montserrat',sans-serif;overscroll-behavior-y:none}
+button{font-family:inherit;cursor:pointer;border:none}
+input,select,textarea{font-family:inherit}
+.hidden{display:none !important}
+
+/* ---------- AUTH ---------- */
+#authScreen{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:32px 24px calc(32px + env(safe-area-inset-bottom));max-width:440px;margin:0 auto}
+.brandBlock{text-align:center;margin-bottom:36px}
+.brandLogo{max-width:200px;max-height:110px;margin:0 auto 14px;display:block}
+.brandMark{font-family:'Oswald',sans-serif;font-weight:600;font-size:42px;letter-spacing:6px;color:#fff;line-height:1.05;text-transform:uppercase}
+.brandSub{font-weight:600;font-size:12px;letter-spacing:6px;color:var(--muted);margin-top:8px;text-transform:uppercase}
+.brandRule{width:56px;height:2px;background:var(--gold);margin:18px auto 0}
+.authCard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px 20px}
+.authTabs{display:flex;gap:8px;margin-bottom:20px}
+.authTabs button{flex:1;padding:11px;border-radius:8px;background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase}
+.authTabs button.active{background:var(--gold);border-color:var(--gold);color:#161307}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;padding:13px 14px;border-radius:8px;border:1px solid var(--line);background:#0e0e10;color:var(--text);font-size:16px}
+.field input:focus{outline:none;border-color:var(--gold-dim)}
+.row2{display:flex;gap:10px}.row2 .field{flex:1}
+.btnGold{width:100%;padding:15px;border-radius:8px;background:var(--gold);color:#161307;font-weight:800;font-size:13px;letter-spacing:2.5px;text-transform:uppercase}
+.btnGold:disabled{opacity:.5}
+.authMsg{margin-top:14px;font-size:13px;text-align:center;color:var(--danger);min-height:18px}
+.authMsg.ok{color:var(--ok)}
+
+/* ---------- APP SHELL ---------- */
+#appScreen{min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+.topBar{position:sticky;top:0;z-index:20;background:rgba(11,11,12,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:calc(14px + env(safe-area-inset-top)) 18px 14px;display:flex;align-items:center;justify-content:space-between}
+.topBrand{display:flex;align-items:center;gap:10px}
+.topBrand img{height:30px;width:auto}
+.topBrand .tbText{font-family:'Oswald',sans-serif;font-weight:600;font-size:17px;letter-spacing:4px;color:#fff;text-transform:uppercase}
+.topBrand .tbText small{display:block;font-size:8.5px;letter-spacing:3px;color:var(--gold);font-weight:600}
+.profileBtn{width:38px;height:38px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);color:var(--gold);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center}
+main{max-width:520px;margin:0 auto;padding:20px 18px}
+
+/* hero */
+.hero{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(160deg,#15161a 0%,#0a0b0e 70%);padding:30px 22px;margin-bottom:20px;position:relative}
+.hero::after{content:"";position:absolute;left:22px;bottom:22px;width:44px;height:3px;background:var(--gold)}
+.heroKicker{font-size:11px;font-weight:700;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+.heroTitle{font-family:'Oswald',sans-serif;font-size:30px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1;margin-bottom:10px}
+.heroText{font-size:13px;color:var(--muted);line-height:1.6;padding-bottom:18px}
+
+/* section + cards */
+.secTitle{font-size:12px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin:26px 0 12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:12px}
+.card h3{font-family:'Oswald',sans-serif;font-size:19px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.card .sub{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px}
+.card p{color:var(--muted);font-size:13.5px;line-height:1.6}
+.card ul{list-style:none;margin-top:10px}
+.card ul li{color:#d8d5cd;font-size:13.5px;line-height:1.5;padding:5px 0 5px 22px;position:relative}
+.card ul li::before{content:'';position:absolute;left:2px;top:12px;width:8px;height:8px;border:1.5px solid var(--gold);border-radius:2px;transform:rotate(45deg)}
+.priceRow{display:flex;align-items:baseline;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.price{font-size:22px;font-weight:800}
+.price small{font-size:13px;font-weight:500}
+.priceNote{color:var(--muted);font-size:12px}
+.notice{background:rgba(201,164,76,.12);border:1px solid var(--gold);border-radius:12px;padding:14px 16px;margin-bottom:14px;font-size:13px;line-height:1.5;color:#e8e2d2}
+.notice b{color:var(--gold)}
+.pillRow{display:flex;flex-wrap:wrap;gap:8px}
+.pill{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:12px;color:#d8d5cd;letter-spacing:.5px}
+.pathway{display:flex;align-items:center;justify-content:space-between;gap:4px;margin:6px 0 2px}
+.pathway .step{flex:1;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 4px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.pathway .step.goldStep{border-color:var(--gold);color:var(--gold)}
+.pathway .arrow{color:var(--gold);font-size:13px}
+.btnLink{display:block;width:100%;text-align:center;background:transparent;color:var(--gold);border:1.5px solid var(--gold);font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase;border-radius:10px;padding:13px;margin-top:6px;text-decoration:none}
+
+/* home */
+.homeWelcome{margin:6px 0 22px}
+.homeWelcome .hwKicker{font-size:11px;font-weight:700;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
+.homeWelcome .hwTitle{font-family:'Oswald',sans-serif;font-size:30px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;line-height:1.15}
+.homeCard{display:flex;width:100%;text-align:left;border:1px solid var(--line);border-radius:14px;padding:26px 22px;margin-bottom:14px;position:relative;color:var(--text);min-height:150px;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.homeCard::before{content:"";position:absolute;left:0;top:24px;bottom:24px;width:3px;background:var(--gold);border-radius:0 2px 2px 0;z-index:2}
+.homeCard::after{content:"›";position:absolute;right:20px;top:50%;transform:translateY(-54%);font-size:30px;font-weight:600;color:var(--gold);z-index:2}
+.homeCard>*{position:relative;z-index:2}
+.homeCard .hcKicker{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:7px}
+.homeCard .hcTitle{font-family:'Oswald',sans-serif;font-size:23px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fff;line-height:1.1}
+.homeCard .hcSub{font-size:12px;color:#c9c6be;margin-top:7px;line-height:1.5;padding-right:26px}
+.hcBadge{position:absolute;top:14px;right:16px;background:var(--danger);color:#fff;font-size:11px;font-weight:800;min-width:21px;height:21px;border-radius:999px;display:none;align-items:center;justify-content:center;padding:0 7px;z-index:3}
+
+/* chat */
+.chatWrap{display:flex;flex-direction:column;height:calc(100vh - 235px)}
+#chatMsgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px;position:relative}
+.chatBgLogo{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%);width:65%;max-width:300px;opacity:.06;pointer-events:none;z-index:0}
+.msg{max-width:84%;background:var(--panel);border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:10px 13px;position:relative;z-index:1}
+.msg.mine{align-self:flex-end;background:rgba(201,164,76,.14);border-color:var(--gold-dim);border-radius:14px 14px 4px 14px}
+.msg .who{font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin-bottom:3px}
+.msg .txt{font-size:14px;line-height:1.45;word-wrap:break-word;white-space:pre-wrap}
+.msg .time{font-size:10px;color:var(--muted);margin-top:4px;text-align:right}
+.chatInput{display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--line)}
+.chatInput input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px;color:var(--text);font-size:16px;outline:none}
+.chatInput input:focus{border-color:var(--gold-dim)}
+.chatInput button{background:var(--gold);border:none;border-radius:12px;width:50px;color:#161307;font-size:18px;font-weight:800}
+
+/* profile */
+.btnSignout{width:100%;margin-top:18px;padding:14px;border-radius:8px;background:transparent;border:1px solid var(--danger);color:var(--danger);font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase}
+.denyBox{border:1px solid var(--danger);background:rgba(224,82,82,.08);color:var(--danger);border-radius:10px;padding:14px;font-size:13px;line-height:1.55;margin-bottom:14px}
+.okBox{border:1px solid var(--ok);background:rgba(75,201,122,.08);color:var(--ok);border-radius:10px;padding:14px;font-size:13px;line-height:1.55;margin-bottom:14px}
+.loadingDots{color:var(--muted);font-size:13px;padding:10px 0}
+.emptyMsg{font-size:13px;color:var(--muted);padding:6px 0}
+
+/* bottom nav */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(13,13,14,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;padding:8px 2px calc(8px + env(safe-area-inset-bottom))}
+.navBtn{flex:1;background:transparent;color:#7d838b;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 1px;position:relative}
+.navBtn svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.navBtn span{font-size:8px;font-weight:800;letter-spacing:.6px;text-transform:uppercase}
+.navBtn.active{color:var(--gold)}
+.navBtn .nBadge{position:absolute;top:1px;right:calc(50% - 21px);background:var(--danger);color:#fff;font-size:9px;font-weight:800;min-width:15px;height:15px;border-radius:999px;display:none;align-items:center;justify-content:center;padding:0 4px}
+
+/* toast */
+#toast{position:fixed;bottom:calc(100px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#1a1b1e;border:1px solid var(--gold-dim);color:var(--text);padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:60;max-width:86%;text-align:center;transition:opacity .3s;opacity:0;pointer-events:none}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="authScreen" class="hidden">
+  <div class="brandBlock">
+    <img class="brandLogo" src="https://www.legacygym.net/cdn/shop/files/legacy_website_logo_200x.png?v=1767085643" alt="Legacy Gym" onerror="this.style.display='none'">
+    <div class="brandMark">Legacy Gym</div>
+    <div class="brandSub">Central Coast</div>
+    <div class="brandRule"></div>
+  </div>
+  <div class="authCard">
+    <div class="authTabs">
+      <button id="tabLogin" class="active" onclick="setAuthMode('login')">Log In</button>
+      <button id="tabSignup" onclick="setAuthMode('signup')">Join</button>
+    </div>
+    <form id="authForm" onsubmit="return handleAuth(event)">
+      <div id="signupFields" class="hidden">
+        <div class="row2">
+          <div class="field"><label>First Name</label><input id="suFirst" autocomplete="given-name"></div>
+          <div class="field"><label>Last Name</label><input id="suLast" autocomplete="family-name"></div>
+        </div>
+        <div class="field"><label>Phone</label><input id="suPhone" type="tel" autocomplete="tel"></div>
+        <div class="field"><label>Date of Birth</label><input id="suDob" type="date"></div>
+      </div>
+      <div class="field"><label>Email</label><input id="authEmail" type="email" autocomplete="email" required></div>
+      <div class="field"><label>Password</label><input id="authPass" type="password" autocomplete="current-password" required minlength="6"></div>
+      <button class="btnGold" id="authGo" type="submit">Log In</button>
+      <div class="authMsg" id="authMsg"></div>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen" class="hidden">
+  <div class="topBar">
+    <div class="topBrand">
+      <img src="https://www.legacygym.net/cdn/shop/files/legacy_website_logo_120x.png?v=1767085643" alt="" onerror="this.style.display='none'">
+      <div class="tbText">Legacy Gym<small>Central Coast</small></div>
+    </div>
+    <button class="profileBtn" id="profileBtn" onclick="go('profile')">–</button>
+  </div>
+  <main id="main"></main>
+  <nav id="nav"></nav>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ======== CONFIG ======== */
+const SUPABASE_URL = "https://jyslqxepodrseyhoppce.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const LOGO = "https://www.legacygym.net/cdn/shop/files/legacy_website_logo_480x.png?v=1767085643";
+const IMGS = {
+  boxing:  "https://heavyweight-app.vercel.app/images/boxing.jpg",
+  weights: "https://heavyweight-app.vercel.app/images/strength.jpg",
+  recovery:"https://heavyweight-app.vercel.app/images/recovery.jpg",
+  functional:"https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=1000&q=70&auto=format&fit=crop"
+};
+function bgStyle(id,strength){const a=strength??.45;return `background:linear-gradient(180deg,rgba(8,8,10,${a}),rgba(8,8,10,.93)),url('${IMGS[id]}') center/cover no-repeat #0a0b0e`;}
+
+let session=null, profile=null, view="home", authMode="login";
+let msgs=[], chatChannel=null, lastRead=Number(localStorage.getItem("lg_read")||0);
+
+/* ======== HELPERS ======== */
+const $=id=>document.getElementById(id);
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),3200);}
+function esc(s){return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function pad(n){return String(n).padStart(2,"0");}
+function fmtWhen(iso){const d=new Date(iso);const now=new Date();
+  const sameDay=d.toDateString()===now.toDateString();
+  const t=d.toLocaleTimeString("en-AU",{hour:"numeric",minute:"2-digit"});
+  return sameDay?t:d.toLocaleDateString("en-AU",{day:"numeric",month:"short"})+" "+t;}
+
+/* ======== AUTH (same flow as Kincumber Recovery) ======== */
+function setAuthMode(m){
+  authMode=m;
+  $("tabLogin").classList.toggle("active",m==="login");
+  $("tabSignup").classList.toggle("active",m==="signup");
+  $("signupFields").classList.toggle("hidden",m!=="signup");
+  $("authGo").textContent=m==="login"?"Log In":"Create Profile";
+  $("authMsg").textContent="";
+}
+async function handleAuth(e){
+  e.preventDefault();
+  const email=$("authEmail").value.trim(),pass=$("authPass").value;
+  const msg=$("authMsg");msg.className="authMsg";msg.textContent="";
+  $("authGo").disabled=true;
+  try{
+    if(authMode==="signup"){
+      const first=$("suFirst").value.trim(),last=$("suLast").value.trim(),phone=$("suPhone").value.trim(),dob=$("suDob").value;
+      if(!first||!last||!phone||!dob){msg.textContent="Please fill in every field to build your profile.";$("authGo").disabled=false;return false;}
+      const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{first_name:first,last_name:last,phone,dob}}});
+      if(error)throw error;
+      if(data.session){session=data.session;await ensureProfile();await enterApp();}
+      else{msg.className="authMsg ok";msg.textContent="Profile created. Check your email to confirm, then log in.";}
+    }else{
+      const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+      if(error)throw error;
+      session=data.session;await ensureProfile();await enterApp();
+    }
+  }catch(err){msg.textContent=err.message||"Something went wrong.";}
+  $("authGo").disabled=false;return false;
+}
+async function ensureProfile(){
+  const u=session.user;
+  let {data}=await sb.from("profiles").select("*").eq("id",u.id).maybeSingle();
+  if(!data){
+    const md=u.user_metadata||{};
+    const ins={id:u.id,email:u.email,first_name:md.first_name||"",last_name:md.last_name||"",phone:md.phone||"",dob:md.dob||null};
+    await sb.from("profiles").upsert(ins);
+    data=ins;
+  }
+  profile=data;
+  $("profileBtn").textContent=((profile.first_name||"?")[0]+(profile.last_name||"?")[0]).toUpperCase();
+}
+async function signOut(){
+  if(chatChannel){sb.removeChannel(chatChannel);chatChannel=null;}
+  await sb.auth.signOut();session=null;profile=null;showAuth();
+}
+function showAuth(){$("appScreen").classList.add("hidden");$("authScreen").classList.remove("hidden");}
+async function enterApp(){
+  $("authScreen").classList.add("hidden");$("appScreen").classList.remove("hidden");
+  go("home");
+  initChatFeed();
+}
+
+/* ======== NAV ======== */
+const NAV=[
+  {id:"home",label:"Home",icon:'<path d="M3 11l9-8 9 8"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>'},
+  {id:"boxing",label:"Boxing",icon:'<path d="M7 10V6a5 5 0 0 1 10 0v4"/><rect x="5" y="10" width="14" height="8" rx="4"/><path d="M9 18v3M15 18v3"/>'},
+  {id:"weights",label:"Weights",icon:'<path d="M2 12h3M19 12h3M8 12h8"/><rect x="5" y="7" width="3" height="10" rx="1"/><rect x="16" y="7" width="3" height="10" rx="1"/>'},
+  {id:"functional",label:"Functional",icon:'<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/>'},
+  {id:"recovery",label:"Recovery",icon:'<path d="M4 13c2-2 4-2 6 0s4 2 6 0 4-2 4 0"/><path d="M4 18c2-2 4-2 6 0s4 2 6 0 4-2 4 0"/><path d="M12 3v5M9 5l3 3 3-3"/>'},
+  {id:"chat",label:"Chat",icon:'<path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z"/>'}
+];
+function renderNav(){
+  $("nav").innerHTML=NAV.map(n=>`<button class="navBtn ${view===n.id?'active':''}" onclick="go('${n.id}')">
+    ${n.id==='chat'?'<span class="nBadge" id="navBadge"></span>':''}
+    <svg viewBox="0 0 24 24">${n.icon}</svg><span>${n.label}</span></button>`).join("");
+  updateBadges();
+}
+function go(v){view=v;renderNav();render();window.scrollTo(0,0);if(v==="chat")markRead();}
+
+/* ======== RENDER ======== */
+function render(){
+  if(view==="home")return renderHome();
+  if(view==="boxing")return renderBoxing();
+  if(view==="weights")return renderWeights();
+  if(view==="functional")return renderFunctional();
+  if(view==="recovery")return renderRecovery();
+  if(view==="chat")return renderChat();
+  if(view==="profile")return renderProfile();
+}
+
+/* ---- Home ---- */
+const HOME_CARDS=[
+  {id:"boxing",kicker:"Legacy Boxing Series",title:"Boxing",sub:"Fitness Club, Sparring Club & Fight Club — three tiers, one system.",img:"boxing"},
+  {id:"weights",kicker:"Members Only",title:"Weights",sub:"Swipe access. Massive weights & cardio floor.",img:"weights"},
+  {id:"functional",kicker:"Strength & Conditioning",title:"Functional Fitness",sub:"GRUNT S&C, conditioning and the functional zone.",img:"functional"},
+  {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Infrared saunas, ice baths & hot spa inside the gym.",img:"recovery"},
+  {id:"chat",kicker:"The Community",title:"Members Chat",sub:"The Legacy crew, in your pocket.",img:null}
+];
+function renderHome(){
+  const first=(profile&&profile.first_name)?profile.first_name:"";
+  $("main").innerHTML=`
+    <div class="homeWelcome">
+      <div class="hwKicker">${first?("G'day "+esc(first)):"Members Only"}</div>
+      <div class="hwTitle">Culture<br>Without Chaos.</div>
+    </div>
+    ${HOME_CARDS.map(c=>`<button class="homeCard" style="${c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
+      ${c.id==='chat'?'<span class="hcBadge" id="tileBadge"></span>':''}
+      <div class="hcKicker">${c.kicker}</div>
+      <div class="hcTitle">${c.title}</div>
+      <div class="hcSub">${c.sub}</div>
+    </button>`).join("")}`;
+  updateBadges();
+}
+
+/* ---- Boxing ---- */
+function renderBoxing(){
+  $("main").innerHTML=`
+    <div class="hero" style="${bgStyle('boxing',.55)}">
+      <div class="heroKicker">Legacy Boxing Series</div>
+      <div class="heroTitle">Three Tiers.<br>One Boxing System.</div>
+      <div class="heroText">A structured pathway for every level — from fitness-focused members through to sparring, fight camp and competitive boxing.</div>
+    </div>
+    <div class="notice"><b>Camp 3 commences Monday July 20.</b> We're currently on the school-holiday timetable.</div>
+
+    <div class="secTitle">Your Pathway</div>
+    <div class="pathway">
+      <div class="step">Fitness</div><span class="arrow">›</span>
+      <div class="step">Sparring</div><span class="arrow">›</span>
+      <div class="step goldStep">Fight Club</div><span class="arrow">›</span>
+      <div class="step">Pro-Am</div>
+    </div>
+    <p style="color:var(--muted);font-size:12.5px;margin:10px 2px 0;line-height:1.5">Start where you are. Progress when ready — even if that progression is simply fitness, confidence and skill.</p>
+
+    <div class="secTitle">The Clubs</div>
+    <div class="card"><h3>Fitness Club</h3><div class="sub">Non-contact · 10-week blocks</div>
+      <p>Structured boxing sessions focused on fitness and skill development — without contact. Join anytime.</p>
+      <ul><li>Fitness Club sessions</li><li>All communal boxing sessions (no sparring)</li><li>Strength &amp; Conditioning classes</li></ul>
+      <div class="priceRow"><span class="price">$55<small>/wk</small></span><span class="priceNote">12 mo min · $60/wk on 6 mo</span></div></div>
+    <div class="card"><h3>Sparring Club</h3><div class="sub">Controlled contact</div>
+      <p>Technical boxing with controlled sparring — learn to apply your skills under pressure. Join with experience or at coaches' discretion.</p>
+      <ul><li>Sparring + Fitness Club sessions</li><li>All communal boxing sessions</li><li>Strength &amp; Conditioning classes</li></ul>
+      <div class="priceRow"><span class="price">$65<small>/wk</small></span><span class="priceNote">12 mo min · $70/wk on 6 mo</span></div></div>
+    <div class="card"><h3>Fight Club</h3><div class="sub">10-week camp · Commencing July 20</div>
+      <p>An immersive camp elevating skill, strength and mindset — preparing you for a sanctioned bout under the lights. Strict capacity, pre-registration required.</p>
+      <ul><li>Private Fight Club sessions</li><li>Sparring, Fitness &amp; communal sessions</li><li>Strength &amp; Conditioning classes</li></ul></div>
+
+    <div class="secTitle">Communal Sessions</div>
+    <div class="card"><h3>All Club Padwork</h3><p>Fitness, Sparring and Fight Club together — technical pad and shield work, combinations, defence and counters. All levels.</p></div>
+    <div class="card"><h3>BoxR</h3><p>Fast-paced, non-contact boxing workout — skipping, shadow boxing, bag work, pads and conditioning. Strong fundamentals, flow, high output.</p></div>
+    <div class="card"><h3>All-Levels Boxing</h3><p>Fundamentals, bag work, pads, partner drills and conditioning — with morning and weekend options across the timetable.</p></div>
+    <div class="card"><h3>Junior Boxing</h3><p>Ages 10–15, all levels. Fitness, boxing skill and safe progression with multiple coaches, grouped by ability.</p></div>
+    <div class="card"><h3>Pro-Am Fighters</h3><p>Private training for professional boxers and experienced amateurs — by invitation, developed through Fight Club or Sparring Club.</p></div>
+
+    <div class="secTitle">Sessions</div>
+    <div class="card"><h3>Club-Focused</h3><div class="sub">Mon &amp; Wed PM</div><p>Main stream-based sessions for Fitness, Sparring and Fight Club — train within your registered pathway.</p></div>
+    <div class="card"><h3>Communal</h3><div class="sub">AM + Tue, Thu, Fri &amp; Sat</div><p>All-levels boxing, padwork, conditioning and S&amp;C to complement your club training.</p></div>
+    <a class="btnLink" href="https://cdn.shopify.com/s/files/1/0016/0966/2576/files/TIMETABLE_-_FROM_28th_April.png?v=1776828044" target="_blank">View Full Timetable</a>`;
+}
+
+/* ---- Weights ---- */
+function renderWeights(){
+  $("main").innerHTML=`
+    <div class="hero" style="${bgStyle('weights',.55)}">
+      <div class="heroKicker">Members Only</div>
+      <div class="heroTitle">The Gym Floor</div>
+      <div class="heroText">Members-only weights &amp; cardio, for people who care about their training environment.</div>
+    </div>
+    <div class="secTitle">What You Get</div>
+    <div class="pillRow">
+      <span class="pill">Swipe Access</span><span class="pill">Huge Weights Floor</span><span class="pill">Cardio Zone</span>
+      <span class="pill">Functional Space</span><span class="pill">Boxing Bags</span><span class="pill">Members Only · 18+</span><span class="pill">No Tripods</span>
+    </div>
+    <div class="secTitle">Memberships</div>
+    <div class="card"><h3>12 Month Membership</h3><div class="sub">Most popular</div>
+      <p>Full swipe-access with the complete weights, cardio &amp; functional training facility.</p>
+      <div class="priceRow"><span class="price">$24.99<small>/wk</small></span><span class="priceNote">12 month minimum</span></div></div>
+    <div class="card"><h3>6 Month Membership</h3>
+      <p>Same full access, shorter commitment.</p>
+      <div class="priceRow"><span class="price">$29.99<small>/wk</small></span><span class="priceNote">6 month minimum</span></div></div>
+    <div class="card"><h3>Intro To Legacy</h3><div class="sub">4 weeks only</div>
+      <p>Experience everything Legacy has to offer — all boxing classes, all S&amp;C, swipe access and communal recovery — then pick your membership or cancel.</p>
+      <div class="priceRow"><span class="price">$49.99<small>/wk</small></span><span class="priceNote">4 weeks</span></div></div>
+    <div class="secTitle">Staffed Hours</div>
+    <div class="card">
+      <ul style="margin-top:0"><li>Mon – Thu: 5:15am – 7:45am</li><li>Mon – Fri: 4:00pm – 7:00pm</li><li>Saturday: 8:00am – 11:00am</li></ul>
+      <p style="margin-top:10px">New here? Free trials welcome — pop into reception during staffed hours and we'll show you through.</p>
+    </div>`;
+}
+
+/* ---- Functional ---- */
+function renderFunctional(){
+  $("main").innerHTML=`
+    <div class="hero" style="${bgStyle('functional',.5)}">
+      <div class="heroKicker">Strength &amp; Conditioning</div>
+      <div class="heroTitle">Functional Fitness</div>
+      <div class="heroText">Strength &amp; conditioning built to complement your training — barbells, kettlebells and open floor.</div>
+    </div>
+    <div class="secTitle">Signature Session</div>
+    <div class="card"><h3>GRUNT S&amp;C</h3><div class="sub">Open to all levels &amp; clubs</div>
+      <p>Strength &amp; conditioning using barbells, dumbbells, kettlebells, cardio machines and more. Challenging, functional and designed to complement your boxing.</p></div>
+    <div class="secTitle">The Space</div>
+    <div class="card"><h3>Functional Training Zone</h3>
+      <p>A dedicated functional space on the gym floor — squat racks, free weights, kettlebells and open floor for conditioning work, included with every gym membership.</p>
+      <div class="pillRow" style="margin-top:12px"><span class="pill">Squat Racks</span><span class="pill">Barbells</span><span class="pill">Dumbbells</span><span class="pill">Kettlebells</span><span class="pill">Cardio Machines</span><span class="pill">Open Floor</span></div></div>
+    <div class="secTitle">Conditioning Sessions</div>
+    <div class="card"><h3>BoxR</h3><p>Fast-paced, non-contact boxing conditioning — skipping, shadow work, bags, pads and engine-building. High output, all levels.</p></div>
+    <div class="card"><h3>S&amp;C Classes</h3><p>Included across boxing memberships and Intro To Legacy — structured strength work programmed around the boxing week.</p></div>`;
+}
+
+/* ---- Recovery ---- */
+function renderRecovery(){
+  $("main").innerHTML=`
+    <div class="hero" style="${bgStyle('recovery',.55)}">
+      <div class="heroKicker">Recover Better</div>
+      <div class="heroTitle">Legacy Recovery</div>
+      <div class="heroText">Hot &amp; cold water therapy + infrared saunas inside Legacy Gym.</div>
+    </div>
+    <div class="notice">Support circulation, reduce soreness, improve relaxation and give your body time to reset. <b>First-time visitors get one complimentary trial session.</b></div>
+    <div class="secTitle">Memberships</div>
+    <div class="card"><h3>Gold Recovery</h3><div class="sub">Full recovery access</div>
+      <ul style="margin-top:6px"><li>Private infrared sauna</li><li>Communal infrared sauna</li><li>Hot &amp; cold water therapy</li><li>Extended access hours · Cancel anytime</li></ul>
+      <div class="priceRow"><span class="price">$45<small>/wk</small></span><span class="priceNote">Unlimited weekly use</span></div></div>
+    <div class="card"><h3>Silver Recovery</h3><div class="sub">Communal sauna + water</div>
+      <ul style="margin-top:6px"><li>Communal infrared sauna</li><li>Hot &amp; cold water therapy</li><li>Extended access hours · Cancel anytime</li></ul>
+      <div class="priceRow"><span class="price">$38<small>/wk</small></span><span class="priceNote">Unlimited weekly use</span></div></div>
+    <div class="card"><h3>Water Therapy</h3><div class="sub">Hot &amp; cold access</div>
+      <ul style="margin-top:6px"><li>Ice baths</li><li>Hot spa</li><li>Extended access hours · Cancel anytime</li></ul>
+      <div class="priceRow"><span class="price">$25<small>/wk</small></span><span class="priceNote">Unlimited weekly use</span></div></div>
+    <div class="secTitle">Access Hours</div>
+    <div class="card">
+      <ul style="margin-top:0"><li>Weekdays: 4:30am – 9:00pm</li><li>Weekends: 4:30am – 5:30pm</li></ul>
+      <p style="margin-top:10px">Intro session required before extended access. You don't need a gym membership to join Recovery — they run separately.</p>
+      <p style="margin-top:8px">Book your first session at reception <b style="color:var(--gold)">4–7pm Mon–Thu</b> or call <b style="color:var(--gold)">0401 587 508</b>.</p>
+    </div>
+    <a class="btnLink" href="https://kincumber-recovery.vercel.app" target="_blank">Open The Recovery App</a>`;
+}
+
+/* ---- Members Chat (live via Supabase) ---- */
+async function initChatFeed(){
+  const {data}=await sb.from("legacy_messages").select("*").order("created_at",{ascending:true}).limit(200);
+  msgs=data||[];
+  updateBadges();
+  if(chatChannel)sb.removeChannel(chatChannel);
+  chatChannel=sb.channel("legacy-chat")
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"legacy_messages"},payload=>{
+      msgs.push(payload.new);
+      if(view==="chat"){appendMsg(payload.new);markRead();}
+      else updateBadges();
+    })
+    .subscribe();
+}
+function msgHtml(m){
+  const mine=session&&m.user_id===session.user.id;
+  return `<div class="msg${mine?' mine':''}"><div class="who">${esc(m.name)}</div><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`;
+}
+function renderChat(){
+  $("main").innerHTML=`
+    <img class="chatBgLogo" src="${LOGO}" alt="">
+    <div class="chatWrap">
+      <div id="chatMsgs">${msgs.length?msgs.map(msgHtml).join(""):'<div class="emptyMsg" style="text-align:center;margin-top:30px">No messages yet — start the conversation.</div>'}</div>
+      <div class="chatInput">
+        <input id="msgInput" placeholder="Message the members…" maxlength="1000" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button onclick="sendMsg()">➤</button>
+      </div>
+    </div>`;
+  const box=$("chatMsgs");box.scrollTop=box.scrollHeight;
+  markRead();
+}
+function appendMsg(m){
+  const box=$("chatMsgs");if(!box)return;
+  box.insertAdjacentHTML("beforeend",msgHtml(m));
+  box.scrollTop=box.scrollHeight;
+}
+async function sendMsg(){
+  const el=$("msgInput");const v=el.value.trim();
+  if(!v)return;
+  el.value="";
+  const name=((profile.first_name||"")+" "+(profile.last_name||"")).trim()||"Member";
+  const {error}=await sb.from("legacy_messages").insert({user_id:session.user.id,name,body:v});
+  if(error){toast(error.message);el.value=v;}
+}
+function unreadCount(){
+  if(!session)return 0;
+  return msgs.filter(m=>new Date(m.created_at).getTime()>lastRead&&m.user_id!==session.user.id).length;
+}
+function markRead(){lastRead=Date.now();localStorage.setItem("lg_read",String(lastRead));updateBadges();}
+function updateBadges(){
+  const n=unreadCount();
+  ["navBadge","tileBadge"].forEach(id=>{
+    const b=$(id);if(!b)return;
+    b.style.display=n>0?"flex":"none";b.textContent=n>99?"99+":n;
+  });
+  if(navigator.setAppBadge){n>0?navigator.setAppBadge(n).catch(()=>{}):navigator.clearAppBadge&&navigator.clearAppBadge().catch(()=>{});}
+}
+
+/* ---- Profile ---- */
+function renderProfile(){
+  const p=profile||{};
+  $("main").innerHTML=`
+    <div class="hero"><div class="heroKicker">Member Profile</div><div class="heroTitle">${esc((p.first_name||"")+" "+(p.last_name||""))}</div>
+    <div class="heroText">Your Legacy Gym member profile.</div></div>
+    <div class="card">
+      <div id="pfMsg"></div>
+      <form onsubmit="return saveProfile(event)">
+        <div class="row2">
+          <div class="field"><label>First Name</label><input id="pfFirst" value="${esc(p.first_name||"")}" required></div>
+          <div class="field"><label>Last Name</label><input id="pfLast" value="${esc(p.last_name||"")}" required></div>
+        </div>
+        <div class="field"><label>Email</label><input value="${esc(p.email||"")}" disabled></div>
+        <div class="field"><label>Phone</label><input id="pfPhone" type="tel" value="${esc(p.phone||"")}" required></div>
+        <div class="field"><label>Date of Birth</label><input id="pfDob" type="date" value="${p.dob||""}" required></div>
+        <button class="btnGold" type="submit">Save Profile</button>
+      </form>
+      <button class="btnSignout" onclick="signOut()">Sign Out</button>
+    </div>`;
+}
+async function saveProfile(e){
+  e.preventDefault();
+  const upd={first_name:$("pfFirst").value.trim(),last_name:$("pfLast").value.trim(),phone:$("pfPhone").value.trim(),dob:$("pfDob").value};
+  const {error}=await sb.from("profiles").update(upd).eq("id",session.user.id);
+  if(error)$("pfMsg").innerHTML=`<div class="denyBox">${esc(error.message)}</div>`;
+  else{profile={...profile,...upd};$("profileBtn").textContent=(upd.first_name[0]+upd.last_name[0]).toUpperCase();$("pfMsg").innerHTML=`<div class="okBox">Profile saved.</div>`;}
+  return false;
+}
+
+/* ======== BOOT ======== */
+(async function(){
+  const {data}=await sb.auth.getSession();
+  if(data&&data.session){session=data.session;await ensureProfile();await enterApp();}
+  else showAuth();
+  sb.auth.onAuthStateChange((_e,s)=>{if(!s&&session){session=null;showAuth();}});
+})();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>

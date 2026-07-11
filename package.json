@@ -1,0 +1,11 @@
+{
+  "name": "legacy-gym",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node make-icons.mjs"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
+}
