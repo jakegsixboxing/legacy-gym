@@ -339,6 +339,7 @@ function render(){
   if(view==="functional")return renderFunctional();
   if(view==="recovery")return renderRecovery();
   if(view==="timetable")return renderTimetable();
+  if(view==="pt")return renderPT();
   if(view==="staff")return renderStaff();
   if(view==="chat")return renderChat();
   if(view==="profile")return renderProfile();
@@ -351,6 +352,7 @@ const HOME_CARDS=[
   {id:"functional",kicker:"GRUNT Territory",title:"Functional Fitness",sub:"50 WODs, 20 S&C sessions, timers built in.",img:"functional"},
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
   {id:"timetable",kicker:"This Week",title:"Timetable",sub:"Every session, all in one place.",img:null},
+  {id:"pt",kicker:"1-On-1 Coaching",title:"Book A PT",sub:"Train one-on-one with the Legacy coaches.",img:"boxing"},
   {id:"chat",kicker:"The Community",title:"Members Chat",sub:"The Legacy crew, in your pocket.",img:null}
 ];
 function renderHome(){
@@ -1235,6 +1237,69 @@ async function unattendClass(date,time){
   renderTimetable();
 }
 
+/* ---- Book A PT ---- */
+const PT_TRAINERS=[
+{id:"jake",n:"Jake",tag:"Head Coach · Former Pro Boxer",ig:"https://www.instagram.com/jakegsixboxing/",igh:"@jake_legacygym",
+ bio:"Former amateur and professional boxer who won his final pro bout at 35 before hanging up the gloves to coach full-time. Over ten years of coaching — seven as Head Coach — guiding fighters to Australian, NSW and Australasian amateur titles, plus pro belts including WBC Asian Gold and WBO Asia Pacific. He's trained alongside British, Russian and American coaches from Thailand to Las Vegas, and brings all of it to everyday members as much as title fighters."},
+{id:"sarsha",n:"Sarsha",tag:"Professional Boxer · PT",ig:"https://www.instagram.com/sarsha_m/",igh:"@sarsha_mc",
+ bio:"Current professional boxer, world-ranked, and holder of WBC Asian Gold and WBO Asia Pacific titles. Boxing since 15 and coaching since 18, she'd developed two amateur Australian champions of her own by 23. Fresh off training camps across the USA and Asia with some of the sport's best, Sarsha helps members of every level build fitness, confidence and real boxing skill."},
+{id:"joe",n:"Joe",tag:"Head Coach · Amateur Boxing",ig:"https://www.instagram.com/joewilliams2185/",igh:"@joewilliams2185",
+ bio:"Former amateur boxer with over ten years of coaching, around seven as one of the Head Coaches. Joe has developed multiple Australian amateur champions and a long list of state and national level fighters, with pro cornering experience on top. His style breaks boxing down into simple, relatable, enjoyable concepts — whether you're here for fitness, sparring or the competitive pathway."},
+{id:"alison",n:"Alison",tag:"Coach · Gym Operations",ig:"https://www.instagram.com/aligsixboxing_cc/",igh:"@ali_legacygym",
+ bio:"Former state-level amateur boxer who's grown into a key part of the coaching team and the engine room of the gym itself. Extensive corner experience through the amateur ranks, assistant coaching with professionals across Australia and the Asia-Pacific, and works with everyone from complete beginners to pro fighters."}
+];
+let myPtReqs=[];
+async function renderPT(){
+  $("main").innerHTML=`<div class="loadingDots">Loading the coaches…</div>`;
+  const {data}=await sb.from("pt_requests").select("*").eq("user_id",session.user.id).order("created_at",{ascending:false}).limit(10);
+  myPtReqs=data||[];
+  if(view!=="pt")return;
+  $("main").innerHTML=`
+    <div class="hero" style="${bgStyle('boxing',.55)}">
+      <div class="heroKicker">1-On-1 Coaching</div>
+      <div class="heroTitle">Book A PT</div>
+      <div class="heroText">Train one-on-one with the Legacy coaching team — boxing, fitness, strength &amp; conditioning and fight preparation.</div>
+    </div>
+    ${PT_TRAINERS.map(t=>`<div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div class="bpPhoto bpPhotoEmpty" style="width:56px;height:56px;font-size:20px">${t.n[0]}</div>
+        <div><h3 style="margin-bottom:2px">${t.n}</h3><div class="sub" style="margin-bottom:0">${t.tag}</div></div>
+      </div>
+      <p>${t.bio}</p>
+      <p style="margin-top:8px"><a href="${t.ig}" target="_blank" style="color:var(--gold);text-decoration:none;font-weight:700">${t.igh} ↗</a></p>
+      <button class="btnGold" style="margin-top:12px" onclick="openPtForm('${t.id}')">Request A Session With ${t.n}</button>
+      <div id="ptForm-${t.id}" class="hidden" style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px">
+        <div class="row2">
+          <div class="field"><label>Session Length</label><select id="ptLen-${t.id}"><option value="30 min">30 min</option><option value="45 min" selected>45 min</option><option value="60 min">60 min</option></select></div>
+          <div class="field"><label>Preferred Days / Times</label><input id="ptWhen-${t.id}" placeholder="e.g. Tue or Thu, after 5pm"></div>
+        </div>
+        <div class="field"><label>Anything ${t.n} Should Know? (optional)</label><input id="ptNote-${t.id}" placeholder="Goals, experience, injuries…"></div>
+        <button class="btnGold" onclick="sendPtRequest('${t.id}')">Send Request</button>
+      </div>
+    </div>`).join("")}
+    <div class="notice">Send a request and your coach will get back to you to lock in a time. Payment stays exactly as it works now — sorted directly with your trainer.</div>
+    ${myPtReqs.length?`<div class="secTitle">Your Requests</div><div class="card">${myPtReqs.map(r=>`
+      <div class="sessItem"><div><b>${esc(r.trainer)} · ${esc(r.duration)}</b><small>${esc(r.preferred)||"Any time"} · sent ${fmtWhen(r.created_at)}</small></div>
+      <button class="xBtn" onclick="cancelPtRequest('${r.id}')">×</button></div>`).join("")}</div>`:""}`;
+}
+function openPtForm(id){
+  PT_TRAINERS.forEach(t=>{const f=$("ptForm-"+t.id);if(f)f.classList.toggle("hidden",t.id!==id);});
+}
+async function sendPtRequest(id){
+  const t=PT_TRAINERS.find(x=>x.id===id);
+  const me=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";
+  const rec={user_id:session.user.id,member_name:me,trainer:t.n,duration:$("ptLen-"+id).value,preferred:$("ptWhen-"+id).value.trim(),note:$("ptNote-"+id).value.trim()};
+  const {error}=await sb.from("pt_requests").insert(rec);
+  if(error){toast(error.message);return;}
+  toast("Request sent — "+t.n+" will get back to you.");
+  renderPT();
+}
+async function cancelPtRequest(id){
+  const {error}=await sb.from("pt_requests").delete().eq("id",id).eq("user_id",session.user.id);
+  toast(error?error.message:"Request cancelled.");
+  renderPT();
+}
+
 /* ---- Staff Room (staff only, RLS enforced) ---- */
 let staffSub="chat";
 let staffData={loaded:false,staff:[],tasks:[],comms:[],msgs:[]};
@@ -1242,13 +1307,14 @@ let staffChannel=null;
 function isoDateLocal(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
 function staffName(s){return ((s.first_name||"")+" "+(s.last_name||"")).trim()||s.email;}
 async function loadStaffData(){
-  const [st,tk,cm,ms]=await Promise.all([
+  const [st,tk,cm,ms,pr]=await Promise.all([
     sb.from("profiles").select("id,first_name,last_name,email,is_staff,is_manager").eq("is_staff",true),
     sb.from("staff_tasks").select("*").order("created_at",{ascending:false}).limit(300),
     sb.from("pt_commissions").select("*").order("session_date",{ascending:false}).order("created_at",{ascending:false}).limit(300),
-    sb.from("staff_messages").select("*").order("created_at",{ascending:true}).limit(200)
+    sb.from("staff_messages").select("*").order("created_at",{ascending:true}).limit(200),
+    sb.from("pt_requests").select("*").order("created_at",{ascending:false}).limit(100)
   ]);
-  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[]};
+  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[],ptreqs:pr.data||[]};
   if(!staffChannel){
     staffChannel=sb.channel("staff-chat")
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"staff_messages"},pl=>{
@@ -1291,6 +1357,12 @@ function renderStaffChat(){
         <button onclick="sendStaffMsg()">➤</button>
       </div>
     </div>
+    ${(staffData.ptreqs||[]).length?`<div class="secTitle">Incoming PT Requests</div>
+    <div class="card">${staffData.ptreqs.map(r=>`<div class="sessItem">
+      <div style="min-width:0"><b>${esc(r.member_name)} → ${esc(r.trainer)}</b>
+        <small>${esc(r.duration)} · ${esc(r.preferred)||"any time"}${r.note?" · "+esc(r.note):""} · ${fmtWhen(r.created_at)}</small></div>
+      <button class="xBtn" style="border-color:var(--ok);color:var(--ok)" title="Mark handled" onclick="handlePtRequest('${r.id}')">✓</button>
+    </div>`).join("")}</div>`:""}
     ${mgr?`<div class="secTitle">Manager — Staff Access</div>
     <div class="card">
       <p style="margin-bottom:12px">Grant a team member access once they've created their normal member login. Their tab appears automatically.</p>
@@ -1306,6 +1378,11 @@ async function sendStaffMsg(){
   const name=((profile.first_name||"")+" "+(profile.last_name||"")).trim()||"Staff";
   const {error}=await sb.from("staff_messages").insert({user_id:session.user.id,name,body:v});
   if(error){toast(error.message);el.value=v;}
+}
+async function handlePtRequest(id){
+  const {error}=await sb.from("pt_requests").delete().eq("id",id);
+  toast(error?error.message:"Marked as handled.");
+  renderStaff();
 }
 async function grantStaff(){
   const em=$("gaEmail").value.trim();if(!em){toast("Put their email in.");return;}
