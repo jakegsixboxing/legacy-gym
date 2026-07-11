@@ -90,6 +90,29 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .pathway .arrow{color:var(--gold);font-size:13px}
 .btnLink{display:block;width:100%;text-align:center;background:transparent;color:var(--gold);border:1.5px solid var(--gold);font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase;border-radius:10px;padding:13px;margin-top:6px;text-decoration:none}
 
+/* boxing sub-tabs + sparring hub */
+.subTabs{display:flex;gap:8px;margin-bottom:18px}
+.subTabs button{flex:1;padding:11px 4px;border-radius:8px;background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
+.subTabs button.active{background:var(--gold);border-color:var(--gold);color:#161307}
+.field select{width:100%;padding:13px 14px;border-radius:8px;border:1px solid var(--line);background:#0e0e10;color:var(--text);font-size:16px}
+.bpPhoto{width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex-shrink:0}
+.bpPhotoEmpty{display:flex;align-items:center;justify-content:center;background:var(--panel2);color:var(--gold);font-size:30px;font-weight:800}
+.statGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.statBox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 6px;text-align:center}
+.statBox .sv{font-size:23px;font-weight:800;color:var(--gold)}
+.statBox .sl{font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.weekRow{display:flex;justify-content:space-between;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.weekRow:last-child{border-bottom:none}
+.sessItem{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.sessItem:last-child{border-bottom:none}
+.sessItem small{display:block;color:var(--muted);font-size:11.5px;margin-top:3px;font-weight:400}
+.xBtn{background:transparent;border:1px solid var(--line);color:var(--muted);width:30px;height:30px;border-radius:8px;font-size:15px;flex-shrink:0}
+.noteMsg{background:var(--panel2);border:1px solid var(--line);border-radius:12px 12px 12px 4px;padding:10px 13px;margin-bottom:10px}
+.noteMsg.coach{background:rgba(201,164,76,.12);border-color:var(--gold-dim);border-radius:12px 12px 4px 12px}
+.noteMsg .who{font-size:10.5px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin-bottom:3px;text-transform:uppercase}
+.noteMsg .txt{font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+.noteMsg .time{font-size:10px;color:var(--muted);margin-top:4px;text-align:right}
+
 /* home */
 .homeWelcome{margin:6px 0 22px}
 .homeWelcome .hwKicker{font-size:11px;font-weight:700;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
@@ -191,6 +214,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const LOGO = "https://www.legacygym.net/cdn/shop/files/legacy_website_logo_480x.png?v=1767085643";
+const TIMETABLE_IMG = "https://cdn.shopify.com/s/files/1/0016/0966/2576/files/TIMETABLE_-_FROM_28th_April.png?v=1776828044";
 const IMGS = {
   boxing:  "https://heavyweight-app.vercel.app/images/boxing.jpg",
   weights: "https://heavyweight-app.vercel.app/images/strength.jpg",
@@ -317,26 +341,37 @@ function renderHome(){
   updateBadges();
 }
 
-/* ---- Boxing ---- */
+/* ---- Boxing (sub-tabs: Classes / Fitness Club / Sparring Club) ---- */
+let boxSub="classes";
+let boxData={loaded:false,profile:null,sessions:[],notes:[],fights:[],noms:[],allNotes:[]};
+let bpEditing=false,bpPhotoUrl=null;
+
 function renderBoxing(){
   $("main").innerHTML=`
     <div class="hero" style="${bgStyle('boxing',.55)}">
       <div class="heroKicker">Legacy Boxing Series</div>
-      <div class="heroTitle">Three Tiers.<br>One Boxing System.</div>
-      <div class="heroText">A structured pathway for every level — from fitness-focused members through to sparring, fight camp and competitive boxing.</div>
+      <div class="heroTitle">Boxing</div>
+      <div class="heroText">Your classes, your sparring hub, your pathway.</div>
     </div>
+    <div class="subTabs">
+      <button class="${boxSub==='classes'?'active':''}" onclick="setBoxSub('classes')">Classes</button>
+      <button class="${boxSub==='fitness'?'active':''}" onclick="setBoxSub('fitness')">Fitness Club</button>
+      <button class="${boxSub==='sparring'?'active':''}" onclick="setBoxSub('sparring')">Sparring Club</button>
+    </div>
+    <div id="boxContent"></div>`;
+  renderBoxSub();
+}
+function setBoxSub(s){boxSub=s;bpEditing=false;renderBoxing();}
+function renderBoxSub(){
+  if(boxSub==="classes")renderBoxClasses();
+  else if(boxSub==="fitness")renderBoxFitness();
+  else renderSparringClub();
+}
+
+function renderBoxClasses(){
+  $("boxContent").innerHTML=`
     <div class="notice"><b>Camp 3 commences Monday July 20.</b> We're currently on the school-holiday timetable.</div>
-
-    <div class="secTitle">Your Pathway</div>
-    <div class="pathway">
-      <div class="step">Fitness</div><span class="arrow">›</span>
-      <div class="step">Sparring</div><span class="arrow">›</span>
-      <div class="step goldStep">Fight Club</div><span class="arrow">›</span>
-      <div class="step">Pro-Am</div>
-    </div>
-    <p style="color:var(--muted);font-size:12.5px;margin:10px 2px 0;line-height:1.5">Start where you are. Progress when ready — even if that progression is simply fitness, confidence and skill.</p>
-
-    <div class="secTitle">The Clubs</div>
+    <div class="secTitle">The Classes</div>
     <div class="card"><h3>Fitness Club</h3><div class="sub">Non-contact · 10-week blocks</div>
       <p>Structured boxing sessions focused on fitness and skill development — without contact. Join anytime.</p>
       <ul><li>Fitness Club sessions</li><li>All communal boxing sessions (no sparring)</li><li>Strength &amp; Conditioning classes</li></ul>
@@ -345,21 +380,289 @@ function renderBoxing(){
       <p>Technical boxing with controlled sparring — learn to apply your skills under pressure. Join with experience or at coaches' discretion.</p>
       <ul><li>Sparring + Fitness Club sessions</li><li>All communal boxing sessions</li><li>Strength &amp; Conditioning classes</li></ul>
       <div class="priceRow"><span class="price">$65<small>/wk</small></span><span class="priceNote">12 mo min · $70/wk on 6 mo</span></div></div>
-    <div class="card"><h3>Fight Club</h3><div class="sub">10-week camp · Commencing July 20</div>
-      <p>An immersive camp elevating skill, strength and mindset — preparing you for a sanctioned bout under the lights. Strict capacity, pre-registration required.</p>
-      <ul><li>Private Fight Club sessions</li><li>Sparring, Fitness &amp; communal sessions</li><li>Strength &amp; Conditioning classes</li></ul></div>
+    <div class="card"><h3>Junior Boxing</h3><div class="sub">Ages 10–15 · All levels</div>
+      <p>Fitness, boxing skill and safe progression, with multiple coaches each session and juniors grouped by skill and ability.</p></div>
+    <div class="secTitle">Session Times</div>
+    <div class="card"><h3>Club-Focused</h3><div class="sub">Mon &amp; Wed PM</div><p>Main stream-based sessions for Fitness and Sparring Club — train within your registered pathway.</p></div>
+    <div class="card"><h3>Communal</h3><div class="sub">AM + Tue, Thu, Fri &amp; Sat</div><p>All-levels boxing, padwork and conditioning to complement your club training.</p></div>
+    <div class="secTitle">The Timetable</div>
+    <a href="${TIMETABLE_IMG}" target="_blank"><img src="${TIMETABLE_IMG}" alt="Legacy Boxing Timetable" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block"></a>
+    <p style="color:var(--muted);font-size:12px;margin-top:8px;text-align:center">Tap the timetable to open it full size.</p>`;
+}
 
-    <div class="secTitle">Communal Sessions</div>
-    <div class="card"><h3>All Club Padwork</h3><p>Fitness, Sparring and Fight Club together — technical pad and shield work, combinations, defence and counters. All levels.</p></div>
-    <div class="card"><h3>BoxR</h3><p>Fast-paced, non-contact boxing workout — skipping, shadow boxing, bag work, pads and conditioning. Strong fundamentals, flow, high output.</p></div>
-    <div class="card"><h3>All-Levels Boxing</h3><p>Fundamentals, bag work, pads, partner drills and conditioning — with morning and weekend options across the timetable.</p></div>
-    <div class="card"><h3>Junior Boxing</h3><p>Ages 10–15, all levels. Fitness, boxing skill and safe progression with multiple coaches, grouped by ability.</p></div>
-    <div class="card"><h3>Pro-Am Fighters</h3><p>Private training for professional boxers and experienced amateurs — by invitation, developed through Fight Club or Sparring Club.</p></div>
+function renderBoxFitness(){
+  $("boxContent").innerHTML=`
+    <div class="card"><h3>Fitness Club</h3><div class="sub">Non-contact · 10-week blocks</div>
+      <p>Structured boxing sessions focused on fitness and skill development — without contact.</p>
+      <p style="margin-top:10px">The full Fitness Club hub is being built out now — watch this space.</p></div>`;
+}
 
-    <div class="secTitle">Sessions</div>
-    <div class="card"><h3>Club-Focused</h3><div class="sub">Mon &amp; Wed PM</div><p>Main stream-based sessions for Fitness, Sparring and Fight Club — train within your registered pathway.</p></div>
-    <div class="card"><h3>Communal</h3><div class="sub">AM + Tue, Thu, Fri &amp; Sat</div><p>All-levels boxing, padwork, conditioning and S&amp;C to complement your club training.</p></div>
-    <a class="btnLink" href="https://cdn.shopify.com/s/files/1/0016/0966/2576/files/TIMETABLE_-_FROM_28th_April.png?v=1776828044" target="_blank">View Full Timetable</a>`;
+/* ---- Sparring Club hub ---- */
+async function loadSparringData(){
+  const uid=session.user.id;
+  const isC=profile&&profile.is_coach;
+  const [bp,ss,nt,fn,nm,an]=await Promise.all([
+    sb.from("boxer_profiles").select("*").eq("user_id",uid).maybeSingle(),
+    sb.from("sparring_sessions").select("*").eq("user_id",uid).order("session_date",{ascending:false}).order("created_at",{ascending:false}).limit(500),
+    sb.from("sparring_notes").select("*").eq("member_id",uid).order("created_at",{ascending:true}),
+    sb.from("fight_nights").select("*").order("event_date",{ascending:true}),
+    sb.from("fight_nominations").select("*"),
+    isC?sb.from("sparring_notes").select("*").order("created_at",{ascending:true}).limit(500):Promise.resolve({data:[]})
+  ]);
+  boxData={loaded:true,profile:bp.data||null,sessions:ss.data||[],notes:nt.data||[],fights:fn.data||[],noms:nm.data||[],allNotes:an.data||[]};
+}
+async function renderSparringClub(){
+  $("boxContent").innerHTML=`<div class="loadingDots">Loading your sparring hub…</div>`;
+  await loadSparringData();
+  if(view!=="boxing"||boxSub!=="sparring")return;
+  const c=$("boxContent");if(!c)return;
+  const bp=boxData.profile;
+  let html="";
+  if(bpEditing)html+=bpFormHtml(bp||{});
+  else if(!bp)html+=`<div class="card" style="text-align:center">
+      <h3>Build Your Boxer Profile</h3>
+      <p style="margin-top:6px">Set up your profile — photo, weights, record — then bank your sparring rounds week by week.</p>
+      <button class="btnGold" style="margin-top:14px" onclick="startBpEdit()">Build My Profile</button></div>`;
+  else html+=boxerCardHtml(bp);
+  if(bp&&!bpEditing)html+=sparringStatsHtml()+logFormHtml()+historyHtml()+notesHtml();
+  html+=fightsHtml();
+  if(profile&&profile.is_coach)html+=coachHtml();
+  c.innerHTML=html;
+}
+function startBpEdit(){bpEditing=true;bpPhotoUrl=(boxData.profile&&boxData.profile.photo_url)||null;renderSparringClub();}
+
+function bpFormHtml(bp){
+  const ph=bpPhotoUrl||bp.photo_url||"";
+  const defName=bp.name||(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim();
+  return `<div class="card">
+    <h3>${bp.user_id?"Edit":"Build"} Boxer Profile</h3>
+    <div style="display:flex;align-items:center;gap:14px;margin:14px 0">
+      <img id="bpPhotoPreview" class="bpPhoto" src="${esc(ph)}" style="${ph?"":"display:none"}" alt="">
+      <div style="flex:1">
+        <input type="file" id="bpFile" accept="image/*" style="display:none" onchange="uploadBoxerPhoto(event)">
+        <button class="btnLink" style="margin:0" onclick="$('bpFile').click()">${ph?"Change Photo":"Upload Your Photo"}</button>
+      </div>
+    </div>
+    <div class="field"><label>Name</label><input id="bpName" value="${esc(defName)}"></div>
+    <div class="row2">
+      <div class="field"><label>Age</label><input id="bpAge" type="number" inputmode="numeric" value="${bp.age??""}"></div>
+      <div class="field"><label>Current Weight (kg)</label><input id="bpCw" type="number" step="0.1" inputmode="decimal" value="${bp.current_weight??""}"></div>
+    </div>
+    <div class="field"><label>Fight Weight (kg)</label><input id="bpFw" type="number" step="0.1" inputmode="decimal" value="${bp.fight_weight??""}"></div>
+    <label style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Record — Wins / Losses / Draws</label>
+    <div class="row2">
+      <div class="field"><input id="bpW" type="number" inputmode="numeric" value="${bp.wins??0}"></div>
+      <div class="field"><input id="bpL" type="number" inputmode="numeric" value="${bp.losses??0}"></div>
+      <div class="field"><input id="bpD" type="number" inputmode="numeric" value="${bp.draws??0}"></div>
+    </div>
+    <button class="btnGold" onclick="saveBoxerProfile()">Save Profile</button>
+    ${bp.user_id?`<button class="btnLink" style="margin-top:10px" onclick="bpEditing=false;renderSparringClub()">Cancel</button>`:""}
+  </div>`;
+}
+function boxerCardHtml(bp){
+  const rec=`${bp.wins||0}–${bp.losses||0}–${bp.draws||0}`;
+  return `<div class="card">
+    <div style="display:flex;gap:16px;align-items:center">
+      ${bp.photo_url?`<img class="bpPhoto" src="${esc(bp.photo_url)}" alt="">`:`<div class="bpPhoto bpPhotoEmpty">${esc((bp.name||"?").trim()[0]||"?")}</div>`}
+      <div style="flex:1;min-width:0">
+        <h3 style="margin-bottom:2px">${esc(bp.name)}</h3>
+        <div class="sub" style="margin-bottom:0">Record ${rec}</div>
+      </div>
+      <button class="btnLink" style="width:auto;padding:9px 14px;margin:0" onclick="startBpEdit()">Edit</button>
+    </div>
+    <div class="statGrid" style="margin-top:16px;margin-bottom:0">
+      <div class="statBox"><div class="sv">${bp.age??"–"}</div><div class="sl">Age</div></div>
+      <div class="statBox"><div class="sv">${bp.current_weight!=null?Number(bp.current_weight):"–"}</div><div class="sl">Current kg</div></div>
+      <div class="statBox"><div class="sv">${bp.fight_weight!=null?Number(bp.fight_weight):"–"}</div><div class="sl">Fight kg</div></div>
+    </div>
+  </div>`;
+}
+
+function weekStartOf(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x;}
+function fmtDateAU(iso){const d=new Date(iso+"T12:00:00");return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]+" "+d.getDate()+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];}
+function sparringStatsHtml(){
+  const thisWk=weekStartOf(new Date()).getTime();
+  let wkRounds=0,totRounds=0,totMins=0;
+  const weeks={};
+  boxData.sessions.forEach(s=>{
+    const w=weekStartOf(s.session_date+"T12:00:00").getTime();
+    weeks[w]=weeks[w]||{r:0,m:0};
+    const mins=Number(s.minutes_per_round)||0;
+    weeks[w].r+=s.rounds;weeks[w].m+=s.rounds*mins;
+    totRounds+=s.rounds;totMins+=s.rounds*mins;
+    if(w===thisWk)wkRounds+=s.rounds;
+  });
+  let wkRows="";
+  for(let i=0;i<10;i++){
+    const w=new Date(thisWk);w.setDate(w.getDate()-7*i);
+    const dd=weeks[w.getTime()];
+    const lbl=i===0?"This week":i===1?"Last week":"Wk of "+w.getDate()+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][w.getMonth()];
+    wkRows+=`<div class="weekRow"><span>${lbl}</span><span style="color:${dd?"var(--gold)":"var(--muted)"};font-weight:700">${dd?dd.r+" rounds · "+Math.round(dd.m)+" min":"—"}</span></div>`;
+  }
+  return `<div class="secTitle">Rounds In The Bank</div>
+    <div class="statGrid">
+      <div class="statBox"><div class="sv">${wkRounds}</div><div class="sl">This Week</div></div>
+      <div class="statBox"><div class="sv">${totRounds}</div><div class="sl">Total Rounds</div></div>
+      <div class="statBox"><div class="sv">${Math.round(totMins)}</div><div class="sl">Total Minutes</div></div>
+    </div>
+    <div class="card"><h3 style="font-size:15px">Last 10 Weeks</h3><div style="margin-top:6px">${wkRows}</div></div>`;
+}
+function logFormHtml(){
+  return `<div class="secTitle">Log Your Sparring</div>
+  <div class="card">
+    <div class="row2">
+      <div class="field"><label>Rounds</label><input id="ssRounds" type="number" inputmode="numeric" min="1" value="3"></div>
+      <div class="field"><label>Minutes Per Round</label><select id="ssMins"><option value="1.5">1.5 min</option><option value="2">2 min</option><option value="3" selected>3 min</option><option value="4">4 min</option></select></div>
+    </div>
+    <div class="field"><label>Who You Sparred</label><input id="ssPartner" placeholder="Partner's name"></div>
+    <div class="field"><label>Notes (optional)</label><input id="ssNote" placeholder="How'd it go?"></div>
+    <button class="btnGold" onclick="logSparring()">Bank The Rounds</button>
+  </div>`;
+}
+function historyHtml(){
+  if(!boxData.sessions.length)return "";
+  const items=boxData.sessions.slice(0,25).map(s=>`
+    <div class="sessItem">
+      <div style="min-width:0"><b>${s.rounds} × ${Number(s.minutes_per_round)} min</b>${s.partner?" · v "+esc(s.partner):""}
+        <small>${fmtDateAU(s.session_date)}${s.note?" — "+esc(s.note):""}</small></div>
+      <button class="xBtn" onclick="delSparring('${s.id}')">×</button>
+    </div>`).join("");
+  return `<div class="secTitle">Sparring History</div><div class="card">${items}</div>`;
+}
+function notesHtml(){
+  const th=boxData.notes.map(n=>`
+    <div class="noteMsg${n.is_coach_reply?" coach":""}">
+      <div class="who">${n.is_coach_reply?"Coach — ":""}${esc(n.author_name)}</div>
+      <div class="txt">${esc(n.body)}</div>
+      <div class="time">${fmtWhen(n.created_at)}</div>
+    </div>`).join("");
+  return `<div class="secTitle">Sparring Notes — Coach Review</div>
+  <div class="card">
+    <p style="margin-bottom:12px">Post notes or questions about your sparring. The coaches read these and reply right here.</p>
+    ${th||'<div class="emptyMsg">No notes yet — post your first one below.</div>'}
+    <div class="chatInput" style="border-top:none;padding-top:6px">
+      <input id="snInput" placeholder="Ask the coaches…" maxlength="1000" onkeydown="if(event.key==='Enter')postSparNote()">
+      <button onclick="postSparNote()">➤</button>
+    </div>
+  </div>`;
+}
+function fightsHtml(){
+  const myNoms=new Set(boxData.noms.filter(n=>n.user_id===session.user.id).map(n=>n.fight_id));
+  const isC=profile&&profile.is_coach;
+  const cards=boxData.fights.map(f=>{
+    const mine=myNoms.has(f.id);
+    const noms=boxData.noms.filter(n=>n.fight_id===f.id);
+    return `<div class="card">
+      <h3>${esc(f.title)}</h3>
+      <div class="sub">${f.event_date?fmtDateAU(f.event_date):"Date TBC"}${f.location?" · "+esc(f.location):""}</div>
+      ${f.details?`<p>${esc(f.details)}</p>`:""}
+      ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="withdrawNom('${f.id}')">You're Nominated ✓ — Tap To Withdraw</button>`
+            :`<button class="btnGold" style="margin-top:12px" onclick="nominate('${f.id}')">Nominate Me</button>`}
+      ${isC?`<p style="margin-top:12px"><b style="color:var(--gold)">${noms.length} nominated:</b> ${noms.map(n=>esc(n.name)).join(", ")||"no one yet"}</p>
+      <button class="btnLink" style="border-color:var(--danger);color:var(--danger);margin-top:10px" onclick="delFightNight('${f.id}')">Remove Fight Night</button>`:""}
+    </div>`;}).join("");
+  return `<div class="secTitle">Fight Night Nominations</div>
+    ${cards||'<div class="card"><p>No fight nights listed right now — when one goes up, you can nominate right here.</p></div>'}`;
+}
+function coachHtml(){
+  const groups={};
+  boxData.allNotes.forEach(n=>{(groups[n.member_id]=groups[n.member_id]||[]).push(n);});
+  const out=Object.keys(groups).map(mid=>{
+    const th=groups[mid];
+    const memberName=(th.find(n=>!n.is_coach_reply)||th[0]).author_name;
+    const msgs=th.map(n=>`<div class="noteMsg${n.is_coach_reply?" coach":""}"><div class="who">${n.is_coach_reply?"Coach — ":""}${esc(n.author_name)}</div><div class="txt">${esc(n.body)}</div><div class="time">${fmtWhen(n.created_at)}</div></div>`).join("");
+    return `<div class="card"><h3 style="font-size:15px">${esc(memberName)}</h3><div style="margin-top:10px">${msgs}</div>
+      <div class="chatInput" style="border-top:none;padding-top:6px">
+        <input id="cr-${mid}" placeholder="Reply as coach…" maxlength="1000">
+        <button onclick="coachReply('${mid}')">➤</button>
+      </div></div>`;
+  }).join("");
+  return `<div class="secTitle">Coach Panel — Member Notes</div>
+    ${out||'<div class="card"><p>No member notes yet.</p></div>'}
+    <div class="secTitle">Coach Panel — Add Fight Night</div>
+    <div class="card">
+      <div class="field"><label>Title</label><input id="fnTitle" placeholder="e.g. Legacy Fight Night — Red vs Blue"></div>
+      <div class="row2">
+        <div class="field"><label>Date</label><input id="fnDate" type="date"></div>
+        <div class="field"><label>Location</label><input id="fnLoc" placeholder="Venue"></div>
+      </div>
+      <div class="field"><label>Details</label><input id="fnDetails" placeholder="Optional details"></div>
+      <button class="btnGold" onclick="addFightNight()">List Fight Night</button>
+    </div>`;
+}
+
+async function uploadBoxerPhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const ext=(f.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+  const path=session.user.id+"/photo-"+Date.now()+"."+ext;
+  toast("Uploading photo…");
+  const {error}=await sb.storage.from("boxer-photos").upload(path,f,{upsert:true});
+  if(error){toast(error.message);return;}
+  const {data}=sb.storage.from("boxer-photos").getPublicUrl(path);
+  bpPhotoUrl=data.publicUrl;
+  const img=$("bpPhotoPreview");if(img){img.src=bpPhotoUrl;img.style.display="block";}
+  toast("Photo's in. Hit Save Profile to lock it.");
+}
+async function saveBoxerProfile(){
+  const rec={user_id:session.user.id,
+    name:$("bpName").value.trim(),
+    age:parseInt($("bpAge").value)||null,
+    current_weight:parseFloat($("bpCw").value)||null,
+    fight_weight:parseFloat($("bpFw").value)||null,
+    wins:parseInt($("bpW").value)||0,losses:parseInt($("bpL").value)||0,draws:parseInt($("bpD").value)||0,
+    photo_url:bpPhotoUrl||(boxData.profile&&boxData.profile.photo_url)||null,
+    updated_at:new Date().toISOString()};
+  if(!rec.name){toast("Put your name in first.");return;}
+  const {error}=await sb.from("boxer_profiles").upsert(rec);
+  if(error){toast(error.message);return;}
+  bpEditing=false;toast("Boxer profile saved.");renderSparringClub();
+}
+async function logSparring(){
+  const rounds=parseInt($("ssRounds").value);
+  if(!rounds||rounds<1){toast("How many rounds?");return;}
+  const rec={user_id:session.user.id,rounds,minutes_per_round:parseFloat($("ssMins").value),partner:$("ssPartner").value.trim(),note:$("ssNote").value.trim()};
+  const {error}=await sb.from("sparring_sessions").insert(rec);
+  if(error){toast(error.message);return;}
+  toast(rounds+" rounds banked. Good work.");renderSparringClub();
+}
+async function delSparring(id){
+  const {error}=await sb.from("sparring_sessions").delete().eq("id",id).eq("user_id",session.user.id);
+  toast(error?error.message:"Entry removed.");renderSparringClub();
+}
+async function postSparNote(){
+  const el=$("snInput"),v=el.value.trim();if(!v)return;
+  const name=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";
+  const {error}=await sb.from("sparring_notes").insert({member_id:session.user.id,author_id:session.user.id,author_name:name,body:v,is_coach_reply:false});
+  if(error){toast(error.message);return;}
+  renderSparringClub();
+}
+async function coachReply(mid){
+  const el=$("cr-"+mid),v=el.value.trim();if(!v)return;
+  const name=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Coach";
+  const {error}=await sb.from("sparring_notes").insert({member_id:mid,author_id:session.user.id,author_name:name,body:v,is_coach_reply:true});
+  if(error){toast(error.message);return;}
+  renderSparringClub();
+}
+async function nominate(fid){
+  const bp=boxData.profile;
+  const name=(bp&&bp.name)||(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";
+  const {error}=await sb.from("fight_nominations").insert({fight_id:fid,user_id:session.user.id,name});
+  if(error){toast(error.message);return;}
+  toast("Nominated. The coaches will see your name.");renderSparringClub();
+}
+async function withdrawNom(fid){
+  const {error}=await sb.from("fight_nominations").delete().eq("fight_id",fid).eq("user_id",session.user.id);
+  toast(error?error.message:"Nomination withdrawn.");renderSparringClub();
+}
+async function addFightNight(){
+  const t=$("fnTitle").value.trim();if(!t){toast("Give it a title.");return;}
+  const {error}=await sb.from("fight_nights").insert({title:t,event_date:$("fnDate").value||null,location:$("fnLoc").value.trim(),details:$("fnDetails").value.trim()});
+  if(error){toast(error.message);return;}
+  toast("Fight night listed.");renderSparringClub();
+}
+async function delFightNight(id){
+  const {error}=await sb.from("fight_nights").delete().eq("id",id);
+  toast(error?error.message:"Fight night removed.");renderSparringClub();
 }
 
 /* ---- Weights ---- */
