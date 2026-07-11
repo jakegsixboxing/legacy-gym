@@ -100,6 +100,7 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .pillBtns{display:flex;gap:8px}
 .pillBtns button{flex:1;padding:11px 4px;border-radius:8px;background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:12px;letter-spacing:.5px}
 .pillBtns button.on{background:var(--gold);border-color:var(--gold);color:#161307}
+.miniSel{margin-top:8px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;display:block}
 .field select{width:100%;padding:13px 14px;border-radius:8px;border:1px solid var(--line);background:#0e0e10;color:var(--text);font-size:16px}
 .bpPhoto{width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex-shrink:0}
 .bpPhotoEmpty{display:flex;align-items:center;justify-content:center;background:var(--panel2);color:var(--gold);font-size:30px;font-weight:800}
@@ -302,6 +303,7 @@ async function ensureProfile(){
 }
 async function signOut(){
   if(chatChannel){sb.removeChannel(chatChannel);chatChannel=null;}
+  if(staffChannel){sb.removeChannel(staffChannel);staffChannel=null;}
   await sb.auth.signOut();session=null;profile=null;showAuth();
 }
 function showAuth(){$("appScreen").classList.add("hidden");$("authScreen").classList.remove("hidden");}
@@ -337,6 +339,7 @@ function render(){
   if(view==="functional")return renderFunctional();
   if(view==="recovery")return renderRecovery();
   if(view==="timetable")return renderTimetable();
+  if(view==="staff")return renderStaff();
   if(view==="chat")return renderChat();
   if(view==="profile")return renderProfile();
 }
@@ -362,7 +365,12 @@ function renderHome(){
       <div class="hcKicker">${c.kicker}</div>
       <div class="hcTitle">${c.title}</div>
       <div class="hcSub">${c.sub}</div>
-    </button>`).join("")}`;
+    </button>`).join("")}
+    ${profile&&profile.is_staff?`<button class="homeCard" style="background:linear-gradient(180deg,rgba(8,8,10,.7),rgba(8,8,10,.94)),url('${LOGO}') center/45% no-repeat #0a0b0e;border-color:var(--gold-dim)" onclick="go('staff')">
+      <div class="hcKicker">Staff Eyes Only</div>
+      <div class="hcTitle">Staff Room</div>
+      <div class="hcSub">Team chat, daily tasks & PT commissions.</div>
+    </button>`:""}`;
   updateBadges();
 }
 
@@ -1168,6 +1176,198 @@ function renderTimetable(){
     <div class="card"><h3>Club-Focused</h3><div class="sub">Mon &amp; Wed PM</div><p>Stream-based sessions for Fitness and Sparring Club.</p></div>
     <div class="card"><h3>Communal</h3><div class="sub">AM + Tue, Thu, Fri &amp; Sat</div><p>All-levels boxing, padwork and conditioning.</p></div>
     <div class="card"><h3>Gym Floor Staffed Hours</h3><ul style="margin-top:8px"><li>Mon – Thu: 5:15am – 7:45am</li><li>Mon – Fri: 4:00pm – 7:00pm</li><li>Saturday: 8:00am – 11:00am</li></ul></div>`;
+}
+
+/* ---- Staff Room (staff only, RLS enforced) ---- */
+let staffSub="chat";
+let staffData={loaded:false,staff:[],tasks:[],comms:[],msgs:[]};
+let staffChannel=null;
+function isoDateLocal(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function staffName(s){return ((s.first_name||"")+" "+(s.last_name||"")).trim()||s.email;}
+async function loadStaffData(){
+  const [st,tk,cm,ms]=await Promise.all([
+    sb.from("profiles").select("id,first_name,last_name,email,is_staff,is_manager").eq("is_staff",true),
+    sb.from("staff_tasks").select("*").order("created_at",{ascending:false}).limit(300),
+    sb.from("pt_commissions").select("*").order("session_date",{ascending:false}).order("created_at",{ascending:false}).limit(300),
+    sb.from("staff_messages").select("*").order("created_at",{ascending:true}).limit(200)
+  ]);
+  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[]};
+  if(!staffChannel){
+    staffChannel=sb.channel("staff-chat")
+      .on("postgres_changes",{event:"INSERT",schema:"public",table:"staff_messages"},pl=>{
+        staffData.msgs.push(pl.new);
+        const box=$("stMsgs");
+        if(box){box.insertAdjacentHTML("beforeend",staffMsgHtml(pl.new));box.scrollTop=box.scrollHeight;}
+      }).subscribe();
+  }
+}
+async function renderStaff(){
+  if(!profile||!profile.is_staff){go("home");return;}
+  $("main").innerHTML=`<div class="loadingDots">Opening the staff room…</div>`;
+  await loadStaffData();
+  if(view!=="staff")return;
+  const tabs=[{id:"chat",label:"Team Chat"},...staffData.staff.map(s=>({id:s.id,label:s.first_name||s.email.split("@")[0]}))];
+  $("main").innerHTML=`
+    <div class="hero" style="background:linear-gradient(160deg,#17171a 0%,#0b0b0e 75%);padding:24px 22px">
+      <div class="heroKicker">Staff Eyes Only</div>
+      <div class="heroTitle">Staff Room</div>
+      <div class="heroText">Members can't see or access anything in here.</div>
+    </div>
+    <div class="subTabs">${tabs.map(t=>`<button class="${staffSub===t.id?'active':''}" onclick="staffSub='${t.id}';renderStaff()">${esc(t.label)}</button>`).join("")}</div>
+    <div id="staffContent"></div>`;
+  if(staffSub==="chat")renderStaffChat();
+  else renderStaffMember(staffSub);
+}
+function staffMsgHtml(m){
+  const mine=session&&m.user_id===session.user.id;
+  return `<div class="msg${mine?' mine':''}"><div class="who">${esc(m.name)}</div><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`;
+}
+function renderStaffChat(){
+  const mgr=profile.is_manager;
+  $("staffContent").innerHTML=`
+    <div class="card">
+      <div id="stMsgs" style="max-height:45vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:6px">
+        ${staffData.msgs.length?staffData.msgs.map(staffMsgHtml).join(""):'<div class="emptyMsg">No messages yet — kick it off.</div>'}
+      </div>
+      <div class="chatInput">
+        <input id="stInput" placeholder="Message the team…" maxlength="2000" onkeydown="if(event.key==='Enter')sendStaffMsg()">
+        <button onclick="sendStaffMsg()">➤</button>
+      </div>
+    </div>
+    ${mgr?`<div class="secTitle">Manager — Staff Access</div>
+    <div class="card">
+      <p style="margin-bottom:12px">Grant a team member access once they've created their normal member login. Their tab appears automatically.</p>
+      <div class="field"><label>Their Login Email</label><input id="gaEmail" type="email" placeholder="name@email.com"></div>
+      <div class="field"><label>Access Level</label><select id="gaRole"><option value="staff">Staff</option><option value="manager">Manager (sees all tasks + commissions)</option><option value="remove">Remove staff access</option></select></div>
+      <button class="btnGold" onclick="grantStaff()">Update Access</button>
+    </div>`:""}`;
+  const box=$("stMsgs");if(box)box.scrollTop=box.scrollHeight;
+}
+async function sendStaffMsg(){
+  const el=$("stInput"),v=el.value.trim();if(!v)return;
+  el.value="";
+  const name=((profile.first_name||"")+" "+(profile.last_name||"")).trim()||"Staff";
+  const {error}=await sb.from("staff_messages").insert({user_id:session.user.id,name,body:v});
+  if(error){toast(error.message);el.value=v;}
+}
+async function grantStaff(){
+  const em=$("gaEmail").value.trim();if(!em){toast("Put their email in.");return;}
+  const role=$("gaRole").value;
+  const {data,error}=await sb.rpc("grant_staff",{target_email:em,make_staff:role!=="remove",make_manager:role==="manager"});
+  toast(error?error.message:data);
+  if(!error)renderStaff();
+}
+function renderStaffMember(uid){
+  const s=staffData.staff.find(x=>x.id===uid);
+  if(!s){staffSub="chat";return renderStaff();}
+  const me=session.user.id===uid,mgr=profile.is_manager;
+  const tasks=staffData.tasks.filter(t=>t.assignee_id===uid);
+  const open=tasks.filter(t=>t.status==="open");
+  const noTime=tasks.filter(t=>t.status==="no_time");
+  const doneToday=tasks.filter(t=>t.status==="done"&&t.done_at&&new Date(t.done_at).toDateString()===new Date().toDateString());
+  const canTick=me||mgr;
+  const reassignSel=t=>mgr?`<select class="miniSel" onchange="reassignTask('${t.id}',this.value)">
+      <option value="">Move to…</option>
+      ${staffData.staff.filter(x=>x.id!==t.assignee_id).map(x=>`<option value="${x.id}">${esc(x.first_name||x.email)}</option>`).join("")}
+    </select>`:"";
+  const taskRow=(t,kind)=>`<div class="sessItem">
+      <div style="min-width:0"><b style="${kind==='done'?'text-decoration:line-through;color:var(--muted)':''}">${esc(t.title)}</b>
+        <small>${fmtDateAU(t.task_date)}${kind==='no_time'?' · <span style=\"color:var(--danger)\">ran out of time</span>':''}</small>
+        ${kind!=='done'&&mgr?reassignSel(t):""}
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        ${kind!=='done'&&canTick?`<button class="xBtn" style="border-color:var(--ok);color:var(--ok)" title="Done" onclick="setTask('${t.id}','done')">✓</button>`:""}
+        ${kind==='open'&&canTick?`<button class="xBtn" style="border-color:var(--danger);color:var(--danger)" title="No time" onclick="setTask('${t.id}','no_time')">⚑</button>`:""}
+        ${kind==='no_time'&&canTick?`<button class="xBtn" title="Reopen" onclick="setTask('${t.id}','open')">↺</button>`:""}
+        ${(mgr||me)?`<button class="xBtn" onclick="delTask('${t.id}')">×</button>`:""}
+      </div>
+    </div>`;
+  let comms="";
+  if(me||mgr){
+    const mine=staffData.comms.filter(c=>c.trainer_id===uid);
+    const wk=weekStartOf(new Date()).getTime();
+    const mo=new Date();mo.setDate(1);mo.setHours(0,0,0,0);
+    const wkTot=mine.filter(c=>new Date(c.session_date+"T12:00:00")>=wk).reduce((a,c)=>a+Number(c.commission),0);
+    const wkN=mine.filter(c=>new Date(c.session_date+"T12:00:00")>=wk).length;
+    const moTot=mine.filter(c=>new Date(c.session_date+"T12:00:00")>=mo).reduce((a,c)=>a+Number(c.commission),0);
+    comms=`<div class="secTitle">PT Commission</div>
+    <div class="statGrid">
+      <div class="statBox"><div class="sv">$${wkTot.toFixed(0)}</div><div class="sl">This Week</div></div>
+      <div class="statBox"><div class="sv">${wkN}</div><div class="sl">Sessions This Wk</div></div>
+      <div class="statBox"><div class="sv">$${moTot.toFixed(0)}</div><div class="sl">This Month</div></div>
+    </div>
+    ${me?`<div class="card">
+      <div class="field"><label>Client Name</label><input id="pcClient" placeholder="e.g. Joe Smith"></div>
+      <div class="row2">
+        <div class="field"><label>Session Length</label><select id="pcMins"><option value="30">30 min</option><option value="45" selected>45 min</option><option value="60">60 min</option><option value="90">90 min</option></select></div>
+        <div class="field"><label>Commission ($)</label><input id="pcAmt" type="number" inputmode="decimal" step="0.5" placeholder="15"></div>
+      </div>
+      <button class="btnGold" onclick="addComm()">Log PT Session</button>
+    </div>`:""}
+    <div class="card">
+      ${mine.length?mine.slice(0,25).map(c=>`<div class="sessItem">
+        <div><b>${esc(c.client_name)}</b><small>${c.minutes} min PT · $${Number(c.commission).toFixed(2)} · ${fmtDateAU(c.session_date)}</small></div>
+        ${(me||mgr)?`<button class="xBtn" onclick="delComm('${c.id}')">×</button>`:""}
+      </div>`).join(""):'<div class="emptyMsg">No PT sessions logged yet.</div>'}
+    </div>`;
+  }
+  $("staffContent").innerHTML=`
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="bpPhoto bpPhotoEmpty" style="width:56px;height:56px;font-size:20px">${esc((s.first_name||s.email)[0].toUpperCase())}</div>
+        <div><h3 style="margin-bottom:2px">${esc(staffName(s))}</h3>
+        <div class="pillRow">${s.is_manager?'<span class="pill" style="border-color:var(--gold);color:var(--gold)">Manager</span>':'<span class="pill">Staff</span>'}</div></div>
+      </div>
+    </div>
+    ${noTime.length?`<div class="secTitle" style="color:var(--danger)">Didn't Get Done — Needs Redirecting</div>
+    <div class="card" style="border-color:var(--danger)">${noTime.map(t=>taskRow(t,"no_time")).join("")}</div>`:""}
+    <div class="secTitle">Daily Tasks</div>
+    <div class="card">
+      ${open.length?open.map(t=>taskRow(t,"open")).join(""):'<div class="emptyMsg">Nothing open. Clean slate.</div>'}
+      ${(me||mgr)?`<div class="chatInput" style="margin-top:6px">
+        <input id="tkNew" placeholder="Add a task for ${esc(s.first_name||'them')}…" maxlength="300" onkeydown="if(event.key==='Enter')addTask('${uid}')">
+        <button onclick="addTask('${uid}')">＋</button>
+      </div>`:""}
+    </div>
+    ${doneToday.length?`<div class="secTitle">Done Today</div><div class="card">${doneToday.map(t=>taskRow(t,"done")).join("")}</div>`:""}
+    ${comms}`;
+}
+async function addTask(uid){
+  const el=$("tkNew"),v=el.value.trim();if(!v)return;
+  const {error}=await sb.from("staff_tasks").insert({assignee_id:uid,title:v,created_by:session.user.id,task_date:isoDateLocal()});
+  if(error){toast(error.message);return;}
+  renderStaff();
+}
+async function setTask(id,status){
+  const upd={status};upd.done_at=status==="done"?new Date().toISOString():null;
+  const {error}=await sb.from("staff_tasks").update(upd).eq("id",id);
+  if(error){toast(error.message);return;}
+  renderStaff();
+}
+async function reassignTask(id,uid){
+  if(!uid)return;
+  const {error}=await sb.from("staff_tasks").update({assignee_id:uid,status:"open"}).eq("id",id);
+  toast(error?error.message:"Task redirected.");
+  renderStaff();
+}
+async function delTask(id){
+  const {error}=await sb.from("staff_tasks").delete().eq("id",id);
+  if(error){toast(error.message);return;}
+  renderStaff();
+}
+async function addComm(){
+  const client=$("pcClient").value.trim(),mins=parseInt($("pcMins").value),amt=parseFloat($("pcAmt").value);
+  if(!client){toast("Whose session was it?");return;}
+  if(!amt&&amt!==0){toast("Put the commission amount in.");return;}
+  const {error}=await sb.from("pt_commissions").insert({trainer_id:session.user.id,client_name:client,minutes:mins,commission:amt,session_date:isoDateLocal()});
+  if(error){toast(error.message);return;}
+  toast("Logged — "+client+", "+mins+" min, $"+amt.toFixed(2));
+  renderStaff();
+}
+async function delComm(id){
+  const {error}=await sb.from("pt_commissions").delete().eq("id",id);
+  if(error){toast(error.message);return;}
+  renderStaff();
 }
 
 /* ---- Members Chat (live via Supabase) ---- */
