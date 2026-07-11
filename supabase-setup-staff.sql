@@ -57,15 +57,45 @@ create policy "pc read" on public.pt_commissions for select using (trainer_id = 
 create policy "pc insert" on public.pt_commissions for insert with check (trainer_id = auth.uid() and public.is_staff(auth.uid()));
 create policy "pc delete" on public.pt_commissions for delete using (trainer_id = auth.uid() or public.is_manager(auth.uid()));
 
--- Managers can grant/revoke staff access from inside the app
+-- Pre-approval: grant access by email even before they sign up
+create table if not exists public.staff_invites (
+  email text primary key,
+  make_manager boolean not null default false,
+  created_at timestamptz default now());
+alter table public.staff_invites enable row level security;
+create policy "si read" on public.staff_invites for select using (public.is_manager(auth.uid()));
+
+-- Managers can grant/revoke staff access from inside the app (pre-approves unknown emails)
 create or replace function public.grant_staff(target_email text, make_staff boolean, make_manager boolean)
 returns text language plpgsql security definer set search_path = public as $$
 begin
   if not public.is_manager(auth.uid()) then return 'Only managers can change staff access.'; end if;
+  if make_staff then
+    insert into public.staff_invites (email, make_manager) values (lower(target_email), make_manager)
+      on conflict (email) do update set make_manager = excluded.make_manager;
+  else
+    delete from public.staff_invites where email = lower(target_email);
+  end if;
   update public.profiles set is_staff = make_staff, is_manager = make_manager where lower(email) = lower(target_email);
-  if not found then return 'No member profile found with that email.'; end if;
+  if not found and make_staff then return 'Pre-approved: ' || target_email || ' gets staff access the moment they sign up.'; end if;
   return 'Access updated for ' || target_email;
 end $$;
 
+-- Auto-apply invites at signup
+create or replace function public.apply_staff_invite() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare inv record;
+begin
+  select * into inv from public.staff_invites where email = lower(new.email);
+  if found then new.is_staff := true; new.is_manager := inv.make_manager; end if;
+  return new;
+end $$;
+drop trigger if exists trg_apply_staff_invite on public.profiles;
+create trigger trg_apply_staff_invite before insert on public.profiles
+  for each row execute function public.apply_staff_invite();
+
 -- The owner is staff + manager
 update public.profiles set is_staff = true, is_manager = true where email = 'jakegsixboxing@gmail.com';
+
+-- Sarsha keeps her Gmail account only; iCloud duplicate demoted to regular member
+update public.profiles set is_staff = false, is_manager = false where email = 'sarsha03@icloud.com';
