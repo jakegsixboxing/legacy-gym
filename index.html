@@ -91,9 +91,15 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .btnLink{display:block;width:100%;text-align:center;background:transparent;color:var(--gold);border:1.5px solid var(--gold);font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase;border-radius:10px;padding:13px;margin-top:6px;text-decoration:none}
 
 /* boxing sub-tabs + sparring hub */
-.subTabs{display:flex;gap:8px;margin-bottom:18px}
-.subTabs button{flex:1;padding:11px 4px;border-radius:8px;background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase}
+.subTabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.subTabs button{flex:1 1 30%;min-width:30%;padding:11px 4px;border-radius:8px;background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase}
 .subTabs button.active{background:var(--gold);border-color:var(--gold);color:#161307}
+.addBtn{color:var(--gold);font-size:24px;font-weight:600;border:1px solid var(--gold-dim);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.byoLbl{display:block;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.byoLbl:first-child{margin-top:0}
+.pillBtns{display:flex;gap:8px}
+.pillBtns button{flex:1;padding:11px 4px;border-radius:8px;background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:12px;letter-spacing:.5px}
+.pillBtns button.on{background:var(--gold);border-color:var(--gold);color:#161307}
 .field select{width:100%;padding:13px 14px;border-radius:8px;border:1px solid var(--line);background:#0e0e10;color:var(--text);font-size:16px}
 .bpPhoto{width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex-shrink:0}
 .bpPhotoEmpty{display:flex;align-items:center;justify-content:center;background:var(--panel2);color:var(--gold);font-size:30px;font-weight:800}
@@ -374,17 +380,27 @@ function renderBoxing(){
     </div>
     <div class="subTabs">
       <button class="${boxSub==='classes'?'active':''}" onclick="setBoxSub('classes')">Classes</button>
+      <button class="${boxSub==='full'?'active':''}" onclick="setBoxSub('full')">Full Session</button>
+      <button class="${boxSub==='byo'?'active':''}" onclick="setBoxSub('byo')">Build Your Own</button>
       <button class="${boxSub==='fitness'?'active':''}" onclick="setBoxSub('fitness')">Fitness Club</button>
       <button class="${boxSub==='sparring'?'active':''}" onclick="setBoxSub('sparring')">Sparring Club</button>
     </div>
     <div id="boxContent"></div>`;
   renderBoxSub();
 }
-function setBoxSub(s){boxSub=s;bpEditing=false;renderBoxing();}
+function setBoxSub(s){boxSub=s;bpEditing=false;if(typeof S!=="undefined")clearInterval(S.int);byoActive=false;renderBoxing();}
 function renderBoxSub(){
   if(boxSub==="classes")renderBoxClasses();
+  else if(boxSub==="full")renderBoxFull();
+  else if(boxSub==="byo")renderBoxBYO();
   else if(boxSub==="fitness")renderBoxFitness();
   else renderSparringClub();
+}
+function renderBoxFull(){
+  $("boxContent").innerHTML=`
+    <div class="card"><h3>Full Sessions</h3><div class="sub">Coming soon</div>
+      <p>Complete coach-built boxing sessions, ready to follow round by round. Being built out now — in the meantime, hit Build Your Own and put your own session together.</p>
+      <button class="btnGold" style="margin-top:14px" onclick="setBoxSub('byo')">Build Your Own Session</button></div>`;
 }
 
 function renderBoxClasses(){
@@ -408,6 +424,173 @@ function renderBoxFitness(){
     <div class="card"><h3>Fitness Club</h3><div class="sub">Non-contact · 10-week blocks</div>
       <p>Structured boxing sessions focused on fitness and skill development — without contact.</p>
       <p style="margin-top:10px">The full Fitness Club hub is being built out now — watch this space.</p></div>`;
+}
+
+/* ---- Build Your Own Session ---- */
+const BYO_LIB=[
+{cat:"Skipping",items:[
+  {id:"skip5",n:"5 Minute Skip",fixed:300,tag:"5:00 straight through"},
+  {id:"skip10",n:"10 Minute Skip",fixed:600,tag:"10:00 straight through"}]},
+{cat:"Shadow Boxing",items:[
+  {id:"shOpen",n:"Open Shadow",tag:"Free-flow shadow"},
+  {id:"shLead",n:"Lead Hand Shadow",tag:"Lead hand only"},
+  {id:"shDef",n:"Defence-Based Shadow",tag:"Slips, rolls, feet"},
+  {id:"shSwitch",n:"Switch Punching Shadow",tag:"Switch through stances"}]},
+{cat:"Bag Work",items:[
+  {id:"bgLead",n:"Lead Hand Attacks",tag:"Everything off the lead"},
+  {id:"bgBack",n:"Backhand Attacks",tag:"Everything off the back hand"},
+  {id:"bgStraight",n:"Straight Punches",tag:"Ones and twos only"},
+  {id:"bgSwitch",n:"Switch Punches",tag:"Switch punching on the bag"},
+  {id:"bgFirstThird",n:"Firsts & Thirds",tag:"First and third punch focus"},
+  {id:"bgTwoPhase",n:"Two-Phase Attacks",tag:"Attack, exit, attack again"},
+  {id:"bgInside",n:"Inside Work",tag:"Short punches, close range"},
+  {id:"bgMid",n:"Mid-Range Work",tag:"Boxing range combinations"},
+  {id:"bgLong",n:"Long-Range Work",tag:"Range, jabs, straight shots"},
+  {id:"bgFrame",n:"Opening & Framing",tag:"Create openings, frame off"},
+  {id:"bgCounter",n:"Counter Punch Work",tag:"Defence into counters"},
+  {id:"bgCombo",n:"Combination Builder",tag:"Build combos punch by punch"},
+  {id:"bgMax10",n:"Max Effort 10s",seg:{work:10,rest:10,wl:"MAX EFFORT"},tag:"10 on / 10 off — auto"},
+  {id:"bgMax15",n:"Max Effort 15s",seg:{work:15,rest:15,wl:"MAX EFFORT"},tag:"15 on / 15 off — auto"},
+  {id:"bgMax20",n:"Max Effort 20s",seg:{work:20,rest:20,wl:"MAX EFFORT"},tag:"20 on / 20 off — auto"},
+  {id:"bgPower",n:"Power Punching",tag:"Sit down on everything"},
+  {id:"bgUnders",n:"Unders & Overs",seg:{alt:["ROLL UNDER","ROLL OVER"],every:15},tag:"Switches every 15s — auto"},
+  {id:"bgClinch",n:"Clinch Round",tag:"Clinch work on the bag"}]},
+{cat:"Dumbbell Work",items:[
+  {id:"dbUnders",n:"DB Unders & Overs",db:true,seg:{alt:["UNDERS","OVERS"],every:30},tag:"Switches every 30s — auto"},
+  {id:"dbShadow",n:"DB Open Shadow",db:true,seg:{alt:["SHADOW","SHADOW — NEW BLOCK"],every:30},tag:"Cue every 30s — auto"}]}
+];
+let byo=(function(){try{return JSON.parse(localStorage.getItem("lg_byo"))||null}catch(e){return null}})()||{len:180,rest:30,db:2,list:[]};
+let byoActive=false;
+let S={phases:[],idx:0,remain:0,run:false,int:null};
+function byoSave(){localStorage.setItem("lg_byo",JSON.stringify(byo));}
+function byoFind(id){for(const c of BYO_LIB){const it=c.items.find(x=>x.id===id);if(it)return it;}return null;}
+function byoAdd(id){byo.list.push(id);byoSave();renderBoxBYO();}
+function byoRm(i){byo.list.splice(i,1);byoSave();renderBoxBYO();}
+function byoSet(k,v){byo[k]=v;byoSave();renderBoxBYO();}
+function byoRoundLen(it){return it.fixed||byo.len;}
+function byoTotal(){let t=0;byo.list.forEach((id,i)=>{const it=byoFind(id);if(!it)return;t+=byoRoundLen(it);if(i<byo.list.length-1)t+=byo.rest;});return t;}
+
+function renderBoxBYO(){
+  if(byoActive)return renderBYOTimer();
+  const counts={};byo.list.forEach(id=>counts[id]=(counts[id]||0)+1);
+  const lib=BYO_LIB.map(c=>`
+    <div class="secTitle">${c.cat}</div>
+    ${c.items.map(it=>`<div class="wodRow" onclick="byoAdd('${it.id}')">
+      <div><b>${it.n}${counts[it.id]?` <span style="color:var(--gold)">×${counts[it.id]}</span>`:""}</b><small>${it.tag}${it.db?" · uses your DB weight":""}${it.fixed?"":""}</small></div>
+      <span class="addBtn">+</span>
+    </div>`).join("")}`).join("");
+  const sess=byo.list.map((id,i)=>{
+    const it=byoFind(id);if(!it)return "";
+    return `<div class="sessItem"><div><b>R${i+1} — ${it.n}${it.db?" ("+byo.db+"kg)":""}</b><small>${fmtSec(byoRoundLen(it))}${it.seg?" · auto-switching":""}</small></div>
+      <button class="xBtn" onclick="event.stopPropagation();byoRm(${i})">×</button></div>`;
+  }).join("");
+  $("boxContent").innerHTML=`
+    <div class="secTitle">Session Settings</div>
+    <div class="card">
+      <label class="byoLbl">Round Length</label>
+      <div class="pillBtns">
+        <button class="${byo.len===120?'on':''}" onclick="byoSet('len',120)">2:00 Rounds</button>
+        <button class="${byo.len===180?'on':''}" onclick="byoSet('len',180)">3:00 Rounds</button>
+      </div>
+      <label class="byoLbl">Rest Between Rounds</label>
+      <div class="pillBtns">
+        <button class="${byo.rest===30?'on':''}" onclick="byoSet('rest',30)">0:30 Rest</button>
+        <button class="${byo.rest===60?'on':''}" onclick="byoSet('rest',60)">1:00 Rest</button>
+      </div>
+      <label class="byoLbl">Dumbbell Weight (DB rounds)</label>
+      <div class="pillBtns">
+        <button class="${byo.db===1?'on':''}" onclick="byoSet('db',1)">1kg</button>
+        <button class="${byo.db===2?'on':''}" onclick="byoSet('db',2)">2kg</button>
+        <button class="${byo.db===3?'on':''}" onclick="byoSet('db',3)">3kg</button>
+      </div>
+    </div>
+    ${lib}
+    <div class="secTitle">Your Session</div>
+    <div class="card">
+      ${sess||'<div class="emptyMsg">No rounds yet — tap any round above to add it. Tap twice to do it twice.</div>'}
+      ${byo.list.length?`<div class="priceRow"><span class="price">${byo.list.length} rounds</span><span class="priceNote">${fmtSec(byoTotal())} total with rests</span></div>
+      <button class="btnGold" style="margin-top:14px" onclick="byoStart()">Confirm — Start My Session</button>
+      <button class="btnLink" style="margin-top:10px;border-color:var(--danger);color:var(--danger)" onclick="byo.list=[];byoSave();renderBoxBYO()">Clear Session</button>`:""}
+    </div>`;
+}
+function byoPhases(){
+  const p=[];
+  byo.list.forEach((id,i)=>{
+    const it=byoFind(id);if(!it)return;
+    const L=byoRoundLen(it);
+    const rn="Round "+(i+1)+" of "+byo.list.length+" — "+it.n+(it.db?" · "+byo.db+"kg":"");
+    if(it.seg&&it.seg.work){
+      let t=0,on=true;
+      while(t<L){const d=Math.min(on?it.seg.work:it.seg.rest,L-t);p.push({b:on?it.seg.wl:"REST",sm:rn,s:d,k:on?"work":"rest"});t+=d;on=!on;}
+    }else if(it.seg&&it.seg.alt){
+      let t=0,j=0;
+      while(t<L){const d=Math.min(it.seg.every,L-t);p.push({b:it.seg.alt[j%it.seg.alt.length],sm:rn,s:d,k:"work"});t+=d;j++;}
+    }else{
+      p.push({b:it.n.toUpperCase(),sm:rn,s:L,k:"work"});
+    }
+    if(i<byo.list.length-1){
+      const nx=byoFind(byo.list[i+1]);
+      p.push({b:"REST",sm:"Next: Round "+(i+2)+" — "+(nx?nx.n:""),s:byo.rest,k:"rest"});
+    }
+  });
+  return p;
+}
+function byoStart(){
+  if(!byo.list.length){toast("Add some rounds first.");return;}
+  S={phases:byoPhases(),idx:0,remain:0,run:false,int:null};
+  S.remain=S.phases[0].s;
+  byoActive=true;renderBoxBYO();window.scrollTo(0,0);
+}
+function byoExit(){clearInterval(S.int);byoActive=false;renderBoxBYO();}
+function renderBYOTimer(){
+  $("boxContent").innerHTML=`
+    <button class="backBtn" onclick="byoExit()">‹ Back To The Builder</button>
+    <div class="timerCard">
+      <div class="timerSub" id="sSub"></div>
+      <div class="timerPhase gold" id="sPhase">READY</div>
+      <div class="timerTime" id="sTime">--:--</div>
+      <div class="timerSub" id="sNext"></div>
+      <div class="timerBtns"><button class="tReset" onclick="sReset()">Reset</button><button class="tStart" id="sGo" onclick="sToggle()">Start</button></div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:15px">The Session</h3>
+      <div style="margin-top:8px">${byo.list.map((id,i)=>{const it=byoFind(id);return `<div class="weekRow"><span>R${i+1} — ${it.n}${it.db?" ("+byo.db+"kg)":""}</span><span style="color:var(--muted)">${fmtSec(byoRoundLen(it))}</span></div>`;}).join("")}</div>
+    </div>`;
+  updS();
+}
+function sToggle(){
+  if(!S.phases.length)return;
+  if(S.idx>=S.phases.length)sReset();
+  S.run=!S.run;clearInterval(S.int);
+  if(S.run){beep(660,.15);S.int=setInterval(sTick,1000);}
+  updS();
+}
+function sReset(){clearInterval(S.int);S.idx=0;S.remain=S.phases.length?S.phases[0].s:0;S.run=false;updS();}
+function sTick(){
+  S.remain--;
+  if(S.remain>0&&S.remain<=3)beep(880,.12);
+  if(S.remain<=0){
+    S.idx++;
+    if(S.idx>=S.phases.length){S.run=false;clearInterval(S.int);beep(520,.4);setTimeout(()=>beep(520,.4),450);setTimeout(()=>beep(780,.8),900);}
+    else{S.remain=S.phases[S.idx].s;beep(520,.5);}
+  }
+  updS();
+}
+function updS(){
+  const ph=$("sPhase");if(!ph)return;
+  const tm=$("sTime"),sub=$("sSub"),nx=$("sNext"),go=$("sGo");
+  if(S.idx>=S.phases.length){
+    ph.textContent="DONE";ph.className="timerPhase gold";tm.textContent="0:00";
+    sub.textContent="Session complete";nx.textContent=byo.list.length+" rounds in the bank. Well earned.";go.textContent="Go Again";return;
+  }
+  const p=S.phases[S.idx];
+  ph.textContent=p.b;
+  ph.className="timerPhase "+(p.k==="rest"?"":"gold");
+  tm.textContent=fmtSec(S.remain);
+  sub.textContent=p.sm;
+  const n=S.phases[S.idx+1];
+  nx.textContent=n?("Next: "+n.b.toLowerCase()+" · "+fmtSec(n.s)):"Final stretch";
+  go.textContent=S.run?"Pause":"Start";
 }
 
 /* ---- Sparring Club hub ---- */
