@@ -101,6 +101,15 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .pillBtns button{flex:1;padding:11px 4px;border-radius:8px;background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:12px;letter-spacing:.5px}
 .pillBtns button.on{background:var(--gold);border-color:var(--gold);color:#161307}
 .miniSel{margin-top:8px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;display:block}
+
+/* ask me anything */
+.amaTile{display:flex;align-items:center;gap:14px;width:100%;background:linear-gradient(135deg,rgba(201,164,76,.16),rgba(201,164,76,.05) 60%),var(--panel);border:1.5px solid var(--gold);border-radius:14px;padding:18px;margin-bottom:14px;color:var(--text)}
+.amaMicIcon{width:46px;height:46px;border-radius:50%;background:var(--gold);color:#161307;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.amaMicIcon svg{width:24px;height:24px}
+.amaMicBig{width:50px;height:50px;border-radius:12px;background:transparent;border:1.5px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.amaMicBig svg{width:24px;height:24px}
+.amaMicBig.live{background:var(--danger);border-color:var(--danger);color:#fff;animation:amaPulse 1s infinite}
+@keyframes amaPulse{0%,100%{opacity:1}50%{opacity:.55}}
 .field select{width:100%;padding:13px 14px;border-radius:8px;border:1px solid var(--line);background:#0e0e10;color:var(--text);font-size:16px}
 .bpPhoto{width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex-shrink:0}
 .bpPhotoEmpty{display:flex;align-items:center;justify-content:center;background:var(--panel2);color:var(--gold);font-size:30px;font-weight:800}
@@ -340,6 +349,7 @@ function render(){
   if(view==="recovery")return renderRecovery();
   if(view==="timetable")return renderTimetable();
   if(view==="pt")return renderPT();
+  if(view==="ama")return renderAMA();
   if(view==="staff")return renderStaff();
   if(view==="chat")return renderChat();
   if(view==="profile")return renderProfile();
@@ -362,6 +372,15 @@ function renderHome(){
       <div class="hwKicker">${first?("G'day "+esc(first)):"Members Only"}</div>
       <div class="hwTitle">Culture<br>Without Chaos.</div>
     </div>
+    <button class="amaTile" onclick="go('ama')">
+      <span class="amaMicIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg></span>
+      <span style="text-align:left;flex:1">
+        <span class="hcKicker" style="display:block">Voice Assistant</span>
+        <span class="hcTitle" style="display:block;font-size:21px">Ask Me Anything</span>
+        <span class="hcSub" style="display:block;padding-right:0">Hit the mic and ask about anything Legacy.</span>
+      </span>
+      <span style="color:var(--gold);font-size:28px">›</span>
+    </button>
     ${HOME_CARDS.map(c=>`<button class="homeCard" style="${c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
       ${c.id==='chat'?'<span class="hcBadge" id="tileBadge"></span>':''}
       <div class="hcKicker">${c.kicker}</div>
@@ -1237,6 +1256,136 @@ async function unattendClass(date,time){
   renderTimetable();
 }
 
+/* ---- Ask Me Anything (voice in, typed answers) ---- */
+const AMA_KB=[
+{k:"staffed hours reception open desk staff front",a:"The gym floor is staffed Mon–Thu 5:15–7:45am, Mon–Fri 4–7pm, and Saturday 8–11am. Outside those times it's swipe access."},
+{k:"gym open hours access swipe time",a:"Members have swipe access to the gym floor. Staffed hours are Mon–Thu 5:15–7:45am, Mon–Fri 4–7pm and Sat 8–11am. Recovery access runs 4:30am–9pm weekdays and 4:30am–5:30pm weekends."},
+{k:"recovery hours sauna open ice bath spa time",a:"Recovery access is 4:30am–9pm on weekdays and 4:30am–5:30pm on weekends. Private saunas are booked through the Recovery app — the button's in the Recovery tab."},
+{k:"book sauna private recovery booking",a:"Private infrared saunas (Sauna One and Two) are booked through the Recovery app — open the Recovery tab and hit 'Open The Recovery App'. Sessions are 45 minutes."},
+{k:"ice bath cold plunge water therapy contrast hot",a:"Ice baths and the hot spa are in the recovery centre. The Recovery app has guided protocols and a contrast timer that runs your whole session — plunges, soaks and changeovers."},
+{k:"timetable class times week schedule when classes",a:"Check the Timetable tab — it's got this week's full timetable, and you can register for any class starting in the next 24 hours right there."},
+{k:"register class attend spot book sign",a:"Go to the Timetable tab — classes starting in the next 24 hours show an 'I'm Attending' button. Tap it to claim your spot, tap again to pull out."},
+{k:"boxing class today tonight session time",a:"Boxing runs Mon, Wed and Fri at 5:15am and 6pm, plus Saturday 8am. Check the Timetable tab to register for the next one."},
+{k:"strength conditioning class grunt time when",a:"Strength & Conditioning runs Tue and Thu at 5:15am and 6pm, plus Saturday 9am. Register in the Timetable tab."},
+{k:"sparring when session wednesday spar",a:"Sparring is Wednesday at 6:45pm. If you're in Sparring Club, log your rounds afterwards in Boxing → Sparring Club so they're banked."},
+{k:"camp start when begins fight club three",a:"Camp 3 commences Monday July 20. We're on the school-holiday timetable until then."},
+{k:"junior boxing kids age children young",a:"Junior Boxing is for ages 10–15, all levels — Mon, Wed and Fri at 4:30pm. Multiple coaches every session, juniors grouped by ability."},
+{k:"sparring club boxer profile rounds bank log",a:"Head to Boxing → Sparring Club. Build your boxer profile — photo, weights, record — then log every spar: rounds, minutes, who you sparred. It all banks up week by week."},
+{k:"fight nominate nomination night bout compete",a:"Fight night nominations live in Boxing → Sparring Club. When a fight night is listed, hit 'Nominate Me' and the coaches see your name."},
+{k:"coach notes question ask review feedback",a:"In Boxing → Sparring Club there's a Sparring Notes section — post your notes or questions and the coaches reply right there in your thread."},
+{k:"build own session rounds boxing bag workout create",a:"Boxing → Build Your Own. Pick 2 or 3 minute rounds, 30 or 60 second rests, then stack rounds from skipping, shadow, bag work and dumbbell work. The timer runs the whole session and auto-switches the special rounds."},
+{k:"max effort round ten seconds timer",a:"The Max Effort rounds in Build Your Own run themselves — 10, 15 or 20 seconds flat out with matching rest, beeping you in and out until the round's done."},
+{k:"weights program training plan gym floor follow",a:"The Weights tab has ten programs — from Foundations Four for beginners to The Big Three for barbell strength. Each one has the full sessions and how to progress week to week."},
+{k:"beginner start new program never trained",a:"Start with Foundations Four in the Weights tab — three simple machine sessions a week for four weeks. If you've been off for a while, Comeback Season is the gentler on-ramp."},
+{k:"wod crossfit workout functional metcon",a:"Functional Fitness has 50 WODs — classics like Fran and Murph plus Legacy originals. Tap any workout and the timer's already set to its format. Hit start and go."},
+{k:"timer amrap emom tabata interval",a:"Every WOD and S&C session opens with a timer matched to its format — AMRAPs count down, EMOMs beep every minute, Tabatas run 20 on 10 off. Just hit Start."},
+{k:"pt personal training book trainer one session",a:"Hit Book A PT on the home screen. Pick your trainer — Jake, Sarsha, Joe or Alison — choose a session length and your preferred times, and they'll get back to you to lock it in."},
+{k:"jake coach who head trainer",a:"Jake's the Head Coach — former amateur and pro boxer who won his final pro bout at 35. Over ten years coaching with Australian, NSW and Australasian champions plus pro title holders on his record. Book him through Book A PT."},
+{k:"sarsha coach who trainer female pro",a:"Sarsha is a current professional boxer — world ranked, with WBC Asian Gold and WBO Asia Pacific titles. Coaching since 18 with two Australian champions developed by 23. Book her through Book A PT."},
+{k:"joe coach who trainer williams",a:"Joe's one of the Head Coaches — former amateur boxer with 10+ years coaching and multiple Australian amateur champions developed. Famous for keeping boxing simple and enjoyable. Book him through Book A PT."},
+{k:"alison allison coach who trainer ali",a:"Alison is a former state-level amateur boxer, key coach and the engine room of gym operations. She works with everyone from beginners to pros. Book her through Book A PT."},
+{k:"membership price cost much week pay fees",a:"Gym memberships are $24.99/wk on 12 months or $29.99/wk on 6 months. Boxing: Fitness Club $55/wk, Sparring Club $65/wk. Recovery runs $25–$45/wk depending on the tier. Chat to reception for the right fit."},
+{k:"recovery membership cost price gold silver",a:"Recovery: Gold (private + communal saunas + water therapy) $45/wk, Silver (communal sauna + water) $38/wk, Water Therapy only $25/wk — all unlimited weekly use."},
+{k:"contact phone number call reception speak",a:"Call or text 0401 587 508, or catch reception in person 4–7pm Monday to Thursday."},
+{k:"where address located gym find kincumber",a:"We're at 12 Bilinga Road, Kincumber, on the Central Coast."},
+{k:"instagram social media follow facebook",a:"Find us on Instagram @legacy_centralcoast and on Facebook at Legacy Gym Central Coast."},
+{k:"website site online shop gear gloves apparel",a:"legacygym.net — the shop's there too for apparel, gloves and gear."},
+{k:"friend bring guest mate visitor",a:"Guests for the recovery centre can be registered through the Recovery app's Bring A Friend section — guests must be 18+."},
+{k:"chat members talk message community yarn",a:"The Members Chat tab is the whole Legacy crew in one live chat — say g'day. The red badge shows unread messages."},
+{k:"install app home screen phone add download",a:"Open legacygym-app.vercel.app in Safari or Chrome, hit Share, then 'Add to Home Screen' — the gold Legacy icon lands like a normal app."},
+{k:"password forgot login cant sign reset",a:"If you've forgotten your password, grab the team at reception or message 0401 587 508 and we'll get you sorted."},
+{k:"fitness club what non contact",a:"Fitness Club is our non-contact boxing stream — structured 10-week blocks focused on fitness and skill, no sparring. All the technique, none of the punches coming back."},
+{k:"fight club what camp seventy",a:"Fight Club is the 10-week immersive camp — skill, strength and mindset, building to a sanctioned bout under the lights. Strict capacity and pre-registration. Camp 3 starts July 20."},
+{k:"tripod filming video record",a:"No tripods on the gym floor — keep filming low-key and courteous to other members."},
+{k:"age minimum old join sixteen eighteen",a:"The main gym floor is 18+. Juniors 10–15 have their own boxing sessions Mon, Wed and Fri at 4:30pm."},
+{k:"dumbbell round boxing shadow weights hands",a:"The dumbbell rounds in Build Your Own run with 1, 2 or 3kg dumbbells — pick your weight in the session settings. The timer switches you every 30 seconds."},
+{k:"parking park car",a:"There's parking on-site and along Bilinga Road — mornings are quiet, weeknight peak fills up, so give yourself a few extra minutes around 6pm."}
+];
+let amaExtra=[],amaLoaded=false,amaMsgs=[],amaRec=null;
+function amaNorm(s){return s.toLowerCase().replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();}
+function amaMatch(q){
+  const words=amaNorm(q).split(" ").filter(w=>w.length>2);
+  if(!words.length)return null;
+  let best=null,bs=0;
+  AMA_KB.concat(amaExtra).forEach(e=>{
+    const keys=amaNorm(e.k).split(" ").filter(Boolean);
+    let s=0;
+    keys.forEach(k=>{if(words.some(w=>w===k||(w.length>3&&k.startsWith(w))||(k.length>3&&w.startsWith(k))))s++;});
+    if(s>bs){bs=s;best=e;}
+  });
+  if(bs>=2)return best;
+  if(bs===1&&words.length<=3)return best;
+  return null;
+}
+async function renderAMA(){
+  if(!amaLoaded){
+    const {data}=await sb.from("ama_kb").select("*");
+    amaExtra=(data||[]).map(r=>({k:r.keywords,a:r.answer}));
+    amaLoaded=true;
+  }
+  if(view!=="ama")return;
+  if(!amaMsgs.length)amaMsgs.push({who:"ama",txt:"G'day"+((profile&&profile.first_name)?" "+profile.first_name:"")+" — ask me anything about Legacy. Class times, booking a sauna, training programs, PTs, prices — hit the mic and talk, or type it."});
+  $("main").innerHTML=`
+    <div class="hero" style="background:linear-gradient(160deg,#17171a 0%,#0b0b0e 75%);padding:22px">
+      <div class="heroKicker">Voice Assistant</div>
+      <div class="heroTitle">Ask Me Anything</div>
+      <div class="heroText">Talk or type — I'll answer from everything Legacy.</div>
+    </div>
+    <div class="chatWrap" style="height:calc(100vh - 330px)">
+      <div id="amaMsgs" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px">
+        ${amaMsgs.map(m=>amaMsgHtml(m)).join("")}
+      </div>
+      <div class="chatInput">
+        <button id="amaMicBtn" class="amaMicBig" onclick="amaMic()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg></button>
+        <input id="amaInput" placeholder="Ask me anything…" maxlength="300" onkeydown="if(event.key==='Enter')amaAsk()">
+        <button onclick="amaAsk()">➤</button>
+      </div>
+    </div>`;
+  const box=$("amaMsgs");box.scrollTop=box.scrollHeight;
+}
+function amaMsgHtml(m){
+  return `<div class="msg${m.who==="me"?" mine":""}"><div class="who">${m.who==="me"?"You":"Legacy"}</div><div class="txt">${esc(m.txt)}</div></div>`;
+}
+function amaPush(m){
+  amaMsgs.push(m);
+  const box=$("amaMsgs");
+  if(box){box.insertAdjacentHTML("beforeend",amaMsgHtml(m));box.scrollTop=box.scrollHeight;}
+}
+async function amaAsk(){
+  const el=$("amaInput"),q=el.value.trim();
+  if(!q)return;
+  el.value="";
+  amaPush({who:"me",txt:q});
+  const hit=amaMatch(q);
+  setTimeout(()=>{
+    if(hit)amaPush({who:"ama",txt:hit.a});
+    else{
+      amaPush({who:"ama",txt:"Good question — I don't have that one yet, but I've passed it to the team so they can teach me the answer. In the meantime, ask in the Members Chat or catch reception 4–7pm Mon–Thu (0401 587 508)."});
+      sb.from("ama_misses").insert({user_id:session.user.id,question:q}).then(()=>{});
+    }
+  },350);
+}
+function amaMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    $("amaInput").focus();
+    toast("Tap the mic on your keyboard and just talk — then hit send.");
+    return;
+  }
+  if(amaRec){amaRec.stop();return;}
+  amaRec=new SR();
+  amaRec.lang="en-AU";amaRec.interimResults=false;amaRec.maxAlternatives=1;
+  $("amaMicBtn").classList.add("live");
+  amaRec.onresult=e=>{
+    const t=e.results[0][0].transcript;
+    const inp=$("amaInput");if(inp){inp.value=t;amaAsk();}
+  };
+  amaRec.onend=()=>{amaRec=null;const b=$("amaMicBtn");if(b)b.classList.remove("live");};
+  amaRec.onerror=()=>{const b=$("amaMicBtn");if(b)b.classList.remove("live");amaRec=null;};
+  amaRec.start();
+  toast("Listening… ask away.");
+}
+
 /* ---- Book A PT ---- */
 const PT_TRAINERS=[
 {id:"jake",n:"Jake",tag:"Head Coach · Former Pro Boxer",ig:"https://www.instagram.com/jakegsixboxing/",igh:"@jake_legacygym",
@@ -1307,14 +1456,15 @@ let staffChannel=null;
 function isoDateLocal(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
 function staffName(s){return ((s.first_name||"")+" "+(s.last_name||"")).trim()||s.email;}
 async function loadStaffData(){
-  const [st,tk,cm,ms,pr]=await Promise.all([
+  const [st,tk,cm,ms,pr,am]=await Promise.all([
     sb.from("profiles").select("id,first_name,last_name,email,is_staff,is_manager").eq("is_staff",true),
     sb.from("staff_tasks").select("*").order("created_at",{ascending:false}).limit(300),
     sb.from("pt_commissions").select("*").order("session_date",{ascending:false}).order("created_at",{ascending:false}).limit(300),
     sb.from("staff_messages").select("*").order("created_at",{ascending:true}).limit(200),
-    sb.from("pt_requests").select("*").order("created_at",{ascending:false}).limit(100)
+    sb.from("pt_requests").select("*").order("created_at",{ascending:false}).limit(100),
+    sb.from("ama_misses").select("*").order("created_at",{ascending:false}).limit(50)
   ]);
-  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[],ptreqs:pr.data||[]};
+  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[],ptreqs:pr.data||[],misses:am.data||[]};
   if(!staffChannel){
     staffChannel=sb.channel("staff-chat")
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"staff_messages"},pl=>{
@@ -1363,7 +1513,20 @@ function renderStaffChat(){
         <small>${esc(r.duration)} · ${esc(r.preferred)||"any time"}${r.note?" · "+esc(r.note):""} · ${fmtWhen(r.created_at)}</small></div>
       <button class="xBtn" style="border-color:var(--ok);color:var(--ok)" title="Mark handled" onclick="handlePtRequest('${r.id}')">✓</button>
     </div>`).join("")}</div>`:""}
-    ${mgr?`<div class="secTitle">Manager — Staff Access</div>
+    ${(staffData.misses||[]).length?`<div class="secTitle">Ask Me Anything — Questions It Couldn't Answer</div>
+    <div class="card">
+      <p style="margin-bottom:10px">Members asked these and the assistant had no answer. Teach it below and they're covered next time.</p>
+      ${staffData.misses.map(q=>`<div class="sessItem"><div><b>"${esc(q.question)}"</b><small>${fmtWhen(q.created_at)}</small></div>
+      <button class="xBtn" onclick="delMiss('${q.id}')">×</button></div>`).join("")}
+    </div>`:""}
+    ${mgr?`<div class="secTitle">Teach Ask Me Anything</div>
+    <div class="card">
+      <p style="margin-bottom:12px">Add an answer: put the trigger words members might say (any of them matching counts), then the reply it should give.</p>
+      <div class="field"><label>Trigger Words (space-separated)</label><input id="kbKeys" placeholder="e.g. towel bring gear gloves wraps"></div>
+      <div class="field"><label>The Answer</label><input id="kbAns" placeholder="e.g. Bring a towel and wraps — we've got gloves you can borrow."></div>
+      <button class="btnGold" onclick="teachAma()">Teach It</button>
+    </div>
+    <div class="secTitle">Manager — Staff Access</div>
     <div class="card">
       <p style="margin-bottom:12px">Grant a team member access once they've created their normal member login. Their tab appears automatically.</p>
       <div class="field"><label>Their Login Email</label><input id="gaEmail" type="email" placeholder="name@email.com"></div>
@@ -1378,6 +1541,20 @@ async function sendStaffMsg(){
   const name=((profile.first_name||"")+" "+(profile.last_name||"")).trim()||"Staff";
   const {error}=await sb.from("staff_messages").insert({user_id:session.user.id,name,body:v});
   if(error){toast(error.message);el.value=v;}
+}
+async function teachAma(){
+  const k=$("kbKeys").value.trim(),a=$("kbAns").value.trim();
+  if(!k||!a){toast("Need both the trigger words and the answer.");return;}
+  const {error}=await sb.from("ama_kb").insert({keywords:k,answer:a});
+  if(error){toast(error.message);return;}
+  amaLoaded=false;
+  toast("Taught. It knows that one now.");
+  renderStaff();
+}
+async function delMiss(id){
+  const {error}=await sb.from("ama_misses").delete().eq("id",id);
+  if(error){toast(error.message);return;}
+  renderStaff();
 }
 async function handlePtRequest(id){
   const {error}=await sb.from("pt_requests").delete().eq("id",id);
