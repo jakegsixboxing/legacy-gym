@@ -122,6 +122,11 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .dvAM{color:#eef1f5;border:1px solid rgba(217,219,224,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(217,219,224,.35);text-shadow:0 0 10px rgba(217,219,224,.7)}
 .dvFC{color:#eda963;border:1px solid rgba(205,127,50,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(205,127,50,.4);text-shadow:0 0 10px rgba(205,127,50,.7)}
 .dvSC{color:#ff9d9d;border:1px solid rgba(224,82,82,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(224,82,82,.4);text-shadow:0 0 10px rgba(224,82,82,.7)}
+.dvCOACH{color:#f5dc96;border:1px solid rgba(230,193,92,.85);background:linear-gradient(135deg,rgba(163,126,44,.5),rgba(20,20,22,.7));box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 20px rgba(230,193,92,.55);text-shadow:0 0 10px rgba(230,193,92,.85)}
+.fcAcc{margin-top:16px;position:relative}
+.accT{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.accList{display:flex;flex-wrap:wrap;gap:7px}
+.accPill{background:rgba(255,255,255,.04);border-color:var(--gold-dim);color:#e8e2d2;font-size:11.5px}
 .beltRow{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;position:relative}
 .belt{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:8px 6px 6px;text-align:center}
 .belt svg{width:100%;height:auto;max-height:58px;display:block;filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))}
@@ -993,6 +998,14 @@ function bpAddTitle(){
   $("bpCustomTitles").insertAdjacentHTML("beforeend",bpTitleChip(v));
   el.value="";
 }
+const COACH_CARDS={
+  "jakegsixboxing@gmail.com":{
+    title:"Head Boxing Coach",
+    sub:"Ex Amateur / Professional Boxer",
+    amateur:["6× Australian Champions","3× NSW Champions","2× Australasian Champions"],
+    pro:["2× NSW Champions","2× Australian Champions","1× Australasian Champion","2× UBF Champions","1× WBO Asia Pacific Champion","1× WBC Asian Gold Champion"]
+  }
+};
 const MONTH_TIERS=[[50,"Platinum","platinum"],[35,"Gold","goldT"],[20,"Silver","silver"],[10,"Bronze","bronze"]];
 function monthlyTier(){
   const mo=new Date();mo.setDate(1);mo.setHours(0,0,0,0);
@@ -1007,25 +1020,32 @@ function boxerCardHtml(bp){
   const pct=rank.nextAt?Math.min(100,Math.round((total-rank.at)/(rank.nextAt-rank.at)*100)):100;
   const mt=monthlyTier();
   const d=divisionOf(bp);
+  const cc=COACH_CARDS[(profile&&profile.email)||""];
   const titles=(bp.titles||"").split(",").map(t=>t.trim()).filter(Boolean);
   return `<div class="fightCard">
-    <div class="fcBanner" style="border-bottom-color:${d.color}">
-      <span class="fcDiv" style="color:${d.color}">${d.banner}</span>
+    <div class="fcBanner" style="border-bottom-color:${cc?"var(--gold)":d.color}">
+      <span class="fcDiv" style="color:${cc?"var(--gold)":d.color}">${cc?cc.title:d.banner}</span>
       ${mt.name?`<span class="fcTier ${mt.cls}">${mt.name} · ${mt.r} rds this month</span>`
                :`<span class="fcTier none">${mt.r}/${mt.next[0]} rds to Bronze this month</span>`}
     </div>
     <div class="fcTop">
       <div class="fcPhotoWrap">
         ${bp.photo_url?`<img class="fcPhoto" src="${esc(bp.photo_url)}" alt="">`:`<div class="fcPhoto fcPhotoEmpty">${esc((bp.name||"?").trim()[0]||"?")}</div>`}
-        <span class="dvBadge ${d.cls}">${d.label}</span>
+        <span class="dvBadge ${cc?"dvCOACH":d.cls}">${cc?cc.title:d.label}</span>
       </div>
       <div style="flex:1;min-width:0">
         <div class="fcRank">${rank.name}</div>
         <h3 class="fcName">${esc(bp.name)}</h3>
-        <div class="fcMeta">${wc?wc:""}${wc&&bp.age?" · ":""}${bp.age?bp.age+" yrs":""}${(wc||bp.age)&&bp.current_weight?" · ":""}${bp.current_weight?Number(bp.current_weight)+"kg now":""}</div>
+        <div class="fcMeta">${cc?cc.sub:""}${cc&&(wc||bp.age)?" · ":""}${wc?wc:""}${wc&&bp.age?" · ":""}${bp.age?bp.age+" yrs":""}</div>
       </div>
       <button class="btnLink" style="width:auto;padding:8px 12px;margin:0" onclick="startBpEdit()">Edit</button>
     </div>
+    ${cc?`<div class="fcAcc">
+      <div class="accT">Coaching Accomplishments — Amateur</div>
+      <div class="accList">${cc.amateur.map(a=>`<span class="pill accPill">${a}</span>`).join("")}</div>
+      <div class="accT" style="margin-top:12px">Coaching Accomplishments — Professional</div>
+      <div class="accList">${cc.pro.map(a=>`<span class="pill accPill">${a}</span>`).join("")}</div>
+    </div>`:""}
     <div class="fcRecordRow">
       <div class="fcRec"><span>${bp.wins||0}</span><small>Wins</small></div>
       <div class="fcRec"><span>${bp.losses||0}</span><small>Losses</small></div>
