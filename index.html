@@ -104,15 +104,20 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 
 /* division badges + belts */
 .fcPhotoWrap{position:relative;flex-shrink:0}
-.dvBadge{position:absolute;bottom:-7px;right:-7px;border-radius:8px;padding:4px 7px;font-size:8.5px;font-weight:800;letter-spacing:.5px;line-height:1;display:flex;align-items:baseline;box-shadow:0 3px 10px rgba(0,0,0,.55);text-transform:uppercase}
-.dvBadge b{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;margin-right:1px;line-height:.9}
-.dvPRO{background:linear-gradient(135deg,#a37e2c,#e6c15c);color:#241c05}
-.dvAM{background:linear-gradient(135deg,#8e9196,#d9dbe0);color:#26282c}
-.dvFC{background:linear-gradient(135deg,#8c5a2b,#cd7f32);color:#fff}
-.dvSC{background:linear-gradient(135deg,#8f1f1f,#e05252);color:#fff}
+.dvBadge{position:absolute;bottom:-8px;right:-8px;border-radius:10px;padding:5px 9px;font-size:9px;font-weight:800;letter-spacing:1px;line-height:1;display:flex;align-items:baseline;text-transform:uppercase;overflow:hidden;
+  background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.03) 45%,rgba(255,255,255,.1));
+  backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.dvBadge::after{content:"";position:absolute;top:-70%;left:-40%;width:45%;height:240%;transform:rotate(24deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);animation:holoSweep 3.4s ease-in-out infinite}
+@keyframes holoSweep{0%,55%{left:-45%}100%{left:135%}}
+.dvBadge b{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;margin-right:1.5px;line-height:.9}
+.dvPRO{color:#f3d689;border:1px solid rgba(230,193,92,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(230,193,92,.4);text-shadow:0 0 10px rgba(230,193,92,.7)}
+.dvAM{color:#eef1f5;border:1px solid rgba(217,219,224,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(217,219,224,.35);text-shadow:0 0 10px rgba(217,219,224,.7)}
+.dvFC{color:#eda963;border:1px solid rgba(205,127,50,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(205,127,50,.4);text-shadow:0 0 10px rgba(205,127,50,.7)}
+.dvSC{color:#ff9d9d;border:1px solid rgba(224,82,82,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(224,82,82,.4);text-shadow:0 0 10px rgba(224,82,82,.7)}
 .beltRow{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;position:relative}
 .belt{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:8px 6px 6px;text-align:center}
-.belt svg{width:100%;height:auto;max-height:50px;display:block}
+.belt svg{width:100%;height:auto;max-height:58px;display:block;filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))}
+.titleChip{cursor:pointer;border-color:var(--gold-dim);color:var(--gold)}
 .belt small{display:block;font-size:8.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-top:4px;line-height:1.3}
 .ckRow{display:flex;align-items:center;gap:10px;padding:9px 2px;font-size:13.5px;color:#d8d5cd;border-bottom:1px solid var(--line);cursor:pointer}
 .ckRow:last-child{border-bottom:none}
@@ -783,40 +788,87 @@ function topPartner(){
 const DIVISIONS={
   "Sparring Club":{big:"S",small:"C",cls:"dvSC",banner:"Sparring Club",color:"#e05252",blurb:"Sparring Club — no fights yet"},
   "Fight Club":{big:"F",small:"C",cls:"dvFC",banner:"Fight Club Fighter",color:"#cd7f32",blurb:"Fight Club — fought a Fight Club bout"},
-  "Amateur":{big:"A",small:"MATEUR",cls:"dvAM",banner:"Amateur Boxer",color:"#cfd3d8",blurb:"Amateur boxer"},
+  "Amateur":{big:"A",small:"M",cls:"dvAM",banner:"Amateur Boxer",color:"#cfd3d8",blurb:"Amateur boxer"},
   "Professional":{big:"P",small:"RO",cls:"dvPRO",banner:"Pro Boxer",color:"#e6c15c",blurb:"Professional boxer"}
 };
 function divisionOf(bp){return DIVISIONS[bp&&bp.division]||DIVISIONS["Sparring Club"];}
 const AM_TITLES=["NSW Amateur Champion","Australian Amateur Champion","Australasian Amateur Champion"];
 const PRO_TITLES=["NSW Professional Title","Australian Professional Title","UBF Asia Pacific Title","WBC Asian Gold Title","WBO Asia Pacific Title"];
 const TITLE_BELTS={
-  "NSW Professional Title":"#3f88c5",
-  "Australian Professional Title":"#0f7a4d",
-  "UBF Asia Pacific Title":"#274b8f",
-  "WBC Asian Gold Title":"#1c7a3c",
-  "WBO Asia Pacific Title":"#6b2f1f",
-  "NSW Amateur Champion":"#3f88c5",
-  "Australian Amateur Champion":"#0f7a4d",
-  "Australasian Amateur Champion":"#8a5b2b"
+  "NSW Professional Title":{s:"#2f6fb3"},
+  "Australian Professional Title":{s:"#0f7a4d"},
+  "UBF Asia Pacific Title":{s:"#274b8f"},
+  "WBC Asian Gold Title":{s:"#0f7a3c"},
+  "WBO Asia Pacific Title":{s:"#d66ba0",m:"silver"},
+  "NSW Amateur Champion":{s:"#2f6fb3"},
+  "Australian Amateur Champion":{s:"#0f7a4d"},
+  "Australasian Amateur Champion":{s:"#7a5230"}
 };
-function beltSvg(color){
-  return `<svg viewBox="0 0 120 56" xmlns="http://www.w3.org/2000/svg">
-    <path d="M6 28 Q60 6 114 28 Q60 50 6 28 Z" fill="${color}" stroke="rgba(0,0,0,.45)" stroke-width="1.5"/>
-    <circle cx="60" cy="28" r="15" fill="#e6c15c" stroke="#a37e2c" stroke-width="2"/>
-    <circle cx="60" cy="28" r="9" fill="#f5e3a1" stroke="#c49b3f" stroke-width="1"/>
-    <circle cx="33" cy="28" r="6.5" fill="#e6c15c" stroke="#a37e2c" stroke-width="1.5"/>
-    <circle cx="87" cy="28" r="6.5" fill="#e6c15c" stroke="#a37e2c" stroke-width="1.5"/>
-    <circle cx="18" cy="28" r="4" fill="#e6c15c" stroke="#a37e2c"/>
-    <circle cx="102" cy="28" r="4" fill="#e6c15c" stroke="#a37e2c"/>
+function beltSpecFor(t){
+  if(TITLE_BELTS[t])return TITLE_BELTS[t];
+  const n=t.toLowerCase();
+  if(n.includes("wbc"))return {s:"#0f7a3c"};
+  if(n.includes("wbo"))return {s:"#d66ba0",m:"silver"};
+  if(n.includes("wba"))return {s:"#1d1d1f"};
+  if(n.includes("ibf"))return {s:"#8f1f1f"};
+  if(n.includes("ubf"))return {s:"#274b8f"};
+  if(n.includes("nsw")||n.includes("new south wales"))return {s:"#2f6fb3"};
+  if(n.includes("austral"))return {s:"#0f7a4d"};
+  if(n.includes("world"))return {s:"#14100a"};
+  if(n.includes("state")||n.includes("queensland")||n.includes("victoria"))return {s:"#2f6fb3"};
+  return {s:"#232326"};
+}
+function beltSvg(spec,uid){
+  const s=spec.s||"#232326";
+  const met=spec.m==="silver"?["#f4f6f8","#c7ccd3","#7e848c"]:["#f9e9b0","#e0b94f","#96742a"];
+  const g="blt"+uid;
+  return `<svg viewBox="0 0 140 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="${g}sh" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".3"/>
+      <stop offset=".45" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity=".4"/>
+    </linearGradient>
+    <radialGradient id="${g}p" cx="35%" cy="28%" r="95%">
+      <stop offset="0" stop-color="${met[0]}"/>
+      <stop offset=".55" stop-color="${met[1]}"/>
+      <stop offset="1" stop-color="${met[2]}"/>
+    </radialGradient>
+  </defs>
+  <path d="M6 32 C28 12 112 12 134 32 C112 52 28 52 6 32 Z" fill="${s}"/>
+  <path d="M6 32 C28 12 112 12 134 32 C112 52 28 52 6 32 Z" fill="url(#${g}sh)"/>
+  <path d="M13 32 C33 17 107 17 127 32 C107 47 33 47 13 32 Z" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1" stroke-dasharray="3 3"/>
+  <circle cx="22" cy="32" r="5" fill="url(#${g}p)" stroke="${met[2]}" stroke-width="1"/>
+  <circle cx="118" cy="32" r="5" fill="url(#${g}p)" stroke="${met[2]}" stroke-width="1"/>
+  <circle cx="38" cy="32" r="8" fill="url(#${g}p)" stroke="${met[2]}" stroke-width="1.2"/>
+  <circle cx="102" cy="32" r="8" fill="url(#${g}p)" stroke="${met[2]}" stroke-width="1.2"/>
+  <circle cx="70" cy="32" r="21" fill="url(#${g}p)" stroke="${met[2]}" stroke-width="1.6"/>
+  <circle cx="70" cy="32" r="15.5" fill="none" stroke="${met[2]}" stroke-width="1"/>
+  <circle cx="70" cy="32" r="13" fill="none" stroke="rgba(255,255,255,.5)" stroke-width=".7"/>
+  <polygon points="70,24.5 72.2,29.5 77.5,30 73.6,33.6 74.7,38.8 70,36.2 65.3,38.8 66.4,33.6 62.5,30 67.8,29.5" fill="${met[2]}" opacity=".92"/>
   </svg>`;
 }
 function bpTitlesHtml(div,cur){
+  const known=[...PRO_TITLES,...AM_TITLES];
   let list=[];
   if(div==="Amateur")list=AM_TITLES;
   else if(div==="Professional")list=[...PRO_TITLES,...AM_TITLES];
-  if(!list.length)return "";
-  return `<label class="byoLbl">Titles Won — Tick Any</label>
-    <div>${list.map(t=>`<label class="ckRow"><input type="checkbox" class="bpTitleCk" value="${esc(t)}" ${cur.includes(t)?"checked":""}> ${esc(t)}</label>`).join("")}</div>`;
+  const custom=cur.filter(t=>!known.includes(t));
+  return `<label class="byoLbl">Have You Won Any Titles?</label>
+    ${list.length?`<div>${list.map(t=>`<label class="ckRow"><input type="checkbox" class="bpTitleCk" value="${esc(t)}" ${cur.includes(t)?"checked":""}> ${esc(t)}</label>`).join("")}</div>`:""}
+    <div class="field" style="margin-top:12px"><label>Won Something Else? Type The Title In</label>
+      <div class="chatInput" style="border-top:none;padding-top:0">
+        <input id="bpTitleNew" placeholder="e.g. IBF Youth World Title" maxlength="60" onkeydown="if(event.key==='Enter'){event.preventDefault();bpAddTitle();}">
+        <button type="button" onclick="bpAddTitle()">＋</button>
+      </div></div>
+    <div class="pillRow" id="bpCustomTitles">${custom.map(t=>bpTitleChip(t)).join("")}</div>`;
+}
+function bpTitleChip(t){return `<span class="pill titleChip" data-t="${esc(t)}" onclick="this.remove()" title="Tap to remove">${esc(t)} ×</span>`;}
+function bpAddTitle(){
+  const el=$("bpTitleNew"),v=el.value.trim();
+  if(!v)return;
+  $("bpCustomTitles").insertAdjacentHTML("beforeend",bpTitleChip(v));
+  el.value="";
 }
 const MONTH_TIERS=[[50,"Platinum","platinum"],[35,"Gold","goldT"],[20,"Silver","silver"],[10,"Bronze","bronze"]];
 function monthlyTier(){
@@ -857,7 +909,7 @@ function boxerCardHtml(bp){
       <div class="fcRec"><span>${bp.draws||0}</span><small>Draws</small></div>
       <div class="fcRec gold"><span>${total}</span><small>Rounds</small></div>
     </div>
-    ${titles.length?`<div class="beltRow">${titles.map(t=>`<div class="belt">${beltSvg(TITLE_BELTS[t]||"#a37e2c")}<small>${esc(t)}</small></div>`).join("")}</div>`:""}
+    ${titles.length?`<div class="beltRow">${titles.map((t,i)=>`<div class="belt">${beltSvg(beltSpecFor(t),i)}<small>${esc(t)}</small></div>`).join("")}</div>`:""}
     ${rank.nextAt?`<div class="rankBar"><div class="rankFill" style="width:${pct}%"></div></div>
     <div class="rankLbl">${rank.nextAt-total} rounds to ${rank.next}</div>`:`<div class="rankLbl" style="color:var(--gold)">Top of the mountain.</div>`}
   </div>`;
@@ -1060,7 +1112,8 @@ async function saveBoxerProfile(){
   const rec={user_id:session.user.id,
     name:$("bpName").value.trim(),
     division:$("bpDiv").value,
-    titles:[...document.querySelectorAll(".bpTitleCk:checked")].map(x=>x.value).join(","),
+    titles:[...document.querySelectorAll(".bpTitleCk:checked")].map(x=>x.value)
+      .concat([...document.querySelectorAll("#bpCustomTitles .titleChip")].map(x=>x.dataset.t)).join(","),
     age:parseInt($("bpAge").value)||null,
     current_weight:parseFloat($("bpCw").value)||null,
     fight_weight:parseFloat($("bpFw").value)||null,
