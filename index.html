@@ -860,13 +860,12 @@ function bpFormHtml(bp){
       </div>
     </div>
     <div class="field"><label>Name</label><input id="bpName" value="${esc(defName)}"></div>
-    <div class="field"><label>Your Experience</label><select id="bpDiv" onchange="$('bpTitlesWrap').innerHTML=bpTitlesHtml(this.value,[])">
-      <option value="Sparring Club" ${(!bp.division||bp.division==="Sparring Club"||bp.division==="Legacy Fight Club")?"selected":""}>Sparring Club — no fights yet</option>
-      <option value="Fight Club" ${bp.division==="Fight Club"?"selected":""}>Fight Club — fought a Fight Club bout</option>
-      <option value="Amateur" ${bp.division==="Amateur"?"selected":""}>Amateur boxer</option>
+    <div class="field"><label>Your Level</label><select id="bpDiv" onchange="$('bpTitlesWrap').innerHTML=bpTitlesHtml(this.value==='Professional'?'Professional':'Amateur',[])">
+      <option value="auto" ${bp.division!=="Professional"?"selected":""}>Auto — set from my fight record</option>
       <option value="Professional" ${bp.division==="Professional"?"selected":""}>Professional boxer</option>
-    </select></div>
-    <div id="bpTitlesWrap">${bpTitlesHtml(bp.division||"Sparring Club",(bp.titles||"").split(",").map(t=>t.trim()).filter(Boolean))}</div>
+    </select>
+    <p style="color:var(--muted);font-size:11.5px;margin:-6px 0 12px;line-height:1.5">Your label sets itself from your record: no fights = Sparring Club, one fight = Fight Club, two or more = Amateur Boxer.</p></div>
+    <div id="bpTitlesWrap">${bpTitlesHtml(bp.division==="Professional"?"Professional":"Amateur",(bp.titles||"").split(",").map(t=>t.trim()).filter(Boolean))}</div>
     <div class="row2">
       <div class="field"><label>Age</label><input id="bpAge" type="number" inputmode="numeric" value="${bp.age??""}"></div>
       <div class="field"><label>Current Weight (kg)</label><input id="bpCw" type="number" step="0.1" inputmode="decimal" value="${bp.current_weight??""}"></div>
@@ -919,7 +918,13 @@ const DIVISIONS={
   "Amateur":{label:"Amateur Boxer",cls:"dvAM",banner:"Amateur Boxer",color:"#cfd3d8",blurb:"Amateur boxer"},
   "Professional":{label:"Professional Boxer",cls:"dvPRO",banner:"Pro Boxer",color:"#e6c15c",blurb:"Professional boxer"}
 };
-function divisionOf(bp){return DIVISIONS[bp&&bp.division]||DIVISIONS["Sparring Club"];}
+function divisionOf(bp){
+  if(bp&&bp.division==="Professional")return DIVISIONS["Professional"];
+  const fights=bp?((Number(bp.wins)||0)+(Number(bp.losses)||0)+(Number(bp.draws)||0)):0;
+  if(fights>=2)return DIVISIONS["Amateur"];
+  if(fights===1)return DIVISIONS["Fight Club"];
+  return DIVISIONS["Sparring Club"];
+}
 const AM_TITLES=["NSW Amateur Champion","Australian Amateur Champion","Australasian Amateur Champion"];
 const PRO_TITLES=["NSW Professional Title","Australian Professional Title","UBF Asia Pacific Title","WBC Asian Gold Title","WBO Asia Pacific Title"];
 const TITLE_BELTS={
@@ -1253,9 +1258,12 @@ async function uploadBoxerPhoto(e){
   toast("Photo's in. Hit Save Profile to lock it.");
 }
 async function saveBoxerProfile(){
+  const fw=parseInt($("bpW").value)||0,fl=parseInt($("bpL").value)||0,fd=parseInt($("bpD").value)||0;
+  const fights=fw+fl+fd;
+  const autoDiv=fights>=2?"Amateur":fights===1?"Fight Club":"Sparring Club";
   const rec={user_id:session.user.id,
     name:$("bpName").value.trim(),
-    division:$("bpDiv").value,
+    division:$("bpDiv").value==="Professional"?"Professional":autoDiv,
     titles:[...document.querySelectorAll(".bpTitleCk:checked")].map(x=>x.value)
       .concat([...document.querySelectorAll("#bpCustomTitles .titleChip")].map(x=>x.dataset.t)).join(","),
     age:parseInt($("bpAge").value)||null,
