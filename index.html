@@ -406,7 +406,7 @@ function renderNav(){
     <svg viewBox="0 0 24 24">${n.icon}</svg><span>${n.label}</span></button>`).join("");
   updateBadges();
 }
-function go(v){view=v;wpSel=null;fnSel=null;renderNav();render();window.scrollTo(0,0);if(v==="chat")markRead();}
+function go(v){view=v;wpSel=null;wsSel=null;fnSel=null;renderNav();render();window.scrollTo(0,0);if(v==="chat")markRead();}
 
 /* ======== RENDER ======== */
 function render(){
@@ -1306,23 +1306,77 @@ const WPROGRAMS=[
   {t:"Session A",ex:["Leg Press — 2-3×12","Chest Press Machine — 2-3×12","Seated Row — 2-3×12","Leg Curl — 2×12","Cable Crunch — 2×15","10 min easy bike to finish"]},
   {t:"Session B",ex:["Leg Extension — 2-3×12","Lat Pulldown — 2-3×12","Machine Shoulder Press — 2-3×12","Back Extension — 2×12","DB Curl — 2×12","10 min incline walk to finish"]}]}
 ];
+let wSub="4",wsSel=null;
+const WSINGLES=[
+{id:"century",name:"The Century",tag:"100 reps a station · ~60 min",
+ blurb:"One hundred reps at every station, any set breakdown you like — just finish the hundred before you move on. Pick loads you could do 20 clean reps with when fresh.",
+ ex:["Leg Press — 100 reps","Chest Press Machine — 100 reps","Seated Row — 100 reps","Machine Shoulder Press — 100 reps","Leg Curl — 100 reps","Cable Crunch — 100 reps"]},
+{id:"ironhour",name:"Iron Hour",tag:"Barbell only · 60 min hard cap",
+ blurb:"Sixty minutes, one barbell, four lifts. Rest tight, move with intent — when the hour's up, you're done wherever you are.",
+ ex:["Back Squat — 5×5","Bench Press — 5×5","Barbell Row — 5×5","Romanian Deadlift — 3×8","Finisher: Barbell Curl — 3×12"]},
+{id:"leghell",name:"Leg Day From Hell",tag:"Lower body · bring a towel",
+ blurb:"The leg session members warn each other about. Work through in order — the widowmaker is one single 20-rep set of leg press, no racking.",
+ ex:["Back Squat — 5×10","Leg Press Widowmaker — 1×20","DB Walking Lunge — 100 steps total","Leg Extension — 3×15 + drop set","Lying Leg Curl — 3×15","Standing Calf Raise — 100 reps"]},
+{id:"pumpday",name:"The Pump Day",tag:"Upper body supersets · ~50 min",
+ blurb:"Chest, back, shoulders and arms in paired supersets — 60 seconds rest between pairs, chase the pump, leave nothing.",
+ ex:["A1 Incline DB Press ×12 / A2 Cable Row ×12 — 4 rounds","B1 Pec Deck ×15 / B2 Face Pull ×15 — 3 rounds","C1 Lateral Raise ×15 / C2 Rear Delt Fly ×15 — 3 rounds","D1 EZ Bar Curl ×12 / D2 Rope Pushdown ×12 — 4 rounds"]},
+{id:"db50",name:"The Dumbbell Fifty",tag:"One pair of DBs · 50 min",
+ blurb:"Grab one pair of dumbbells and don't put them down between exercises within each complex. Three complexes, five rounds each.",
+ ex:["Complex 1 (×5): 8 Goblet Squats · 8 RDLs · 8 Rows each arm","Complex 2 (×5): 8 Floor Press · 8 Push Press · 8 Curls","Complex 3 (×5): 10 Walking Lunges · 10 Swings · 10 Sit-Ups"]},
+{id:"pushmax",name:"Push Day Max",tag:"Test day · chest & shoulders",
+ blurb:"Build to a heavy single on the bench — not a grinder, a crisp top single — then pay for it with back-off volume.",
+ ex:["Bench Press — build to heavy 1 rep","Bench Press back-off — 3×8 at 75%","Seated DB Shoulder Press — 4×10","Incline Machine Press — 3×12","Cable Fly — 3×15","Rope Pushdown — 3×12"]},
+{id:"pullmax",name:"Pull Day Max",tag:"Test day · deadlift & back",
+ blurb:"Heavy triple on the deadlift, then volume for the whole back side. Belt up, brace hard, keep every rep honest.",
+ ex:["Deadlift — build to heavy 3 reps","Barbell Row — 4×8","Lat Pulldown — 4×10","Seated Cable Row — 3×12","DB Shrug — 3×15","DB Hammer Curl — 3×12"]},
+{id:"finisher30",name:"The 30-Minute Finisher",tag:"Express · giant sets",
+ blurb:"In the door, thirty minutes, out. Two giant sets — four exercises back to back, rest 90 seconds, repeat four times each.",
+ ex:["Giant Set A (×4): Leg Press ×15 · Leg Curl ×12 · Calf Raise ×20 · Plank 45 sec","Giant Set B (×4): Chest Press ×12 · Lat Pulldown ×12 · Lateral Raise ×15 · Cable Crunch ×15"]}
+];
 function renderWeights(){
   if(wpSel)return renderWProgram(wpSel);
+  if(wsSel)return renderWSingle(wsSel);
+  const singles=wSub==="one";
+  const list=WPROGRAMS.filter(p=>p.len.startsWith(wSub));
   $("main").innerHTML=`
     <div class="hero" style="${bgStyle('weights',.55)}">
       <div class="heroKicker">The Gym Floor</div>
       <div class="heroTitle">Weights</div>
-      <div class="heroText">Ten programs across the pin-loaded, plate-loaded, dumbbell and barbell kit. Pick one, follow it, finish it.</div>
+      <div class="heroText">Progressive training blocks and stand-alone sessions across the whole floor.</div>
     </div>
-    <div class="secTitle">Training Programs</div>
-    ${WPROGRAMS.map(p=>`<div class="wodRow" onclick="wpSel='${p.id}';renderWeights();window.scrollTo(0,0)">
-      <div><b>${p.name}</b><small>${p.len} · ${p.days} · ${p.gear}</small></div><span class="go">›</span>
-    </div>`).join("")}
+    <div class="subTabs">
+      <button class="${wSub==='4'?'active':''}" onclick="wSub='4';renderWeights()">4 Week</button>
+      <button class="${wSub==='8'?'active':''}" onclick="wSub='8';renderWeights()">8 Week</button>
+      <button class="${wSub==='10'?'active':''}" onclick="wSub='10';renderWeights()">10 Week</button>
+      <button class="${wSub==='one'?'active':''}" onclick="wSub='one';renderWeights()">One-Off Sessions</button>
+    </div>
+    ${singles?`
+      <p style="color:var(--muted);font-size:12.5px;margin:-4px 2px 12px;line-height:1.5">No program, no commitment — just a serious session for today. Pick one and get after it.</p>
+      ${WSINGLES.map(s=>`<div class="wodRow" onclick="wsSel='${s.id}';renderWeights();window.scrollTo(0,0)">
+        <div><b>${s.name}</b><small>${s.tag}</small></div><span class="go">›</span>
+      </div>`).join("")}`
+    :`
+      <p style="color:var(--muted);font-size:12.5px;margin:-4px 2px 12px;line-height:1.5">${wSub==="4"?"Four-week blocks — tight, focused starts. Finish one, step up to an 8-week block.":wSub==="8"?"Eight-week blocks — the growth zone. Enough time to load up week on week and see it in the mirror.":"Ten-week blocks — the long builds. Strength and size laid down brick by brick, tested at the end."}</p>
+      ${list.map(p=>`<div class="wodRow" onclick="wpSel='${p.id}';renderWeights();window.scrollTo(0,0)">
+        <div><b>${p.name}</b><small>${p.days} · ${p.gear}</small></div><span class="go">›</span>
+      </div>`).join("")}`}
     <div class="secTitle">Staffed Hours</div>
     <div class="card">
       <ul style="margin-top:0"><li>Mon – Thu: 5:15am – 7:45am</li><li>Mon – Fri: 4:00pm – 7:00pm</li><li>Saturday: 8:00am – 11:00am</li></ul>
       <p style="margin-top:10px">Need a hand with any program or a form check? Grab a coach during staffed hours.</p>
     </div>`;
+}
+function renderWSingle(id){
+  const s=WSINGLES.find(x=>x.id===id);if(!s){wsSel=null;return renderWeights();}
+  $("main").innerHTML=`
+    <button class="backBtn" onclick="wsSel=null;renderWeights();window.scrollTo(0,0)">‹ One-Off Sessions</button>
+    <div class="card">
+      <h3>${s.name}</h3>
+      <div class="sub">${s.tag}</div>
+      <p>${s.blurb}</p>
+      <ul style="margin-top:12px">${s.ex.map(e=>`<li>${e}</li>`).join("")}</ul>
+    </div>
+    <div class="notice">Warm up properly first — 5 minutes on a bike or ski erg plus light sets of your first movement. Scale loads to your level and keep the last rep of every set clean.</div>`;
 }
 function renderWProgram(id){
   const p=WPROGRAMS.find(x=>x.id===id);if(!p){wpSel=null;return renderWeights();}
