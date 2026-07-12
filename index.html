@@ -102,6 +102,22 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .pillBtns button.on{background:var(--gold);border-color:var(--gold);color:#161307}
 .miniSel{margin-top:8px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;display:block}
 
+/* division badges + belts */
+.fcPhotoWrap{position:relative;flex-shrink:0}
+.dvBadge{position:absolute;bottom:-7px;right:-7px;border-radius:8px;padding:4px 7px;font-size:8.5px;font-weight:800;letter-spacing:.5px;line-height:1;display:flex;align-items:baseline;box-shadow:0 3px 10px rgba(0,0,0,.55);text-transform:uppercase}
+.dvBadge b{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;margin-right:1px;line-height:.9}
+.dvPRO{background:linear-gradient(135deg,#a37e2c,#e6c15c);color:#241c05}
+.dvAM{background:linear-gradient(135deg,#8e9196,#d9dbe0);color:#26282c}
+.dvFC{background:linear-gradient(135deg,#8c5a2b,#cd7f32);color:#fff}
+.dvSC{background:linear-gradient(135deg,#8f1f1f,#e05252);color:#fff}
+.beltRow{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;position:relative}
+.belt{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:10px;padding:8px 6px 6px;text-align:center}
+.belt svg{width:100%;height:auto;max-height:50px;display:block}
+.belt small{display:block;font-size:8.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-top:4px;line-height:1.3}
+.ckRow{display:flex;align-items:center;gap:10px;padding:9px 2px;font-size:13.5px;color:#d8d5cd;border-bottom:1px solid var(--line);cursor:pointer}
+.ckRow:last-child{border-bottom:none}
+.ckRow input{width:18px;height:18px;accent-color:#c9a44c;flex-shrink:0}
+
 /* social events */
 .evDate{width:52px;flex-shrink:0;background:var(--panel2);border:1px solid var(--gold-dim);border-radius:10px;text-align:center;padding:8px 2px}
 .evDate span{display:block;font-size:22px;font-weight:900;color:var(--gold);line-height:1.1}
@@ -711,11 +727,13 @@ function bpFormHtml(bp){
       </div>
     </div>
     <div class="field"><label>Name</label><input id="bpName" value="${esc(defName)}"></div>
-    <div class="field"><label>Your Division</label><select id="bpDiv">
-      <option value="Legacy Fight Club" ${(!bp.division||bp.division==="Legacy Fight Club")?"selected":""}>Legacy Fight Club</option>
-      <option value="Amateur" ${bp.division==="Amateur"?"selected":""}>Amateur</option>
-      <option value="Professional" ${bp.division==="Professional"?"selected":""}>Professional</option>
+    <div class="field"><label>Your Experience</label><select id="bpDiv" onchange="$('bpTitlesWrap').innerHTML=bpTitlesHtml(this.value,[])">
+      <option value="Sparring Club" ${(!bp.division||bp.division==="Sparring Club"||bp.division==="Legacy Fight Club")?"selected":""}>Sparring Club — no fights yet</option>
+      <option value="Fight Club" ${bp.division==="Fight Club"?"selected":""}>Fight Club — fought a Fight Club bout</option>
+      <option value="Amateur" ${bp.division==="Amateur"?"selected":""}>Amateur boxer</option>
+      <option value="Professional" ${bp.division==="Professional"?"selected":""}>Professional boxer</option>
     </select></div>
+    <div id="bpTitlesWrap">${bpTitlesHtml(bp.division||"Sparring Club",(bp.titles||"").split(",").map(t=>t.trim()).filter(Boolean))}</div>
     <div class="row2">
       <div class="field"><label>Age</label><input id="bpAge" type="number" inputmode="numeric" value="${bp.age??""}"></div>
       <div class="field"><label>Current Weight (kg)</label><input id="bpCw" type="number" step="0.1" inputmode="decimal" value="${bp.current_weight??""}"></div>
@@ -762,6 +780,44 @@ function topPartner(){
   Object.entries(t).forEach(([p,r])=>{if(!best||r>best[1])best=[p,r];});
   return best;
 }
+const DIVISIONS={
+  "Sparring Club":{big:"S",small:"C",cls:"dvSC",banner:"Sparring Club",color:"#e05252",blurb:"Sparring Club — no fights yet"},
+  "Fight Club":{big:"F",small:"C",cls:"dvFC",banner:"Fight Club Fighter",color:"#cd7f32",blurb:"Fight Club — fought a Fight Club bout"},
+  "Amateur":{big:"A",small:"MATEUR",cls:"dvAM",banner:"Amateur Boxer",color:"#cfd3d8",blurb:"Amateur boxer"},
+  "Professional":{big:"P",small:"RO",cls:"dvPRO",banner:"Pro Boxer",color:"#e6c15c",blurb:"Professional boxer"}
+};
+function divisionOf(bp){return DIVISIONS[bp&&bp.division]||DIVISIONS["Sparring Club"];}
+const AM_TITLES=["NSW Amateur Champion","Australian Amateur Champion","Australasian Amateur Champion"];
+const PRO_TITLES=["NSW Professional Title","Australian Professional Title","UBF Asia Pacific Title","WBC Asian Gold Title","WBO Asia Pacific Title"];
+const TITLE_BELTS={
+  "NSW Professional Title":"#3f88c5",
+  "Australian Professional Title":"#0f7a4d",
+  "UBF Asia Pacific Title":"#274b8f",
+  "WBC Asian Gold Title":"#1c7a3c",
+  "WBO Asia Pacific Title":"#6b2f1f",
+  "NSW Amateur Champion":"#3f88c5",
+  "Australian Amateur Champion":"#0f7a4d",
+  "Australasian Amateur Champion":"#8a5b2b"
+};
+function beltSvg(color){
+  return `<svg viewBox="0 0 120 56" xmlns="http://www.w3.org/2000/svg">
+    <path d="M6 28 Q60 6 114 28 Q60 50 6 28 Z" fill="${color}" stroke="rgba(0,0,0,.45)" stroke-width="1.5"/>
+    <circle cx="60" cy="28" r="15" fill="#e6c15c" stroke="#a37e2c" stroke-width="2"/>
+    <circle cx="60" cy="28" r="9" fill="#f5e3a1" stroke="#c49b3f" stroke-width="1"/>
+    <circle cx="33" cy="28" r="6.5" fill="#e6c15c" stroke="#a37e2c" stroke-width="1.5"/>
+    <circle cx="87" cy="28" r="6.5" fill="#e6c15c" stroke="#a37e2c" stroke-width="1.5"/>
+    <circle cx="18" cy="28" r="4" fill="#e6c15c" stroke="#a37e2c"/>
+    <circle cx="102" cy="28" r="4" fill="#e6c15c" stroke="#a37e2c"/>
+  </svg>`;
+}
+function bpTitlesHtml(div,cur){
+  let list=[];
+  if(div==="Amateur")list=AM_TITLES;
+  else if(div==="Professional")list=[...PRO_TITLES,...AM_TITLES];
+  if(!list.length)return "";
+  return `<label class="byoLbl">Titles Won — Tick Any</label>
+    <div>${list.map(t=>`<label class="ckRow"><input type="checkbox" class="bpTitleCk" value="${esc(t)}" ${cur.includes(t)?"checked":""}> ${esc(t)}</label>`).join("")}</div>`;
+}
 const MONTH_TIERS=[[50,"Platinum","platinum"],[35,"Gold","goldT"],[20,"Silver","silver"],[10,"Bronze","bronze"]];
 function monthlyTier(){
   const mo=new Date();mo.setDate(1);mo.setHours(0,0,0,0);
@@ -775,14 +831,19 @@ function boxerCardHtml(bp){
   const rank=rankOf(total);
   const pct=rank.nextAt?Math.min(100,Math.round((total-rank.at)/(rank.nextAt-rank.at)*100)):100;
   const mt=monthlyTier();
+  const d=divisionOf(bp);
+  const titles=(bp.titles||"").split(",").map(t=>t.trim()).filter(Boolean);
   return `<div class="fightCard">
-    <div class="fcBanner">
-      <span class="fcDiv">${esc(bp.division||"Legacy Fight Club")}</span>
+    <div class="fcBanner" style="border-bottom-color:${d.color}">
+      <span class="fcDiv" style="color:${d.color}">${d.banner}</span>
       ${mt.name?`<span class="fcTier ${mt.cls}">${mt.name} · ${mt.r} rds this month</span>`
                :`<span class="fcTier none">${mt.r}/${mt.next[0]} rds to Bronze this month</span>`}
     </div>
     <div class="fcTop">
-      ${bp.photo_url?`<img class="fcPhoto" src="${esc(bp.photo_url)}" alt="">`:`<div class="fcPhoto fcPhotoEmpty">${esc((bp.name||"?").trim()[0]||"?")}</div>`}
+      <div class="fcPhotoWrap">
+        ${bp.photo_url?`<img class="fcPhoto" src="${esc(bp.photo_url)}" alt="">`:`<div class="fcPhoto fcPhotoEmpty">${esc((bp.name||"?").trim()[0]||"?")}</div>`}
+        <span class="dvBadge ${d.cls}"><b>${d.big}</b>${d.small}</span>
+      </div>
       <div style="flex:1;min-width:0">
         <div class="fcRank">${rank.name}</div>
         <h3 class="fcName">${esc(bp.name)}</h3>
@@ -796,6 +857,7 @@ function boxerCardHtml(bp){
       <div class="fcRec"><span>${bp.draws||0}</span><small>Draws</small></div>
       <div class="fcRec gold"><span>${total}</span><small>Rounds</small></div>
     </div>
+    ${titles.length?`<div class="beltRow">${titles.map(t=>`<div class="belt">${beltSvg(TITLE_BELTS[t]||"#a37e2c")}<small>${esc(t)}</small></div>`).join("")}</div>`:""}
     ${rank.nextAt?`<div class="rankBar"><div class="rankFill" style="width:${pct}%"></div></div>
     <div class="rankLbl">${rank.nextAt-total} rounds to ${rank.next}</div>`:`<div class="rankLbl" style="color:var(--gold)">Top of the mountain.</div>`}
   </div>`;
@@ -998,6 +1060,7 @@ async function saveBoxerProfile(){
   const rec={user_id:session.user.id,
     name:$("bpName").value.trim(),
     division:$("bpDiv").value,
+    titles:[...document.querySelectorAll(".bpTitleCk:checked")].map(x=>x.value).join(","),
     age:parseInt($("bpAge").value)||null,
     current_weight:parseFloat($("bpCw").value)||null,
     fight_weight:parseFloat($("bpFw").value)||null,
