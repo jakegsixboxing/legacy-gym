@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="lb-data.js"></script>
 <style>
 :root{
   --bg:#0b0b0c; --panel:#121214; --panel2:#18181b; --line:#26262b;
@@ -454,6 +455,8 @@ function render(){
   if(view==="functional")return renderFunctional();
   if(view==="cardio")return renderCardio();
   if(view==="mvm")return renderMvM();
+  if(view==="board")return renderLeaderboard();
+  if(view==="blokes")return renderBlokes();
   if(view==="recovery")return renderRecovery();
   if(view==="timetable")return renderTimetable();
   if(view==="pt")return renderPT();
@@ -472,6 +475,8 @@ const HOME_CARDS=[
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
   {id:"cardio",kicker:"Climb The World",title:"Cardio Challenges",sub:"StairMaster & treadmill missions — 5 points a finish.",img:"stairs"},
   {id:"mvm",kicker:"Club Records",title:"Member vs Member",sub:"Heaviest lifts, fastest times. Take the crown, take 5 points.",img:"race"},
+  {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:null},
+  {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true},
   {id:"timetable",kicker:"This Week",title:"Timetable",sub:"Every session, all in one place.",img:null},
   {id:"pt",kicker:"1-On-1 Coaching",title:"Book A PT",sub:"Train one-on-one with the Legacy coaches.",img:"boxing"},
   {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"functional"},
@@ -493,7 +498,7 @@ function renderHome(){
       </span>
       <span style="color:var(--gold);font-size:28px">›</span>
     </button>
-    ${HOME_CARDS.map(c=>`<button class="homeCard" style="${c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
+    ${HOME_CARDS.map(c=>`<button class="homeCard" style="${c.lb?`background:linear-gradient(90deg,rgba(13,13,13,.55) 0%,rgba(13,13,13,.96) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
       ${c.id==='chat'?'<span class="hcBadge" id="tileBadge"></span>':''}
       <div class="hcKicker">${c.kicker}</div>
       <div class="hcTitle">${c.title}</div>
@@ -849,7 +854,7 @@ function updS(){
   if(S.idx>=S.phases.length){
     if(card)card.className="timerCard";
     ph.textContent="DONE";ph.className="timerPhase gold";tm.textContent="0:00";
-    sub.textContent="Session complete";nx.textContent=byo.list.length+" rounds in the bank. Well earned.";go.textContent="Go Again";return;
+    sub.textContent="Session complete";nx.textContent=(S.total||byo.list.length)+" rounds in the bank. Well earned.";go.textContent="Go Again";return;
   }
   const p=S.phases[S.idx];
   const tenOut=p.br&&S.run&&S.remain<=10;
@@ -1063,7 +1068,7 @@ async function saveMemberProfile(){
   if(error){toast(error.message);return;}
   mpEditing=false;mpPhotoUrl=null;
   toast("Legacy Profile saved. Welcome to the board.");
-  await loadWorld(true);renderChat();
+  await loadWorld(true);render();
 }
 function mpFormHtml(){
   const ex=myMp()||{};
@@ -1082,7 +1087,7 @@ function mpFormHtml(){
     <label class="byoLbl">What kind of member are you?</label>
     <select id="mpType">${MEMBER_TYPES.map(t=>`<option ${ex.member_type===t?"selected":""}>${t}</option>`).join("")}</select>
     <button class="btnGold" style="margin-top:14px" onclick="saveMemberProfile()">Save Legacy Profile</button>
-    ${ex.user_id?`<button class="btnLink" style="margin-top:10px" onclick="mpEditing=false;renderChat()">Cancel</button>`:""}
+    ${ex.user_id?`<button class="btnLink" style="margin-top:10px" onclick="mpEditing=false;render()">Cancel</button>`:""}
   </div>`;
 }
 async function renderLeaderboard(){
@@ -1090,13 +1095,13 @@ async function renderLeaderboard(){
     <img class="chatBgLogo" src="${LOGO}" alt="">
     <div style="position:relative;z-index:1">
       <div class="subTabs" style="margin-top:4px">
-        <button onclick="chatSub='chat';renderChat()">The Chat</button>
+        <button onclick="go('chat')">The Chat</button>
         <button class="active">Leaderboard</button>
       </div>
       <div id="lbBody"><div class="loadingDots">Loading the board…</div></div>
     </div>`;
   await loadWorld();
-  if(view!=="chat"||chatSub!=="board")return;const box=$("lbBody");if(!box)return;
+  if(view!=="board")return;const box=$("lbBody");if(!box)return;
   const mp=myMp();
   const pts=myPoints();
   const totals={};ptsData.events.forEach(e=>totals[e.user_id]=(totals[e.user_id]||0)+e.points);
@@ -1114,7 +1119,7 @@ async function renderLeaderboard(){
             <h3 style="font-size:17px">${esc(mp.full_name)}</h3>
             <p style="font-size:12px;color:var(--muted)">${mp.age?mp.age+" · ":""}${esc(mp.member_type)}</p>
           </div>
-          <button class="btnLink" style="width:auto;margin:0;padding:8px 14px" onclick="mpEditing=true;renderChat()">Edit</button>
+          <button class="btnLink" style="width:auto;margin:0;padding:8px 14px" onclick="mpEditing=true;render()">Edit</button>
         </div>
         <div style="margin-top:14px">${lvlCardHtml(pts,true)}</div>
       </div>`}
@@ -1134,6 +1139,287 @@ async function renderLeaderboard(){
           <b style="font-size:14px;color:var(--gold);min-width:34px;text-align:right">${r.p}</b>
         </div>`;}).join(""):'<div class="emptyMsg">Nobody on the board yet. First in, best dressed.</div>'}
     </div>`;
+}
+
+/* ---- Local Blokes — Heavyweight Club (VIP, invitation only) ---- */
+const LB={logo:"https://heavyweight-app.vercel.app/icons/icon-192.png",gold:"#c9994d",bg:"#0d0d0d",surf:"#1a1a1a",surf2:"#262626",dim:"#9e9e9e"};
+const LB_LEVELS=[[0,"Fresh Meat","bronze",0],[5,"Sparring Dummy","bronze",1],[12,"Fair Dinkum","silver",0],[20,"The Tradesman","silver",1],[30,"Workhorse","gold",0],[45,"Heavy Hitter","gold",1],[60,"The Machine","platinum",0],[80,"Absolute Weapon","platinum",1],[105,"Local Legend","platinum",2],[135,"Absolute Unit","platinum",3],[170,"Heavyweight Champion","champion",3]];
+function lbLevelOf(p){let i=0;LB_LEVELS.forEach((l,n)=>{if(p>=l[0])i=n;});const L=LB_LEVELS[i];return {pts:L[0],name:L[1],tier:L[2],stars:L[3],n:i+1,next:LB_LEVELS[i+1]||null};}
+let lbSub="program",lbWeek=1,lbDay="mon",lbFuelTab="plan",lbPlan="A",lbTimerDay=null;
+let lbData={loaded:false,lifts:[],msgs:[],events:[],rsvps:[],members:null};
+async function loadBlokes(force){
+  if(lbData.loaded&&!force)return;
+  const [lf,ms,ev,rs]=await Promise.all([
+    sb.from("blokes_lifts").select("*").order("created_at",{ascending:false}).limit(1000),
+    sb.from("blokes_messages").select("*").order("created_at",{ascending:true}).limit(200),
+    sb.from("blokes_events").select("*").order("event_date",{ascending:true}),
+    sb.from("blokes_rsvps").select("*")]);
+  lbData={loaded:true,lifts:lf.data||[],msgs:ms.data||[],events:ev.data||[],rsvps:rs.data||[],members:lbData.members};
+}
+function renderBlokes(){
+  if(typeof S!=="undefined")clearInterval(S.int);
+  if(!profile||!profile.is_blokes){
+    $("main").innerHTML=`
+      <div style="background:#0d0d0d;border:1px solid #2a2a2a;border-radius:16px;padding:40px 22px;text-align:center;margin-top:8px">
+        <img src="${LB.logo}" style="width:86px;height:86px;border-radius:20px;filter:grayscale(1) brightness(.5);margin:0 auto 14px;display:block" alt="">
+        <div style="font-weight:900;letter-spacing:4px;color:#9e9e9e;font-size:11px">INVITATION ONLY</div>
+        <h2 style="font-size:22px;margin-top:8px;color:#f5f5f5;letter-spacing:1px;line-height:1.3">LOCAL BLOKES<br>HEAVYWEIGHT CLUB</h2>
+        <div style="margin:20px auto;width:56px;height:56px;border-radius:50%;border:2px solid #c9994d;display:flex;align-items:center;justify-content:center;font-size:22px">🔒</div>
+        <p style="color:#c9994d;font-weight:800;font-size:14px;letter-spacing:1px">SORRY — THIS IS A VIP GROUP ONLY.</p>
+        <p style="color:#9e9e9e;font-size:13px;margin-top:10px;line-height:1.6">You don't have access to this.<br>What happens behind this door stays behind this door.</p>
+        <p style="color:#6e6e6e;font-size:11.5px;margin-top:18px;letter-spacing:.5px">A small crew of men. One program. Ask the coaches how spots open up.</p>
+      </div>`;
+    return;
+  }
+  if(typeof LB_DATA==="undefined"){$("main").innerHTML='<div class="card"><p>Local Blokes content is loading — pull to refresh in a moment.</p></div>';return;}
+  $("main").innerHTML=`
+    <div style="background:linear-gradient(160deg,#161310,#0d0d0d);border:1px solid #3a2f1b;border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px;margin-bottom:12px">
+      <img src="${LB.logo}" style="width:56px;height:56px;border-radius:14px" alt="">
+      <div>
+        <div style="font-weight:900;letter-spacing:3px;color:#c9994d;font-size:10.5px">HEAVYWEIGHT CLUB</div>
+        <div style="font-weight:900;font-size:21px;letter-spacing:1px;color:#f5f5f5">LOCAL BLOKES</div>
+        <div style="font-size:11px;color:#9e9e9e">Members only. What happens here stays here.</div>
+      </div>
+    </div>
+    <div class="subTabs">
+      <button class="${lbSub==='program'?'active':''}" onclick="lbSub='program';renderBlokes()">Program</button>
+      <button class="${lbSub==='boxing'?'active':''}" onclick="lbSub='boxing';lbTimerDay=null;renderBlokes()">Boxing</button>
+      <button class="${lbSub==='fuel'?'active':''}" onclick="lbSub='fuel';renderBlokes()">Fuel</button>
+      <button class="${lbSub==='yarn'?'active':''}" onclick="lbSub='yarn';renderBlokes()">The Yarn</button>
+      <button class="${lbSub==='ladder'?'active':''}" onclick="lbSub='ladder';renderBlokes()">Ladder</button>
+    </div>
+    <div id="lbContent"><div class="loadingDots">Loading…</div></div>`;
+  if(lbSub==="program")lbProgram();
+  else if(lbSub==="boxing")lbBoxing();
+  else if(lbSub==="fuel")lbFuel();
+  else if(lbSub==="yarn")lbYarn();
+  else lbLadder();
+}
+async function lbProgram(){
+  await loadBlokes();await loadWorld();
+  if(view!=="blokes"||lbSub!=="program")return;const box=$("lbContent");if(!box)return;
+  const wk=LB_DATA.weeks[lbWeek],st=LB_DATA.strength[lbDay];
+  const d0=new Date().toISOString().slice(0,10);
+  const claimed=ptsData.events.some(e=>e.user_id===session.user.id&&e.kind==="class"&&e.ref==="lb:"+d0);
+  const bestOf=ex=>lbData.lifts.filter(l=>l.user_id===session.user.id&&l.exercise===ex).reduce((m,l)=>Math.max(m,+l.weight_kg),0);
+  const exRow=(e,i,comp)=>{
+    const best=bestOf(e.name);
+    return `<div style="padding:10px 0;border-bottom:1px solid #26262a">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+        <b style="font-size:13.5px">${esc(e.name)}</b>
+        <span style="font-size:11.5px;color:#9e9e9e;flex-shrink:0">${e.sets} sets × ${comp?(wk.reps?wk.reps+" reps":"rep-out"):(e.rx||e.reps)}</span>
+      </div>
+      ${best?`<div style="font-size:11px;color:#c9994d;margin-top:2px">Your best: ${best} kg</div>`:""}
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <input id="lbKg-${i}" type="number" inputmode="decimal" placeholder="kg" style="flex:1;min-width:0">
+        <input id="lbRp-${i}" type="number" inputmode="numeric" placeholder="reps" style="flex:1;min-width:0">
+        <button class="btnLink" style="width:auto;margin:0;padding:10px 14px;border-color:#c9994d;color:#c9994d" onclick="lbLogSet('${esc(e.name)}',${i})">Log</button>
+      </div>
+    </div>`;};
+  let n=0;
+  box.innerHTML=`
+    <div class="pillBtns" style="flex-wrap:wrap">${[1,2,3,4,5,6,7,8,9,10].map(w=>`<button class="${lbWeek===w?'on':''}" style="min-width:52px" onclick="lbWeek=${w};renderBlokes()">Wk ${w}</button>`).join("")}</div>
+    <div class="pillBtns" style="margin-top:8px">
+      <button class="${lbDay==='mon'?'on':''}" onclick="lbDay='mon';renderBlokes()">Monday — Push</button>
+      <button class="${lbDay==='wed'?'on':''}" onclick="lbDay='wed';renderBlokes()">Wednesday — Legs & Pull</button>
+    </div>
+    <div class="card" style="border-color:#3a2f1b;background:#131110">
+      ${wk.tag?`<div style="display:inline-block;background:#c9994d;color:#1d1402;font-weight:900;font-size:10px;letter-spacing:2px;padding:4px 10px;border-radius:20px;margin-bottom:8px">${wk.tag}</div>`:""}
+      <h3 style="font-size:16px">Week ${lbWeek} — ${st.label}</h3>
+      <p style="font-size:12px;color:#9e9e9e;margin-top:4px">${esc(wk.note)}</p>
+      <div class="secTitle" style="margin:14px 0 2px">The Big Lifts</div>
+      ${st.compounds.map(e=>exRow(e,n++,true)).join("")}
+      <div class="secTitle" style="margin:14px 0 2px">Accessories</div>
+      ${st.accessories.map(e=>exRow(e,n++,false)).join("")}
+      ${claimed?`<p style="margin-top:14px;font-weight:900;letter-spacing:2px;color:var(--ok);font-size:12px;text-align:center">SESSION SUBMITTED ✓ — 1 POINT ON YOUR TALLY</p>`
+        :`<button class="btnGold" style="margin-top:14px;background:#c9994d" onclick="lbSubmitSession()">Submit Training Session — 1 Point</button>
+      <p style="font-size:11px;color:#9e9e9e;margin-top:6px;text-align:center">Done for the day? Hit submit — your lifts go on record and a point goes on the board.</p>`}
+    </div>
+    <div class="secTitle">Overtime — Optional Extras</div>
+    ${["a","b"].map(k=>{const o=LB_DATA.overtime[k];return `<div class="card">
+      <h3 style="font-size:15px">${o.label} — ${esc(o.title)}</h3>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">${esc(o.when)}</p>
+      <div style="margin-top:8px">${o.exercises.map(e=>`<div class="weekRow"><span>${esc(e.name)}</span><span style="color:var(--muted)">${e.sets} × ${e.rx}</span></div>`).join("")}</div>
+    </div>`;}).join("")}
+    <div class="card">
+      <h3 style="font-size:15px">Optional Finisher — pick one</h3>
+      ${LB_DATA.finishers.map(f=>`<div class="weekRow"><span><b>${esc(f.name)}</b> <small style="color:var(--muted)">${esc(f.desc)}</small></span><span style="color:#c9994d;font-weight:800">${f.mins} min</span></div>`).join("")}
+    </div>
+    <div class="secTitle">My Recent Lifts</div>
+    <div class="card">${lbData.lifts.filter(l=>l.user_id===session.user.id).slice(0,12).map(l=>`<div class="weekRow"><span>${esc(l.exercise)} <small style="color:var(--muted)">wk${l.week}</small></span><span style="color:var(--gold)">${l.weight_kg} kg × ${l.reps}</span></div>`).join("")||'<div class="emptyMsg">Nothing logged yet. Get after it.</div>'}</div>`;
+}
+async function lbLogSet(ex,i){
+  const kg=parseFloat($("lbKg-"+i).value),rp=parseInt($("lbRp-"+i).value);
+  if(!kg||!rp){toast("Weight and reps first, champion.");return;}
+  const {error}=await sb.from("blokes_lifts").insert({user_id:session.user.id,week:lbWeek,day:lbDay,exercise:ex,weight_kg:kg,reps:rp});
+  if(error){toast(error.message);return;}
+  toast(ex+" — "+kg+"kg × "+rp+" banked.");
+  await loadBlokes(true);renderBlokes();
+}
+async function lbSubmitSession(){
+  const d0=new Date().toISOString().slice(0,10);
+  const ok=await awardPoints("class","lb:"+d0,1);
+  toast(ok?"Session locked in — 1 point on your tally.":"Couldn't submit — try again.");
+  await loadWorld(true);renderBlokes();
+}
+function lbBoxing(){
+  const box=$("lbContent");if(!box)return;
+  if(lbTimerDay)return lbBoxTimer();
+  box.innerHTML=["mon","wed"].map(d=>{const s=LB_DATA.boxing[1][d];return `<div class="card" style="border-color:#3a2f1b;background:#131110">
+    <div style="font-weight:900;letter-spacing:2px;color:#c9994d;font-size:10.5px">${d==="mon"?"MONDAY":"WEDNESDAY"} NIGHT</div>
+    <h3 style="font-size:17px;margin-top:4px">${esc(s.title)}</h3>
+    <div style="margin-top:10px">${s.drills.map((dr,i)=>`<div class="weekRow"><span>R${i+1} — ${esc(dr)}</span><span style="color:var(--muted)">3:00</span></div>`).join("")}</div>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px">Finish strong: ${esc(s.finish)}.</p>
+    <button class="btnGold" style="margin-top:12px;background:#c9994d" onclick="lbBoxStart('${d}')">Run This Session — Timer On</button>
+  </div>`;}).join("");
+}
+function lbBoxStart(day){
+  const s=LB_DATA.boxing[1][day];if(!s)return;
+  const ph=[];
+  s.drills.forEach((d,i)=>{
+    const rn="Round "+(i+1)+" of "+s.drills.length+" — "+s.title;
+    const mm=d.match(/(\d+) sec ON \/ (\d+) sec OFF/i);
+    if(mm){
+      const w=+mm[1],r=+mm[2];let t=0,on=true;
+      while(t<180){const dd=Math.min(on?w:r,180-t);ph.push({b:on?"MAX EFFORT":"REST",sm:rn,s:dd,k:on?"work":"rest",fl:on?"g":"r"});t+=dd;on=!on;}
+    }else if(/unders & overs/i.test(d)){
+      let t=0,j=0;while(t<180){const dd=Math.min(15,180-t);ph.push({b:j%2===0?"ROLL UNDER":"ROLL OVER",sm:rn,s:dd,k:"work",fl:j%2===0?"g":"r"});t+=dd;j++;}
+    }else ph.push({b:d.toUpperCase(),sm:rn,s:180,k:"work"});
+    ph[ph.length-1].end=true;
+    if(i<s.drills.length-1)ph.push({b:"BREATHE",sm:"Next: Round "+(i+2)+" — "+s.drills[i+1],s:60,k:"rest",br:true});
+  });
+  ph.push({b:"CORE WORK",sm:s.finish,s:240,k:"work",end:true});
+  S={phases:ph,idx:0,remain:ph[0].s,run:false,int:null,total:s.drills.length+1};
+  lbTimerDay=day;renderBlokes();window.scrollTo(0,0);
+}
+function lbBoxTimer(){
+  const s=LB_DATA.boxing[1][lbTimerDay];
+  $("lbContent").innerHTML=`
+    <button class="backBtn" onclick="clearInterval(S.int);lbTimerDay=null;renderBlokes()">‹ Back To The Sessions</button>
+    <div class="timerCard" id="sCard">
+      <div class="timerSub" id="sSub"></div>
+      <div class="timerPhase gold" id="sPhase">READY</div>
+      <div class="timerTime" id="sTime">--:--</div>
+      <div class="timerSub" id="sNext"></div>
+      <div class="timerBtns"><button class="tReset" onclick="sReset()">Reset</button><button class="tStart" id="sGo" onclick="sToggle()">Start</button></div>
+    </div>
+    <div class="card"><h3 style="font-size:15px">${esc(s.title)}</h3>
+      <div style="margin-top:8px">${s.drills.map((d,i)=>`<div class="weekRow"><span>R${i+1} — ${esc(d)}</span><span style="color:var(--muted)">3:00</span></div>`).join("")}</div>
+    </div>`;
+  updS();
+}
+function lbFuel(){
+  const box=$("lbContent");if(!box)return;
+  const p=LB_DATA.plans[lbPlan];
+  const recCats=p.recipes&&!Array.isArray(p.recipes)?p.recipes:{"Recipes":p.recipes||[]};
+  box.innerHTML=`
+    <div class="pillBtns" style="flex-wrap:wrap">${Object.keys(LB_DATA.plans).map(k=>`<button class="${lbPlan===k?'on':''}" onclick="lbPlan='${k}';renderBlokes()">${k} · ${LB_DATA.plans[k].kcal.replace("~","")}</button>`).join("")}</div>
+    <div class="pillBtns" style="margin-top:8px">
+      <button class="${lbFuelTab==='plan'?'on':''}" onclick="lbFuelTab='plan';renderBlokes()">Meal Plan</button>
+      <button class="${lbFuelTab==='rec'?'on':''}" onclick="lbFuelTab='rec';renderBlokes()">Recipes</button>
+    </div>
+    <div class="card" style="border-color:#3a2f1b;background:#131110">
+      <h3 style="font-size:16px">${esc(p.name)} — ${esc(p.kcal)}</h3>
+      <p style="font-size:12px;color:#c9994d;margin-top:4px">${esc(p.macros)}</p>
+    </div>
+    ${lbFuelTab==="plan"?p.meals.map(m=>`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="font-size:15px">${esc(m.title)}</h3><span style="font-size:11.5px;color:var(--muted)">${esc(m.kcal)}</span></div>
+      ${m.options.map(o=>`<div style="margin-top:10px">
+        <b style="font-size:13px;color:#c9994d">${esc(o.name)}</b>
+        <ul style="margin:4px 0 0 18px;font-size:12.5px;color:var(--text);line-height:1.6">${o.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+        ${o.note?`<p style="font-size:11px;color:var(--muted);margin-top:3px">${esc(o.note)}</p>`:""}
+      </div>`).join("")}
+    </div>`).join("")
+    :Object.entries(recCats).map(([cat,list])=>`<div class="secTitle">${esc(cat)}</div>`+list.map((r,i)=>`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="font-size:14.5px">${esc(r.name)}</h3><span style="font-size:11px;color:#c9994d;flex-shrink:0">${esc(r.cal||"")}</span></div>
+      ${r.tag?`<p style="font-size:10.5px;color:var(--muted)">${esc(r.tag)}</p>`:""}
+      <details style="margin-top:8px"><summary style="font-size:12px;color:#c9994d;font-weight:800;cursor:pointer">Ingredients & Method</summary>
+        <ul style="margin:8px 0 0 18px;font-size:12px;line-height:1.6">${(r.ingredients||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+        <ol style="margin:8px 0 0 18px;font-size:12px;line-height:1.6">${(r.method||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ol>
+        ${r.tip?`<p style="font-size:11px;color:var(--muted);margin-top:6px">Tip: ${esc(r.tip)}</p>`:""}
+      </details>
+    </div>`).join("")).join("")}`;
+}
+async function lbYarn(){
+  await loadBlokes();
+  if(view!=="blokes"||lbSub!=="yarn")return;const box=$("lbContent");if(!box)return;
+  const myRsvp=ev=>lbData.rsvps.find(r=>r.event_id===ev.id&&r.user_id===session.user.id);
+  box.innerHTML=`
+    ${lbData.events.length?`<div class="secTitle">Blokes Social Days</div>`+lbData.events.map(ev=>{
+      const going=lbData.rsvps.filter(r=>r.event_id===ev.id);
+      return `<div class="card" style="border-color:#3a2f1b;background:#131110">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="font-size:15px">${esc(ev.title)}</h3><span style="font-size:11.5px;color:#c9994d;flex-shrink:0">${ev.event_date?fmtDateAU(ev.event_date):""} ${esc(ev.event_time||"")}</span></div>
+        ${ev.location?`<p style="font-size:12px;color:var(--muted);margin-top:3px">📍 ${esc(ev.location)}</p>`:""}
+        ${ev.details?`<p style="font-size:12.5px;margin-top:6px">${esc(ev.details)}</p>`:""}
+        <p style="font-size:12px;margin-top:8px"><b>${going.length} in</b>${going.length?": "+going.map(r=>esc(r.name)).join(", "):""}</p>
+        ${myRsvp(ev)?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:10px" onclick="lbRsvp('${ev.id}',false)">I'm In ✓ — Tap To Pull Out</button>`
+          :`<button class="btnGold" style="margin-top:10px;background:#c9994d" onclick="lbRsvp('${ev.id}',true)">Count Me In</button>`}
+      </div>`;}).join(""):""}
+    ${profile.is_staff?`<div class="card"><h3 style="font-size:14px">Post A Social Day (staff)</h3>
+      <div class="field"><label>What's On</label><input id="lbEvT" placeholder="Golf day, fight night…"></div>
+      <div class="field"><label>Date</label><input id="lbEvD" type="date"></div>
+      <div class="field"><label>Time / Details</label><input id="lbEvX" placeholder="10am tee off, Kincumber"></div>
+      <button class="btnGold" onclick="lbAddEvent()">Post It</button></div>`:""}
+    <div class="secTitle">The Yarn</div>
+    <div class="card" style="border-color:#3a2f1b;background:#131110">
+      <div id="lbMsgs" style="max-height:340px;overflow-y:auto">${lbData.msgs.map(m=>`<div class="msg${m.user_id===session.user.id?' mine':''}"><div class="who">${esc(m.name)}</div><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`).join("")||'<div class="emptyMsg">Dead quiet. Someone spin a yarn.</div>'}</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="lbMsgIn" placeholder="Talk to the blokes…" maxlength="1000" style="flex:1" onkeydown="if(event.key==='Enter')lbSend()">
+        <button class="btnGold" style="width:auto;margin:0;padding:12px 16px;background:#c9994d" onclick="lbSend()">➤</button>
+      </div>
+    </div>`;
+  const mb=$("lbMsgs");if(mb)mb.scrollTop=mb.scrollHeight;
+}
+async function lbSend(){
+  const el=$("lbMsgIn"),v=el.value.trim();if(!v)return;el.value="";
+  const {error}=await sb.from("blokes_messages").insert({user_id:session.user.id,name:myDisplayName(),body:v});
+  if(error){toast(error.message);el.value=v;return;}
+  await loadBlokes(true);renderBlokes();
+}
+async function lbRsvp(id,inn){
+  if(inn){const {error}=await sb.from("blokes_rsvps").insert({event_id:id,user_id:session.user.id,name:myDisplayName()});if(error&&!/duplicate/i.test(error.message)){toast(error.message);return;}}
+  else await sb.from("blokes_rsvps").delete().eq("event_id",id).eq("user_id",session.user.id);
+  await loadBlokes(true);renderBlokes();
+}
+async function lbAddEvent(){
+  const t=$("lbEvT").value.trim(),d=$("lbEvD").value,x=$("lbEvX").value.trim();
+  if(!t){toast("Give it a name.");return;}
+  const {error}=await sb.from("blokes_events").insert({title:t,event_date:d||null,details:x,created_by:session.user.id});
+  if(error){toast(error.message);return;}
+  toast("Posted to the blokes.");await loadBlokes(true);renderBlokes();
+}
+async function lbLadder(){
+  await loadWorld();
+  if(!lbData.members){const {data}=await sb.rpc("blokes_members");lbData.members=data||[];}
+  if(view!=="blokes"||lbSub!=="ladder")return;const box=$("lbContent");if(!box)return;
+  const rows=lbData.members.map(m=>({...m,p:pointsOf(m.user_id)})).sort((a,b)=>b.p-a.p);
+  const mine=pointsOf(session.user.id);
+  const lv=lbLevelOf(mine),st=TIER_STYLES[lv.tier];
+  box.innerHTML=`
+    <div class="lvlCard" style="background:${st.bg};color:${st.fg}">
+      <div class="lvlTop"><span>${st.label} · LEVEL ${lv.n}</span><span>${"★".repeat(lv.stars)}</span></div>
+      <div class="lvlName">${lv.name}</div>
+      <div class="lvlPts">${mine} points${lv.next?` · ${lv.next[0]-mine} to ${lv.next[1]}`:" · Top of the heap"}</div>
+      <div class="lvlShine"></div>
+    </div>
+    <p style="font-size:11.5px;color:var(--muted);margin:10px 2px">Same points as the whole gym — classes, cardio challenges, club records — but in here it's blokes only. Bragging rights on the line.</p>
+    <div class="secTitle">The Blokes Ladder</div>
+    <div class="card" style="border-color:#3a2f1b;background:#131110">
+      ${rows.length?rows.map((r,i)=>{const l=lbLevelOf(r.p),s2=TIER_STYLES[l.tier];
+        return `<div class="lbRow${r.user_id===session.user.id?' me':''}">
+          <span class="lbRank">${i+1}</span>
+          <div style="flex:1;min-width:0"><b style="font-size:13.5px">${esc((r.full_name||"Bloke").trim()||"Bloke")}</b>
+            <div style="font-size:10px;color:var(--muted);font-weight:800;letter-spacing:.5px">${s2.label}${l.stars?" "+"★".repeat(l.stars):""} — ${l.name.toUpperCase()}</div></div>
+          <b style="font-size:14px;color:#c9994d">${r.p} pts</b>
+        </div>`;}).join(""):'<div class="emptyMsg">No points on the board yet. First in, best dressed.</div>'}
+    </div>
+    <div class="secTitle">What The Points Get You</div>
+    ${LB_DATA.rewards.map(rw=>`<div class="card" style="${mine>=rw.pts?'border-color:#c9994d':''}">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="font-size:14.5px">${esc(rw.name)}</h3><span style="font-weight:900;color:${mine>=rw.pts?'#c9994d':'var(--muted)'}">${rw.pts} pts ${mine>=rw.pts?"✓":""}</span></div>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">${esc(rw.desc)}</p>
+    </div>`).join("")}
+    <div class="secTitle">End Of Program Awards</div>
+    <div class="card">${LB_DATA.awards.map(a=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b style="font-size:13px;color:#c9994d">${esc(a.name)}</b><p style="font-size:11.5px;color:var(--muted);margin-top:2px">${esc(a.desc)}</p></div>`).join("")}</div>`;
 }
 
 /* ---- Sparring Club hub ---- */
@@ -2146,6 +2432,7 @@ const AMA_KB=[
 {k:"points legacy points how earn score tally leaderboard rank level",a:"Legacy Points: 1 point every time you attend a class and hit Submit afterwards, 5 points for finishing a cardio challenge, and a 5-point bonus for taking a club record off someone in Member vs Member. Points climb you through the ranks — Prospect all the way to Legacy Legend. Check the Leaderboard tab inside Members Chat."},
 {k:"cardio challenge stairmaster treadmill climb steps run stairs",a:"Cardio Challenges are on the home screen — famous stair climbs on the StairMaster (Big Ben up to the Great Wall Gauntlet) and iconic runs on the treadmill (Bondi to Bronte up to City2Surf). Finish one, hit the button, bank 5 Legacy Points."},
 {k:"member versus member record crown heaviest deadlift squat bench fastest",a:"Member vs Member is the club record board — heaviest deadlift, squat, overhead press and bench, plus fastest times on the assault bike, rower, ski erg, StairMaster and runs from 1K to 10K. Post your result; take the crown off someone and you bank a 5-point bonus."},
+{k:"local blokes heavyweight club vip private program what is behind door",a:"The Local Blokes Heavyweight Club is an invitation-only program for a small crew of men — training, fuel plans and more, all behind a locked door. If you're in it, you know. If you're not, have a word with the coaches about how spots open up."},
 {k:"legacy profile photo member type build profile",a:"Your Legacy Profile lives in Members Chat under the Leaderboard tab — add your photo, name, age and what kind of member you are, and you're on the board."},
 {k:"staffed hours reception open desk staff front",a:"The gym floor is staffed Mon–Thu 5:15–7:45am, Mon–Fri 4–7pm, and Saturday 8–11am. Outside those times it's swipe access."},
 {k:"gym open hours access swipe time",a:"Members have swipe access to the gym floor. Staffed hours are Mon–Thu 5:15–7:45am, Mon–Fri 4–7pm and Sat 8–11am. Recovery access runs 4:30am–9pm weekdays and 4:30am–5:30pm weekends."},
@@ -2435,7 +2722,7 @@ function renderStaffChat(){
     <div class="card">
       <p style="margin-bottom:12px">Grant a team member access once they've created their normal member login. Their tab appears automatically.</p>
       <div class="field"><label>Their Login Email</label><input id="gaEmail" type="email" placeholder="name@email.com"></div>
-      <div class="field"><label>Access Level</label><select id="gaRole"><option value="staff">Staff</option><option value="manager">Manager (sees all tasks + commissions)</option><option value="remove">Remove staff access</option><option value="premium">Unlock Legacy Elite ($9.99/wk member)</option><option value="unpremium">Remove Legacy Elite access</option></select></div>
+      <div class="field"><label>Access Level</label><select id="gaRole"><option value="staff">Staff</option><option value="manager">Manager (sees all tasks + commissions)</option><option value="remove">Remove staff access</option><option value="premium">Unlock Legacy Elite ($9.99/wk member)</option><option value="unpremium">Remove Legacy Elite access</option><option value="blokes">Grant Local Blokes — Heavyweight Club</option><option value="unblokes">Remove Local Blokes access</option></select></div>
       <button class="btnGold" onclick="grantStaff()">Update Access</button>
     </div>`:""}`;
   const box=$("stMsgs");if(box)box.scrollTop=box.scrollHeight;
@@ -2455,6 +2742,12 @@ async function handlePtRequest(id){
 async function grantStaff(){
   const em=$("gaEmail").value.trim();if(!em){toast("Put their email in.");return;}
   const role=$("gaRole").value;
+  if(role==="blokes"||role==="unblokes"){
+    const {data,error}=await sb.rpc("grant_blokes",{target_email:em,make_blokes:role==="blokes"});
+    toast(error?error.message:data);
+    if(!error)renderStaff();
+    return;
+  }
   if(role==="premium"||role==="unpremium"){
     const {data,error}=await sb.rpc("grant_premium",{target_email:em,make_premium:role==="premium"});
     toast(error?error.message:data);
@@ -2599,12 +2892,11 @@ function msgHtml(m){
   return `<div class="msg${mine?' mine':''}"><div class="who">${esc(m.name)}</div><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`;
 }
 function renderChat(){
-  if(chatSub==="board")return renderLeaderboard();
   $("main").innerHTML=`
     <img class="chatBgLogo" src="${LOGO}" alt="">
     <div class="subTabs" style="position:relative;z-index:1;margin-top:4px">
       <button class="active">The Chat</button>
-      <button onclick="chatSub='board';mpEditing=false;renderChat()">Leaderboard</button>
+      <button onclick="mpEditing=false;go('board')">Leaderboard</button>
     </div>
     <div class="chatWrap">
       <div id="chatMsgs">${msgs.length?msgs.map(msgHtml).join(""):'<div class="emptyMsg" style="text-align:center;margin-top:30px">No messages yet — start the conversation.</div>'}</div>
