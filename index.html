@@ -258,9 +258,7 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(13,13,14,.
 <!-- AUTH -->
 <div id="authScreen" class="hidden">
   <div class="brandBlock">
-    <img class="brandLogo" src="https://www.legacygym.net/cdn/shop/files/legacy_website_logo_200x.png?v=1767085643" alt="Legacy Gym" onerror="this.style.display='none'">
-    <div class="brandMark">Legacy Gym</div>
-    <div class="brandSub">Central Coast</div>
+    <img class="brandLogo" src="icon-192.png" alt="Legacy Gym" style="width:112px;height:112px;border-radius:24px">
     <div class="brandRule"></div>
   </div>
   <div class="authCard">
@@ -289,7 +287,7 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(13,13,14,.
 <div id="appScreen" class="hidden">
   <div class="topBar">
     <div class="topBrand">
-      <img src="https://www.legacygym.net/cdn/shop/files/legacy_website_logo_200x.png?v=1767085643" alt="Legacy Gym" style="height:40px" onerror="this.style.display='none'">
+      <img src="icon-192.png" alt="Legacy Gym" style="height:42px;width:42px;border-radius:10px">
     </div>
     <button class="profileBtn" id="profileBtn" onclick="go('profile')">–</button>
   </div>
@@ -305,7 +303,7 @@ const SUPABASE_URL = "https://jyslqxepodrseyhoppce.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const LOGO = "https://www.legacygym.net/cdn/shop/files/legacy_website_logo_480x.png?v=1767085643";
+const LOGO = "icon-512.png";
 const TIMETABLE_IMG = "https://cdn.shopify.com/s/files/1/0016/0966/2576/files/TIMETABLE_-_FROM_28th_April.png?v=1776828044";
 const IMGS = {
   boxing:  "https://heavyweight-app.vercel.app/images/boxing.jpg",
@@ -1838,16 +1836,14 @@ let staffChannel=null;
 function isoDateLocal(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
 function staffName(s){return ((s.first_name||"")+" "+(s.last_name||"")).trim()||s.email;}
 async function loadStaffData(){
-  const [st,tk,cm,ms,pr,am]=await Promise.all([
+  const [st,tk,cm,ms,pr]=await Promise.all([
     sb.from("profiles").select("id,first_name,last_name,email,is_staff,is_manager").eq("is_staff",true),
     sb.from("staff_tasks").select("*").order("created_at",{ascending:false}).limit(300),
     sb.from("pt_commissions").select("*").order("session_date",{ascending:false}).order("created_at",{ascending:false}).limit(300),
     sb.from("staff_messages").select("*").order("created_at",{ascending:true}).limit(200),
-    sb.from("pt_requests").select("*").order("created_at",{ascending:false}).limit(100),
-    sb.from("ama_misses").select("*").order("created_at",{ascending:false}).limit(50)
+    sb.from("pt_requests").select("*").order("created_at",{ascending:false}).limit(100)
   ]);
-  const nb=await sb.from("staff_notices").select("*").order("created_at",{ascending:false}).limit(100);
-  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[],ptreqs:pr.data||[],misses:am.data||[],notices:nb.data||[]};
+  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[],ptreqs:pr.data||[]};
   if(!staffChannel){
     staffChannel=sb.channel("staff-chat")
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"staff_messages"},pl=>{
@@ -1890,21 +1886,6 @@ function renderStaffChat(){
         <button onclick="sendStaffMsg()">➤</button>
       </div>
     </div>
-    <div class="secTitle">Noticeboard — Flag It For Management</div>
-    <div class="card">
-      <p style="margin-bottom:10px">Broken gear, a client who needs something, ice bath needs emptying — drop it here and Jake &amp; Alison see it straight away.</p>
-      <div class="chatInput" style="border-top:none;padding-top:0">
-        <input id="nbInput" placeholder="e.g. Treadmill 2 belt slipping…" maxlength="500" onkeydown="if(event.key==='Enter')postNotice()">
-        <button onclick="postNotice()">➤</button>
-      </div>
-    </div>
-    ${mgr&&(staffData.notices||[]).length?`<div class="secTitle">Noticeboard — Open Items (${staffData.notices.length})</div>
-    <div class="card" style="border-color:var(--gold-dim)">
-      ${staffData.notices.map(n=>`<div class="sessItem">
-        <div style="min-width:0"><b>${esc(n.body)}</b><small>${esc(n.author_name)} · ${fmtWhen(n.created_at)}</small></div>
-        <button class="xBtn" style="border-color:var(--ok);color:var(--ok)" title="Sorted" onclick="delNotice('${n.id}')">✓</button>
-      </div>`).join("")}
-    </div>`:""}
     ${profile.email==="jakegsixboxing@gmail.com"?(()=>{
       const wk=weekStartOf(new Date());
       const rows=(staffData.comms||[]).filter(c=>new Date(c.session_date+"T12:00:00")>=wk);
@@ -1926,20 +1907,7 @@ function renderStaffChat(){
         <small>${esc(r.duration)} · ${esc(r.preferred)||"any time"}${r.note?" · "+esc(r.note):""} · ${fmtWhen(r.created_at)}</small></div>
       <button class="xBtn" style="border-color:var(--ok);color:var(--ok)" title="Mark handled" onclick="handlePtRequest('${r.id}')">✓</button>
     </div>`).join("")}</div>`:""}
-    ${(staffData.misses||[]).length?`<div class="secTitle">Ask Me Anything — Requests &amp; Unanswered Questions</div>
-    <div class="card">
-      <p style="margin-bottom:10px">Swipe pass requests and follow-ins land here as actions to sort. Anything else is a question it couldn't answer — teach it below and it's covered next time.</p>
-      ${staffData.misses.map(q=>`<div class="sessItem"><div><b>"${esc(q.question)}"</b><small>${fmtWhen(q.created_at)}</small></div>
-      <button class="xBtn" onclick="delMiss('${q.id}')">×</button></div>`).join("")}
-    </div>`:""}
-    ${mgr?`<div class="secTitle">Teach Ask Me Anything</div>
-    <div class="card">
-      <p style="margin-bottom:12px">Add an answer: put the trigger words members might say (any of them matching counts), then the reply it should give.</p>
-      <div class="field"><label>Trigger Words (space-separated)</label><input id="kbKeys" placeholder="e.g. towel bring gear gloves wraps"></div>
-      <div class="field"><label>The Answer</label><input id="kbAns" placeholder="e.g. Bring a towel and wraps — we've got gloves you can borrow."></div>
-      <button class="btnGold" onclick="teachAma()">Teach It</button>
-    </div>
-    <div class="secTitle">Manager — Staff Access</div>
+    ${mgr?`<div class="secTitle">Manager — Staff Access</div>
     <div class="card">
       <p style="margin-bottom:12px">Grant a team member access once they've created their normal member login. Their tab appears automatically.</p>
       <div class="field"><label>Their Login Email</label><input id="gaEmail" type="email" placeholder="name@email.com"></div>
@@ -1954,33 +1922,6 @@ async function sendStaffMsg(){
   const name=((profile.first_name||"")+" "+(profile.last_name||"")).trim()||"Staff";
   const {error}=await sb.from("staff_messages").insert({user_id:session.user.id,name,body:v});
   if(error){toast(error.message);el.value=v;}
-}
-async function postNotice(){
-  const el=$("nbInput"),v=el.value.trim();if(!v)return;
-  const name=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Staff";
-  const {error}=await sb.from("staff_notices").insert({author_id:session.user.id,author_name:name,body:v});
-  if(error){toast(error.message);return;}
-  toast("On the board — management will see it.");
-  renderStaff();
-}
-async function delNotice(id){
-  const {error}=await sb.from("staff_notices").delete().eq("id",id);
-  if(error){toast(error.message);return;}
-  renderStaff();
-}
-async function teachAma(){
-  const k=$("kbKeys").value.trim(),a=$("kbAns").value.trim();
-  if(!k||!a){toast("Need both the trigger words and the answer.");return;}
-  const {error}=await sb.from("ama_kb").insert({keywords:k,answer:a});
-  if(error){toast(error.message);return;}
-  amaLoaded=false;
-  toast("Taught. It knows that one now.");
-  renderStaff();
-}
-async function delMiss(id){
-  const {error}=await sb.from("ama_misses").delete().eq("id",id);
-  if(error){toast(error.message);return;}
-  renderStaff();
 }
 async function handlePtRequest(id){
   const {error}=await sb.from("pt_requests").delete().eq("id",id);
