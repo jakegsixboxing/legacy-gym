@@ -231,6 +231,24 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 @keyframes flG{0%,100%{background:#0b3a1e}50%{background:#166534}}
 @keyframes flR{0%,100%{background:#3f1013}50%{background:#7f1d1d}}
 .timerPhase.grn{color:#4ade80}.timerPhase.red{color:#f87171}.timerPhase.amber{color:#fbbf24}
+.lvlCard{position:relative;overflow:hidden;border-radius:14px;padding:16px 18px}
+.lvlCard .lvlTop{display:flex;justify-content:space-between;font-weight:900;letter-spacing:3px;font-size:11px;opacity:.85}
+.lvlCard .lvlName{font-weight:900;font-size:23px;text-transform:uppercase;letter-spacing:1px;margin-top:6px;line-height:1.1}
+.lvlCard .lvlPts{font-size:12px;font-weight:700;margin-top:5px;opacity:.8}
+.lvlShine{position:absolute;top:0;bottom:0;width:45%;left:-60%;background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.5) 50%,transparent 100%);transform:skewX(-20deg);animation:lvlsh 3.4s ease-in-out infinite}
+@keyframes lvlsh{0%{left:-60%}55%{left:130%}100%{left:130%}}
+.lbRow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.lbRow:last-child{border-bottom:none}
+.lbRow.me{background:rgba(212,175,55,.05);border-radius:8px;padding-left:6px;padding-right:6px}
+.lbAv{width:40px;height:40px;border-radius:50%;object-fit:cover;background:#1c1c20;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--gold);flex-shrink:0}
+.lbRank{width:22px;text-align:center;font-weight:900;color:var(--muted);flex-shrink:0}
+.tierChip{font-size:9.5px;font-weight:900;letter-spacing:.5px;padding:4px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.chCard{border:1px solid var(--line);border-radius:14px;padding:18px 16px;margin-bottom:14px;color:#fff}
+.chCard h3{font-size:20px;text-transform:uppercase;letter-spacing:1px;margin-top:8px}
+.chCard p{color:#d9d9dd;font-size:12.5px;margin-top:5px;line-height:1.5;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+.chTarget{font-weight:900;color:var(--gold);font-size:14px;letter-spacing:1px;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+.chHow{font-size:11px;color:#cfcfd4;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+.chDone{margin-top:12px;font-weight:900;letter-spacing:2px;color:#4ade80;font-size:12px;text-shadow:0 1px 4px rgba(0,0,0,.9)}
 .tStart{background:var(--gold);border:none;color:#161307}
 .tReset{background:transparent;border:1px solid var(--line);color:var(--muted)}
 
@@ -337,7 +355,9 @@ const IMGS = {
   boxing:  "https://heavyweight-app.vercel.app/images/boxing.jpg",
   weights: "https://heavyweight-app.vercel.app/images/strength.jpg",
   recovery:"https://heavyweight-app.vercel.app/images/recovery.jpg",
-  functional:"https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=1000&q=70&auto=format&fit=crop"
+  functional:"https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=1000&q=70&auto=format&fit=crop",
+  stairs:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=70",
+  race:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70"
 };
 function bgStyle(id,strength){const a=strength??.45;return `background:linear-gradient(180deg,rgba(8,8,10,${a}),rgba(8,8,10,.93)),url('${IMGS[id]}') center/cover no-repeat #0a0b0e`;}
 
@@ -432,6 +452,8 @@ function render(){
   if(view==="boxing")return renderBoxing();
   if(view==="weights")return renderWeights();
   if(view==="functional")return renderFunctional();
+  if(view==="cardio")return renderCardio();
+  if(view==="mvm")return renderMvM();
   if(view==="recovery")return renderRecovery();
   if(view==="timetable")return renderTimetable();
   if(view==="pt")return renderPT();
@@ -448,6 +470,8 @@ const HOME_CARDS=[
   {id:"weights",kicker:"The Gym Floor",title:"Weights",sub:"Ten training programs — machines to barbells.",img:"weights"},
   {id:"functional",kicker:"GRUNT Territory",title:"Functional Fitness",sub:"50 WODs, 20 S&C sessions, timers built in.",img:"functional"},
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
+  {id:"cardio",kicker:"Climb The World",title:"Cardio Challenges",sub:"StairMaster & treadmill missions — 5 points a finish.",img:"stairs"},
+  {id:"mvm",kicker:"Club Records",title:"Member vs Member",sub:"Heaviest lifts, fastest times. Take the crown, take 5 points.",img:"race"},
   {id:"timetable",kicker:"This Week",title:"Timetable",sub:"Every session, all in one place.",img:null},
   {id:"pt",kicker:"1-On-1 Coaching",title:"Book A PT",sub:"Train one-on-one with the Legacy coaches.",img:"boxing"},
   {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"functional"},
@@ -607,14 +631,34 @@ async function renderBoxRegister(){
   $("boxContent").innerHTML=`<div class="loadingDots">Loading upcoming classes…</div>`;
   const cls=upcomingClasses48();
   const dates=[...new Set(cls.map(c=>c.date))];
-  let regs=[];
-  if(dates.length){
-    const {data}=await sb.from("class_regs").select("*").in("class_date",dates);
-    regs=data||[];
-  }
+  const now=new Date();
+  const d0=now.toISOString().slice(0,10),dY=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  const nowHM=pad(now.getHours())+":"+pad(now.getMinutes());
+  let regs=[],doneRegs=[],claimedRefs=new Set();
+  const q=[sb.from("class_regs").select("*").eq("user_id",session.user.id).in("class_date",[dY,d0]),
+           sb.from("points_events").select("ref").eq("user_id",session.user.id).eq("kind","class")];
+  if(dates.length)q.push(sb.from("class_regs").select("*").in("class_date",dates));
+  const res=await Promise.all(q);
+  doneRegs=(res[0].data||[]).filter(r=>r.class_date<d0||(r.class_date===d0&&r.class_time<=nowHM));
+  claimedRefs=new Set((res[1].data||[]).map(r=>r.ref));
+  regs=res[2]?(res[2].data||[]):[];
   if(view!=="boxing"||boxSub!=="register")return;
   const c2=$("boxContent");if(!c2)return;
   let html=`<p style="color:var(--muted);font-size:12.5px;margin:-4px 2px 14px;line-height:1.5">Book up to two days ahead — tick attending and the coaches know you're coming. Tap again to pull out.</p>`;
+  if(doneRegs.length){
+    html+=`<div class="secTitle">Claim Your Class Points</div>`;
+    doneRegs.forEach(r=>{
+      const ref="class:"+r.class_date+":"+r.class_time;
+      html+=`<div class="card" style="border-color:var(--gold-dim)">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+          <h3 style="font-size:15px">${esc(r.class_name)}</h3>
+          <span style="font-size:12px;color:var(--muted);flex-shrink:0">${fmtDateAU(r.class_date)} · ${fmtClassTime(r.class_time)}</span>
+        </div>
+        ${claimedRefs.has(ref)?`<p style="margin-top:10px;font-weight:900;letter-spacing:2px;color:var(--ok);font-size:12px">POINT BANKED ✓</p>`
+          :`<button class="btnGold" style="margin-top:12px" onclick="submitClassPoint('${r.class_date}','${r.class_time}')">Submit Class — Claim 1 Point</button>`}
+      </div>`;
+    });
+  }
   let lastDate="";
   cls.forEach(c=>{
     if(c.date!==lastDate){
@@ -637,6 +681,12 @@ async function renderBoxRegister(){
   });
   if(!cls.length)html+='<div class="card"><p>No classes in the next two days — check the Timetable tab for the full week.</p></div>';
   c2.innerHTML=html;
+}
+
+async function submitClassPoint(date,time){
+  const ok=await awardPoints("class","class:"+date+":"+time,1);
+  toast(ok?"Class submitted — 1 point on the board!":"Couldn't submit — try again.");
+  renderBoxRegister();
 }
 
 /* ---- Build Your Own Session ---- */
@@ -811,6 +861,279 @@ function updS(){
   const n=S.phases[S.idx+1];
   nx.textContent=n?("Next: "+n.b.toLowerCase()+" · "+fmtSec(n.s)):"Final stretch";
   go.textContent=S.run?"Pause":"Start";
+}
+
+/* ---- Legacy Points: tiers, cardio challenges, member vs member, leaderboard ---- */
+const TIER_STYLES={
+  bronze:{label:"BRONZE",bg:"linear-gradient(135deg,#4a2c10 0%,#8c5a2b 25%,#cd7f32 50%,#e6a55f 65%,#8c5a2b 100%)",fg:"#241102"},
+  silver:{label:"SILVER",bg:"linear-gradient(135deg,#5c5c64 0%,#9a9aa4 25%,#c0c0c8 50%,#ececf2 65%,#83838d 100%)",fg:"#17171c"},
+  gold:{label:"GOLD",bg:"linear-gradient(135deg,#6e5313 0%,#b8912a 25%,#d4af37 50%,#f5d76e 65%,#8a6d1f 100%)",fg:"#221803"},
+  platinum:{label:"PLATINUM",bg:"linear-gradient(135deg,#4e5a68 0%,#8494a6 25%,#b8c6d6 50%,#eef3f9 65%,#6e7d8e 100%)",fg:"#101820"},
+  champion:{label:"CHAMPION",bg:"linear-gradient(135deg,#3d2c05 0%,#9c7a16 20%,#ffd700 45%,#fff3b0 60%,#d4af37 75%,#6e5313 100%)",fg:"#1d1402"}};
+const LEVELS=[
+  {pts:0,name:"Prospect",tier:"bronze",stars:0},
+  {pts:5,name:"Contender",tier:"bronze",stars:1},
+  {pts:12,name:"Challenger",tier:"silver",stars:0},
+  {pts:20,name:"Main Eventer",tier:"silver",stars:1},
+  {pts:30,name:"Title Contender",tier:"gold",stars:0},
+  {pts:45,name:"State Champion",tier:"gold",stars:1},
+  {pts:60,name:"National Champion",tier:"platinum",stars:0},
+  {pts:80,name:"Continental Champion",tier:"platinum",stars:1},
+  {pts:105,name:"World Class",tier:"platinum",stars:2},
+  {pts:135,name:"Undisputed",tier:"platinum",stars:3},
+  {pts:170,name:"Legacy Legend",tier:"champion",stars:3}];
+function levelOf(p){let i=0;LEVELS.forEach((l,n)=>{if(p>=l.pts)i=n;});return {...LEVELS[i],n:i+1,next:LEVELS[i+1]||null};}
+function lvlCardHtml(pts,big){
+  const lv=levelOf(pts),st=TIER_STYLES[lv.tier];
+  return `<div class="lvlCard${big?' big':''}" style="background:${st.bg};color:${st.fg}">
+    <div class="lvlTop"><span>${st.label} · LEVEL ${lv.n}</span><span>${"★".repeat(lv.stars)}</span></div>
+    <div class="lvlName">${lv.name}</div>
+    <div class="lvlPts">${pts} Legacy Points${lv.next?` · ${lv.next.pts-pts} to ${lv.next.name}`:" · Top of the mountain"}</div>
+    <div class="lvlShine"></div></div>`;
+}
+const MEMBER_TYPES=["All-Rounder","Competitive Boxer","Boxing Fitness","Weightlifter","Functional Fitness"];
+const CARDIO={
+stairs:[
+  {img:"https://images.unsplash.com/photo-1512734099960-65a682cbfe2b?auto=format&fit=crop&w=1000&q=70",name:"Big Ben",target:"334 steps",how:"StairMaster",blurb:"To the top of the Elizabeth Tower. The warm-up of the stair world."},
+  {img:"https://images.unsplash.com/photo-1598948485421-33a1655d3c18?auto=format&fit=crop&w=1000&q=70",name:"The Harbour Bridge Climb",target:"1,332 steps",how:"StairMaster",blurb:"The full BridgeClimb — every step of the coathanger."},
+  {img:"https://images.unsplash.com/photo-1719451271224-a91c9c755547?auto=format&fit=crop&w=1000&q=70",name:"Sydney Tower Stair Challenge",target:"1,504 steps",how:"StairMaster",blurb:"To the top of the Golden Bucket, just like the charity race."},
+  {img:"https://images.unsplash.com/photo-1555109307-f7d9da25c244?auto=format&fit=crop&w=1000&q=70",name:"Empire State Run-Up",target:"1,576 steps",how:"StairMaster",blurb:"86 floors of the world's most famous skyscraper."},
+  {img:"https://images.unsplash.com/photo-1570097703229-b195d6dd291f?auto=format&fit=crop&w=1000&q=70",name:"The Eiffel Tower",target:"1,665 steps",how:"StairMaster",blurb:"Ground to summit, the hard way. No lift pass here."},
+  {img:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=70",name:"Burj Khalifa Vertical",target:"2,909 steps",how:"StairMaster",blurb:"The tallest building on earth. The big one — respect it."},
+  {img:"https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=1000&q=70",name:"The Great Wall Gauntlet",target:"5,164 steps",how:"StairMaster",blurb:"The Great Wall Marathon's infamous step count. Legendary status if you finish."}],
+tread:[
+  {img:"https://images.unsplash.com/photo-1551955682-78a3c53ab544?auto=format&fit=crop&w=1000&q=70",name:"Bondi to Bronte",target:"2.5 km",how:"Treadmill, or do it for real",blurb:"The iconic coastal path. The perfect starter."},
+  {img:"https://images.unsplash.com/photo-1672212602462-006b5f22f39f?auto=format&fit=crop&w=1000&q=70",name:"Quarter Bay to Bay",target:"3 km",how:"Treadmill or road",blurb:"A taste of the Central Coast classic."},
+  {img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"Quarter City2Surf",target:"3.5 km",how:"Treadmill or road",blurb:"The first quarter — get the legs used to it."},
+  {img:"https://images.unsplash.com/photo-1672212602462-006b5f22f39f?auto=format&fit=crop&w=1000&q=70",name:"Half Bay to Bay",target:"6 km",how:"Treadmill or road",blurb:"Halfway from Woy Woy to Gosford. Earn the full one."},
+  {img:"https://images.unsplash.com/photo-1628466277622-32a785141b0e?auto=format&fit=crop&w=1000&q=70",name:"Bondi to Coogee",target:"6 km",how:"Treadmill, or do it for real",blurb:"The full coastal walk — every bay, every headland."},
+  {img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"Half City2Surf",target:"7 km",how:"Treadmill or road",blurb:"Half the famous fun run. Heartbreak Hill's in the second half…"},
+  {img:"https://images.unsplash.com/photo-1529108190281-9a4f620bc2d8?auto=format&fit=crop&w=1000&q=70",name:"Lap of Uluru",target:"10.6 km",how:"Treadmill or road",blurb:"A full lap of the Rock. Flat, long, and honest."},
+  {img:"https://images.unsplash.com/photo-1672212602462-006b5f22f39f?auto=format&fit=crop&w=1000&q=70",name:"Bay to Bay",target:"12 km",how:"Treadmill or road",blurb:"The Central Coast classic — Woy Woy to Gosford, the whole way."},
+  {img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"City2Surf",target:"14 km",how:"Treadmill or road",blurb:"Sydney's famous fun run — Heartbreak Hill included, no excuses."}]};
+const MVM=[
+  {id:"deadlift",n:"Heaviest Deadlift",unit:"kg"},
+  {id:"squat",n:"Heaviest Back Squat",unit:"kg"},
+  {id:"ohp",n:"Heaviest Overhead Press",unit:"kg"},
+  {id:"bench",n:"Heaviest Bench Press",unit:"kg"},
+  {id:"bike100",n:"100 Cal Assault Bike",unit:"time"},
+  {id:"row1k",n:"1K Row",unit:"time"},
+  {id:"ski1k",n:"1K Ski Erg",unit:"time"},
+  {id:"stair1000",n:"1,000 Steps StairMaster",unit:"time"},
+  {id:"run1k",n:"1K Run",unit:"time"},
+  {id:"run3k",n:"3K Run",unit:"time"},
+  {id:"run5k",n:"5K Run",unit:"time"},
+  {id:"run10k",n:"10K Run",unit:"time"}];
+let ptsData={loaded:false,events:[],mprofiles:[],entries:[]};
+let cardioSub="stairs",mvmOpen=null,chatSub="chat",mpEditing=false,mpPhotoUrl=null;
+async function loadWorld(force){
+  if(ptsData.loaded&&!force)return;
+  const [ev,mp,ce]=await Promise.all([
+    sb.from("points_events").select("user_id,kind,ref,points"),
+    sb.from("member_profiles").select("*"),
+    sb.from("challenge_entries").select("*").order("created_at",{ascending:false}).limit(2000)]);
+  ptsData={loaded:true,events:ev.data||[],mprofiles:mp.data||[],entries:ce.data||[]};
+}
+function myPoints(){return ptsData.events.filter(e=>e.user_id===session.user.id).reduce((a,b)=>a+b.points,0);}
+function pointsOf(uid){return ptsData.events.filter(e=>e.user_id===uid).reduce((a,b)=>a+b.points,0);}
+function myMp(){return ptsData.mprofiles.find(m=>m.user_id===session.user.id)||null;}
+function myDisplayName(){const m=myMp();return (m&&m.full_name)||(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";}
+async function awardPoints(kind,ref,pts){
+  const {error}=await sb.from("points_events").upsert({user_id:session.user.id,kind,ref,points:pts},{onConflict:"user_id,kind,ref",ignoreDuplicates:true});
+  if(!error)ptsData.loaded=false;
+  return !error;
+}
+/* Cardio Challenges */
+async function renderCardio(){
+  $("main").innerHTML=`
+    <div class="hero" style="${bgStyle('stairs',.5)}">
+      <div class="heroKicker">Climb The World</div>
+      <div class="heroTitle">Cardio Challenges</div>
+      <div class="heroText">Famous climbs and iconic runs, done on the gym floor. Knock one over, hit the button, bank 5 Legacy Points.</div>
+    </div>
+    <div class="subTabs">
+      <button class="${cardioSub==='stairs'?'active':''}" onclick="cardioSub='stairs';renderCardio()">StairMaster</button>
+      <button class="${cardioSub==='tread'?'active':''}" onclick="cardioSub='tread';renderCardio()">Treadmill</button>
+    </div>
+    <div id="cardioList"><div class="loadingDots">Loading challenges…</div></div>`;
+  await loadWorld();
+  if(view!=="cardio")return;const box=$("cardioList");if(!box)return;
+  const doneRefs=new Set(ptsData.events.filter(e=>e.user_id===session.user.id&&e.kind==="challenge").map(e=>e.ref));
+  const clubCounts={};ptsData.events.filter(e=>e.kind==="challenge").forEach(e=>clubCounts[e.ref]=(clubCounts[e.ref]||0)+1);
+  box.innerHTML=CARDIO[cardioSub].map((c,i)=>{
+    const ref=cardioSub+":"+c.name;
+    const done=doneRefs.has(ref),n=clubCounts[ref]||0;
+    return `<div class="chCard" style="background:linear-gradient(180deg,rgba(8,8,10,.35),rgba(8,8,10,.9)),url('${c.img}') center/cover no-repeat #0a0b0e">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+        <span class="chTarget">${c.target}</span><span class="chHow">${c.how}</span>
+      </div>
+      <h3>${esc(c.name)}</h3>
+      <p>${esc(c.blurb)}</p>
+      ${n?`<p style="font-size:11px;color:#b8b8be;margin-top:6px">Conquered ${n}× across the club</p>`:""}
+      ${done?`<div class="chDone">CONQUERED ✓ · 5 POINTS BANKED</div>`
+            :`<button class="btnGold" style="margin-top:12px" onclick="completeCardio('${cardioSub}',${i})">I Did It — Claim 5 Points</button>`}
+    </div>`;}).join("");
+}
+async function completeCardio(cat,i){
+  const c=CARDIO[cat][i];
+  if(!confirm("Full "+c.target+" done? Honesty system — the club's watching."))return;
+  const ok=await awardPoints("challenge",cat+":"+c.name,5);
+  toast(ok?"🏆 "+c.name+" conquered — 5 points on the board!":"Couldn't save it — try again.");
+  await loadWorld(true);renderCardio();
+}
+/* Member vs Member */
+function fmtChalVal(m,v){if(m.unit==="kg")return (+v)+" kg";v=Math.round(+v);const h=Math.floor(v/3600),mm=Math.floor(v%3600/60),s=v%60;return (h?h+":"+pad(mm):mm)+":"+pad(s);}
+function parseTimeIn(s){const p=s.split(":").map(x=>parseFloat(x));if(p.some(isNaN))return 0;if(p.length===3)return p[0]*3600+p[1]*60+p[2];if(p.length===2)return p[0]*60+p[1];return p[0];}
+function bestEntries(id){
+  const m=MVM.find(x=>x.id===id);
+  const rows=ptsData.entries.filter(e=>e.challenge_id===id).slice()
+    .sort((a,b)=>m.unit==="kg"?(+b.value)-(+a.value):(+a.value)-(+b.value));
+  const seen=new Set(),out=[];
+  rows.forEach(r=>{if(!seen.has(r.user_id)){seen.add(r.user_id);out.push(r);}});
+  return out;
+}
+async function renderMvM(){
+  $("main").innerHTML=`
+    <div class="hero" style="${bgStyle('race',.5)}">
+      <div class="heroKicker">Club Records</div>
+      <div class="heroTitle">Member vs Member</div>
+      <div class="heroText">The club's record board. Post your result, chase the crown — take a record off someone and bank a 5-point bonus.</div>
+    </div>
+    <div id="mvmList"><div class="loadingDots">Loading the record board…</div></div>`;
+  await loadWorld();
+  if(view!=="mvm")return;const box=$("mvmList");if(!box)return;
+  const secs=[["Heaviest Lifts",MVM.filter(m=>m.unit==="kg")],["For Time",MVM.filter(m=>m.unit==="time")]];
+  box.innerHTML=secs.map(([t,list])=>`<div class="secTitle">${t}</div>`+list.map(m=>{
+    const board=bestEntries(m.id),lead=board[0]||null;
+    const mine=board.find(e=>e.user_id===session.user.id);
+    const open=mvmOpen===m.id;
+    return `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+        <h3 style="font-size:16px">${m.n}</h3>
+        <span style="font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1px">${m.unit==="kg"?"HEAVIEST":"FASTEST"}</span>
+      </div>
+      ${lead?`<p style="margin-top:8px">👑 <b style="color:var(--gold)">${esc(lead.name||"Member")}</b> — <b>${fmtChalVal(m,lead.value)}</b></p>`
+            :`<p style="margin-top:8px;color:var(--muted)">No entries yet — set the first mark and wear the crown.</p>`}
+      ${mine&&(!lead||mine.id!==lead.id)?`<p style="font-size:12px;color:var(--muted);margin-top:4px">Your best: ${fmtChalVal(m,mine.value)}</p>`:""}
+      ${open?`
+        ${board.length>1?`<div style="margin-top:10px">${board.slice(1,5).map((e,i)=>`<div class="weekRow"><span>${i+2}. ${esc(e.name||"Member")}</span><span style="color:var(--muted)">${fmtChalVal(m,e.value)}</span></div>`).join("")}</div>`:""}
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <input id="mvmIn-${m.id}" placeholder="${m.unit==="kg"?"Weight in kg":"Time — mm:ss"}" inputmode="${m.unit==="kg"?"decimal":"numeric"}" style="flex:1">
+          <button class="btnGold" style="width:auto;padding:12px 18px;margin:0" onclick="mvmSubmit('${m.id}')">Post It</button>
+        </div>
+        <button class="btnLink" style="margin-top:10px" onclick="mvmOpen=null;renderMvM()">Close</button>`
+      :`<button class="btnLink" style="margin-top:12px" onclick="mvmOpen='${m.id}';renderMvM()">Post A Result / See The Board</button>`}
+    </div>`;}).join("")).join("");
+}
+async function mvmSubmit(id){
+  const m=MVM.find(x=>x.id===id);
+  const el=$("mvmIn-"+id);if(!el)return;
+  const raw=el.value.trim();if(!raw)return;
+  const v=m.unit==="kg"?parseFloat(raw):parseTimeIn(raw);
+  if(!v||v<=0||isNaN(v)){toast(m.unit==="kg"?"Enter the weight in kg.":"Enter a time like 3:45.");return;}
+  const prevLead=bestEntries(id)[0]||null;
+  const {data,error}=await sb.from("challenge_entries").insert({user_id:session.user.id,name:myDisplayName(),challenge_id:id,value:v}).select().single();
+  if(error){toast(error.message);return;}
+  const beats=prevLead?(m.unit==="kg"?v>+prevLead.value:v<+prevLead.value):true;
+  if(beats&&(!prevLead||prevLead.user_id!==session.user.id)){
+    await awardPoints("record","record:"+id+":"+data.id,5);
+    toast(prevLead?"👑 You've taken the "+m.n+" crown — +5 bonus points!":"👑 First mark on the board — crown's yours, +5 points!");
+  }else if(beats){toast("You beat your own record. Crown retained.");}
+  else toast("Result posted — keep chasing that crown.");
+  mvmOpen=null;await loadWorld(true);renderMvM();
+}
+/* Legacy Profile + Leaderboard (inside Members) */
+async function uploadMemberPhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const ext=(f.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+  const path=session.user.id+"/legacy-"+Date.now()+"."+ext;
+  toast("Uploading photo…");
+  const {error}=await sb.storage.from("member-photos").upload(path,f,{upsert:true});
+  if(error){toast(error.message);return;}
+  const {data}=sb.storage.from("member-photos").getPublicUrl(path);
+  mpPhotoUrl=data.publicUrl;
+  const img=$("mpPhotoPrev");if(img){img.src=mpPhotoUrl;img.style.display="block";}
+  toast("Photo's in. Hit Save to lock it.");
+}
+async function saveMemberProfile(){
+  const name=$("mpName").value.trim(),age=parseInt($("mpAge").value)||null,type=$("mpType").value;
+  if(!name){toast("Put your name in first.");return;}
+  const ex=myMp();
+  const {error}=await sb.from("member_profiles").upsert({user_id:session.user.id,full_name:name,age,member_type:type,photo_url:mpPhotoUrl||(ex&&ex.photo_url)||""});
+  if(error){toast(error.message);return;}
+  mpEditing=false;mpPhotoUrl=null;
+  toast("Legacy Profile saved. Welcome to the board.");
+  await loadWorld(true);renderChat();
+}
+function mpFormHtml(){
+  const ex=myMp()||{};
+  const ph=mpPhotoUrl||ex.photo_url||"";
+  return `<div class="card" style="border-color:var(--gold-dim)">
+    <h3 style="font-size:15px">${ex.user_id?"Edit":"Build"} Your Legacy Profile</h3>
+    <div style="display:flex;align-items:center;gap:14px;margin-top:12px">
+      <img id="mpPhotoPrev" src="${esc(ph)}" style="width:74px;height:74px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-dim);${ph?"":"display:none"}" alt="">
+      <label class="btnLink" style="margin:0;display:inline-block;width:auto;padding:10px 16px;cursor:pointer">Take / Upload Photo
+        <input type="file" accept="image/*" capture="user" style="display:none" onchange="uploadMemberPhoto(event)"></label>
+    </div>
+    <label class="byoLbl" style="margin-top:14px">Full Name</label>
+    <input id="mpName" value="${esc(ex.full_name||myDisplayName())}" maxlength="60">
+    <label class="byoLbl">Age</label>
+    <input id="mpAge" type="number" min="10" max="99" value="${ex.age||""}" placeholder="Age">
+    <label class="byoLbl">What kind of member are you?</label>
+    <select id="mpType">${MEMBER_TYPES.map(t=>`<option ${ex.member_type===t?"selected":""}>${t}</option>`).join("")}</select>
+    <button class="btnGold" style="margin-top:14px" onclick="saveMemberProfile()">Save Legacy Profile</button>
+    ${ex.user_id?`<button class="btnLink" style="margin-top:10px" onclick="mpEditing=false;renderChat()">Cancel</button>`:""}
+  </div>`;
+}
+async function renderLeaderboard(){
+  $("main").innerHTML=`
+    <img class="chatBgLogo" src="${LOGO}" alt="">
+    <div style="position:relative;z-index:1">
+      <div class="subTabs" style="margin-top:4px">
+        <button onclick="chatSub='chat';renderChat()">The Chat</button>
+        <button class="active">Leaderboard</button>
+      </div>
+      <div id="lbBody"><div class="loadingDots">Loading the board…</div></div>
+    </div>`;
+  await loadWorld();
+  if(view!=="chat"||chatSub!=="board")return;const box=$("lbBody");if(!box)return;
+  const mp=myMp();
+  const pts=myPoints();
+  const totals={};ptsData.events.forEach(e=>totals[e.user_id]=(totals[e.user_id]||0)+e.points);
+  ptsData.mprofiles.forEach(m=>{if(!(m.user_id in totals))totals[m.user_id]=0;});
+  const rows=Object.entries(totals).map(([uid,p])=>{
+    const prof=ptsData.mprofiles.find(m=>m.user_id===uid);
+    return {uid,p,name:(prof&&prof.full_name)||"Unnamed Member",photo:(prof&&prof.photo_url)||"",type:(prof&&prof.member_type)||""};
+  }).sort((a,b)=>b.p-a.p);
+  box.innerHTML=`
+    ${(!mp||mpEditing)?mpFormHtml():`
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:14px">
+          ${mp.photo_url?`<img src="${esc(mp.photo_url)}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-dim)" alt="">`:`<div class="lbAv" style="width:64px;height:64px;font-size:22px">${esc((mp.full_name||"?")[0])}</div>`}
+          <div style="flex:1">
+            <h3 style="font-size:17px">${esc(mp.full_name)}</h3>
+            <p style="font-size:12px;color:var(--muted)">${mp.age?mp.age+" · ":""}${esc(mp.member_type)}</p>
+          </div>
+          <button class="btnLink" style="width:auto;margin:0;padding:8px 14px" onclick="mpEditing=true;renderChat()">Edit</button>
+        </div>
+        <div style="margin-top:14px">${lvlCardHtml(pts,true)}</div>
+      </div>`}
+    <div class="secTitle">Members Leaderboard</div>
+    <div class="card">
+      <p style="font-size:11.5px;color:var(--muted);margin-bottom:6px">1 point a class · 5 points a cardio challenge · 5-point bonus for taking a club record.</p>
+      ${rows.length?rows.map((r,i)=>{
+        const lv=levelOf(r.p),st=TIER_STYLES[lv.tier];
+        return `<div class="lbRow${r.uid===session.user.id?" me":""}">
+          <span class="lbRank">${i+1}</span>
+          ${r.photo?`<img class="lbAv" src="${esc(r.photo)}" alt="">`:`<div class="lbAv">${esc(r.name[0]||"?")}</div>`}
+          <div style="flex:1;min-width:0">
+            <b style="font-size:13.5px">${esc(r.name)}</b>
+            <div style="font-size:10.5px;color:var(--muted)">${esc(r.type)}</div>
+          </div>
+          <span class="tierChip" style="background:${st.bg};color:${st.fg}">${lv.name}</span>
+          <b style="font-size:14px;color:var(--gold);min-width:34px;text-align:right">${r.p}</b>
+        </div>`;}).join(""):'<div class="emptyMsg">Nobody on the board yet. First in, best dressed.</div>'}
+    </div>`;
 }
 
 /* ---- Sparring Club hub ---- */
@@ -1820,6 +2143,10 @@ async function delSocial(id){
 
 /* ---- Ask Me Anything (voice in, typed answers) ---- */
 const AMA_KB=[
+{k:"points legacy points how earn score tally leaderboard rank level",a:"Legacy Points: 1 point every time you attend a class and hit Submit afterwards, 5 points for finishing a cardio challenge, and a 5-point bonus for taking a club record off someone in Member vs Member. Points climb you through the ranks — Prospect all the way to Legacy Legend. Check the Leaderboard tab inside Members Chat."},
+{k:"cardio challenge stairmaster treadmill climb steps run stairs",a:"Cardio Challenges are on the home screen — famous stair climbs on the StairMaster (Big Ben up to the Great Wall Gauntlet) and iconic runs on the treadmill (Bondi to Bronte up to City2Surf). Finish one, hit the button, bank 5 Legacy Points."},
+{k:"member versus member record crown heaviest deadlift squat bench fastest",a:"Member vs Member is the club record board — heaviest deadlift, squat, overhead press and bench, plus fastest times on the assault bike, rower, ski erg, StairMaster and runs from 1K to 10K. Post your result; take the crown off someone and you bank a 5-point bonus."},
+{k:"legacy profile photo member type build profile",a:"Your Legacy Profile lives in Members Chat under the Leaderboard tab — add your photo, name, age and what kind of member you are, and you're on the board."},
 {k:"staffed hours reception open desk staff front",a:"The gym floor is staffed Mon–Thu 5:15–7:45am, Mon–Fri 4–7pm, and Saturday 8–11am. Outside those times it's swipe access."},
 {k:"gym open hours access swipe time",a:"Members have swipe access to the gym floor. Staffed hours are Mon–Thu 5:15–7:45am, Mon–Fri 4–7pm and Sat 8–11am. Recovery access runs 4:30am–9pm weekdays and 4:30am–5:30pm weekends."},
 {k:"recovery hours sauna open ice bath spa time",a:"Recovery access is 4:30am–9pm on weekdays and 4:30am–5:30pm on weekends. Private saunas are booked through the Recovery app — the button's in the Recovery tab."},
@@ -2272,8 +2599,13 @@ function msgHtml(m){
   return `<div class="msg${mine?' mine':''}"><div class="who">${esc(m.name)}</div><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`;
 }
 function renderChat(){
+  if(chatSub==="board")return renderLeaderboard();
   $("main").innerHTML=`
     <img class="chatBgLogo" src="${LOGO}" alt="">
+    <div class="subTabs" style="position:relative;z-index:1;margin-top:4px">
+      <button class="active">The Chat</button>
+      <button onclick="chatSub='board';mpEditing=false;renderChat()">Leaderboard</button>
+    </div>
     <div class="chatWrap">
       <div id="chatMsgs">${msgs.length?msgs.map(msgHtml).join(""):'<div class="emptyMsg" style="text-align:center;margin-top:30px">No messages yet — start the conversation.</div>'}</div>
       <div class="chatInput">
