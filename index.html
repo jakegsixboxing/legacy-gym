@@ -102,6 +102,11 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .pillBtns button.on{background:var(--gold);border-color:var(--gold);color:#161307}
 .miniSel{margin-top:8px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;display:block}
 
+/* social events */
+.evDate{width:52px;flex-shrink:0;background:var(--panel2);border:1px solid var(--gold-dim);border-radius:10px;text-align:center;padding:8px 2px}
+.evDate span{display:block;font-size:22px;font-weight:900;color:var(--gold);line-height:1.1}
+.evDate small{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+
 /* search + collapsible cards */
 .wodSearch{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:15px;outline:none;margin-bottom:12px}
 .wodSearch:focus{border-color:var(--gold-dim)}
@@ -384,6 +389,7 @@ function render(){
   if(view==="recovery")return renderRecovery();
   if(view==="timetable")return renderTimetable();
   if(view==="pt")return renderPT();
+  if(view==="social")return renderSocial();
   if(view==="ama")return renderAMA();
   if(view==="staff")return renderStaff();
   if(view==="chat")return renderChat();
@@ -398,6 +404,7 @@ const HOME_CARDS=[
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
   {id:"timetable",kicker:"This Week",title:"Timetable",sub:"Every session, all in one place.",img:null},
   {id:"pt",kicker:"1-On-1 Coaching",title:"Book A PT",sub:"Train one-on-one with the Legacy coaches.",img:"boxing"},
+  {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"functional"},
   {id:"chat",kicker:"The Community",title:"Members Chat",sub:"The Legacy crew, in your pocket.",img:null}
 ];
 function renderHome(){
@@ -1423,6 +1430,84 @@ async function unattendClass(date,time){
   renderTimetable();
 }
 
+/* ---- Social Events ---- */
+async function renderSocial(){
+  $("main").innerHTML=`<div class="loadingDots">Loading the social calendar…</div>`;
+  const [ev,rs]=await Promise.all([
+    sb.from("social_events").select("*").order("event_date",{ascending:true}),
+    sb.from("social_rsvps").select("*")
+  ]);
+  if(view!=="social")return;
+  const events=ev.data||[],rsvps=rs.data||[];
+  const today=isoDateLocal();
+  const upcoming=events.filter(e=>!e.event_date||e.event_date>=today);
+  const past=events.filter(e=>e.event_date&&e.event_date<today).reverse();
+  const isStaff=profile&&profile.is_staff;
+  const evCard=e=>{
+    const these=rsvps.filter(r=>r.event_id===e.id);
+    const mine=these.find(r=>r.user_id===session.user.id);
+    const gone=e.event_date&&e.event_date<today;
+    return `<div class="card">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div class="evDate"><span>${e.event_date?new Date(e.event_date+"T12:00:00").getDate():"?"}</span><small>${e.event_date?["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][new Date(e.event_date+"T12:00:00").getMonth()]:"TBC"}</small></div>
+        <div style="flex:1;min-width:0">
+          <h3 style="font-size:17px">${esc(e.title)}</h3>
+          <div class="sub" style="margin-bottom:6px">${e.event_date?fmtDateAU(e.event_date):"Date TBC"}${e.event_time?" · "+esc(e.event_time):""}${e.location?" · "+esc(e.location):""}</div>
+          ${e.details?`<p>${esc(e.details)}</p>`:""}
+        </div>
+      </div>
+      <p style="margin-top:10px"><b style="color:var(--gold)">${these.length} in</b>${these.length?": "+these.map(r=>esc(r.name)).join(", "):""}</p>
+      ${gone?"":mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="socialOut('${e.id}')">You're In ✓ — Tap To Pull Out</button>`
+        :`<button class="btnGold" style="margin-top:12px" onclick="socialIn('${e.id}')">I'm In</button>`}
+      ${isStaff?`<button class="btnLink" style="border-color:var(--danger);color:var(--danger);margin-top:10px" onclick="delSocial('${e.id}')">Remove Event</button>`:""}
+    </div>`;
+  };
+  $("main").innerHTML=`
+    <div class="hero" style="${bgStyle('functional',.6)}">
+      <div class="heroKicker">Get Amongst It</div>
+      <div class="heroTitle">Social Events</div>
+      <div class="heroText">Golf days, fight nights, gym socials — put your name down and show up.</div>
+    </div>
+    <div class="secTitle">Coming Up</div>
+    ${upcoming.length?upcoming.map(evCard).join(""):'<div class="card"><p>Nothing on the calendar right now — when the next one is locked in, it lands here first.</p></div>'}
+    ${past.length?`<details class="foldCard"><summary>Past Events (${past.length})</summary><div style="margin-top:10px">${past.map(evCard).join("")}</div></details>`:""}
+    ${isStaff?`<div class="secTitle">Staff — Add An Event</div>
+    <div class="card">
+      <div class="field"><label>Event Title</label><input id="seTitle" placeholder="e.g. Legacy Golf Day — Local Blokes Classic"></div>
+      <div class="row2">
+        <div class="field"><label>Date</label><input id="seDate" type="date"></div>
+        <div class="field"><label>Time (optional)</label><input id="seTime" placeholder="e.g. 10am tee-off"></div>
+      </div>
+      <div class="field"><label>Location (optional)</label><input id="seLoc" placeholder="Venue"></div>
+      <div class="field"><label>Details (optional)</label><input id="seDetails" placeholder="What to know, what to bring…"></div>
+      <button class="btnGold" onclick="addSocial()">List The Event</button>
+    </div>`:""}`;
+}
+async function socialIn(id){
+  const me=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";
+  const {error}=await sb.from("social_rsvps").insert({event_id:id,user_id:session.user.id,name:me});
+  if(error){toast(/duplicate|unique/i.test(error.message)?"You're already in.":error.message);}
+  else toast("You're in. Good call.");
+  renderSocial();
+}
+async function socialOut(id){
+  const {error}=await sb.from("social_rsvps").delete().eq("event_id",id).eq("user_id",session.user.id);
+  toast(error?error.message:"Pulled out — no hard feelings.");
+  renderSocial();
+}
+async function addSocial(){
+  const t=$("seTitle").value.trim();if(!t){toast("Give the event a title.");return;}
+  const {error}=await sb.from("social_events").insert({title:t,event_date:$("seDate").value||null,event_time:$("seTime").value.trim(),location:$("seLoc").value.trim(),details:$("seDetails").value.trim(),created_by:session.user.id});
+  if(error){toast(error.message);return;}
+  toast("Event's up. Watch the names roll in.");
+  renderSocial();
+}
+async function delSocial(id){
+  const {error}=await sb.from("social_events").delete().eq("id",id);
+  toast(error?error.message:"Event removed.");
+  renderSocial();
+}
+
 /* ---- Ask Me Anything (voice in, typed answers) ---- */
 const AMA_KB=[
 {k:"staffed hours reception open desk staff front",a:"The gym floor is staffed Mon–Thu 5:15–7:45am, Mon–Fri 4–7pm, and Saturday 8–11am. Outside those times it's swipe access."},
@@ -1481,7 +1566,8 @@ const AMA_KB=[
 {k:"mindbody online booking recovery system",a:"Recovery bookings run through MindBody — or easier still, use the Recovery app button in the Recovery tab right here."},
 {k:"tickets fight night watch buy red blue",a:"Fight night tickets go up in the shop at legacygym.net — check the Fight Night Tickets collection when an event's on."},
 {k:"gloves wraps gear buy shop where",a:"Boxing gear, gloves, wraps and Legacy apparel are all in the shop at legacygym.net. Need help sizing gloves? Ask any coach."},
-{k:"nutrition food eat diet advisor plan",a:"Structured nutrition support runs through the Local Blokes program — a dedicated nutrition advisor and a 10-week real-food plan. Outside the program, grab any coach for pointers."}
+{k:"nutrition food eat diet advisor plan",a:"Structured nutrition support runs through the Local Blokes program — a dedicated nutrition advisor and a 10-week real-food plan. Outside the program, grab any coach for pointers."},
+{k:"social event golf day calendar whats coming",a:"Check the Social Events tab on the home screen — golf days, fight nights and gym socials all land there. Tap 'I'm In' to put your name down."}
 ];
 let amaExtra=[],amaLoaded=false,amaMsgs=[],amaRec=null;
 function amaNorm(s){return s.toLowerCase().replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();}
