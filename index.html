@@ -113,7 +113,7 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 
 /* division badges + belts */
 .fcPhotoWrap{position:relative;flex-shrink:0}
-.dvBadge{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);border-radius:8px;padding:5px 9px;font-family:'Oswald',sans-serif;font-size:9px;font-weight:600;letter-spacing:1.8px;line-height:1;white-space:nowrap;text-transform:uppercase;overflow:hidden;
+.dvBadge{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);border-radius:7px;padding:4px 7px;font-family:'Oswald',sans-serif;font-size:7.5px;font-weight:600;letter-spacing:1.1px;line-height:1;white-space:nowrap;text-transform:uppercase;overflow:hidden;
   background:linear-gradient(135deg,rgba(20,20,22,.75),rgba(20,20,22,.55));
   backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
 .dvBadge::after{content:"";position:absolute;top:-70%;left:-40%;width:45%;height:240%;transform:rotate(24deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);animation:holoSweep 3.4s ease-in-out infinite}
@@ -1001,7 +1001,8 @@ function bpAddTitle(){
 const COACH_CARDS={
   "jakegsixboxing@gmail.com":{
     title:"Head Boxing Coach",
-    sub:"Ex Amateur / Professional Boxer",
+    sub:"Retired AM / Pro Boxer",
+    div:"Heavyweight",
     amateur:["6× Australian Champions","3× NSW Champions","2× Australasian Champions"],
     pro:["2× NSW Champions","2× Australian Champions","1× Australasian Champion","2× UBF Champions","1× WBO Asia Pacific Champion","1× WBC Asian Gold Champion"]
   }
@@ -1036,7 +1037,7 @@ function boxerCardHtml(bp){
       <div style="flex:1;min-width:0">
         <div class="fcRank">${rank.name}</div>
         <h3 class="fcName">${esc(bp.name)}</h3>
-        <div class="fcMeta">${cc?cc.sub:""}${cc&&(wc||bp.age)?" · ":""}${wc?wc:""}${wc&&bp.age?" · ":""}${bp.age?bp.age+" yrs":""}</div>
+        <div class="fcMeta">${cc?cc.sub+(cc.div?" · "+cc.div:""):`${wc?wc:""}${wc&&bp.age?" · ":""}${bp.age?bp.age+" yrs":""}${(wc||bp.age)&&bp.current_weight?" · ":""}${bp.current_weight?Number(bp.current_weight)+"kg now":""}`}</div>
       </div>
       <button class="btnLink" style="width:auto;padding:8px 12px;margin:0" onclick="startBpEdit()">Edit</button>
     </div>
@@ -1046,12 +1047,12 @@ function boxerCardHtml(bp){
       <div class="accT" style="margin-top:12px">Coaching Accomplishments — Professional</div>
       <div class="accList">${cc.pro.map(a=>`<span class="pill accPill">${a}</span>`).join("")}</div>
     </div>`:""}
-    <div class="fcRecordRow">
+    ${cc?"":`<div class="fcRecordRow">
       <div class="fcRec"><span>${bp.wins||0}</span><small>Wins</small></div>
       <div class="fcRec"><span>${bp.losses||0}</span><small>Losses</small></div>
       <div class="fcRec"><span>${bp.draws||0}</span><small>Draws</small></div>
       <div class="fcRec gold"><span>${total}</span><small>Rounds</small></div>
-    </div>
+    </div>`}
     ${titles.length?`<div class="beltRow">${titles.map((t,i)=>`<div class="belt">${beltSvg(beltSpecFor(t),i)}<small>${esc(t)}</small></div>`).join("")}</div>`:""}
     ${rank.nextAt?`<div class="rankBar"><div class="rankFill" style="width:${pct}%"></div></div>
     <div class="rankLbl">${rank.nextAt-total} rounds to ${rank.next}</div>`:`<div class="rankLbl" style="color:var(--gold)">Top of the mountain.</div>`}
