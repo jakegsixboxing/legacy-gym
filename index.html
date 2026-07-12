@@ -123,6 +123,7 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .dvAM{color:#eef1f5;border:1px solid rgba(217,219,224,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(217,219,224,.35);text-shadow:0 0 10px rgba(217,219,224,.7)}
 .dvFC{color:#eda963;border:1px solid rgba(205,127,50,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(205,127,50,.4);text-shadow:0 0 10px rgba(205,127,50,.7)}
 .dvSC{color:#ff9d9d;border:1px solid rgba(224,82,82,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(224,82,82,.4);text-shadow:0 0 10px rgba(224,82,82,.7)}
+.dvFIT{color:#a8d4ec;border:1px solid rgba(143,184,216,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(143,184,216,.4);text-shadow:0 0 10px rgba(143,184,216,.7)}
 .dvCOACH{color:#f5dc96;border:1px solid rgba(230,193,92,.85);background:linear-gradient(135deg,rgba(163,126,44,.5),rgba(20,20,22,.7));box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 20px rgba(230,193,92,.55);text-shadow:0 0 10px rgba(230,193,92,.85)}
 .fcAcc{margin-top:16px;position:relative}
 .accT{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
@@ -1547,30 +1548,39 @@ function bpFormHtml(bp){
       </div>
     </div>
     <div class="field"><label>Name</label><input id="bpName" value="${esc(defName)}"></div>
-    <div class="field"><label>Your Level</label><select id="bpDiv" onchange="$('bpTitlesWrap').innerHTML=bpTitlesHtml(this.value==='Professional'?'Professional':'Amateur',[])">
-      <option value="auto" ${bp.division!=="Professional"?"selected":""}>Auto — set from my fight record</option>
-      <option value="Professional" ${bp.division==="Professional"?"selected":""}>Professional boxer</option>
-    </select>
-    <p style="color:var(--muted);font-size:11.5px;margin:-6px 0 12px;line-height:1.5">Your label sets itself from your record: no fights = Sparring Club, one fight = Fight Club, two or more = Amateur Boxer.</p></div>
-    <div id="bpTitlesWrap">${bpTitlesHtml(bp.division==="Professional"?"Professional":"Amateur",(bp.titles||"").split(",").map(t=>t.trim()).filter(Boolean))}</div>
+    <div class="field"><label>Where Are You At?</label><select id="bpDiv" onchange="bpDivChanged(this.value)">
+      ${Object.keys(DIVISIONS).map(k=>`<option value="${k}" ${(bp.division||"Fitness Club")===k?"selected":""}>${DIVISIONS[k].label} — ${DIVISIONS[k].pick}</option>`).join("")}
+    </select></div>
+    <div class="field"><label>Stance</label><select id="bpStance">
+      <option ${bp.stance==="Orthodox"?"selected":""}>Orthodox</option>
+      <option ${bp.stance==="Southpaw"?"selected":""}>Southpaw</option>
+    </select></div>
     <div class="row2">
       <div class="field"><label>Age</label><input id="bpAge" type="number" inputmode="numeric" value="${bp.age??""}"></div>
       <div class="field"><label>Current Weight (kg)</label><input id="bpCw" type="number" step="0.1" inputmode="decimal" value="${bp.current_weight??""}"></div>
     </div>
-    <div class="field"><label>Fight Weight (kg)</label><input id="bpFw" type="number" step="0.1" inputmode="decimal" value="${bp.fight_weight??""}"></div>
-    <label style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Record — Wins / Losses / Draws</label>
-    <div class="row2">
-      <div class="field"><input id="bpW" type="number" inputmode="numeric" value="${bp.wins??0}"></div>
-      <div class="field"><input id="bpL" type="number" inputmode="numeric" value="${bp.losses??0}"></div>
-      <div class="field"><input id="bpD" type="number" inputmode="numeric" value="${bp.draws??0}"></div>
+    <div id="bpBoxerOnly" style="${(bp.division||"Fitness Club")==="Fitness Club"?"display:none":""}">
+      <div class="field"><label>Fight Weight (kg)</label><input id="bpFw" type="number" step="0.1" inputmode="decimal" value="${bp.fight_weight??""}"></div>
+      <label style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Record — Wins / Losses / Draws (if you have one)</label>
+      <div class="row2">
+        <div class="field"><input id="bpW" type="number" inputmode="numeric" value="${bp.wins??0}"></div>
+        <div class="field"><input id="bpL" type="number" inputmode="numeric" value="${bp.losses??0}"></div>
+        <div class="field"><input id="bpD" type="number" inputmode="numeric" value="${bp.draws??0}"></div>
+      </div>
+      <div id="bpTitlesWrap">${bpTitlesHtml("",(bp.titles||"").split(",").map(t=>t.trim()).filter(Boolean))}</div>
     </div>
     <button class="btnGold" onclick="saveBoxerProfile()">Save Profile</button>
     ${bp.user_id?`<button class="btnLink" style="margin-top:10px" onclick="bpEditing=false;renderSparringClub()">Cancel</button>`:""}
   </div>`;
 }
-function weightClass(kg){
+function weightClass(kg,division){
   if(kg==null||!Number(kg))return null;
   const w=Number(kg);
+  if(division==="Amateur"){
+    const am=[[48,"Minimumweight"],[51,"Flyweight"],[54,"Bantamweight"],[57,"Featherweight"],[60,"Lightweight"],[63.5,"Light Welterweight"],[67,"Welterweight"],[71,"Light Middleweight"],[75,"Middleweight"],[80,"Light Heavyweight"],[86,"Cruiserweight"],[92,"Heavyweight"]];
+    for(const [max,n] of am)if(w<=max)return n;
+    return "Super Heavyweight";
+  }
   const cls=[[48.9,"Light Flyweight"],[50.8,"Flyweight"],[52.2,"Super Flyweight"],[53.5,"Bantamweight"],[55.3,"Super Bantamweight"],[57.2,"Featherweight"],[59,"Super Featherweight"],[61.2,"Lightweight"],[63.5,"Super Lightweight"],[66.7,"Welterweight"],[69.9,"Super Welterweight"],[72.6,"Middleweight"],[76.2,"Super Middleweight"],[79.4,"Light Heavyweight"],[90.7,"Cruiserweight"]];
   for(const [max,n] of cls)if(w<=max)return n;
   return "Heavyweight";
@@ -1600,13 +1610,14 @@ function topPartner(){
   return best;
 }
 const DIVISIONS={
-  "Sparring Club":{label:"Sparring Club",cls:"dvSC",banner:"Sparring Club",color:"#e05252",blurb:"Sparring Club — no fights yet"},
-  "Fight Club":{label:"Fight Club",cls:"dvFC",banner:"Fight Club Fighter",color:"#cd7f32",blurb:"Fight Club — fought a Fight Club bout"},
-  "Amateur":{label:"Amateur Boxer",cls:"dvAM",banner:"Amateur Boxer",color:"#cfd3d8",blurb:"Amateur boxer"},
-  "Professional":{label:"Professional Boxer",cls:"dvPRO",banner:"Pro Boxer",color:"#e6c15c",blurb:"Professional boxer"}
+  "Fitness Club":{label:"Fitness Club",cls:"dvFIT",banner:"Fitness Club",color:"#8fb8d8",blurb:"Here for boxing fitness",pick:"I'm in the gym for boxing fitness"},
+  "Sparring Club":{label:"Sparring Club",cls:"dvSC",banner:"Sparring Club",color:"#e05252",blurb:"Currently sparring",pick:"I'm currently sparring"},
+  "Fight Club":{label:"Fight Club",cls:"dvFC",banner:"Fight Club Fighter",color:"#cd7f32",blurb:"Fought a Fight Club bout",pick:"I've had a Fight Club fight or two"},
+  "Amateur":{label:"Amateur Boxer",cls:"dvAM",banner:"Amateur Boxer",color:"#cfd3d8",blurb:"Amateur boxer",pick:"I've fought amateur against an opposing gym"},
+  "Professional":{label:"Professional Boxer",cls:"dvPRO",banner:"Pro Boxer",color:"#e6c15c",blurb:"Professional boxer",pick:"I've boxed as a professional"}
 };
 function divisionOf(bp){
-  if(bp&&bp.division==="Professional")return DIVISIONS["Professional"];
+  if(bp&&DIVISIONS[bp.division])return DIVISIONS[bp.division];
   const fights=bp?((Number(bp.wins)||0)+(Number(bp.losses)||0)+(Number(bp.draws)||0)):0;
   if(fights>=2)return DIVISIONS["Amateur"];
   if(fights===1)return DIVISIONS["Fight Club"];
@@ -1668,20 +1679,15 @@ function beltSvg(spec,uid){
   <polygon points="70,24.5 72.2,29.5 77.5,30 73.6,33.6 74.7,38.8 70,36.2 65.3,38.8 66.4,33.6 62.5,30 67.8,29.5" fill="${met[2]}" opacity=".92"/>
   </svg>`;
 }
+function bpDivChanged(v){const el=$("bpBoxerOnly");if(el)el.style.display=v==="Fitness Club"?"none":"";}
 function bpTitlesHtml(div,cur){
-  const known=[...PRO_TITLES,...AM_TITLES];
-  let list=[];
-  if(div==="Amateur")list=AM_TITLES;
-  else if(div==="Professional")list=[...PRO_TITLES,...AM_TITLES];
-  const custom=cur.filter(t=>!known.includes(t));
-  return `<label class="byoLbl">Have You Won Any Titles?</label>
-    ${list.length?`<div>${list.map(t=>`<label class="ckRow"><input type="checkbox" class="bpTitleCk" value="${esc(t)}" ${cur.includes(t)?"checked":""}> ${esc(t)}</label>`).join("")}</div>`:""}
-    <div class="field" style="margin-top:12px"><label>Won Something Else? Type The Title In</label>
+  return `<label class="byoLbl">Have You Won Any Titles? Type them in — one at a time</label>
+    <div class="field" style="margin-top:6px">
       <div class="chatInput" style="border-top:none;padding-top:0">
-        <input id="bpTitleNew" placeholder="e.g. IBF Youth World Title" maxlength="60" onkeydown="if(event.key==='Enter'){event.preventDefault();bpAddTitle();}">
+        <input id="bpTitleNew" placeholder="e.g. NSW State Title, WBC Asian Gold" maxlength="60" onkeydown="if(event.key==='Enter'){event.preventDefault();bpAddTitle();}">
         <button type="button" onclick="bpAddTitle()">＋</button>
       </div></div>
-    <div class="pillRow" id="bpCustomTitles">${custom.map(t=>bpTitleChip(t)).join("")}</div>`;
+    <div class="pillRow" id="bpCustomTitles">${cur.map(t=>bpTitleChip(t)).join("")}</div>`;
 }
 function bpTitleChip(t){return `<span class="pill titleChip" data-t="${esc(t)}" onclick="this.remove()" title="Tap to remove">${esc(t)} ×</span>`;}
 function bpAddTitle(){
@@ -1707,7 +1713,7 @@ function monthlyTier(){
   return {r,name:null,cls:null,next:MONTH_TIERS[MONTH_TIERS.length-1]};
 }
 function boxerCardHtml(bp){
-  const wc=weightClass(bp.fight_weight);
+  const wc=weightClass(bp.fight_weight,bp.division);
   const total=boxData.sessions.reduce((a,s)=>a+s.rounds,0);
   const rank=rankOf(total);
   const pct=rank.nextAt?Math.min(100,Math.round((total-rank.at)/(rank.nextAt-rank.at)*100)):100;
@@ -1729,7 +1735,7 @@ function boxerCardHtml(bp){
       <div style="flex:1;min-width:0">
         <div class="fcRank">${rank.name}</div>
         <h3 class="fcName">${esc(bp.name)}</h3>
-        <div class="fcMeta">${cc?cc.sub+(cc.div?" · "+cc.div:""):`${wc?wc:""}${wc&&bp.age?" · ":""}${bp.age?bp.age+" yrs":""}${(wc||bp.age)&&bp.current_weight?" · ":""}${bp.current_weight?Number(bp.current_weight)+"kg now":""}`}</div>
+        <div class="fcMeta">${cc?cc.sub+(cc.div?" · "+cc.div:""):[wc,bp.stance,bp.age?bp.age+" yrs":"",bp.current_weight?Number(bp.current_weight)+"kg now":""].filter(Boolean).join(" · ")}</div>
       </div>
       <button class="btnLink" style="width:auto;padding:8px 12px;margin:0" onclick="startBpEdit()">Edit</button>
     </div>
@@ -1739,7 +1745,9 @@ function boxerCardHtml(bp){
       <div class="accT" style="margin-top:12px">Coaching Accomplishments — Professional</div>
       <div class="accList">${cc.pro.map(a=>`<span class="pill accPill">${a}</span>`).join("")}</div>
     </div>`:""}
-    ${cc?"":`<div class="fcRecordRow">
+    ${cc?"":bp.division==="Fitness Club"?`<div class="fcRecordRow">
+      <div class="fcRec gold"><span>${total}</span><small>Rounds Banked</small></div>
+    </div>`:`<div class="fcRecordRow">
       <div class="fcRec"><span>${bp.wins||0}</span><small>Wins</small></div>
       <div class="fcRec"><span>${bp.losses||0}</span><small>Losses</small></div>
       <div class="fcRec"><span>${bp.draws||0}</span><small>Draws</small></div>
@@ -1945,18 +1953,17 @@ async function uploadBoxerPhoto(e){
   toast("Photo's in. Hit Save Profile to lock it.");
 }
 async function saveBoxerProfile(){
-  const fw=parseInt($("bpW").value)||0,fl=parseInt($("bpL").value)||0,fd=parseInt($("bpD").value)||0;
-  const fights=fw+fl+fd;
-  const autoDiv=fights>=2?"Amateur":fights===1?"Fight Club":"Sparring Club";
+  const div=$("bpDiv").value;
+  const isFit=div==="Fitness Club";
   const rec={user_id:session.user.id,
     name:$("bpName").value.trim(),
-    division:$("bpDiv").value==="Professional"?"Professional":autoDiv,
-    titles:[...document.querySelectorAll(".bpTitleCk:checked")].map(x=>x.value)
-      .concat([...document.querySelectorAll("#bpCustomTitles .titleChip")].map(x=>x.dataset.t)).join(","),
+    division:div,
+    stance:$("bpStance").value,
+    titles:isFit?"":[...document.querySelectorAll("#bpCustomTitles .titleChip")].map(x=>x.dataset.t).join(","),
     age:parseInt($("bpAge").value)||null,
     current_weight:parseFloat($("bpCw").value)||null,
-    fight_weight:parseFloat($("bpFw").value)||null,
-    wins:parseInt($("bpW").value)||0,losses:parseInt($("bpL").value)||0,draws:parseInt($("bpD").value)||0,
+    fight_weight:isFit?null:parseFloat($("bpFw").value)||null,
+    wins:isFit?0:parseInt($("bpW").value)||0,losses:isFit?0:parseInt($("bpL").value)||0,draws:isFit?0:parseInt($("bpD").value)||0,
     photo_url:bpPhotoUrl||(boxData.profile&&boxData.profile.photo_url)||null,
     updated_at:new Date().toISOString()};
   if(!rec.name){toast("Put your name in first.");return;}
