@@ -102,6 +102,14 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .pillBtns button.on{background:var(--gold);border-color:var(--gold);color:#161307}
 .miniSel{margin-top:8px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;display:block}
 
+/* search + collapsible cards */
+.wodSearch{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:15px;outline:none;margin-bottom:12px}
+.wodSearch:focus{border-color:var(--gold-dim)}
+.foldCard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:12px}
+.foldCard summary{cursor:pointer;font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text);list-style:none;display:flex;justify-content:space-between;align-items:center}
+.foldCard summary::after{content:"›";color:var(--gold);font-size:20px;transform:rotate(90deg);transition:transform .15s}
+.foldCard[open] summary::after{transform:rotate(-90deg)}
+
 /* fighter dashboard */
 .fightCard{background:linear-gradient(150deg,#1d1a12 0%,#111013 55%,#0b0b0c 100%);border:1.5px solid var(--gold);border-radius:16px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden}
 .fightCard::before{content:"LEGACY";position:absolute;right:-10px;top:6px;font-family:'Oswald',sans-serif;font-size:58px;font-weight:700;color:rgba(201,164,76,.06);letter-spacing:6px;pointer-events:none}
@@ -436,9 +444,7 @@ function renderBoxing(){
     </div>
     <div class="subTabs">
       <button class="${boxSub==='classes'?'active':''}" onclick="setBoxSub('classes')">Classes</button>
-      <button class="${boxSub==='full'?'active':''}" onclick="setBoxSub('full')">Full Session</button>
       <button class="${boxSub==='byo'?'active':''}" onclick="setBoxSub('byo')">Build Your Own</button>
-      <button class="${boxSub==='fitness'?'active':''}" onclick="setBoxSub('fitness')">Fitness Club</button>
       <button class="${boxSub==='sparring'?'active':''}" onclick="setBoxSub('sparring')">Sparring Club</button>
     </div>
     <div id="boxContent"></div>`;
@@ -820,7 +826,7 @@ function sparringStatsHtml(){
       <div class="statBox"><div class="sv">${totRounds}</div><div class="sl">Total Rounds</div></div>
       <div class="statBox"><div class="sv">${Math.round(totMins)}</div><div class="sl">Total Minutes</div></div>
     </div>
-    <div class="card"><h3 style="font-size:15px">Last 10 Weeks</h3><div style="margin-top:6px">${wkRows}</div></div>`;
+    <details class="foldCard"><summary>Last 10 Weeks</summary><div style="margin-top:6px">${wkRows}</div></details>`;
 }
 
 /* ---- Fight Tape (sparring clips + coach review) ---- */
@@ -892,13 +898,17 @@ function logFormHtml(){
 }
 function historyHtml(){
   if(!boxData.sessions.length)return "";
-  const items=boxData.sessions.slice(0,25).map(s=>`
+  const row=s=>`
     <div class="sessItem">
       <div style="min-width:0"><b>${s.rounds} × ${Number(s.minutes_per_round)} min</b>${s.partner?" · v "+esc(s.partner):""}
         <small>${fmtDateAU(s.session_date)}${s.note?" — "+esc(s.note):""}</small></div>
       <button class="xBtn" onclick="delSparring('${s.id}')">×</button>
-    </div>`).join("");
-  return `<div class="secTitle">Sparring History</div><div class="card">${items}</div>`;
+    </div>`;
+  const recent=boxData.sessions.slice(0,5).map(row).join("");
+  const older=boxData.sessions.slice(5,50).map(row).join("");
+  return `<div class="secTitle">Sparring History</div><div class="card">${recent}
+    ${older?`<details style="margin-top:6px"><summary style="cursor:pointer;color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:8px 0">Show the rest (${boxData.sessions.length-5} more)</summary>${older}</details>`:""}
+  </div>`;
 }
 function notesHtml(){
   const th=boxData.notes.map(n=>`
@@ -1283,9 +1293,18 @@ function timerCardHtml(fmt){
   </div>`;
 }
 
-function renderFunctional(){
-  if(fnSel)return renderWorkout(fnSel);
+let fnQ="";
+function wodListHtml(){
   const list=fnSub==="wods"?WODS:SNC;
+  const q=amaNorm(fnQ);
+  const rows=list.map((w,i)=>({w,i})).filter(x=>!q||amaNorm(x.w.n+" "+x.w.f+" "+x.w.d).includes(q));
+  if(!rows.length)return '<div class="card"><p>Nothing matches that — try another word.</p></div>';
+  return rows.map(x=>`<div class="wodRow" onclick="fnSel=${x.i};renderFunctional();window.scrollTo(0,0)">
+      <div><b>${esc(x.w.n)}</b><small>${esc(x.w.f)}</small></div><span class="go">›</span>
+    </div>`).join("");
+}
+function renderFunctional(){
+  if(fnSel!==null&&fnSel!==undefined)return renderWorkout(fnSel);
   $("main").innerHTML=`
     <div class="hero" style="${bgStyle('functional',.5)}">
       <div class="heroKicker">GRUNT Territory</div>
@@ -1293,13 +1312,11 @@ function renderFunctional(){
       <div class="heroText">Pick a workout, hit start — the timer's already set up to match it.</div>
     </div>
     <div class="subTabs">
-      <button class="${fnSub==='wods'?'active':''}" onclick="fnSub='wods';fnSel=null;renderFunctional()">WODs</button>
-      <button class="${fnSub==='snc'?'active':''}" onclick="fnSub='snc';fnSel=null;renderFunctional()">Strength &amp; Conditioning</button>
+      <button class="${fnSub==='wods'?'active':''}" onclick="fnSub='wods';fnSel=null;fnQ='';renderFunctional()">WODs</button>
+      <button class="${fnSub==='snc'?'active':''}" onclick="fnSub='snc';fnSel=null;fnQ='';renderFunctional()">Strength &amp; Conditioning</button>
     </div>
-    <div class="secTitle">${fnSub==="wods"?WODS.length+" Workouts":SNC.length+" Sessions"}</div>
-    ${list.map((w,i)=>`<div class="wodRow" onclick="fnSel=${i};renderFunctional();window.scrollTo(0,0)">
-      <div><b>${esc(w.n)}</b><small>${esc(w.f)}</small></div><span class="go">›</span>
-    </div>`).join("")}`;
+    <input class="wodSearch" placeholder="Search ${fnSub==="wods"?WODS.length+" workouts":SNC.length+" sessions"}… try 'bike' or 'amrap'" value="${esc(fnQ)}" oninput="fnQ=this.value;$('wodList').innerHTML=wodListHtml()">
+    <div id="wodList">${wodListHtml()}</div>`;
 }
 function renderWorkout(i){
   const list=fnSub==="wods"?WODS:SNC;
