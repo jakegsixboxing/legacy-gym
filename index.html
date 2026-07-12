@@ -491,7 +491,6 @@ function renderBoxing(){
       <div class="heroText">Your classes, your sparring hub, your pathway.</div>
     </div>
     <div class="subTabs">
-      <button class="${boxSub==='fitness'?'active':''}" onclick="setBoxSub('fitness')">Fitness Club</button>
       <button class="${boxSub==='sparring'?'active':''}" onclick="setBoxSub('sparring')">Sparring Club</button>
       <button class="${boxSub==='byo'?'active':''}" onclick="setBoxSub('byo')">Build Your Own</button>
       <button class="${boxSub==='register'?'active':''}" onclick="setBoxSub('register')">Register For Classes</button>
@@ -502,8 +501,7 @@ function renderBoxing(){
 }
 function setBoxSub(s){boxSub=s;bpEditing=false;if(typeof S!=="undefined")clearInterval(S.int);byoActive=false;renderBoxing();}
 function renderBoxSub(){
-  if(boxSub==="fitness")renderBoxFitness();
-  else if(boxSub==="byo")renderBoxBYO();
+  if(boxSub==="byo")renderBoxBYO();
   else if(boxSub==="register")renderBoxRegister();
   else if(boxSub==="elite")renderBoxElite();
   else renderSparringClub();
@@ -586,13 +584,6 @@ function renderBoxClasses(){
     <button class="btnLink" onclick="go('timetable')">Open The Full Timetable</button>`;
 }
 
-function renderBoxFitness(){
-  $("boxContent").innerHTML=`
-    <div class="card"><h3>Fitness Club</h3><div class="sub">Non-contact · 10-week blocks</div>
-      <p>Structured boxing sessions focused on fitness and skill development — without contact. All the technique, none of the punches coming back.</p>
-      <p style="margin-top:10px">The full Fitness Club hub is being built out now — watch this space.</p></div>`;
-}
-
 /* ---- Register For Classes (2 full days ahead) ---- */
 function upcomingClasses48(){
   const now=new Date(),out=[];
@@ -629,13 +620,12 @@ async function renderBoxRegister(){
     const these=regs.filter(r=>r.class_date===c.date&&r.class_time===c.t);
     const mine=these.find(r=>r.user_id===session.user.id);
     const isAM=parseInt(c.t.split(":")[0])<12;
-    const tCol=isAM?"#5aa9e8":"#e05252";
-    html+=`<div class="card" style="border-left:3px solid ${tCol}">
+    html+=`<div class="card" style="${isAM?"background:#0a0a0b;border-color:#2f2f34;color:#ffffff":"background:#f4f4f2;border-color:#d8d8d4;color:#131313"}">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
-        <h3 style="font-size:17px">${esc(c.n)}</h3>
-        <span style="color:${tCol};font-weight:800;font-size:14px;flex-shrink:0">${fmtClassTime(c.t)}</span>
+        <h3 style="font-size:17px;color:inherit">${esc(c.n)}</h3>
+        <span style="color:inherit;font-weight:800;font-size:14px;flex-shrink:0">${fmtClassTime(c.t)}</span>
       </div>
-      <p style="margin-top:6px"><b style="color:${tCol}">${these.length} attending</b>${these.length?": "+these.map(r=>esc(r.name)).join(", "):""}</p>
+      <p style="margin-top:6px;color:inherit"><b style="color:inherit">${these.length} attending</b>${these.length?": "+these.map(r=>esc(r.name)).join(", "):""}</p>
       ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="unattendClass('${c.date}','${c.t}')">Attending ✓ — Tap To Pull Out</button>`
             :`<button class="btnGold" style="margin-top:12px" onclick="attendClass('${c.date}','${c.t}','${esc(c.n)}')">I'm Attending</button>`}
     </div>`;
@@ -1325,161 +1315,161 @@ async function delFightNight(id){
   toast(error?error.message:"Fight night removed.");renderSparringClub();
 }
 
-/* ---- Weights: training programs ---- */
-let wpSel=null;
+/* ---- Weights: recognised programs + training log ---- */
+let wpSel=null,wsSel=null,wSub="4",wLogs=[],wLogsLoaded=false;
 const WPROGRAMS=[
-{id:"found4",name:"Foundations Four",len:"4 weeks",days:"3 days/wk",gear:"Pin-loaded machines",
- blurb:"The habit-builder. Three full-body machine sessions a week — simple, safe and repeatable, so the only thing you have to think about is showing up.",
- prog:"Week 1: 2 sets per exercise, leave 3 reps in the tank. Week 2: 3 sets. Week 3: 3 sets, add weight where you hit the top reps. Week 4: 3 sets — beat week 3's weights.",
+{id:"ss",name:"Starting Strength",len:"4 weeks",days:"3 days/wk \u00b7 A/B alternating",gear:"Barbell + rack",
+ blurb:"Mark Rippetoe's classic novice program \u2014 the fastest recognised road to base strength. Alternate Workout A and B across three sessions a week.",
+ prog:"Add 2.5kg to squat, bench and deadlift every single session (1kg on press). Miss 5 reps three sessions in a row on a lift? Drop it 10% and build back up.",
  daysList:[
-  {t:"Day 1 — Full Body A",ex:["Leg Press — 3×12","Chest Press Machine — 3×12","Lat Pulldown — 3×12","Seated Row — 3×12","Seated Leg Curl — 3×12","Cable Crunch — 3×15"]},
-  {t:"Day 2 — Full Body B",ex:["Leg Extension — 3×12","Shoulder Press Machine — 3×12","Assisted Pull-Up — 3×8","Pec Deck — 3×12","Hip Adduction/Abduction — 3×15","Back Extension — 3×12"]},
-  {t:"Day 3 — Full Body C",ex:["Hack Squat or Leg Press — 3×10","Incline Chest Press Machine — 3×12","Cable Row — 3×12","Lateral Raise Machine — 3×15","Lying Leg Curl — 3×12","Plank — 3×45 sec"]}]},
-{id:"split8",name:"The Upper / Lower Split",len:"8 weeks",days:"4 days/wk",gear:"Machines + dumbbells",
- blurb:"The classic four-day split. Two upper days, two lower days — enough volume to grow, enough rest to recover, built around machines with dumbbell finishing work.",
- prog:"Weeks 1–3: 3 sets, 10–12 reps. Weeks 4–6: 4 sets, 8–10 reps, heavier. Week 7: push sets to 2 reps shy of failure. Week 8: deload — 2 light sets each, then retest your top weights.",
+  {t:"Workout A",ex:["Back Squat \u2014 3\u00d75","Overhead Press \u2014 3\u00d75","Deadlift \u2014 1\u00d75"]},
+  {t:"Workout B",ex:["Back Squat \u2014 3\u00d75","Bench Press \u2014 3\u00d75","Power Clean \u2014 5\u00d73"]}]},
+{id:"sl55",name:"StrongLifts 5\u00d75",len:"4 weeks",days:"3 days/wk \u00b7 A/B alternating",gear:"Barbell + rack",
+ blurb:"The most-followed beginner barbell program in the world. Five sets of five, two alternating workouts, relentless simple progress.",
+ prog:"Add 2.5kg every workout on each lift. Fail 5\u00d75 three times at the same weight? Deload that lift 10% and climb again.",
  daysList:[
-  {t:"Day 1 — Upper Strength",ex:["Chest Press Machine — 4×8","Lat Pulldown — 4×8","Seated DB Shoulder Press — 3×10","Seated Row — 3×10","DB Curl — 3×12","Cable Pushdown — 3×12"]},
-  {t:"Day 2 — Lower Strength",ex:["Leg Press — 4×8","Seated Leg Curl — 4×10","Hack Squat — 3×10","Standing Calf Raise — 4×15","Back Extension — 3×12","Cable Crunch — 3×15"]},
-  {t:"Day 3 — Upper Volume",ex:["Incline DB Press — 3×12","Pec Deck — 3×15","Cable Row — 3×12","Straight-Arm Pulldown — 3×15","Lateral Raise — 4×15","EZ Bar Curl + Overhead Extension superset — 3×12"]},
-  {t:"Day 4 — Lower Volume",ex:["Leg Extension — 3×15","Lying Leg Curl — 3×15","DB Walking Lunge — 3×20 steps","Hip Thrust Machine — 3×12","Seated Calf Raise — 4×15","Hanging Knee Raise — 3×12"]}]},
-{id:"ppl8",name:"Push Pull Legs Legacy",len:"8 weeks",days:"3 or 6 days/wk",gear:"Barbells, dumbbells + machines",
- blurb:"Push day, pull day, leg day. Run it once a week for three sessions or twice through for six — the structure holds either way.",
- prog:"Weeks 1–4: 3 sets on everything, 8–12 reps, add a rep each week. Weeks 5–8: add weight, drop back to 8 reps, climb again. First exercise each day is your strength lift — keep it heavy and honest.",
+  {t:"Workout A",ex:["Back Squat \u2014 5\u00d75","Bench Press \u2014 5\u00d75","Barbell Row \u2014 5\u00d75"]},
+  {t:"Workout B",ex:["Back Squat \u2014 5\u00d75","Overhead Press \u2014 5\u00d75","Deadlift \u2014 1\u00d75"]}]},
+{id:"gslp",name:"GreySkull LP",len:"4 weeks",days:"3 days/wk",gear:"Barbell + chin-up bar",
+ blurb:"John Sheaffer's linear progression with a twist \u2014 the last set of every lift is max reps, so strong days earn faster progress.",
+ prog:"Last set of each lift is AMRAP: hit 10+ reps and add double the normal jump (5kg instead of 2.5kg). Miss 5s? Deload 10%. Log the AMRAP number every session.",
  daysList:[
-  {t:"Push",ex:["Barbell Bench Press — 4×6-8","Seated DB Shoulder Press — 3×10","Incline Chest Press Machine — 3×10","Cable Lateral Raise — 3×15","Pec Deck — 3×12","Rope Pushdown — 3×12"]},
-  {t:"Pull",ex:["Lat Pulldown or Pull-Ups — 4×6-10","Barbell Row — 4×8","Seated Cable Row — 3×10","Face Pull — 3×15","DB Shrug — 3×12","DB Hammer Curl — 3×12"]},
-  {t:"Legs",ex:["Barbell Back Squat — 4×6-8","Romanian Deadlift — 3×10","Leg Press — 3×12","Seated Leg Curl — 3×12","Standing Calf Raise — 4×15","Weighted Plank — 3×45 sec"]}]},
-{id:"plate10",name:"The Plate Loader",len:"10 weeks",days:"4 days/wk",gear:"Plate-loaded machines",
- blurb:"Ten weeks living on the plate-loaded kit — hack squat, iso-lateral presses and rows. Machine stability with barbell-style loading, built for size.",
- prog:"Weeks 1–4: 3×10 building weight weekly. Weeks 5–8: 4×8, top set close to failure. Weeks 9–10: 4×6 heavy + one back-off set of 12. Log every top set — the numbers must climb.",
+  {t:"Day 1",ex:["Bench Press \u2014 2\u00d75 + 1\u00d75+ (max reps)","Back Squat \u2014 2\u00d75 + 1\u00d75+","Chin-Ups \u2014 3 sets max"]},
+  {t:"Day 2",ex:["Overhead Press \u2014 2\u00d75 + 1\u00d75+","Deadlift \u2014 1\u00d75+","Barbell Row \u2014 3\u00d78"]},
+  {t:"Day 3",ex:["Bench or Press (alternate) \u2014 2\u00d75 + 1\u00d75+","Back Squat \u2014 2\u00d75 + 1\u00d75+","Curls + Pushdowns \u2014 3\u00d710"]}]},
+{id:"gvt",name:"German Volume Training",len:"4 weeks",days:"4 days/wk",gear:"Barbell, dumbbells + machines",
+ blurb:"The famous 10\u00d710 method \u2014 ten sets of ten at 60% with strict 90-second rests. A recognised size-builder and a serious test of will.",
+ prog:"Start at 60% of your 1RM. Only add weight (2.5\u20135kg) once you complete all 100 reps across the ten sets. Keep rests at exactly 90 seconds.",
  daysList:[
-  {t:"Day 1 — Chest & Triceps",ex:["Iso-Lateral Bench Press — 4×8","Iso-Lateral Incline Press — 3×10","Plate-Loaded Dip — 3×10","Pec Deck — 3×12","Rope Pushdown — 3×12","Overhead Cable Extension — 3×12"]},
-  {t:"Day 2 — Legs",ex:["Hack Squat — 4×8","Plate-Loaded Leg Press — 4×10","Seated Leg Curl — 3×12","Leg Extension — 3×15","Standing Calf Raise — 4×15","Cable Crunch — 3×15"]},
-  {t:"Day 3 — Back & Biceps",ex:["Iso-Lateral Row — 4×8","Iso-Lateral Front Pulldown — 4×10","T-Bar Row — 3×10","Straight-Arm Pulldown — 3×12","EZ Bar Curl — 3×10","Preacher Curl Machine — 3×12"]},
-  {t:"Day 4 — Shoulders & Arms",ex:["Iso-Lateral Shoulder Press — 4×8","DB Lateral Raise — 4×15","Reverse Pec Deck — 3×15","Cable Upright Row — 3×12","DB Curl + Skullcrusher superset — 3×12","Farmer Carry — 3×40m"]}]},
-{id:"db4",name:"Dumbbell Dominance",len:"4 weeks",days:"3 days/wk",gear:"Dumbbells only",
- blurb:"The whole program off the dumbbell rack. Perfect when the floor's busy or you want to move fast between exercises.",
- prog:"Weeks 1–2: 3 sets, 10–12 reps, 60 sec rest. Weeks 3–4: 4 sets, same reps, same rest — the extra set is the progression. Pick weights you could do 2 more reps with.",
+  {t:"Day 1 \u2014 Chest & Back",ex:["Bench Press \u2014 10\u00d710","Barbell Row \u2014 10\u00d710","Incline DB Fly \u2014 3\u00d712","Straight-Arm Pulldown \u2014 3\u00d712"]},
+  {t:"Day 2 \u2014 Legs & Abs",ex:["Back Squat \u2014 10\u00d710","Lying Leg Curl \u2014 10\u00d710","Standing Calf Raise \u2014 3\u00d715","Cable Crunch \u2014 3\u00d715"]},
+  {t:"Day 3 \u2014 Rest",ex:["Walk, stretch, recover \u2014 you'll need it"]},
+  {t:"Day 4 \u2014 Arms & Shoulders",ex:["Overhead Press \u2014 10\u00d710","EZ Bar Curl \u2014 10\u00d710","Lateral Raise \u2014 3\u00d715","Rope Pushdown \u2014 3\u00d712"]}]},
+{id:"w531",name:"Wendler 5/3/1 \u2014 One Cycle",len:"4 weeks",days:"4 days/wk",gear:"Barbell + rack",
+ blurb:"Jim Wendler's legendary strength system, one full cycle \u2014 three waves of climbing percentages and a deload, with Boring But Big volume behind it.",
+ prog:"Work off 90% of your 1RM. Week 1: 65/75/85% \u00d75. Week 2: 70/80/90% \u00d73. Week 3: 75/85/95% for 5/3/1 \u2014 last set max reps. Week 4: deload. Then add 2.5kg upper / 5kg lower and go again.",
  daysList:[
-  {t:"Day 1 — Push",ex:["Flat DB Press — 4×10","Seated DB Shoulder Press — 3×10","Incline DB Press — 3×12","DB Lateral Raise — 3×15","DB Skullcrusher — 3×12","DB Front Raise — 2×15"]},
-  {t:"Day 2 — Pull",ex:["Single-Arm DB Row — 4×10","Chest-Supported DB Row — 3×12","DB Pullover — 3×12","Rear Delt Fly — 3×15","DB Curl — 3×10","DB Hammer Curl — 3×12"]},
-  {t:"Day 3 — Legs & Core",ex:["Goblet Squat — 4×12","DB Romanian Deadlift — 4×10","DB Walking Lunge — 3×20 steps","DB Step-Up — 3×10 each","DB Calf Raise — 4×15","DB Side Bend + Sit-Up — 3×15"]}]},
-{id:"big3",name:"The Big Three",len:"10 weeks",days:"3 days/wk",gear:"Barbell + power rack",
- blurb:"Squat, bench, deadlift. Ten weeks of proper strength work in the rack, with just enough accessory volume to keep everything honest.",
- prog:"Weeks 1–3: main lift 5×5 at a solid working weight. Weeks 4–6: 4×4, adding 2.5kg a week. Weeks 7–9: 3×3 heavy. Week 10: work to a new 1-rep max on each lift. Rest 2–3 min between main sets.",
+  {t:"Day 1 \u2014 Press",ex:["Overhead Press \u2014 5/3/1 sets","Overhead Press \u2014 5\u00d710 @50% (BBB)","Chin-Ups \u2014 5\u00d710"]},
+  {t:"Day 2 \u2014 Deadlift",ex:["Deadlift \u2014 5/3/1 sets","Deadlift \u2014 5\u00d710 @50%","Hanging Leg Raise \u2014 5\u00d710"]},
+  {t:"Day 3 \u2014 Bench",ex:["Bench Press \u2014 5/3/1 sets","Bench Press \u2014 5\u00d710 @50%","DB Row \u2014 5\u00d710"]},
+  {t:"Day 4 \u2014 Squat",ex:["Back Squat \u2014 5/3/1 sets","Back Squat \u2014 5\u00d710 @50%","Leg Curl \u2014 5\u00d710"]}]},
+{id:"phul",name:"PHUL",len:"8 weeks",days:"4 days/wk",gear:"Barbell, dumbbells + machines",
+ blurb:"Power Hypertrophy Upper Lower \u2014 the recognised four-day split that builds strength on power days and size on hypertrophy days.",
+ prog:"Power days: add weight when you top the rep range on every set. Hypertrophy days: chase 8\u201312, add weight at 12s. Weeks 1\u20134 build, week 5 heavier, weeks 6\u20138 push top sets near failure.",
  daysList:[
-  {t:"Day 1 — Squat",ex:["Back Squat — main sets","Leg Press — 3×10","Seated Leg Curl — 3×12","Standing Calf Raise — 3×15","Weighted Plank — 3×45 sec"]},
-  {t:"Day 2 — Bench",ex:["Bench Press — main sets","Incline DB Press — 3×10","Seated Row — 3×10","DB Lateral Raise — 3×15","Rope Pushdown — 3×12"]},
-  {t:"Day 3 — Deadlift",ex:["Deadlift — main sets","Barbell Row — 3×8","Lat Pulldown — 3×10","Back Extension — 3×12","DB Shrug — 3×12","Hanging Knee Raise — 3×12"]}]},
-{id:"armour8",name:"Upper Body Armour",len:"8 weeks",days:"4 days/wk",gear:"Cables, machines + dumbbells",
- blurb:"Chest, back, shoulders and arms — twice each per week. Lower body gets one maintenance day so nothing falls behind.",
- prog:"Weeks 1–4: 3 sets of 10–12, one top set close to failure. Weeks 5–8: 4 sets of 8–10, heavier, 90 sec rest. Track your top-set weight on the first two lifts each day.",
+  {t:"Day 1 \u2014 Upper Power",ex:["Bench Press \u2014 3\u00d75","Barbell Row \u2014 3\u00d75","Overhead Press \u2014 3\u00d78","Lat Pulldown \u2014 3\u00d78","Barbell Curl + Skullcrusher \u2014 3\u00d710"]},
+  {t:"Day 2 \u2014 Lower Power",ex:["Back Squat \u2014 3\u00d75","Deadlift \u2014 3\u00d75","Leg Press \u2014 3\u00d710","Standing Calf Raise \u2014 4\u00d710"]},
+  {t:"Day 3 \u2014 Upper Hypertrophy",ex:["Incline DB Press \u2014 4\u00d710","Cable Fly \u2014 4\u00d712","Seated Cable Row \u2014 4\u00d710","DB Lateral Raise \u2014 4\u00d712","Curl + Pushdown superset \u2014 4\u00d712"]},
+  {t:"Day 4 \u2014 Lower Hypertrophy",ex:["Front Squat \u2014 4\u00d710","Romanian Deadlift \u2014 4\u00d710","Leg Extension \u2014 4\u00d715","Lying Leg Curl \u2014 4\u00d715","Seated Calf Raise \u2014 4\u00d715"]}]},
+{id:"phat",name:"PHAT",len:"8 weeks",days:"5 days/wk",gear:"Full gym floor",
+ blurb:"Layne Norton's Power Hypertrophy Adaptive Training \u2014 two power days, three hypertrophy days. A recognised heavyweight of intermediate programming.",
+ prog:"Power days 3\u20135 reps heavy. Hypertrophy days open with speed work at 65\u201370%, then volume in the 8\u201320 range. Add weight when the top of any range is beaten. Deload week 8 if beaten up.",
  daysList:[
-  {t:"Day 1 — Chest & Back",ex:["Chest Press Machine — 4×8","Lat Pulldown — 4×8","Incline DB Press — 3×10","Seated Cable Row — 3×10","Cable Fly — 3×15","Straight-Arm Pulldown — 3×15"]},
-  {t:"Day 2 — Shoulders & Arms",ex:["Seated DB Shoulder Press — 4×8","Cable Lateral Raise — 4×15","EZ Bar Curl — 3×10","Rope Pushdown — 3×10","Reverse Pec Deck — 3×15","DB Hammer Curl + Overhead Extension — 3×12"]},
-  {t:"Day 3 — Legs (maintenance)",ex:["Leg Press — 3×12","Seated Leg Curl — 3×12","Leg Extension — 3×15","Standing Calf Raise — 3×15","Cable Crunch — 3×15"]},
-  {t:"Day 4 — Upper Pump",ex:["Pec Deck — 3×15","Cable Row — 3×12","Machine Shoulder Press — 3×12","Face Pull — 3×15","Preacher Curl — 3×12","Cable Kickback — 3×15"]}]},
-{id:"legday8",name:"Leg Day Legacy",len:"8 weeks",days:"2 leg days + your upper work",gear:"Squat rack, machines + dumbbells",
- blurb:"For the members whose legs are lagging. Two serious lower sessions a week — one heavy, one volume — slot your own upper days around them.",
- prog:"Heavy day: add weight every week the reps hold. Volume day: add reps until you hit the top of the range, then add weight. Weeks 4 and 8 are lighter weeks — drop one set from everything.",
+  {t:"Day 1 \u2014 Upper Power",ex:["Bent-Over Row \u2014 3\u00d73-5","Weighted Chin-Up \u2014 2\u00d76-10","Bench Press \u2014 3\u00d73-5","Weighted Dip \u2014 2\u00d76-10","Overhead Press \u2014 3\u00d76-10"]},
+  {t:"Day 2 \u2014 Lower Power",ex:["Back Squat \u2014 3\u00d73-5","Hack Squat \u2014 2\u00d76-10","Stiff-Leg Deadlift \u2014 3\u00d75-8","Leg Extension \u2014 2\u00d76-10","Calf Raise \u2014 3\u00d76-10"]},
+  {t:"Day 3 \u2014 Back & Shoulders",ex:["Speed Rows \u2014 6\u00d73 @70%","Lat Pulldown \u2014 3\u00d78-12","Seated Row \u2014 3\u00d78-12","Lateral Raise \u2014 3\u00d712-20","Rear Delt Fly \u2014 3\u00d712-20"]},
+  {t:"Day 4 \u2014 Lower Hypertrophy",ex:["Speed Squats \u2014 6\u00d73 @70%","Leg Press \u2014 3\u00d78-12","Walking Lunge \u2014 3\u00d712","Leg Curl \u2014 3\u00d712-15","Calf Raise \u2014 4\u00d712-20"]},
+  {t:"Day 5 \u2014 Chest & Arms",ex:["Speed Bench \u2014 6\u00d73 @70%","Incline DB Press \u2014 3\u00d78-12","Cable Fly \u2014 3\u00d712","Curls \u2014 3\u00d712-15","Triceps \u2014 3\u00d712-15"]}]},
+{id:"gzclp",name:"GZCLP",len:"8 weeks",days:"4 days/wk",gear:"Barbell + machines",
+ blurb:"Cody LeFever's tiered linear program \u2014 heavy Tier 1 triples, Tier 2 volume, Tier 3 pump work. One of the most recommended programs on the internet for a reason.",
+ prog:"T1: 5\u00d73+ \u2014 add 2.5\u20135kg each session; stall and shift to 6\u00d72, then 10\u00d71, then reset at 85%. T2: 3\u00d710 \u2192 3\u00d78 \u2192 3\u00d76. T3: 3\u00d715+ \u2014 add weight when the last set hits 25 reps.",
  daysList:[
-  {t:"Day A — Heavy",ex:["Back Squat — 5×5","Romanian Deadlift — 4×8","Leg Press — 3×10","Standing Calf Raise — 4×12","Weighted Plank — 3×45 sec"]},
-  {t:"Day B — Volume",ex:["Hack Squat — 4×12","DB Walking Lunge — 3×20 steps","Leg Extension — 3×15 + drop set","Lying Leg Curl — 3×15","Hip Thrust Machine — 3×12","Seated Calf Raise — 4×20"]}]},
-{id:"the45",name:"The 45",len:"4 weeks",days:"3 days/wk",gear:"Dumbbells + cables",
- blurb:"In and out in 45 minutes. Paired supersets, minimal rest, full-body hit three times a week — for the members training before work or between school runs.",
- prog:"Every session is supersets: do A1 then straight into A2, rest 60 sec, repeat. Weeks 1–2: 3 rounds per pair. Weeks 3–4: 4 rounds. Keep the clock honest.",
+  {t:"Day 1",ex:["T1 Back Squat \u2014 5\u00d73+","T2 Bench Press \u2014 3\u00d710","T3 Lat Pulldown \u2014 3\u00d715+"]},
+  {t:"Day 2",ex:["T1 Overhead Press \u2014 5\u00d73+","T2 Deadlift \u2014 3\u00d710","T3 DB Row \u2014 3\u00d715+"]},
+  {t:"Day 3",ex:["T1 Bench Press \u2014 5\u00d73+","T2 Back Squat \u2014 3\u00d710","T3 Face Pull \u2014 3\u00d715+"]},
+  {t:"Day 4",ex:["T1 Deadlift \u2014 5\u00d73+","T2 Overhead Press \u2014 3\u00d710","T3 Curl + Pushdown \u2014 3\u00d715+"]}]},
+{id:"nsuns",name:"nSuns 5/3/1 LP",len:"8 weeks",days:"4 days/wk",gear:"Barbell + rack",
+ blurb:"The internet-famous high-volume 5/3/1 variant \u2014 nine-set main-lift pyramids with a secondary lift every day. Brutal, recognised, and it works.",
+ prog:"The 1+ AMRAP set decides your week: 0\u20131 reps hold the weight, 2\u20133 reps +2.5kg, 4\u20135 reps +5kg upper / +7.5kg lower. Accessories: 3\u20134 sets of 8\u201312 after the main work.",
  daysList:[
-  {t:"Session 1",ex:["A1 Goblet Squat ×12 / A2 Flat DB Press ×12","B1 DB RDL ×12 / B2 Single-Arm Row ×12","C1 Cable Crunch ×15 / C2 Lateral Raise ×15"]},
-  {t:"Session 2",ex:["A1 DB Reverse Lunge ×10 each / A2 Seated DB Press ×12","B1 Lat Pulldown ×12 / B2 Push-Up ×12","C1 Face Pull ×15 / C2 DB Curl ×12"]},
-  {t:"Session 3",ex:["A1 Leg Press ×15 / A2 Incline DB Press ×12","B1 Cable Row ×12 / B2 DB Skullcrusher ×12","C1 Back Extension ×12 / C2 Hanging Knee Raise ×12"]}]},
-{id:"comeback4",name:"Comeback Season",len:"4 weeks",days:"2–3 days/wk",gear:"Machines + light dumbbells",
- blurb:"Been off the tools for a while? This is the on-ramp. A month of controlled machine work that leaves you fresh, not flattened — finish this, then pick your next program.",
- prog:"Week 1: 2 sets everything, stop well short of failure. Week 2: 2–3 sets. Week 3: 3 sets, small weight bumps. Week 4: 3 sets, finish feeling strong. Soreness should stay mild all month.",
+  {t:"Day 1 \u2014 Bench + OHP",ex:["Bench Press \u2014 9-set pyramid (65\u201395%), set 4 is 1+ AMRAP","Overhead Press \u2014 8 sets of 4\u20138","Accessories: arms + rear delts"]},
+  {t:"Day 2 \u2014 Squat + Sumo",ex:["Back Squat \u2014 9-set pyramid, 1+ AMRAP","Sumo Deadlift \u2014 8 sets","Accessories: hamstrings + core"]},
+  {t:"Day 3 \u2014 OHP + Incline",ex:["Overhead Press \u2014 9-set pyramid, 1+ AMRAP","Incline Bench \u2014 8 sets","Accessories: back width"]},
+  {t:"Day 4 \u2014 Deadlift + Front Squat",ex:["Deadlift \u2014 9-set pyramid, 1+ AMRAP","Front Squat \u2014 8 sets","Accessories: upper back + abs"]}]},
+{id:"ppl",name:"The Reddit PPL",len:"8 weeks",days:"6 days/wk",gear:"Barbell, dumbbells + machines",
+ blurb:"Metallicadpa's Push Pull Legs \u2014 the most upvoted routine in r/Fitness history. Six days, every muscle twice a week, linear progress on the big lifts.",
+ prog:"Main lifts 5\u00d75 with the last set AMRAP \u2014 add 2.5kg per session (deadlift 1\u00d75+, add 5kg). Accessories 8\u201312, add weight when you beat 12. Run Push/Pull/Legs twice through, one rest day.",
  daysList:[
-  {t:"Session A",ex:["Leg Press — 2-3×12","Chest Press Machine — 2-3×12","Seated Row — 2-3×12","Leg Curl — 2×12","Cable Crunch — 2×15","10 min easy bike to finish"]},
-  {t:"Session B",ex:["Leg Extension — 2-3×12","Lat Pulldown — 2-3×12","Machine Shoulder Press — 2-3×12","Back Extension — 2×12","DB Curl — 2×12","10 min incline walk to finish"]}]}
+  {t:"Pull",ex:["Deadlift 1\u00d75+ or Barbell Row 5\u00d75 (alternate)","Lat Pulldown \u2014 3\u00d78-12","Seated Row \u2014 3\u00d78-12","Face Pull \u2014 5\u00d715","Curls \u2014 4\u00d78-12"]},
+  {t:"Push",ex:["Bench or OHP 5\u00d75, last set AMRAP (alternate)","Incline DB Press \u2014 3\u00d78-12","Triceps Pushdown \u2014 3\u00d78-12","Lateral Raise \u2014 3\u00d715-20","Overhead Extension \u2014 3\u00d78-12"]},
+  {t:"Legs",ex:["Back Squat \u2014 5\u00d75, last set AMRAP","Romanian Deadlift \u2014 3\u00d78-12","Leg Press \u2014 3\u00d78-12","Leg Curl \u2014 3\u00d78-12","Calf Raise \u2014 5\u00d78-12"]}]}
 ];
-let wSub="4",wsSel=null;
 const WSINGLES=[
-{id:"century",name:"The Century",tag:"100 reps a station · ~60 min",
- blurb:"One hundred reps at every station, any set breakdown you like — just finish the hundred before you move on. Pick loads you could do 20 clean reps with when fresh.",
- ex:["Leg Press — 100 reps","Chest Press Machine — 100 reps","Seated Row — 100 reps","Machine Shoulder Press — 100 reps","Leg Curl — 100 reps","Cable Crunch — 100 reps"]},
-{id:"ironhour",name:"Iron Hour",tag:"Barbell only · 60 min hard cap",
- blurb:"Sixty minutes, one barbell, four lifts. Rest tight, move with intent — when the hour's up, you're done wherever you are.",
- ex:["Back Squat — 5×5","Bench Press — 5×5","Barbell Row — 5×5","Romanian Deadlift — 3×8","Finisher: Barbell Curl — 3×12"]},
-{id:"leghell",name:"Leg Day From Hell",tag:"Lower body · bring a towel",
- blurb:"The leg session members warn each other about. Work through in order — the widowmaker is one single 20-rep set of leg press, no racking.",
- ex:["Back Squat — 5×10","Leg Press Widowmaker — 1×20","DB Walking Lunge — 100 steps total","Leg Extension — 3×15 + drop set","Lying Leg Curl — 3×15","Standing Calf Raise — 100 reps"]},
-{id:"pumpday",name:"The Pump Day",tag:"Upper body supersets · ~50 min",
- blurb:"Chest, back, shoulders and arms in paired supersets — 60 seconds rest between pairs, chase the pump, leave nothing.",
- ex:["A1 Incline DB Press ×12 / A2 Cable Row ×12 — 4 rounds","B1 Pec Deck ×15 / B2 Face Pull ×15 — 3 rounds","C1 Lateral Raise ×15 / C2 Rear Delt Fly ×15 — 3 rounds","D1 EZ Bar Curl ×12 / D2 Rope Pushdown ×12 — 4 rounds"]},
-{id:"db50",name:"The Dumbbell Fifty",tag:"One pair of DBs · 50 min",
- blurb:"Grab one pair of dumbbells and don't put them down between exercises within each complex. Three complexes, five rounds each.",
- ex:["Complex 1 (×5): 8 Goblet Squats · 8 RDLs · 8 Rows each arm","Complex 2 (×5): 8 Floor Press · 8 Push Press · 8 Curls","Complex 3 (×5): 10 Walking Lunges · 10 Swings · 10 Sit-Ups"]},
-{id:"pushmax",name:"Push Day Max",tag:"Test day · chest & shoulders",
- blurb:"Build to a heavy single on the bench — not a grinder, a crisp top single — then pay for it with back-off volume.",
- ex:["Bench Press — build to heavy 1 rep","Bench Press back-off — 3×8 at 75%","Seated DB Shoulder Press — 4×10","Incline Machine Press — 3×12","Cable Fly — 3×15","Rope Pushdown — 3×12"]},
-{id:"pullmax",name:"Pull Day Max",tag:"Test day · deadlift & back",
- blurb:"Heavy triple on the deadlift, then volume for the whole back side. Belt up, brace hard, keep every rep honest.",
- ex:["Deadlift — build to heavy 3 reps","Barbell Row — 4×8","Lat Pulldown — 4×10","Seated Cable Row — 3×12","DB Shrug — 3×15","DB Hammer Curl — 3×12"]},
-{id:"finisher30",name:"The 30-Minute Finisher",tag:"Express · giant sets",
- blurb:"In the door, thirty minutes, out. Two giant sets — four exercises back to back, rest 90 seconds, repeat four times each.",
- ex:["Giant Set A (×4): Leg Press ×15 · Leg Curl ×12 · Calf Raise ×20 · Plank 45 sec","Giant Set B (×4): Chest Press ×12 · Lat Pulldown ×12 · Lateral Raise ×15 · Cable Crunch ×15"]}
+{id:"century",name:"The Century",tag:"Full body \u00b7 100 reps a station \u00b7 ~60 min",
+ blurb:"One hundred reps at every station, any set breakdown you like \u2014 just finish the hundred before you move on. Pick loads you could do 20 clean reps with when fresh.",
+ ex:["Leg Press \u2014 100 reps","Chest Press Machine \u2014 100 reps","Seated Row \u2014 100 reps","Machine Shoulder Press \u2014 100 reps","Leg Curl \u2014 100 reps","Cable Crunch \u2014 100 reps"]},
+{id:"ironhour",name:"Iron Hour",tag:"Full body \u00b7 barbell only \u00b7 60 min cap",
+ blurb:"Sixty minutes, one barbell, five lifts. Rest tight, move with intent \u2014 when the hour is up, you're done wherever you are.",
+ ex:["Back Squat \u2014 5\u00d75","Bench Press \u2014 5\u00d75","Barbell Row \u2014 5\u00d75","Romanian Deadlift \u2014 3\u00d78","Finisher: Barbell Curl \u2014 3\u00d712"]},
+{id:"gauntlet",name:"The 500-Rep Gauntlet",tag:"Full body \u00b7 for time",
+ blurb:"Ten stations, fifty reps each, five hundred total \u2014 for time. Chip away in any order, any set breakdown. Write your time on the board.",
+ ex:["Leg Press \u2014 50","Chest Press \u2014 50","Seated Row \u2014 50","Shoulder Press \u2014 50","Leg Curl \u2014 50","Lat Pulldown \u2014 50","KB Swings \u2014 50","Walking Lunges \u2014 50","Sit-Ups \u2014 50","Cal Bike \u2014 50"]},
+{id:"blowout",name:"Full-Body Blowout",tag:"Giant sets \u00d75 \u00b7 ~45 min",
+ blurb:"One bar, five movements, no racking inside the round. Five giant sets with two minutes rest between \u2014 pick a weight you can press, because that's the limiter.",
+ ex:["Giant Set (\u00d75): Back Squat \u00d710","\u2192 Bench Press \u00d710 (or Push Press \u00d710)","\u2192 Barbell Row \u00d710","\u2192 Romanian Deadlift \u00d710","\u2192 Overhead Press \u00d710 \u00b7 rest 2:00"]},
+{id:"db50",name:"The Dumbbell Fifty",tag:"Full body \u00b7 one pair of DBs \u00b7 50 min",
+ blurb:"Grab one pair of dumbbells and don't put them down inside each complex. Three complexes, five rounds each.",
+ ex:["Complex 1 (\u00d75): 8 Goblet Squats \u00b7 8 RDLs \u00b7 8 Rows each arm","Complex 2 (\u00d75): 8 Floor Press \u00b7 8 Push Press \u00b7 8 Curls","Complex 3 (\u00d75): 10 Walking Lunges \u00b7 10 Swings \u00b7 10 Sit-Ups"]},
+{id:"thegrand",name:"The Grand",tag:"Full body \u00b7 1,000 reps \u00b7 75 min cap",
+ blurb:"One thousand total reps \u2014 ten stations, one hundred each, split any way you can survive. The biggest single session on the board. Bring a mate and alternate if you must.",
+ ex:["Leg Press \u2014 100","Chest Press \u2014 100","Seated Row \u2014 100","Shoulder Press \u2014 100","Leg Curl \u2014 100","Lat Pulldown \u2014 100","Cable Crunch \u2014 100","Calf Raise \u2014 100","KB Swing \u2014 100","Cal Bike \u2014 100"]}
 ];
-function renderWeights(){
+async function loadWLogs(){
+  const {data}=await sb.from("training_logs").select("*").eq("user_id",session.user.id).order("created_at",{ascending:false}).limit(100);
+  wLogs=data||[];wLogsLoaded=true;
+}
+function wLogRow(l){return `<div class="sessItem"><div style="min-width:0"><b>${esc(l.program)}</b><small>${l.session?esc(l.session)+" \u00b7 ":""}${fmtDateAU(l.session_date)}${l.note?" \u2014 "+esc(l.note):""}</small></div><button class="xBtn" onclick="delWLog('${l.id}')">\u00d7</button></div>`;}
+async function renderWeights(){
   if(wpSel)return renderWProgram(wpSel);
   if(wsSel)return renderWSingle(wsSel);
+  if(!wLogsLoaded){$("main").innerHTML='<div class="loadingDots">Loading\u2026</div>';await loadWLogs();if(view!=="weights")return;}
+  const wk=weekStartOf(new Date());
+  const wkN=wLogs.filter(l=>new Date(l.session_date+"T12:00:00")>=wk).length;
   const singles=wSub==="one";
   const list=WPROGRAMS.filter(p=>p.len.startsWith(wSub));
   $("main").innerHTML=`
     <div class="hero" style="${bgStyle('weights',.55)}">
       <div class="heroKicker">The Gym Floor</div>
       <div class="heroTitle">Weights</div>
-      <div class="heroText">Progressive training blocks and stand-alone sessions across the whole floor.</div>
+      <div class="heroText">Recognised training programs, logged session by session.</div>
     </div>
     <div class="subTabs">
       <button class="${wSub==='4'?'active':''}" onclick="wSub='4';renderWeights()">4 Week</button>
       <button class="${wSub==='8'?'active':''}" onclick="wSub='8';renderWeights()">8 Week</button>
-      <button class="${wSub==='10'?'active':''}" onclick="wSub='10';renderWeights()">10 Week</button>
-      <button class="${wSub==='one'?'active':''}" onclick="wSub='one';renderWeights()">One-Off Sessions</button>
+      <button class="${wSub==='one'?'active':''}" onclick="wSub='one';renderWeights()">Super Sessions</button>
     </div>
     ${singles?`
-      <p style="color:var(--muted);font-size:12.5px;margin:-4px 2px 12px;line-height:1.5">No program, no commitment — just a serious session for today. Pick one and get after it.</p>
-      ${WSINGLES.map(s=>`<div class="wodRow" onclick="wsSel='${s.id}';renderWeights();window.scrollTo(0,0)">
-        <div><b>${s.name}</b><small>${s.tag}</small></div><span class="go">›</span>
+      <p style="color:var(--muted);font-size:12.5px;margin:-4px 2px 12px;line-height:1.5">High-volume, full-body one-offs. No program, no mercy \u2014 pick one and get after it.</p>
+      ${WSINGLES.map(x=>`<div class="wodRow" onclick="wsSel='${x.id}';renderWeights();window.scrollTo(0,0)">
+        <div><b>${x.name}</b><small>${x.tag}</small></div><span class="go">\u203a</span>
       </div>`).join("")}`
     :`
-      <p style="color:var(--muted);font-size:12.5px;margin:-4px 2px 12px;line-height:1.5">${wSub==="4"?"Four-week blocks — tight, focused starts. Finish one, step up to an 8-week block.":wSub==="8"?"Eight-week blocks — the growth zone. Enough time to load up week on week and see it in the mirror.":"Ten-week blocks — the long builds. Strength and size laid down brick by brick, tested at the end."}</p>
+      <p style="color:var(--muted);font-size:12.5px;margin:-4px 2px 12px;line-height:1.5">${wSub==="4"?"Proven four-week starters \u2014 the world's most recognised strength programs. Log every session below.":"The recognised eight-week builders \u2014 intermediate programs with real progression baked in."}</p>
       ${list.map(p=>`<div class="wodRow" onclick="wpSel='${p.id}';renderWeights();window.scrollTo(0,0)">
-        <div><b>${p.name}</b><small>${p.days} · ${p.gear}</small></div><span class="go">›</span>
+        <div><b>${p.name}</b><small>${p.days} \u00b7 ${p.gear}</small></div><span class="go">\u203a</span>
       </div>`).join("")}`}
+    <div class="secTitle">My Training Log</div>
+    <div class="statGrid">
+      <div class="statBox"><div class="sv">${wkN}</div><div class="sl">Sessions This Wk</div></div>
+      <div class="statBox"><div class="sv">${wLogs.length}</div><div class="sl">Total Logged</div></div>
+      <div class="statBox"><div class="sv">${new Set(wLogs.map(l=>l.program)).size}</div><div class="sl">Programs Used</div></div>
+    </div>
+    ${wLogs.length?`<details class="foldCard"><summary>Recent Sessions (${Math.min(wLogs.length,15)})</summary><div style="margin-top:6px">${wLogs.slice(0,15).map(wLogRow).join("")}</div></details>`:'<div class="card"><p>Nothing logged yet \u2014 open a program and bank your first session.</p></div>'}
     <div class="secTitle">Staffed Hours</div>
     <div class="card">
-      <ul style="margin-top:0"><li>Mon – Thu: 5:15am – 7:45am</li><li>Mon – Fri: 4:00pm – 7:00pm</li><li>Saturday: 8:00am – 11:00am</li></ul>
+      <ul style="margin-top:0"><li>Mon \u2013 Thu: 5:15am \u2013 7:45am</li><li>Mon \u2013 Fri: 4:00pm \u2013 7:00pm</li><li>Saturday: 8:00am \u2013 11:00am</li></ul>
       <p style="margin-top:10px">Need a hand with any program or a form check? Grab a coach during staffed hours.</p>
     </div>`;
 }
-function renderWSingle(id){
-  const s=WSINGLES.find(x=>x.id===id);if(!s){wsSel=null;return renderWeights();}
-  $("main").innerHTML=`
-    <button class="backBtn" onclick="wsSel=null;renderWeights();window.scrollTo(0,0)">‹ One-Off Sessions</button>
-    <div class="card">
-      <h3>${s.name}</h3>
-      <div class="sub">${s.tag}</div>
-      <p>${s.blurb}</p>
-      <ul style="margin-top:12px">${s.ex.map(e=>`<li>${e}</li>`).join("")}</ul>
-    </div>
-    <div class="notice">Warm up properly first — 5 minutes on a bike or ski erg plus light sets of your first movement. Scale loads to your level and keep the last rep of every set clean.</div>`;
-}
 function renderWProgram(id){
-  const p=WPROGRAMS.find(x=>x.id===id);if(!p){wpSel=null;return renderWeights();}
+  const p=WPROGRAMS.find(x=>x.id===id);if(!p){wpSel=null;renderWeights();return;}
+  const mine=wLogsLoaded?wLogs.filter(l=>l.program===p.name):[];
   $("main").innerHTML=`
-    <button class="backBtn" onclick="wpSel=null;renderWeights();window.scrollTo(0,0)">‹ All Programs</button>
+    <button class="backBtn" onclick="wpSel=null;renderWeights();window.scrollTo(0,0)">\u2039 ${p.len.startsWith("4")?"4 Week":"8 Week"} Programs</button>
     <div class="card">
       <h3>${p.name}</h3>
-      <div class="sub">${p.len} · ${p.days}</div>
-      <div class="pillRow" style="margin-bottom:12px"><span class="pill">${p.gear}</span></div>
+      <div class="sub">${p.len} \u00b7 ${p.days}</div>
+      <div class="pillRow" style="margin-bottom:12px"><span class="pill">${p.gear}</span>${mine.length?`<span class="pill" style="border-color:var(--gold);color:var(--gold)">${mine.length} sessions logged</span>`:""}</div>
       <p>${p.blurb}</p>
     </div>
     <div class="secTitle">How To Progress</div>
@@ -1487,84 +1477,82 @@ function renderWProgram(id){
     <div class="secTitle">The Sessions</div>
     ${p.daysList.map(d=>`<div class="card"><h3 style="font-size:16px">${d.t}</h3>
       <ul style="margin-top:8px">${d.ex.map(e=>`<li>${e}</li>`).join("")}</ul></div>`).join("")}
-    <div class="notice">Warm up first — 5 minutes on a bike or ski erg plus two light sets of your first exercise. Ask a coach if you're unsure on any machine.</div>`;
+    <div class="secTitle">Log Today's Session</div>
+    <div class="card">
+      <div class="field"><label>Which Session?</label><select id="wlDay">${p.daysList.map(d=>`<option value="${esc(d.t)}">${d.t}</option>`).join("")}</select></div>
+      <div class="field"><label>Notes (optional \u2014 weights, PBs, how it felt)</label><input id="wlNote" placeholder="e.g. Squat 5\u00d75 @ 100kg, felt strong" maxlength="200"></div>
+      <button class="btnGold" onclick="logTraining('${esc(p.name)}',$('wlDay').value)">Bank The Session</button>
+    </div>
+    <div class="notice">Warm up first \u2014 5 minutes of cardio plus light sets of your first lift. Ask a coach for a form check any time.</div>`;
+}
+function renderWSingle(id){
+  const x=WSINGLES.find(w=>w.id===id);if(!x){wsSel=null;renderWeights();return;}
+  const mine=wLogsLoaded?wLogs.filter(l=>l.program===x.name):[];
+  $("main").innerHTML=`
+    <button class="backBtn" onclick="wsSel=null;renderWeights();window.scrollTo(0,0)">\u2039 Super Sessions</button>
+    <div class="card">
+      <h3>${x.name}</h3>
+      <div class="sub">${x.tag}</div>
+      ${mine.length?`<div class="pillRow" style="margin-bottom:10px"><span class="pill" style="border-color:var(--gold);color:var(--gold)">Done ${mine.length}\u00d7</span></div>`:""}
+      <p>${x.blurb}</p>
+      <ul style="margin-top:12px">${x.ex.map(e=>`<li>${e}</li>`).join("")}</ul>
+    </div>
+    <div class="card">
+      <div class="field"><label>Notes (optional)</label><input id="wlNote" placeholder="Time, loads, how it went\u2026" maxlength="200"></div>
+      <button class="btnGold" onclick="logTraining('${esc(x.name)}','Super Session')">Mark It Done</button>
+    </div>
+    <div class="notice">Warm up properly, scale loads to your level, and keep the last rep of every set clean.</div>`;
+}
+async function logTraining(program,sessionName){
+  const note=$("wlNote")?$("wlNote").value.trim():"";
+  const {error}=await sb.from("training_logs").insert({user_id:session.user.id,program,session:sessionName,note,session_date:isoDateLocal()});
+  if(error){toast(error.message);return;}
+  toast("Banked \u2014 "+program+".");
+  await loadWLogs();
+  if(wpSel)renderWProgram(wpSel);else if(wsSel)renderWSingle(wsSel);else renderWeights();
+}
+async function delWLog(id){
+  const {error}=await sb.from("training_logs").delete().eq("id",id).eq("user_id",session.user.id);
+  if(error){toast(error.message);return;}
+  await loadWLogs();
+  renderWeights();
 }
 
-/* ---- Functional Fitness: WODs + S&C with timers ---- */
-let fnSub="wods",fnSel=null;
+/* ---- Functional Fitness: real CrossFit WODs, categorised ---- */
+let fnCat="ft",fnSel=null;
+const WOD_CATS=[["ft","For Time"],["amrap","AMRAP"],["emom","EMOM"],["tabata","Tabata"]];
 const WODS=[
-{n:"Fran",f:"For Time · 10:00 cap",d:"21-15-9 reps: Thrusters 42.5/30kg · Pull-Ups",t:{type:"fortime",cap:600}},
-{n:"Grace",f:"For Time · 8:00 cap",d:"30 Clean & Jerks 61/43kg",t:{type:"fortime",cap:480}},
-{n:"Isabel",f:"For Time · 8:00 cap",d:"30 Power Snatches 61/43kg",t:{type:"fortime",cap:480}},
-{n:"Helen",f:"3 RFT · 15:00 cap",d:"400m Run · 21 KB Swings 24/16kg · 12 Pull-Ups",t:{type:"fortime",cap:900}},
-{n:"Cindy",f:"AMRAP 20",d:"5 Pull-Ups · 10 Push-Ups · 15 Air Squats",t:{type:"amrap",min:20}},
-{n:"Chelsea",f:"EMOM 30",d:"Every minute: 5 Pull-Ups · 10 Push-Ups · 15 Air Squats",t:{type:"emom",min:30}},
-{n:"Annie",f:"For Time · 12:00 cap",d:"50-40-30-20-10: Double-Unders · Sit-Ups",t:{type:"fortime",cap:720}},
-{n:"Karen",f:"For Time · 12:00 cap",d:"150 Wall Balls 9/6kg",t:{type:"fortime",cap:720}},
-{n:"Diane",f:"For Time · 10:00 cap",d:"21-15-9: Deadlifts 102/70kg · Handstand Push-Ups",t:{type:"fortime",cap:600}},
-{n:"Elizabeth",f:"For Time · 12:00 cap",d:"21-15-9: Squat Cleans 61/43kg · Ring Dips",t:{type:"fortime",cap:720}},
-{n:"Jackie",f:"For Time · 14:00 cap",d:"1000m Ski Erg · 50 Thrusters 20/15kg · 30 Pull-Ups",t:{type:"fortime",cap:840}},
-{n:"Kelly",f:"5 RFT · 30:00 cap",d:"400m Run · 30 Box Jumps · 30 Wall Balls 9/6kg",t:{type:"fortime",cap:1800}},
-{n:"Nancy",f:"5 RFT · 20:00 cap",d:"400m Run · 15 Overhead Squats 43/30kg",t:{type:"fortime",cap:1200}},
-{n:"Angie",f:"For Time · 20:00 cap",d:"100 Pull-Ups · 100 Push-Ups · 100 Sit-Ups · 100 Air Squats",t:{type:"fortime",cap:1200}},
-{n:"Barbara",f:"5 rounds · 3:00 rest between",d:"20 Pull-Ups · 30 Push-Ups · 40 Sit-Ups · 50 Air Squats",t:{type:"interval",work:420,rest:180,rounds:5,workLabel:"ROUND"}},
-{n:"Eva",f:"5 RFT · 50:00 cap",d:"800m Run · 30 KB Swings 32/24kg · 30 Pull-Ups",t:{type:"fortime",cap:3000}},
-{n:"Mary",f:"AMRAP 20",d:"5 Handstand Push-Ups · 10 Pistols · 15 Pull-Ups",t:{type:"amrap",min:20}},
-{n:"Nicole",f:"AMRAP 20",d:"400m Run · Max-rep Pull-Ups each round",t:{type:"amrap",min:20}},
-{n:"Murph",f:"For Time · 60:00 cap",d:"1.6km Run · 100 Pull-Ups · 200 Push-Ups · 300 Air Squats · 1.6km Run",t:{type:"fortime",cap:3600}},
-{n:"DT",f:"5 RFT · 15:00 cap",d:"12 Deadlifts · 9 Hang Power Cleans · 6 Push Jerks 70/47.5kg",t:{type:"fortime",cap:900}},
-{n:"Randy",f:"For Time · 12:00 cap",d:"75 Power Snatches 34/25kg",t:{type:"fortime",cap:720}},
-{n:"The Chief",f:"5 × AMRAP 3 · 1:00 rest",d:"3 Power Cleans 61/43kg · 6 Push-Ups · 9 Air Squats",t:{type:"interval",work:180,rest:60,rounds:5,workLabel:"AMRAP"}},
-{n:"Fight Gone Bad",f:"3 rounds · 1:00 rest between",d:"1:00 each: Wall Balls · Sumo Deadlift High Pull 35kg · Box Jumps · Push Press 35kg · Ski Cals",t:{type:"interval",work:300,rest:60,rounds:3,workLabel:"ROUND"}},
-{n:"Filthy Fifty",f:"For Time · 30:00 cap",d:"50 each: Box Jumps · Jumping Pull-Ups · KB Swings · Walking Lunges · Knees-to-Elbows · Push Press · Back Extensions · Wall Balls · Burpees · Double-Unders",t:{type:"fortime",cap:1800}},
-{n:"Tabata This",f:"Tabata",d:"20s on / 10s off × 8 — rotate: Air Squats · Ski Cals · Push-Ups · Sit-Ups",t:{type:"tabata"}},
-{n:"Legacy Engine",f:"AMRAP 20",d:"15/12 cal Assault Bike · 12 cal Ski Erg · 9 Burpees",t:{type:"amrap",min:20}},
-{n:"Bilinga Road Trip",f:"5 RFT · 25:00 cap",d:"400m Run · 15 Dead Ball Slams 30/20kg · 15 Box Jumps",t:{type:"fortime",cap:1500}},
-{n:"Slam City",f:"EMOM 12",d:"Odd minutes: 15 Dead Ball Slams · Even minutes: 12/10 cal Assault Bike",t:{type:"emom",min:12}},
-{n:"Ski Mafia",f:"10 × 1:00 on / 1:00 off",d:"Max cal Ski Erg every interval — hold your pace across all ten",t:{type:"interval",work:60,rest:60,rounds:10}},
-{n:"Assault & Pepper",f:"Tabata",d:"Assault Bike — max cals, 20s on / 10s off × 8",t:{type:"tabata"}},
-{n:"Coast Road",f:"AMRAP 18",d:"200m Run · 10 DB Snatches 22.5/15kg · 10 Box Step-Overs",t:{type:"amrap",min:18}},
-{n:"Farmer's Fury",f:"5 RFT · 15:00 cap",d:"100m Heavy Farmer Carry · 10 Burpees Over DB",t:{type:"fortime",cap:900}},
-{n:"Grunt Work",f:"EMOM 20",d:"Min 1: 12 Wall Balls · Min 2: 10 Dead Ball Slams · Min 3: 12/10 cal Bike · Min 4: Rest — repeat",t:{type:"emom",min:20}},
-{n:"Double Trouble",f:"AMRAP 12",d:"30 Double-Unders · 15 KB Swings 24/16kg",t:{type:"amrap",min:12}},
-{n:"The Shoey",f:"For Time · 10:00 cap",d:"21-15-9: KB Swings 24/16kg · Goblet Squats",t:{type:"fortime",cap:600}},
-{n:"Snatch Attack",f:"EMOM 10",d:"Every minute: 3 DB Snatches each arm · 5 Burpees",t:{type:"emom",min:10}},
-{n:"Leg Burner",f:"For Time · 25:00 cap",d:"100 Air Squats · 80 Walking Lunges · 60 Box Step-Ups · 40 Jump Squats · 20 Burpee Box Jumps",t:{type:"fortime",cap:1500}},
-{n:"Core Four",f:"Tabata",d:"Rotate: Hollow Rocks · Plank · V-Ups · Flutter Kicks",t:{type:"tabata"}},
-{n:"Prowler Party",f:"8 × 0:30 on / 1:30 off",d:"Heavy Sled Push — 30 seconds of work every two minutes",t:{type:"interval",work:30,rest:90,rounds:8}},
-{n:"Bike Ladder",f:"For Time · 20:00 cap",d:"10-20-30-40 cal Assault Bike · 10 Burpees between each set",t:{type:"fortime",cap:1200}},
-{n:"Bring A Mate",f:"AMRAP 20 · pairs",d:"One works, one rests — I go you go: 10 Wall Balls · 10 cal Ski · 10 Sit-Ups",t:{type:"amrap",min:20}},
-{n:"12 Days Of Legacy",f:"For Time · 35:00 cap",d:"Like the song, 1 through 12: 1 Dead Ball Over Shoulder · 2 Burpees · 3 Slams · 4 Push-Ups · 5 Squats · 6 KB Swings · 7 Sit-Ups · 8 Lunges · 9 Cal Bike · 10 Box Jumps · 11 Wall Balls · 12 Cal Ski",t:{type:"fortime",cap:2100}},
-{n:"Hotel Hell",f:"EMOM 16",d:"Odd minutes: 10 DB Thrusters · Even minutes: 12/10 cal Ski Erg",t:{type:"emom",min:16}},
-{n:"The Gasser",f:"12 × 0:20 on / 0:40 off",d:"Assault Bike sprints — all-out for 20 seconds, every minute",t:{type:"interval",work:20,rest:40,rounds:12}},
-{n:"Wall Ball Willy",f:"AMRAP 10",d:"15 Wall Balls 9/6kg · 5 Burpees",t:{type:"amrap",min:10}},
-{n:"Sandbags At Dawn",f:"4 RFT · 18:00 cap",d:"10 Dead Ball Over Shoulder 40/30kg · 200m Dead Ball Carry",t:{type:"fortime",cap:1080}},
-{n:"Kincumber K",f:"For Time · 12:00 cap",d:"1000m Ski Erg · 50 Sit-Ups · 25 Burpees",t:{type:"fortime",cap:720}},
-{n:"Burpee Mile",f:"For Time · 30:00 cap",d:"800m Run · 50 Burpees · 800m Run",t:{type:"fortime",cap:1800}},
-{n:"Deck Of Pain",f:"AMRAP 25",d:"Keep cycling: 10 Dead Ball Slams · 10 Push-Ups · 10 Air Squats · 10 cal Bike",t:{type:"amrap",min:25}},
-{n:"Death By Bike",f:"EMOM · to failure",d:"Minute 1: 3 cals. Add 3 cals every minute until you can't finish inside the minute",t:{type:"emom",min:20}}
-];
-const SNC=[
-{n:"The Big Five-O",f:"5 sets · new set every 3:00",d:"Back Squat 5×5 — same weight across, add 2.5kg next week",t:{type:"interval",work:180,rounds:5,workLabel:"SET"}},
-{n:"Bench Builder",f:"5 sets · new set every 3:00",d:"Bench Press 5×5 — spotter or safeties in the rack",t:{type:"interval",work:180,rounds:5,workLabel:"SET"}},
-{n:"Deadlift Ladder",f:"5 sets · new set every 2:30",d:"Deadlift 10-8-6-4-2, building weight every set",t:{type:"interval",work:150,rounds:5,workLabel:"SET"}},
-{n:"Front Squat Sixes",f:"6 sets · new set every 2:00",d:"Front Squat 6×3 at a crisp, honest weight",t:{type:"interval",work:120,rounds:6,workLabel:"SET"}},
-{n:"Push Press Power",f:"5 sets · new set every 2:00",d:"Push Press 5×3 out of the rack — drive from the legs",t:{type:"interval",work:120,rounds:5,workLabel:"SET"}},
-{n:"Bulgarian Builder",f:"4 rounds · every 2:30",d:"8 DB Split Squats each leg + 10 DB Romanian Deadlifts",t:{type:"interval",work:150,rounds:4,workLabel:"ROUND"}},
-{n:"Ski Repeats",f:"8 × 1:00 on / 1:30 off",d:"Ski Erg ~250m per interval — hold your split",t:{type:"interval",work:60,rest:90,rounds:8}},
-{n:"Assault & Battery",f:"10 × 0:30 on / 1:30 off",d:"Assault Bike sprints — max effort 30 seconds",t:{type:"interval",work:30,rest:90,rounds:10}},
-{n:"Sled Push Repeats",f:"8 × 0:30 on / 1:30 off",d:"Heavy Sled Push down and back",t:{type:"interval",work:30,rest:90,rounds:8}},
-{n:"Clean Minutes",f:"EMOM 10",d:"2 Power Cleans every minute — heavy but perfect",t:{type:"emom",min:10}},
-{n:"Press & Pull",f:"6 rounds · every 2:00",d:"10 DB Bench Press + 10 Bent-Over DB Rows",t:{type:"interval",work:120,rounds:6,workLabel:"ROUND"}},
-{n:"Dead Ball Duty",f:"8 rounds · every 1:30",d:"20m Dead Ball Carry + 5 Dead Ball Slams",t:{type:"interval",work:90,rounds:8,workLabel:"ROUND"}},
-{n:"Farmer Finisher",f:"6 × 0:40 on / 1:20 off",d:"Heavy Farmer Carry — as far as you can in 40 seconds",t:{type:"interval",work:40,rest:80,rounds:6}},
-{n:"Tabata Core",f:"Tabata",d:"20s on / 10s off × 8 — alternate Hollow Hold · Plank",t:{type:"tabata"}},
-{n:"Overhead Complex",f:"EMOM 12",d:"1 Strict Press + 2 Push Press + 3 Push Jerks — one bar, stay light",t:{type:"emom",min:12}},
-{n:"Hinge Hell",f:"5 rounds · every 2:00",d:"8 Heavy KB Swings + 5 Deadlifts at 60%",t:{type:"interval",work:120,rounds:5,workLabel:"ROUND"}},
-{n:"Ten By Ten",f:"10 sets · new set every 2:00",d:"Leg Press 10×10 — pick a weight you barely finish",t:{type:"interval",work:120,rounds:10,workLabel:"SET"}},
-{n:"Pull-Up Percentages",f:"EMOM 10",d:"40% of your max-rep pull-ups, every minute for 10",t:{type:"emom",min:10}},
-{n:"The 100 Club",f:"For Time · 15:00 cap",d:"100 cal Assault Bike — one bike, one number, go",t:{type:"fortime",cap:900}},
-{n:"Contrast Power",f:"5 rounds · every 3:00",d:"3 Heavy Back Squats + 5 Box Jumps straight after — speed is the point",t:{type:"interval",work:180,rounds:5,workLabel:"ROUND"}}
+{n:"Fran",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 10:00 cap",d:"21-15-9 reps: Thrusters 42.5/30kg \u00b7 Pull-Ups. The most famous WOD in CrossFit.",t:{type:"fortime",cap:600}},
+{n:"Grace",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 8:00 cap",d:"30 Clean & Jerks 61/43kg \u2014 one bar, thirty reps, go.",t:{type:"fortime",cap:480}},
+{n:"Isabel",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 8:00 cap",d:"30 Power Snatches 61/43kg.",t:{type:"fortime",cap:480}},
+{n:"Helen",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 3 RFT \u00b7 15:00 cap",d:"400m Run \u00b7 21 KB Swings 24/16kg \u00b7 12 Pull-Ups.",t:{type:"fortime",cap:900}},
+{n:"Diane",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 10:00 cap",d:"21-15-9: Deadlifts 102/70kg \u00b7 Handstand Push-Ups.",t:{type:"fortime",cap:600}},
+{n:"Elizabeth",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 12:00 cap",d:"21-15-9: Squat Cleans 61/43kg \u00b7 Ring Dips.",t:{type:"fortime",cap:720}},
+{n:"Annie",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 12:00 cap",d:"50-40-30-20-10: Double-Unders \u00b7 Sit-Ups.",t:{type:"fortime",cap:720}},
+{n:"Karen",cat:"ft",f:"Benchmark WOD \u00b7 For Time \u00b7 12:00 cap",d:"150 Wall Balls 9/6kg. Simple. Awful. Famous.",t:{type:"fortime",cap:720}},
+{n:"Jackie",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 14:00 cap",d:"1000m Row \u00b7 50 Thrusters 20/15kg \u00b7 30 Pull-Ups.",t:{type:"fortime",cap:840}},
+{n:"Nancy",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 5 RFT \u00b7 20:00 cap",d:"400m Run \u00b7 15 Overhead Squats 43/30kg.",t:{type:"fortime",cap:1200}},
+{n:"Kelly",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 5 RFT \u00b7 30:00 cap",d:"400m Run \u00b7 30 Box Jumps 60/50cm \u00b7 30 Wall Balls 9/6kg.",t:{type:"fortime",cap:1800}},
+{n:"Angie",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 20:00 cap",d:"100 Pull-Ups \u00b7 100 Push-Ups \u00b7 100 Sit-Ups \u00b7 100 Air Squats \u2014 complete each before moving on.",t:{type:"fortime",cap:1200}},
+{n:"Eva",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 5 RFT \u00b7 50:00 cap",d:"800m Run \u00b7 30 KB Swings 32/24kg \u00b7 30 Pull-Ups.",t:{type:"fortime",cap:3000}},
+{n:"Linda",cat:"ft",f:"'Three Bars of Death' \u00b7 For Time \u00b7 40:00 cap",d:"10-9-8-7-6-5-4-3-2-1: Deadlift 1.5\u00d7BW \u00b7 Bench Press 1\u00d7BW \u00b7 Clean 0.75\u00d7BW.",t:{type:"fortime",cap:2400}},
+{n:"Filthy Fifty",cat:"ft",f:"Classic Chipper \u00b7 For Time \u00b7 30:00 cap",d:"50 each: Box Jumps \u00b7 Jumping Pull-Ups \u00b7 KB Swings \u00b7 Walking Lunges \u00b7 Knees-to-Elbows \u00b7 Push Press \u00b7 Back Extensions \u00b7 Wall Balls \u00b7 Burpees \u00b7 Double-Unders.",t:{type:"fortime",cap:1800}},
+{n:"Murph",cat:"ft",f:"Hero WOD \u00b7 For Time \u00b7 60:00 cap",d:"1.6km Run \u00b7 100 Pull-Ups \u00b7 200 Push-Ups \u00b7 300 Air Squats \u00b7 1.6km Run. Partition as needed. Wear a vest if you dare.",t:{type:"fortime",cap:3600}},
+{n:"DT",cat:"ft",f:"Hero WOD \u00b7 5 RFT \u00b7 15:00 cap",d:"12 Deadlifts \u00b7 9 Hang Power Cleans \u00b7 6 Push Jerks \u2014 70/47.5kg.",t:{type:"fortime",cap:900}},
+{n:"Randy",cat:"ft",f:"Hero WOD \u00b7 For Time \u00b7 12:00 cap",d:"75 Power Snatches 34/25kg.",t:{type:"fortime",cap:720}},
+{n:"Cindy",cat:"amrap",f:"Benchmark 'Girls' WOD \u00b7 AMRAP 20",d:"5 Pull-Ups \u00b7 10 Push-Ups \u00b7 15 Air Squats \u2014 as many rounds as possible in 20 minutes.",t:{type:"amrap",min:20}},
+{n:"Mary",cat:"amrap",f:"Benchmark 'Girls' WOD \u00b7 AMRAP 20",d:"5 Handstand Push-Ups \u00b7 10 Pistols \u00b7 15 Pull-Ups.",t:{type:"amrap",min:20}},
+{n:"Nicole",cat:"amrap",f:"Benchmark 'Girls' WOD \u00b7 AMRAP 20",d:"400m Run \u00b7 Max-rep Pull-Ups each round. Score is total pull-ups.",t:{type:"amrap",min:20}},
+{n:"Nate",cat:"amrap",f:"Hero WOD \u00b7 AMRAP 20",d:"2 Muscle-Ups \u00b7 4 Handstand Push-Ups \u00b7 8 KB Swings 32kg.",t:{type:"amrap",min:20}},
+{n:"The Chief",cat:"amrap",f:"Classic Benchmark \u00b7 5 \u00d7 AMRAP 3:00 \u00b7 1:00 rest",d:"3 Power Cleans 61/43kg \u00b7 6 Push-Ups \u00b7 9 Air Squats \u2014 restart each 3-minute AMRAP fresh.",t:{type:"interval",work:180,rest:60,rounds:5,workLabel:"AMRAP"}},
+{n:"Fight Gone Bad",cat:"amrap",f:"Classic Benchmark \u00b7 3 rounds \u00b7 5\u00d71:00 stations",d:"1:00 each: Wall Balls \u00b7 Sumo Deadlift High Pull 35kg \u00b7 Box Jumps \u00b7 Push Press 35kg \u00b7 Row (cals) \u00b7 then 1:00 rest. Score total reps.",t:{type:"interval",work:300,rest:60,rounds:3,workLabel:"ROUND"}},
+{n:"Chelsea",cat:"emom",f:"Benchmark 'Girls' WOD \u00b7 EMOM 30",d:"Every minute: 5 Pull-Ups \u00b7 10 Push-Ups \u00b7 15 Air Squats. Miss a minute and you're done \u2014 score completed minutes.",t:{type:"emom",min:30}},
+{n:"Death By Burpees",cat:"emom",f:"Classic CrossFit ladder \u00b7 EMOM to failure",d:"Minute 1: 1 burpee. Minute 2: 2 burpees. Add one every minute until you can't finish inside the minute.",t:{type:"emom",min:20}},
+{n:"Death By Thrusters",cat:"emom",f:"Classic CrossFit ladder \u00b7 EMOM to failure",d:"Minute 1: 1 thruster 42.5/30kg. Add one each minute until the minute beats you.",t:{type:"emom",min:20}},
+{n:"Power Clean EMOM",cat:"emom",f:"Classic strength EMOM \u00b7 EMOM 10",d:"2 Power Cleans every minute at ~80% \u2014 heavy, crisp, no misses.",t:{type:"emom",min:10}},
+{n:"Tabata This",cat:"tabata",f:"Classic Benchmark \u00b7 Tabata \u00d7 5 movements",d:"Tabata (20s on / 10s off \u00d7 8) each: Row \u00b7 Air Squats \u00b7 Pull-Ups \u00b7 Push-Ups \u00b7 Sit-Ups, 1:00 between movements. Score is lowest interval each.",t:{type:"tabata"}},
+{n:"Tabata Something Else",cat:"tabata",f:"Classic Benchmark \u00b7 32 intervals",d:"8 intervals each, back to back: Pull-Ups \u00b7 Push-Ups \u00b7 Sit-Ups \u00b7 Air Squats. Score total reps.",t:{type:"tabata"}},
+{n:"Tabata Squats",cat:"tabata",f:"Classic \u00b7 Tabata",d:"20 seconds max air squats, 10 seconds rest, eight rounds. Score is your lowest round.",t:{type:"tabata"}}
 ];
 
 /* Workout timer engine */
@@ -1624,12 +1612,11 @@ function timerCardHtml(fmt){
 
 let fnQ="";
 function wodListHtml(){
-  const list=fnSub==="wods"?WODS:SNC;
   const q=amaNorm(fnQ);
-  const rows=list.map((w,i)=>({w,i})).filter(x=>!q||amaNorm(x.w.n+" "+x.w.f+" "+x.w.d).includes(q));
-  if(!rows.length)return '<div class="card"><p>Nothing matches that — try another word.</p></div>';
+  const rows=WODS.map((w,i)=>({w,i})).filter(x=>x.w.cat===fnCat&&(!q||amaNorm(x.w.n+" "+x.w.f+" "+x.w.d).includes(q)));
+  if(!rows.length)return '<div class="card"><p>Nothing matches that \u2014 try another word.</p></div>';
   return rows.map(x=>`<div class="wodRow" onclick="fnSel=${x.i};renderFunctional();window.scrollTo(0,0)">
-      <div><b>${esc(x.w.n)}</b><small>${esc(x.w.f)}</small></div><span class="go">›</span>
+      <div><b>${esc(x.w.n)}</b><small>${esc(x.w.f)}</small></div><span class="go">\u203a</span>
     </div>`).join("");
 }
 function renderFunctional(){
@@ -1637,28 +1624,26 @@ function renderFunctional(){
   $("main").innerHTML=`
     <div class="hero" style="${bgStyle('functional',.5)}">
       <div class="heroKicker">GRUNT Territory</div>
-      <div class="heroTitle">Functional Fitness</div>
-      <div class="heroText">Pick a workout, hit start — the timer's already set up to match it.</div>
+      <div class="heroTitle">CrossFit WODs</div>
+      <div class="heroText">The real benchmarks \u2014 Girls, Heroes and classics. Pick one, hit start, the timer runs the format.</div>
     </div>
     <div class="subTabs">
-      <button class="${fnSub==='wods'?'active':''}" onclick="fnSub='wods';fnSel=null;fnQ='';renderFunctional()">WODs</button>
-      <button class="${fnSub==='snc'?'active':''}" onclick="fnSub='snc';fnSel=null;fnQ='';renderFunctional()">Strength &amp; Conditioning</button>
+      ${WOD_CATS.map(c=>`<button class="${fnCat===c[0]?'active':''}" onclick="fnCat='${c[0]}';fnSel=null;fnQ='';renderFunctional()">${c[1]}</button>`).join("")}
     </div>
-    <input class="wodSearch" placeholder="Search ${fnSub==="wods"?WODS.length+" workouts":SNC.length+" sessions"}… try 'bike' or 'amrap'" value="${esc(fnQ)}" oninput="fnQ=this.value;$('wodList').innerHTML=wodListHtml()">
+    <input class="wodSearch" placeholder="Search ${WODS.filter(w=>w.cat===fnCat).length} ${WOD_CATS.find(c=>c[0]===fnCat)[1]} workouts\u2026" value="${esc(fnQ)}" oninput="fnQ=this.value;$('wodList').innerHTML=wodListHtml()">
     <div id="wodList">${wodListHtml()}</div>`;
 }
 function renderWorkout(i){
-  const list=fnSub==="wods"?WODS:SNC;
-  const w=list[i];if(!w){fnSel=null;return renderFunctional();}
+  const w=WODS[i];if(!w){fnSel=null;renderFunctional();return;}
   $("main").innerHTML=`
-    <button class="backBtn" onclick="fnSel=null;clearInterval(T.int);renderFunctional();window.scrollTo(0,0)">‹ ${fnSub==="wods"?"All WODs":"All S&C"}</button>
+    <button class="backBtn" onclick="fnSel=null;clearInterval(T.int);renderFunctional();window.scrollTo(0,0)">\u2039 ${WOD_CATS.find(c=>c[0]===w.cat)[1]} WODs</button>
     <div class="card">
       <h3>${esc(w.n)}</h3>
       <div class="sub">${esc(w.f)}</div>
       <p>${esc(w.d)}</p>
     </div>
     ${timerCardHtml(w.f)}
-    <div class="notice">The timer matches the workout format — it'll beep you into every round, changeover and rest. Scale loads and movements to your level.</div>`;
+    <div class="notice">The timer matches the workout format \u2014 it beeps you into every round, changeover and rest. Scale loads and movements to your level.</div>`;
   loadWorkoutTimer(w.t);
 }
 
@@ -1833,7 +1818,7 @@ const AMA_KB=[
 {k:"max effort round ten seconds timer",a:"The Max Effort rounds in Build Your Own run themselves — 10, 15 or 20 seconds flat out with matching rest, beeping you in and out until the round's done."},
 {k:"weights program training plan gym floor follow",a:"The Weights tab has ten programs — from Foundations Four for beginners to The Big Three for barbell strength. Each one has the full sessions and how to progress week to week."},
 {k:"beginner start new program never trained",a:"Start with Foundations Four in the Weights tab — three simple machine sessions a week for four weeks. If you've been off for a while, Comeback Season is the gentler on-ramp."},
-{k:"wod crossfit workout functional metcon",a:"Functional Fitness has 50 WODs — classics like Fran and Murph plus Legacy originals. Tap any workout and the timer's already set to its format. Hit start and go."},
+{k:"wod crossfit workout functional metcon",a:"Functional Fitness has the real CrossFit WODs — the Girls, the Heroes and the classics, sorted into For Time, AMRAP, EMOM and Tabata. Tap any workout and the timer is already set to its format."},
 {k:"timer amrap emom tabata interval",a:"Every WOD and S&C session opens with a timer matched to its format — AMRAPs count down, EMOMs beep every minute, Tabatas run 20 on 10 off. Just hit Start."},
 {k:"pt personal training book trainer one session",a:"Hit Book A PT on the home screen. Pick your trainer — Jake, Sarsha, Joe or Alison — choose a session length and your preferred times, and they'll get back to you to lock it in."},
 {k:"jake coach who head trainer",a:"Jake's the Head Coach — former amateur and pro boxer who won his final pro bout at 35. Over ten years coaching with Australian, NSW and Australasian champions plus pro title holders on his record. Book him through Book A PT."},
