@@ -558,12 +558,14 @@ async function renderBoxRegister(){
     }
     const these=regs.filter(r=>r.class_date===c.date&&r.class_time===c.t);
     const mine=these.find(r=>r.user_id===session.user.id);
-    html+=`<div class="card">
+    const isAM=parseInt(c.t.split(":")[0])<12;
+    const tCol=isAM?"#5aa9e8":"#e05252";
+    html+=`<div class="card" style="border-left:3px solid ${tCol}">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
         <h3 style="font-size:17px">${esc(c.n)}</h3>
-        <span style="color:var(--gold);font-weight:800;font-size:14px;flex-shrink:0">${fmtClassTime(c.t)}</span>
+        <span style="color:${tCol};font-weight:800;font-size:14px;flex-shrink:0">${fmtClassTime(c.t)}</span>
       </div>
-      <p style="margin-top:6px"><b style="color:var(--gold)">${these.length} attending</b>${these.length?": "+these.map(r=>esc(r.name)).join(", "):""}</p>
+      <p style="margin-top:6px"><b style="color:${tCol}">${these.length} attending</b>${these.length?": "+these.map(r=>esc(r.name)).join(", "):""}</p>
       ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="unattendClass('${c.date}','${c.t}')">Attending ✓ — Tap To Pull Out</button>`
             :`<button class="btnGold" style="margin-top:12px" onclick="attendClass('${c.date}','${c.t}','${esc(c.n)}')">I'm Attending</button>`}
     </div>`;
