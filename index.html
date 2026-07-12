@@ -250,6 +250,9 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .chTarget{font-weight:900;color:var(--gold);font-size:14px;letter-spacing:1px;text-shadow:0 1px 4px rgba(0,0,0,.9)}
 .chHow{font-size:11px;color:#cfcfd4;text-shadow:0 1px 4px rgba(0,0,0,.9)}
 .chDone{margin-top:12px;font-weight:900;letter-spacing:2px;color:#4ade80;font-size:12px;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+.rankBtn{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:#141416;border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-top:8px;color:var(--text);font-size:13px;font-weight:600}
+.rankBtn.on{border-color:var(--gold);background:rgba(212,175,55,.08)}
+.rankNum{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#161307;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .tStart{background:var(--gold);border:none;color:#161307}
 .tReset{background:transparent;border:1px solid var(--line);color:var(--muted)}
 
@@ -358,7 +361,9 @@ const IMGS = {
   recovery:"https://heavyweight-app.vercel.app/images/recovery.jpg",
   functional:"https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=1000&q=70&auto=format&fit=crop",
   stairs:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=70",
-  race:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70"
+  race:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",
+  crossfit:"https://images.unsplash.com/photo-1533681904393-9ab6eee7e408?auto=format&fit=crop&w=1000&q=70",
+  mvmhero:"https://images.unsplash.com/photo-1521804906057-1df8fdb718b7?auto=format&fit=crop&w=1000&q=70"
 };
 function bgStyle(id,strength){const a=strength??.45;return `background:linear-gradient(180deg,rgba(8,8,10,${a}),rgba(8,8,10,.93)),url('${IMGS[id]}') center/cover no-repeat #0a0b0e`;}
 
@@ -425,7 +430,8 @@ async function signOut(){
 function showAuth(){$("appScreen").classList.add("hidden");$("authScreen").classList.remove("hidden");}
 async function enterApp(){
   $("authScreen").classList.add("hidden");$("appScreen").classList.remove("hidden");
-  go("home");
+  const {data:mp}=await sb.from("member_profiles").select("user_id").eq("user_id",session.user.id).maybeSingle();
+  go(mp?"home":"setup");
   initChatFeed();
 }
 
@@ -457,6 +463,7 @@ function render(){
   if(view==="mvm")return renderMvM();
   if(view==="board")return renderLeaderboard();
   if(view==="blokes")return renderBlokes();
+  if(view==="setup")return renderSetup();
   if(view==="recovery")return renderRecovery();
   if(view==="timetable")return renderTimetable();
   if(view==="pt")return renderPT();
@@ -471,10 +478,10 @@ function render(){
 const HOME_CARDS=[
   {id:"boxing",kicker:"Legacy Boxing Series",title:"Boxing",sub:"Your classes and the Sparring Club hub.",img:"boxing"},
   {id:"weights",kicker:"The Gym Floor",title:"Weights",sub:"Ten training programs — machines to barbells.",img:"weights"},
-  {id:"functional",kicker:"GRUNT Territory",title:"Functional Fitness",sub:"50 WODs, 20 S&C sessions, timers built in.",img:"functional"},
+  {id:"functional",kicker:"GRUNT Territory",title:"Functional Fitness",sub:"Real CrossFit workouts — Girls, Heroes & Opens, timers built in.",img:"crossfit"},
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
   {id:"cardio",kicker:"Climb The World",title:"Cardio Challenges",sub:"StairMaster & treadmill missions — 5 points a finish.",img:"stairs"},
-  {id:"mvm",kicker:"Club Records",title:"Member vs Member",sub:"Heaviest lifts, fastest times. Take the crown, take 5 points.",img:"race"},
+  {id:"mvm",kicker:"Club Records",title:"Member vs Member",sub:"Heaviest lifts, fastest times. Take the crown, take 5 points.",img:"mvmhero"},
   {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:null},
   {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true},
   {id:"timetable",kicker:"This Week",title:"Timetable",sub:"Every session, all in one place.",img:null},
@@ -553,7 +560,7 @@ const ELITE_SESSIONS=[
  desc:"Eight rounds where the defence does the scoring — slips, rolls, counters, framing, and dumbbell unders to burn the movement in."},
 {id:"grinder10",name:"The Grinder",rounds:["skip10","bgPower","bgClinch","bgInside","bgMid","bgLong","bgMax20","bgUnders","bgPower","bgMax10"],len:180,rest:60,
  desc:"Ten heavy rounds after a ten-minute skip. Power punching, clinch work, every range. This is the session that builds the fighters."},
-{id:"speed6",name:"Speed Week Special",rounds:["shLead","bgStraight","bgMax10","bgFirstThird","bgMax15","dbShadow"],len:120,rest:30,
+{id:"speed6",name:"Speed Week Special",rounds:["shOpen","bgStraight","bgMax10","bgFirstThird","bgMax15","dbShadow"],len:120,rest:30,
  desc:"Six fast two-minute rounds — lead hand speed, straight punching, max-effort bursts and light dumbbells to finish. Sharp, not slow."}
 ];
 let elitePreview=false;
@@ -701,7 +708,6 @@ const BYO_LIB=[
   {id:"skip10",n:"10 Minute Skip",fixed:600,tag:"10:00 straight through"}]},
 {cat:"Shadow Boxing",items:[
   {id:"shOpen",n:"Open Shadow",tag:"Free-flow shadow"},
-  {id:"shLead",n:"Lead Hand Shadow",tag:"Lead hand only"},
   {id:"shDef",n:"Defence-Based Shadow",tag:"Slips, rolls, feet"},
   {id:"shSwitch",n:"Switch Punching Shadow",tag:"Switch through stances"}]},
 {cat:"Bag Work",items:[
@@ -744,12 +750,12 @@ function renderBoxBYO(){
   const lib=BYO_LIB.map(c=>`
     <div class="secTitle">${c.cat}</div>
     ${c.items.map(it=>`<div class="wodRow" onclick="byoAdd('${it.id}')">
-      <div><b>${it.n}${counts[it.id]?` <span style="color:var(--gold)">×${counts[it.id]}</span>`:""}</b><small>${it.tag}${it.db?" · uses your DB weight":""}${it.fixed?"":""}</small></div>
+      <div><b>${it.n}${counts[it.id]?` <span style="color:var(--gold)">×${counts[it.id]}</span>`:""}</b><small>${it.tag}</small></div>
       <span class="addBtn">+</span>
     </div>`).join("")}`).join("");
   const sess=byo.list.map((id,i)=>{
     const it=byoFind(id);if(!it)return "";
-    return `<div class="sessItem"><div><b>R${i+1} — ${it.n}${it.db?" ("+byo.db+"kg)":""}</b><small>${fmtSec(byoRoundLen(it))}${it.seg?" · auto-switching":""}</small></div>
+    return `<div class="sessItem"><div><b>R${i+1} — ${it.n}</b><small>${fmtSec(byoRoundLen(it))}${it.seg?" · auto-switching":""}</small></div>
       <button class="xBtn" onclick="event.stopPropagation();byoRm(${i})">×</button></div>`;
   }).join("");
   $("boxContent").innerHTML=`
@@ -764,12 +770,6 @@ function renderBoxBYO(){
       <div class="pillBtns">
         <button class="${byo.rest===30?'on':''}" onclick="byoSet('rest',30)">0:30 Rest</button>
         <button class="${byo.rest===60?'on':''}" onclick="byoSet('rest',60)">1:00 Rest</button>
-      </div>
-      <label class="byoLbl">Dumbbell Weight (DB rounds)</label>
-      <div class="pillBtns">
-        <button class="${byo.db===1?'on':''}" onclick="byoSet('db',1)">1kg</button>
-        <button class="${byo.db===2?'on':''}" onclick="byoSet('db',2)">2kg</button>
-        <button class="${byo.db===3?'on':''}" onclick="byoSet('db',3)">3kg</button>
       </div>
     </div>
     ${lib}
@@ -786,7 +786,7 @@ function byoPhases(){
   byo.list.forEach((id,i)=>{
     const it=byoFind(id);if(!it)return;
     const L=byoRoundLen(it);
-    const rn="Round "+(i+1)+" of "+byo.list.length+" — "+it.n+(it.db?" · "+byo.db+"kg":"");
+    const rn="Round "+(i+1)+" of "+byo.list.length+" — "+it.n;
     if(it.seg&&it.seg.work){
       let t=0,on=true;
       while(t<L){const d=Math.min(on?it.seg.work:it.seg.rest,L-t);p.push({b:on?it.seg.wl:"REST",sm:rn,s:d,k:on?"work":"rest",fl:on?"g":"r"});t+=d;on=!on;}
@@ -823,7 +823,7 @@ function renderBYOTimer(){
     </div>
     <div class="card">
       <h3 style="font-size:15px">The Session</h3>
-      <div style="margin-top:8px">${byo.list.map((id,i)=>{const it=byoFind(id);return `<div class="weekRow"><span>R${i+1} — ${it.n}${it.db?" ("+byo.db+"kg)":""}</span><span style="color:var(--muted)">${fmtSec(byoRoundLen(it))}</span></div>`;}).join("")}</div>
+      <div style="margin-top:8px">${byo.list.map((id,i)=>{const it=byoFind(id);return `<div class="weekRow"><span>R${i+1} — ${it.n}</span><span style="color:var(--muted)">${fmtSec(byoRoundLen(it))}</span></div>`;}).join("")}</div>
     </div>`;
   updS();
 }
@@ -896,7 +896,18 @@ function lvlCardHtml(pts,big){
     <div class="lvlPts">${pts} Legacy Points${lv.next?` · ${lv.next.pts-pts} to ${lv.next.name}`:" · Top of the mountain"}</div>
     <div class="lvlShine"></div></div>`;
 }
-const MEMBER_TYPES=["All-Rounder","Competitive Boxer","Boxing Fitness","Weightlifter","Functional Fitness"];
+const REASONS=["Competitive Boxing","Boxing For Fitness","Weights & Strength","Functional Fitness & Conditioning","Recovery & Wellbeing","The Community & Socials","All-Rounder — Bit Of Everything"];
+let mpRank=[];
+function mpPrepForm(){const ex=myMp()||{};mpRank=(ex.member_type||"").split(" · ").filter(r=>REASONS.includes(r));mpPhotoUrl=null;}
+function mpRankBtnsHtml(){
+  return REASONS.map(r=>{const idx=mpRank.indexOf(r);
+    return `<button type="button" class="rankBtn${idx>-1?' on':''}" onclick="mpToggleRank(this.dataset.r)" data-r="${esc(r)}">${idx>-1?`<span class="rankNum">${idx+1}</span>`:""}${esc(r)}</button>`;}).join("");
+}
+function mpToggleRank(r){
+  const i=mpRank.indexOf(r);
+  if(i>-1)mpRank.splice(i,1);else mpRank.push(r);
+  const el=$("mpRankBtns");if(el)el.innerHTML=mpRankBtnsHtml();
+}
 const CARDIO={
 stairs:[
   {img:"https://images.unsplash.com/photo-1512734099960-65a682cbfe2b?auto=format&fit=crop&w=1000&q=70",name:"Big Ben",target:"334 steps",how:"StairMaster",blurb:"To the top of the Elizabeth Tower. The warm-up of the stair world."},
@@ -917,18 +928,19 @@ tread:[
   {img:"https://images.unsplash.com/photo-1672212602462-006b5f22f39f?auto=format&fit=crop&w=1000&q=70",name:"Bay to Bay",target:"12 km",how:"Treadmill or road",blurb:"The Central Coast classic — Woy Woy to Gosford, the whole way."},
   {img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"City2Surf",target:"14 km",how:"Treadmill or road",blurb:"Sydney's famous fun run — Heartbreak Hill included, no excuses."}]};
 const MVM=[
-  {id:"deadlift",n:"Heaviest Deadlift",unit:"kg"},
-  {id:"squat",n:"Heaviest Back Squat",unit:"kg"},
-  {id:"ohp",n:"Heaviest Overhead Press",unit:"kg"},
-  {id:"bench",n:"Heaviest Bench Press",unit:"kg"},
-  {id:"bike100",n:"100 Cal Assault Bike",unit:"time"},
-  {id:"row1k",n:"1K Row",unit:"time"},
-  {id:"ski1k",n:"1K Ski Erg",unit:"time"},
-  {id:"stair1000",n:"1,000 Steps StairMaster",unit:"time"},
-  {id:"run1k",n:"1K Run",unit:"time"},
-  {id:"run3k",n:"3K Run",unit:"time"},
-  {id:"run5k",n:"5K Run",unit:"time"},
-  {id:"run10k",n:"10K Run",unit:"time"}];
+  {id:"deadlift",n:"Heaviest Deadlift",unit:"kg",img:"1517963879433-6ad2b056d712"},
+  {id:"squat",n:"Heaviest Back Squat",unit:"kg",img:"1541600383005-565c949cf777"},
+  {id:"ohp",n:"Heaviest Overhead Press",unit:"kg",img:"1532029837206-abbe2b7620e3"},
+  {id:"bench",n:"Heaviest Bench Press",unit:"kg",img:"1558611848-73f7eb4001a1"},
+  {id:"bike100",n:"100 Cal Assault Bike",unit:"time",img:"1591741535018-d042766c62eb"},
+  {id:"row1k",n:"1K Row",unit:"time",img:"1519505907962-0a6cb0167c73"},
+  {id:"ski1k",n:"1K Ski Erg",unit:"time",img:"1517344884509-a0c97ec11bcc"},
+  {id:"stair1000",n:"1,000 Steps StairMaster",unit:"time",img:"1476480862126-209bfaa8edc8"},
+  {id:"run1k",n:"1K Run",unit:"time",img:"1474546652694-a33dd8161d66"},
+  {id:"run3k",n:"3K Run",unit:"time",img:"1552674605-db6ffd4facb5"},
+  {id:"run5k",n:"5K Run",unit:"time",img:"1483721310020-03333e577078"},
+  {id:"run10k",n:"10K Run",unit:"time",img:"1452626038306-9aae5e071dd3"}];
+const mvmImg=m=>"https://images.unsplash.com/photo-"+m.img+"?auto=format&fit=crop&w=1000&q=70";
 let ptsData={loaded:false,events:[],mprofiles:[],entries:[]};
 let cardioSub="stairs",mvmOpen=null,chatSub="chat",mpEditing=false,mpPhotoUrl=null;
 async function loadWorld(force){
@@ -999,7 +1011,7 @@ function bestEntries(id){
 }
 async function renderMvM(){
   $("main").innerHTML=`
-    <div class="hero" style="${bgStyle('race',.5)}">
+    <div class="hero" style="${bgStyle('mvmhero',.5)}">
       <div class="heroKicker">Club Records</div>
       <div class="heroTitle">Member vs Member</div>
       <div class="heroText">The club's record board. Post your result, chase the crown — take a record off someone and bank a 5-point bonus.</div>
@@ -1012,16 +1024,16 @@ async function renderMvM(){
     const board=bestEntries(m.id),lead=board[0]||null;
     const mine=board.find(e=>e.user_id===session.user.id);
     const open=mvmOpen===m.id;
-    return `<div class="card">
+    return `<div class="card" style="background:linear-gradient(180deg,rgba(10,10,12,.55),rgba(10,10,12,.92)),url('${mvmImg(m)}') center/cover no-repeat #0a0b0e;color:#fff">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
-        <h3 style="font-size:16px">${m.n}</h3>
-        <span style="font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1px">${m.unit==="kg"?"HEAVIEST":"FASTEST"}</span>
+        <h3 style="font-size:16px;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.9)">${m.n}</h3>
+        <span style="font-size:11px;color:#d9d9dd;font-weight:800;letter-spacing:1px;text-shadow:0 1px 4px rgba(0,0,0,.9)">${m.unit==="kg"?"HEAVIEST":"FASTEST"}</span>
       </div>
-      ${lead?`<p style="margin-top:8px">👑 <b style="color:var(--gold)">${esc(lead.name||"Member")}</b> — <b>${fmtChalVal(m,lead.value)}</b></p>`
-            :`<p style="margin-top:8px;color:var(--muted)">No entries yet — set the first mark and wear the crown.</p>`}
-      ${mine&&(!lead||mine.id!==lead.id)?`<p style="font-size:12px;color:var(--muted);margin-top:4px">Your best: ${fmtChalVal(m,mine.value)}</p>`:""}
+      ${lead?`<p style="margin-top:8px;text-shadow:0 1px 4px rgba(0,0,0,.9)">👑 <b style="color:var(--gold)">${esc(lead.name||"Member")}</b> — <b>${fmtChalVal(m,lead.value)}</b></p>`
+            :`<p style="margin-top:8px;color:#cfcfd4;text-shadow:0 1px 4px rgba(0,0,0,.9)">No entries yet — set the first mark and wear the crown.</p>`}
+      ${mine&&(!lead||mine.id!==lead.id)?`<p style="font-size:12px;color:#cfcfd4;margin-top:4px;text-shadow:0 1px 4px rgba(0,0,0,.9)">Your best: ${fmtChalVal(m,mine.value)}</p>`:""}
       ${open?`
-        ${board.length>1?`<div style="margin-top:10px">${board.slice(1,5).map((e,i)=>`<div class="weekRow"><span>${i+2}. ${esc(e.name||"Member")}</span><span style="color:var(--muted)">${fmtChalVal(m,e.value)}</span></div>`).join("")}</div>`:""}
+        ${board.length>1?`<div style="margin-top:10px">${board.slice(1,5).map((e,i)=>`<div class="weekRow"><span style="text-shadow:0 1px 4px rgba(0,0,0,.9)">${i+2}. ${esc(e.name||"Member")}</span><span style="color:#cfcfd4;text-shadow:0 1px 4px rgba(0,0,0,.9)">${fmtChalVal(m,e.value)}</span></div>`).join("")}</div>`:""}
         <div style="display:flex;gap:8px;margin-top:12px">
           <input id="mvmIn-${m.id}" placeholder="${m.unit==="kg"?"Weight in kg":"Time — mm:ss"}" inputmode="${m.unit==="kg"?"decimal":"numeric"}" style="flex:1">
           <button class="btnGold" style="width:auto;padding:12px 18px;margin:0" onclick="mvmSubmit('${m.id}')">Post It</button>
@@ -1061,14 +1073,27 @@ async function uploadMemberPhoto(e){
   toast("Photo's in. Hit Save to lock it.");
 }
 async function saveMemberProfile(){
-  const name=$("mpName").value.trim(),age=parseInt($("mpAge").value)||null,type=$("mpType").value;
+  const name=$("mpName").value.trim(),age=parseInt($("mpAge").value)||null;
   if(!name){toast("Put your name in first.");return;}
+  if(!mpRank.length){toast("Tap at least one reason you come to Legacy.");return;}
   const ex=myMp();
-  const {error}=await sb.from("member_profiles").upsert({user_id:session.user.id,full_name:name,age,member_type:type,photo_url:mpPhotoUrl||(ex&&ex.photo_url)||""});
+  const {error}=await sb.from("member_profiles").upsert({user_id:session.user.id,full_name:name,age,member_type:mpRank.join(" · "),photo_url:mpPhotoUrl||(ex&&ex.photo_url)||""});
   if(error){toast(error.message);return;}
   mpEditing=false;mpPhotoUrl=null;
   toast("Legacy Profile saved. Welcome to the board.");
-  await loadWorld(true);render();
+  await loadWorld(true);
+  if(view==="setup")view="home";
+  renderNav();render();
+}
+function renderSetup(){
+  mpPrepForm();
+  $("main").innerHTML=`
+    <div class="homeWelcome">
+      <div class="hwKicker">Welcome To Legacy</div>
+      <div class="hwTitle">Build Your<br>Legacy Profile.</div>
+    </div>
+    <p style="color:var(--muted);font-size:12.5px;margin:-4px 2px 14px;line-height:1.6">Every member has one — takes 30 seconds. Your name goes on the board, your points start counting from tonight.</p>
+    ${mpFormHtml()}`;
 }
 function mpFormHtml(){
   const ex=myMp()||{};
@@ -1084,8 +1109,8 @@ function mpFormHtml(){
     <input id="mpName" value="${esc(ex.full_name||myDisplayName())}" maxlength="60">
     <label class="byoLbl">Age</label>
     <input id="mpAge" type="number" min="10" max="99" value="${ex.age||""}" placeholder="Age">
-    <label class="byoLbl">What kind of member are you?</label>
-    <select id="mpType">${MEMBER_TYPES.map(t=>`<option ${ex.member_type===t?"selected":""}>${t}</option>`).join("")}</select>
+    <label class="byoLbl">Why do you come to Legacy? Tap in order — 1st reason first.</label>
+    <div id="mpRankBtns">${mpRankBtnsHtml()}</div>
     <button class="btnGold" style="margin-top:14px" onclick="saveMemberProfile()">Save Legacy Profile</button>
     ${ex.user_id?`<button class="btnLink" style="margin-top:10px" onclick="mpEditing=false;render()">Cancel</button>`:""}
   </div>`;
@@ -1094,9 +1119,9 @@ async function renderLeaderboard(){
   $("main").innerHTML=`
     <img class="chatBgLogo" src="${LOGO}" alt="">
     <div style="position:relative;z-index:1">
-      <div class="subTabs" style="margin-top:4px">
-        <button onclick="go('chat')">The Chat</button>
-        <button class="active">Leaderboard</button>
+      <div class="homeWelcome" style="margin-top:4px">
+        <div class="hwKicker">The Ladder</div>
+        <div class="hwTitle">Members<br>Leaderboard.</div>
       </div>
       <div id="lbBody"><div class="loadingDots">Loading the board…</div></div>
     </div>`;
@@ -1117,9 +1142,9 @@ async function renderLeaderboard(){
           ${mp.photo_url?`<img src="${esc(mp.photo_url)}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-dim)" alt="">`:`<div class="lbAv" style="width:64px;height:64px;font-size:22px">${esc((mp.full_name||"?")[0])}</div>`}
           <div style="flex:1">
             <h3 style="font-size:17px">${esc(mp.full_name)}</h3>
-            <p style="font-size:12px;color:var(--muted)">${mp.age?mp.age+" · ":""}${esc(mp.member_type)}</p>
+            <p style="font-size:12px;color:var(--muted)">${mp.age?mp.age+" · ":""}${esc((mp.member_type||"").split(" · ")[0]||"")}</p>
           </div>
-          <button class="btnLink" style="width:auto;margin:0;padding:8px 14px" onclick="mpEditing=true;render()">Edit</button>
+          <button class="btnLink" style="width:auto;margin:0;padding:8px 14px" onclick="mpEditing=true;mpPrepForm();render()">Edit</button>
         </div>
         <div style="margin-top:14px">${lvlCardHtml(pts,true)}</div>
       </div>`}
@@ -1133,7 +1158,7 @@ async function renderLeaderboard(){
           ${r.photo?`<img class="lbAv" src="${esc(r.photo)}" alt="">`:`<div class="lbAv">${esc(r.name[0]||"?")}</div>`}
           <div style="flex:1;min-width:0">
             <b style="font-size:13.5px">${esc(r.name)}</b>
-            <div style="font-size:10.5px;color:var(--muted)">${esc(r.type)}</div>
+            <div style="font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc((r.type||"").split(" · ")[0]||"")}</div>
           </div>
           <span class="tierChip" style="background:${st.bg};color:${st.fg}">${lv.name}</span>
           <b style="font-size:14px;color:var(--gold);min-width:34px;text-align:right">${r.p}</b>
@@ -1202,19 +1227,22 @@ async function lbProgram(){
   const d0=new Date().toISOString().slice(0,10);
   const claimed=ptsData.events.some(e=>e.user_id===session.user.id&&e.kind==="class"&&e.ref==="lb:"+d0);
   const bestOf=ex=>lbData.lifts.filter(l=>l.user_id===session.user.id&&l.exercise===ex).reduce((m,l)=>Math.max(m,+l.weight_kg),0);
+  const todayOf=ex=>lbData.lifts.filter(l=>l.user_id===session.user.id&&l.exercise===ex&&l.session_date===d0);
   const exRow=(e,i,comp)=>{
-    const best=bestOf(e.name);
+    const best=bestOf(e.name),today=todayOf(e.name);
     return `<div style="padding:10px 0;border-bottom:1px solid #26262a">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
         <b style="font-size:13.5px">${esc(e.name)}</b>
         <span style="font-size:11.5px;color:#9e9e9e;flex-shrink:0">${e.sets} sets × ${comp?(wk.reps?wk.reps+" reps":"rep-out"):(e.rx||e.reps)}</span>
       </div>
       ${best?`<div style="font-size:11px;color:#c9994d;margin-top:2px">Your best: ${best} kg</div>`:""}
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <input id="lbKg-${i}" type="number" inputmode="decimal" placeholder="kg" style="flex:1;min-width:0">
-        <input id="lbRp-${i}" type="number" inputmode="numeric" placeholder="reps" style="flex:1;min-width:0">
-        <button class="btnLink" style="width:auto;margin:0;padding:10px 14px;border-color:#c9994d;color:#c9994d" onclick="lbLogSet('${esc(e.name)}',${i})">Log</button>
-      </div>
+      ${today.length?`<div style="font-size:11px;color:var(--ok);margin-top:2px">Banked today: ${today.map(t=>t.weight_kg+"kg×"+t.reps).join(" · ")}</div>`:""}
+      ${Array.from({length:e.sets},(_,j)=>`<div style="display:flex;gap:6px;margin-top:6px;align-items:center">
+        <span style="width:38px;font-size:10.5px;color:#9e9e9e;font-weight:800;flex-shrink:0">SET ${j+1}</span>
+        <input id="lbKg-${i}-${j}" type="number" inputmode="decimal" placeholder="kg" style="flex:1;min-width:0">
+        <input id="lbRp-${i}-${j}" type="number" inputmode="numeric" placeholder="reps" style="flex:1;min-width:0">
+      </div>`).join("")}
+      <button class="btnLink" style="margin-top:8px;border-color:#c9994d;color:#c9994d" onclick="lbLogSets('${esc(e.name)}',${i},${e.sets})">Bank ${e.sets} Sets — ${esc(e.name)}</button>
     </div>`;};
   let n=0;
   box.innerHTML=`
@@ -1248,12 +1276,16 @@ async function lbProgram(){
     <div class="secTitle">My Recent Lifts</div>
     <div class="card">${lbData.lifts.filter(l=>l.user_id===session.user.id).slice(0,12).map(l=>`<div class="weekRow"><span>${esc(l.exercise)} <small style="color:var(--muted)">wk${l.week}</small></span><span style="color:var(--gold)">${l.weight_kg} kg × ${l.reps}</span></div>`).join("")||'<div class="emptyMsg">Nothing logged yet. Get after it.</div>'}</div>`;
 }
-async function lbLogSet(ex,i){
-  const kg=parseFloat($("lbKg-"+i).value),rp=parseInt($("lbRp-"+i).value);
-  if(!kg||!rp){toast("Weight and reps first, champion.");return;}
-  const {error}=await sb.from("blokes_lifts").insert({user_id:session.user.id,week:lbWeek,day:lbDay,exercise:ex,weight_kg:kg,reps:rp});
+async function lbLogSets(ex,i,sets){
+  const rows=[];
+  for(let j=0;j<sets;j++){
+    const kg=parseFloat($("lbKg-"+i+"-"+j).value),rp=parseInt($("lbRp-"+i+"-"+j).value);
+    if(kg&&rp)rows.push({user_id:session.user.id,week:lbWeek,day:lbDay,exercise:ex,weight_kg:kg,reps:rp});
+  }
+  if(!rows.length){toast("Fill in at least one set — kilos and reps.");return;}
+  const {error}=await sb.from("blokes_lifts").insert(rows);
   if(error){toast(error.message);return;}
-  toast(ex+" — "+kg+"kg × "+rp+" banked.");
+  toast(ex+" — "+rows.length+" set"+(rows.length>1?"s":"")+" banked.");
   await loadBlokes(true);renderBlokes();
 }
 async function lbSubmitSession(){
@@ -1308,6 +1340,35 @@ function lbBoxTimer(){
     </div>`;
   updS();
 }
+let lbShop={};
+function lbParseItem(s){
+  const m=s.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l)\b\s*(.*)$/i)||s.match(/^(\d+(?:[.,]\d+)?)\s*(?:x|×)?\s+(.*)$/i);
+  if(m&&m.length===4)return {qty:parseFloat(m[1].replace(",",".")),unit:m[2].toLowerCase(),name:m[3]||s};
+  if(m)return {qty:parseFloat(m[1].replace(",",".")),unit:"",name:m[2]||s};
+  return {qty:1,unit:"",name:s};
+}
+function lbShopSet(key,v){lbShop[key]=Math.max(0,Math.min(21,parseInt(v)||0));const el=$("lbShopOut");if(el)el.innerHTML=lbShopListHtml();}
+function lbShopListHtml(){
+  const p=LB_DATA.plans[lbPlan];
+  const totals={};let any=false;
+  p.meals.forEach((meal,mi)=>meal.options.forEach((o,oi)=>{
+    if(/^or pick/i.test(o.name))return;
+    const times=lbShop[lbPlan+":"+mi+":"+oi]||0;
+    if(!times)return;any=true;
+    o.items.forEach(it=>{const q=lbParseItem(it);const key=(q.unit+"|"+q.name).toLowerCase();
+      if(!totals[key])totals[key]={qty:0,unit:q.unit,name:q.name};
+      totals[key].qty+=q.qty*times;});
+  }));
+  if(!any)return '<div class="emptyMsg">Set how many times a week you’ll eat each option above — your shopping list builds itself here.</div>';
+  const rows=Object.values(totals).sort((a,b)=>a.name.localeCompare(b.name));
+  return rows.map(t=>{
+    let qty=t.qty,unit=t.unit;
+    if(unit==="g"&&qty>=1000){qty=Math.round(qty/100)/10;unit="kg";}
+    if(unit==="ml"&&qty>=1000){qty=Math.round(qty/100)/10;unit="L";}
+    const q=Math.round(qty*10)/10;
+    return `<div class="weekRow"><span>${esc(t.name)}</span><b style="color:#c9994d;flex-shrink:0">${q}${unit?" "+unit:"×"}</b></div>`;
+  }).join("");
+}
 function lbFuel(){
   const box=$("lbContent");if(!box)return;
   const p=LB_DATA.plans[lbPlan];
@@ -1317,12 +1378,27 @@ function lbFuel(){
     <div class="pillBtns" style="margin-top:8px">
       <button class="${lbFuelTab==='plan'?'on':''}" onclick="lbFuelTab='plan';renderBlokes()">Meal Plan</button>
       <button class="${lbFuelTab==='rec'?'on':''}" onclick="lbFuelTab='rec';renderBlokes()">Recipes</button>
+      <button class="${lbFuelTab==='shop'?'on':''}" onclick="lbFuelTab='shop';renderBlokes()">Weekly Shop</button>
     </div>
     <div class="card" style="border-color:#3a2f1b;background:#131110">
       <h3 style="font-size:16px">${esc(p.name)} — ${esc(p.kcal)}</h3>
       <p style="font-size:12px;color:#c9994d;margin-top:4px">${esc(p.macros)}</p>
     </div>
-    ${lbFuelTab==="plan"?p.meals.map(m=>`<div class="card">
+    ${lbFuelTab==="shop"?`
+      <p style="font-size:12px;color:var(--muted);margin:2px 2px 10px;line-height:1.6">Set how many times this week you'll eat each option. The calculator totals every gram so you know exactly what to buy.</p>
+      ${p.meals.map((m,mi)=>`<div class="card">
+        <h3 style="font-size:14.5px">${esc(m.title)}</h3>
+        ${m.options.filter(o=>!/^or pick/i.test(o.name)).map(o=>{
+          const oi=m.options.indexOf(o),key=lbPlan+":"+mi+":"+oi;
+          return `<div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+            <div style="flex:1;min-width:0"><b style="font-size:12.5px;color:#c9994d">${esc(o.name)}</b></div>
+            <input type="number" min="0" max="21" value="${lbShop[key]||0}" style="width:64px;text-align:center;flex-shrink:0" oninput="lbShopSet('${key}',this.value)">
+            <span style="font-size:10.5px;color:var(--muted);flex-shrink:0">×/week</span>
+          </div>`;}).join("")}
+      </div>`).join("")}
+      <div class="secTitle">Your Weekly Shop — ${esc(p.name)}</div>
+      <div class="card" style="border-color:#3a2f1b;background:#131110"><div id="lbShopOut">${lbShopListHtml()}</div></div>`
+    :lbFuelTab==="plan"?p.meals.map(m=>`<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="font-size:15px">${esc(m.title)}</h3><span style="font-size:11.5px;color:var(--muted)">${esc(m.kcal)}</span></div>
       ${m.options.map(o=>`<div style="margin-top:10px">
         <b style="font-size:13px;color:#c9994d">${esc(o.name)}</b>
@@ -2180,7 +2256,11 @@ const WODS=[
 {n:"Tabata Assault Bike",cat:"tabata",f:"Classic · Tabata · Assault Bike",d:"20 seconds flat out on the assault bike, 10 seconds rest, eight rounds. Score total calories.",t:{type:"tabata"}},
 {n:"Tabata This",cat:"tabata",f:"Classic Benchmark \u00b7 Tabata \u00d7 5 movements",d:"Tabata (20s on / 10s off \u00d7 8) each: Row \u00b7 Air Squats \u00b7 Pull-Ups \u00b7 Push-Ups \u00b7 Sit-Ups, 1:00 between movements. Score is lowest interval each.",t:{type:"tabata"}},
 {n:"Tabata Something Else",cat:"tabata",f:"Classic Benchmark \u00b7 32 intervals",d:"8 intervals each, back to back: Pull-Ups \u00b7 Push-Ups \u00b7 Sit-Ups \u00b7 Air Squats. Score total reps.",t:{type:"tabata"}},
-{n:"Tabata Squats",cat:"tabata",f:"Classic \u00b7 Tabata",d:"20 seconds max air squats, 10 seconds rest, eight rounds. Score is your lowest round.",t:{type:"tabata"}}
+{n:"Tabata Squats",cat:"tabata",f:"Classic \u00b7 Tabata",d:"20 seconds max air squats, 10 seconds rest, eight rounds. Score is your lowest round.",t:{type:"tabata"}},
+{n:"Tabata Thrusters",cat:"tabata",f:"Barbell Tabata \u00b7 20/15kg bar",d:"20 seconds max thrusters with a light bar, 10 seconds rest, eight rounds. The bar gets heavy fast. Score total reps.",t:{type:"tabata"}},
+{n:"Tabata Kettlebell Swings",cat:"tabata",f:"Kettlebell Tabata \u00b7 24/16kg",d:"20 seconds max Russian swings, 10 seconds rest, eight rounds. Hips do the work. Score total reps.",t:{type:"tabata"}},
+{n:"Tabata Dumbbell Push Press",cat:"tabata",f:"Dumbbell Tabata \u00b7 2\u00d710/7.5kg",d:"20 seconds max push presses with a pair of dumbbells, 10 seconds rest, eight rounds. Score total reps.",t:{type:"tabata"}},
+{n:"Tabata Wall Balls",cat:"tabata",f:"Med Ball Tabata \u00b7 9/6kg",d:"20 seconds max wall balls, 10 seconds rest, eight rounds. Full depth, hit the target. Score total reps.",t:{type:"tabata"}}
 ];
 
 /* Workout timer engine */
@@ -2252,9 +2332,9 @@ function wodListHtml(){
 function renderFunctional(){
   if(fnSel!==null&&fnSel!==undefined)return renderWorkout(fnSel);
   $("main").innerHTML=`
-    <div class="hero" style="${bgStyle('functional',.5)}">
+    <div class="hero" style="${bgStyle('crossfit',.5)}">
       <div class="heroKicker">GRUNT Territory</div>
-      <div class="heroTitle">CrossFit WODs</div>
+      <div class="heroTitle">CrossFit Workouts</div>
       <div class="heroText">The real benchmarks \u2014 Girls, Heroes, Opens and classics. Pick one, hit start, the timer runs the format. Any run becomes shuttle runs on the 10/20/30m markers.</div>
     </div>
     <div class="subTabs">
@@ -2266,7 +2346,7 @@ function renderFunctional(){
 function renderWorkout(i){
   const w=WODS[i];if(!w){fnSel=null;renderFunctional();return;}
   $("main").innerHTML=`
-    <button class="backBtn" onclick="fnSel=null;clearInterval(T.int);renderFunctional();window.scrollTo(0,0)">\u2039 ${WOD_CATS.find(c=>c[0]===w.cat)[1]} WODs</button>
+    <button class="backBtn" onclick="fnSel=null;clearInterval(T.int);renderFunctional();window.scrollTo(0,0)">\u2039 ${WOD_CATS.find(c=>c[0]===w.cat)[1]} Workouts</button>
     <div class="card">
       <h3>${esc(w.n)}</h3>
       <div class="sub">${esc(w.f)}</div>
@@ -2453,7 +2533,7 @@ const AMA_KB=[
 {k:"max effort round ten seconds timer",a:"The Max Effort rounds in Build Your Own run themselves — 10, 15 or 20 seconds flat out with matching rest, beeping you in and out until the round's done."},
 {k:"weights program training plan gym floor follow",a:"The Weights tab has ten programs — from Foundations Four for beginners to The Big Three for barbell strength. Each one has the full sessions and how to progress week to week."},
 {k:"beginner start new program never trained",a:"Start with Foundations Four in the Weights tab — three simple machine sessions a week for four weeks. If you've been off for a while, Comeback Season is the gentler on-ramp."},
-{k:"wod crossfit workout functional metcon",a:"Functional Fitness has the real CrossFit WODs — the Girls, the Heroes and the classics, sorted into For Time, AMRAP, EMOM and Tabata. Tap any workout and the timer is already set to its format."},
+{k:"wod crossfit workout functional metcon",a:"Functional Fitness has the real CrossFit workouts — the Girls, the Heroes, the Opens and the classics, sorted into For Time, AMRAP, EMOM and Tabata. Tap any workout and the timer is already set to its format."},
 {k:"timer amrap emom tabata interval",a:"Every WOD and S&C session opens with a timer matched to its format — AMRAPs count down, EMOMs beep every minute, Tabatas run 20 on 10 off. Just hit Start."},
 {k:"pt personal training book trainer one session",a:"Hit Book A PT on the home screen. Pick your trainer — Jake, Sarsha, Joe or Alison — choose a session length and your preferred times, and they'll get back to you to lock it in."},
 {k:"jake coach who head trainer",a:"Jake's the Head Coach — former amateur and pro boxer who won his final pro bout at 35. Over ten years coaching with Australian, NSW and Australasian champions plus pro title holders on his record. Book him through Book A PT."},
@@ -2894,10 +2974,6 @@ function msgHtml(m){
 function renderChat(){
   $("main").innerHTML=`
     <img class="chatBgLogo" src="${LOGO}" alt="">
-    <div class="subTabs" style="position:relative;z-index:1;margin-top:4px">
-      <button class="active">The Chat</button>
-      <button onclick="mpEditing=false;go('board')">Leaderboard</button>
-    </div>
     <div class="chatWrap">
       <div id="chatMsgs">${msgs.length?msgs.map(msgHtml).join(""):'<div class="emptyMsg" style="text-align:center;margin-top:30px">No messages yet — start the conversation.</div>'}</div>
       <div class="chatInput">
