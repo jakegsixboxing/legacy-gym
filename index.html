@@ -289,8 +289,7 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(13,13,14,.
 <div id="appScreen" class="hidden">
   <div class="topBar">
     <div class="topBrand">
-      <img src="https://www.legacygym.net/cdn/shop/files/legacy_website_logo_120x.png?v=1767085643" alt="" onerror="this.style.display='none'">
-      <div class="tbText">Legacy Gym<small>Central Coast</small></div>
+      <img src="https://www.legacygym.net/cdn/shop/files/legacy_website_logo_200x.png?v=1767085643" alt="Legacy Gym" style="height:40px" onerror="this.style.display='none'">
     </div>
     <button class="profileBtn" id="profileBtn" onclick="go('profile')">–</button>
   </div>
@@ -436,11 +435,11 @@ function renderHome(){
       <div class="hwTitle">Culture<br>Without Chaos.</div>
     </div>
     <button class="amaTile" onclick="go('ama')">
-      <span class="amaMicIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg></span>
+      <span class="amaMicIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z"/><path d="M9 11h6M9 14h3"/></svg></span>
       <span style="text-align:left;flex:1">
-        <span class="hcKicker" style="display:block">Voice Assistant</span>
+        <span class="hcKicker" style="display:block">AI Information Assistant</span>
         <span class="hcTitle" style="display:block;font-size:21px">Ask Me Anything</span>
-        <span class="hcSub" style="display:block;padding-right:0">Hit the mic and ask about anything Legacy.</span>
+        <span class="hcSub" style="display:block;padding-right:0">Ask me about any gym-related information.</span>
       </span>
       <span style="color:var(--gold);font-size:28px">›</span>
     </button>
@@ -1708,20 +1707,19 @@ async function renderAMA(){
     amaLoaded=true;
   }
   if(view!=="ama")return;
-  if(!amaMsgs.length)amaMsgs.push({who:"ama",txt:"G'day"+((profile&&profile.first_name)?" "+profile.first_name:"")+" — ask me anything about Legacy. Class times, booking a sauna, training programs, PTs, prices — hit the mic and talk, or type it."});
+  if(!amaMsgs.length)amaMsgs.push({who:"ama",txt:"G'day"+((profile&&profile.first_name)?" "+profile.first_name:"")+" — ask me about any gym-related information. Class times, booking a sauna, training programs, PTs, prices — type it in and I'll sort you out."});
   $("main").innerHTML=`
     <div class="hero" style="background:linear-gradient(160deg,#17171a 0%,#0b0b0e 75%);padding:22px">
-      <div class="heroKicker">Voice Assistant</div>
+      <div class="heroKicker">AI Information Assistant</div>
       <div class="heroTitle">Ask Me Anything</div>
-      <div class="heroText">Talk or type — I'll answer from everything Legacy.</div>
+      <div class="heroText">Ask me about any gym-related information.</div>
     </div>
     <div class="chatWrap" style="height:calc(100vh - 330px)">
       <div id="amaMsgs" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px">
         ${amaMsgs.map(m=>amaMsgHtml(m)).join("")}
       </div>
       <div class="chatInput">
-        <button id="amaMicBtn" class="amaMicBig" onclick="amaMic()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg></button>
-        <input id="amaInput" placeholder="Ask me anything…" maxlength="300" onkeydown="if(event.key==='Enter')amaAsk()">
+        <input id="amaInput" placeholder="Type your question…" maxlength="300" onkeydown="if(event.key==='Enter')amaAsk()">
         <button onclick="amaAsk()">➤</button>
       </div>
     </div>`;
@@ -1768,26 +1766,6 @@ async function amaAsk(){
       sb.from("ama_misses").insert({user_id:session.user.id,question:q}).then(()=>{});
     }
   },350);
-}
-function amaMic(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){
-    $("amaInput").focus();
-    toast("Tap the mic on your keyboard and just talk — then hit send.");
-    return;
-  }
-  if(amaRec){amaRec.stop();return;}
-  amaRec=new SR();
-  amaRec.lang="en-AU";amaRec.interimResults=false;amaRec.maxAlternatives=1;
-  $("amaMicBtn").classList.add("live");
-  amaRec.onresult=e=>{
-    const t=e.results[0][0].transcript;
-    const inp=$("amaInput");if(inp){inp.value=t;amaAsk();}
-  };
-  amaRec.onend=()=>{amaRec=null;const b=$("amaMicBtn");if(b)b.classList.remove("live");};
-  amaRec.onerror=()=>{const b=$("amaMicBtn");if(b)b.classList.remove("live");amaRec=null;};
-  amaRec.start();
-  toast("Listening… ask away.");
 }
 
 /* ---- Book A PT ---- */
@@ -1868,7 +1846,8 @@ async function loadStaffData(){
     sb.from("pt_requests").select("*").order("created_at",{ascending:false}).limit(100),
     sb.from("ama_misses").select("*").order("created_at",{ascending:false}).limit(50)
   ]);
-  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[],ptreqs:pr.data||[],misses:am.data||[]};
+  const nb=await sb.from("staff_notices").select("*").order("created_at",{ascending:false}).limit(100);
+  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[],ptreqs:pr.data||[],misses:am.data||[],notices:nb.data||[]};
   if(!staffChannel){
     staffChannel=sb.channel("staff-chat")
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"staff_messages"},pl=>{
@@ -1911,6 +1890,36 @@ function renderStaffChat(){
         <button onclick="sendStaffMsg()">➤</button>
       </div>
     </div>
+    <div class="secTitle">Noticeboard — Flag It For Management</div>
+    <div class="card">
+      <p style="margin-bottom:10px">Broken gear, a client who needs something, ice bath needs emptying — drop it here and Jake &amp; Alison see it straight away.</p>
+      <div class="chatInput" style="border-top:none;padding-top:0">
+        <input id="nbInput" placeholder="e.g. Treadmill 2 belt slipping…" maxlength="500" onkeydown="if(event.key==='Enter')postNotice()">
+        <button onclick="postNotice()">➤</button>
+      </div>
+    </div>
+    ${mgr&&(staffData.notices||[]).length?`<div class="secTitle">Noticeboard — Open Items (${staffData.notices.length})</div>
+    <div class="card" style="border-color:var(--gold-dim)">
+      ${staffData.notices.map(n=>`<div class="sessItem">
+        <div style="min-width:0"><b>${esc(n.body)}</b><small>${esc(n.author_name)} · ${fmtWhen(n.created_at)}</small></div>
+        <button class="xBtn" style="border-color:var(--ok);color:var(--ok)" title="Sorted" onclick="delNotice('${n.id}')">✓</button>
+      </div>`).join("")}
+    </div>`:""}
+    ${profile.email==="jakegsixboxing@gmail.com"?(()=>{
+      const wk=weekStartOf(new Date());
+      const rows=(staffData.comms||[]).filter(c=>new Date(c.session_date+"T12:00:00")>=wk);
+      const tot=rows.reduce((a,c)=>a+Number(c.commission),0);
+      const byT={};rows.forEach(c=>{byT[c.trainer_id]=(byT[c.trainer_id]||0)+Number(c.commission);});
+      const names=staffData.staff.reduce((a,s)=>{a[s.id]=s.first_name||s.email;return a;},{});
+      return `<div class="secTitle">Owner Only — Combined Weekly Commission</div>
+      <div class="card" style="border-color:var(--gold)">
+        <div class="statGrid" style="margin-bottom:0">
+          <div class="statBox"><div class="sv">$${tot.toFixed(0)}</div><div class="sl">All Trainers This Wk</div></div>
+          <div class="statBox"><div class="sv">${rows.length}</div><div class="sl">Sessions</div></div>
+          <div class="statBox"><div class="sv">${Object.keys(byT).length}</div><div class="sl">Trainers Logging</div></div>
+        </div>
+        ${Object.keys(byT).length?`<div style="margin-top:12px">${Object.entries(byT).map(([id,amt])=>`<div class="weekRow"><span>${esc(names[id]||"Trainer")}</span><span style="color:var(--gold);font-weight:700">$${amt.toFixed(0)}</span></div>`).join("")}</div>`:""}
+      </div>`;})():""}
     ${(staffData.ptreqs||[]).length?`<div class="secTitle">Incoming PT Requests</div>
     <div class="card">${staffData.ptreqs.map(r=>`<div class="sessItem">
       <div style="min-width:0"><b>${esc(r.member_name)} → ${esc(r.trainer)}</b>
@@ -1945,6 +1954,19 @@ async function sendStaffMsg(){
   const name=((profile.first_name||"")+" "+(profile.last_name||"")).trim()||"Staff";
   const {error}=await sb.from("staff_messages").insert({user_id:session.user.id,name,body:v});
   if(error){toast(error.message);el.value=v;}
+}
+async function postNotice(){
+  const el=$("nbInput"),v=el.value.trim();if(!v)return;
+  const name=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Staff";
+  const {error}=await sb.from("staff_notices").insert({author_id:session.user.id,author_name:name,body:v});
+  if(error){toast(error.message);return;}
+  toast("On the board — management will see it.");
+  renderStaff();
+}
+async function delNotice(id){
+  const {error}=await sb.from("staff_notices").delete().eq("id",id);
+  if(error){toast(error.message);return;}
+  renderStaff();
 }
 async function teachAma(){
   const k=$("kbKeys").value.trim(),a=$("kbAns").value.trim();
@@ -2013,15 +2035,16 @@ function renderStaffMember(uid){
     </div>
     ${me?`<div class="card">
       <div class="field"><label>Client Name</label><input id="pcClient" placeholder="e.g. Joe Smith"></div>
-      <div class="row2">
-        <div class="field"><label>Session Length</label><select id="pcMins"><option value="30">30 min</option><option value="45" selected>45 min</option><option value="60">60 min</option><option value="90">90 min</option></select></div>
-        <div class="field"><label>Commission ($)</label><input id="pcAmt" type="number" inputmode="decimal" step="0.5" placeholder="15"></div>
-      </div>
+      <div class="field"><label>Session Type</label><select id="pcType">
+        <option value="30">30 min &amp; under — $10 commission</option>
+        <option value="45" selected>Over 30 min (45/60) — $15 commission</option>
+        <option value="211">2-on-1 — $25 commission</option>
+      </select></div>
       <button class="btnGold" onclick="addComm()">Log PT Session</button>
     </div>`:""}
     <div class="card">
       ${mine.length?mine.slice(0,25).map(c=>`<div class="sessItem">
-        <div><b>${esc(c.client_name)}</b><small>${c.minutes} min PT · $${Number(c.commission).toFixed(2)} · ${fmtDateAU(c.session_date)}</small></div>
+        <div><b>${esc(c.client_name)}</b><small>${c.note==="2-on-1"?"2-on-1":c.minutes+" min"} PT · $${Number(c.commission).toFixed(2)} · ${fmtDateAU(c.session_date)}</small></div>
         ${(me||mgr)?`<button class="xBtn" onclick="delComm('${c.id}')">×</button>`:""}
       </div>`).join(""):'<div class="emptyMsg">No PT sessions logged yet.</div>'}
     </div>`;
@@ -2071,12 +2094,13 @@ async function delTask(id){
   renderStaff();
 }
 async function addComm(){
-  const client=$("pcClient").value.trim(),mins=parseInt($("pcMins").value),amt=parseFloat($("pcAmt").value);
+  const client=$("pcClient").value.trim();
   if(!client){toast("Whose session was it?");return;}
-  if(!amt&&amt!==0){toast("Put the commission amount in.");return;}
-  const {error}=await sb.from("pt_commissions").insert({trainer_id:session.user.id,client_name:client,minutes:mins,commission:amt,session_date:isoDateLocal()});
+  const map={"30":{minutes:30,commission:10,note:""},"45":{minutes:45,commission:15,note:""},"211":{minutes:60,commission:25,note:"2-on-1"}};
+  const m=map[$("pcType").value]||map["45"];
+  const {error}=await sb.from("pt_commissions").insert({trainer_id:session.user.id,client_name:client,minutes:m.minutes,commission:m.commission,note:m.note,session_date:isoDateLocal()});
   if(error){toast(error.message);return;}
-  toast("Logged — "+client+", "+mins+" min, $"+amt.toFixed(2));
+  toast("Logged — "+client+(m.note?" · 2-on-1":" · "+m.minutes+" min")+" · $"+m.commission+" commission banked.");
   renderStaff();
 }
 async function delComm(id){
