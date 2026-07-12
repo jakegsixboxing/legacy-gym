@@ -226,6 +226,11 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .timerSub{font-size:12px;color:var(--muted);line-height:1.5;min-height:18px}
 .timerBtns{display:flex;gap:10px;margin-top:16px}
 .timerBtns button{flex:1;padding:14px;border-radius:8px;font-weight:800;letter-spacing:2px;text-transform:uppercase;font-size:12px}
+.timerCard.flashG{animation:flG .8s steps(1) infinite;border-color:#22c55e}
+.timerCard.flashR{animation:flR .8s steps(1) infinite;border-color:#ef4444}
+@keyframes flG{0%,100%{background:#0b3a1e}50%{background:#166534}}
+@keyframes flR{0%,100%{background:#3f1013}50%{background:#7f1d1d}}
+.timerPhase.grn{color:#4ade80}.timerPhase.red{color:#f87171}.timerPhase.amber{color:#fbbf24}
 .tStart{background:var(--gold);border:none;color:#161307}
 .tReset{background:transparent;border:1px solid var(--line);color:var(--muted)}
 
@@ -729,16 +734,17 @@ function byoPhases(){
     const rn="Round "+(i+1)+" of "+byo.list.length+" — "+it.n+(it.db?" · "+byo.db+"kg":"");
     if(it.seg&&it.seg.work){
       let t=0,on=true;
-      while(t<L){const d=Math.min(on?it.seg.work:it.seg.rest,L-t);p.push({b:on?it.seg.wl:"REST",sm:rn,s:d,k:on?"work":"rest"});t+=d;on=!on;}
+      while(t<L){const d=Math.min(on?it.seg.work:it.seg.rest,L-t);p.push({b:on?it.seg.wl:"REST",sm:rn,s:d,k:on?"work":"rest",fl:on?"g":"r"});t+=d;on=!on;}
     }else if(it.seg&&it.seg.alt){
       let t=0,j=0;
-      while(t<L){const d=Math.min(it.seg.every,L-t);p.push({b:it.seg.alt[j%it.seg.alt.length],sm:rn,s:d,k:"work"});t+=d;j++;}
+      while(t<L){const d=Math.min(it.seg.every,L-t);p.push({b:it.seg.alt[j%it.seg.alt.length],sm:rn,s:d,k:"work",fl:j%2===0?"g":"r"});t+=d;j++;}
     }else{
       p.push({b:it.n.toUpperCase(),sm:rn,s:L,k:"work"});
     }
+    p[p.length-1].end=true;
     if(i<byo.list.length-1){
       const nx=byoFind(byo.list[i+1]);
-      p.push({b:"REST",sm:"Next: Round "+(i+2)+" — "+(nx?nx.n:""),s:byo.rest,k:"rest"});
+      p.push({b:"REST",sm:"Next: Round "+(i+2)+" — "+(nx?nx.n:""),s:byo.rest,k:"rest",br:true});
     }
   });
   return p;
@@ -753,7 +759,7 @@ function byoExit(){clearInterval(S.int);byoActive=false;renderBoxBYO();}
 function renderBYOTimer(){
   $("boxContent").innerHTML=`
     <button class="backBtn" onclick="byoExit()">‹ Back To The Builder</button>
-    <div class="timerCard">
+    <div class="timerCard" id="sCard">
       <div class="timerSub" id="sSub"></div>
       <div class="timerPhase gold" id="sPhase">READY</div>
       <div class="timerTime" id="sTime">--:--</div>
@@ -776,25 +782,31 @@ function sToggle(){
 function sReset(){clearInterval(S.int);S.idx=0;S.remain=S.phases.length?S.phases[0].s:0;S.run=false;updS();}
 function sTick(){
   S.remain--;
+  const p=S.phases[S.idx];
+  if(p&&p.br&&S.remain===10){say("Ten seconds out");beep(980,.15);setTimeout(()=>beep(980,.15),220);}
   if(S.remain>0&&S.remain<=3)beep(880,.12);
   if(S.remain<=0){
+    if(p&&p.end)bell();
     S.idx++;
-    if(S.idx>=S.phases.length){S.run=false;clearInterval(S.int);beep(520,.4);setTimeout(()=>beep(520,.4),450);setTimeout(()=>beep(780,.8),900);}
-    else{S.remain=S.phases[S.idx].s;beep(520,.5);}
+    if(S.idx>=S.phases.length){S.run=false;clearInterval(S.int);if(!(p&&p.end))bell();}
+    else{S.remain=S.phases[S.idx].s;if(!(p&&p.end))beep(520,.5);}
   }
   updS();
 }
 function updS(){
   const ph=$("sPhase");if(!ph)return;
-  const tm=$("sTime"),sub=$("sSub"),nx=$("sNext"),go=$("sGo");
+  const tm=$("sTime"),sub=$("sSub"),nx=$("sNext"),go=$("sGo"),card=$("sCard");
   if(S.idx>=S.phases.length){
+    if(card)card.className="timerCard";
     ph.textContent="DONE";ph.className="timerPhase gold";tm.textContent="0:00";
     sub.textContent="Session complete";nx.textContent=byo.list.length+" rounds in the bank. Well earned.";go.textContent="Go Again";return;
   }
   const p=S.phases[S.idx];
-  ph.textContent=p.b;
-  ph.className="timerPhase "+(p.k==="rest"?"":"gold");
-  tm.textContent=fmtSec(S.remain);
+  const tenOut=p.br&&S.run&&S.remain<=10;
+  ph.textContent=tenOut?"10 SECONDS OUT":p.b;
+  ph.className="timerPhase "+(tenOut?"amber":p.fl==="g"?"grn":p.fl==="r"?"red":(p.k==="rest"?"":"gold"));
+  if(card)card.className="timerCard"+(S.run&&p.fl?(p.fl==="g"?" flashG":" flashR"):"");
+  tm.textContent=p.fl?String(S.remain):fmtSec(S.remain);
   sub.textContent=p.sm;
   const n=S.phases[S.idx+1];
   nx.textContent=n?("Next: "+n.b.toLowerCase()+" · "+fmtSec(n.s)):"Final stretch";
@@ -1559,6 +1571,8 @@ const WODS=[
 let T={phases:[],idx:0,remain:0,up:false,run:false,int:null};
 let __ac=null;
 function beep(freq,dur){try{__ac=__ac||new (window.AudioContext||window.webkitAudioContext)();const o=__ac.createOscillator(),g=__ac.createGain();o.frequency.value=freq;o.connect(g);g.connect(__ac.destination);g.gain.setValueAtTime(.4,__ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,__ac.currentTime+dur);o.start();o.stop(__ac.currentTime+dur);}catch(e){}}
+function bell(){try{__ac=__ac||new (window.AudioContext||window.webkitAudioContext)();const t=__ac.currentTime;[0,.35].forEach(off=>{[790,1580,2372].forEach((f,i)=>{const o=__ac.createOscillator(),g=__ac.createGain();o.frequency.value=f;o.connect(g);g.connect(__ac.destination);g.gain.setValueAtTime(i?.15:.5,t+off);g.gain.exponentialRampToValueAtTime(.001,t+off+1.3);o.start(t+off);o.stop(t+off+1.3);});});}catch(e){}}
+function say(txt){try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.rate=1.05;window.speechSynthesis.speak(u);}catch(e){}}
 function fmtSec(s){s=Math.max(0,s);return Math.floor(s/60)+":"+pad(s%60);}
 function buildPhases(t){
   if(t.type==="amrap")return {p:[{l:"AMRAP",s:t.min*60}],up:false};
