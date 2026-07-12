@@ -102,6 +102,15 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .pillBtns button.on{background:var(--gold);border-color:var(--gold);color:#161307}
 .miniSel{margin-top:8px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;display:block}
 
+/* legacy elite */
+.eliteCard{background:linear-gradient(150deg,#1d1a12 0%,#111013 55%,#0b0b0c 100%);border:1.5px solid var(--gold);border-radius:16px;padding:28px 22px;text-align:center}
+.eliteStar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#a37e2c,#e6c15c);color:#241c05;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 0 24px rgba(230,193,92,.35)}
+.elitePrice{font-size:40px;font-weight:900;color:var(--gold)}
+.elitePrice small{font-size:15px;font-weight:600;color:var(--muted)}
+.eliteCard ul{list-style:none}
+.eliteCard ul li{color:#d8d5cd;font-size:13.5px;line-height:1.5;padding:7px 0 7px 24px;position:relative}
+.eliteCard ul li::before{content:'★';position:absolute;left:0;color:var(--gold);font-size:12px;top:9px}
+
 /* division badges + belts */
 .fcPhotoWrap{position:relative;flex-shrink:0}
 .dvBadge{position:absolute;bottom:-8px;right:-8px;border-radius:10px;padding:5px 9px;font-size:9px;font-weight:800;letter-spacing:1px;line-height:1;display:flex;align-items:baseline;text-transform:uppercase;overflow:hidden;
@@ -482,6 +491,7 @@ function renderBoxing(){
       <button class="${boxSub==='sparring'?'active':''}" onclick="setBoxSub('sparring')">Sparring Club</button>
       <button class="${boxSub==='byo'?'active':''}" onclick="setBoxSub('byo')">Build Your Own</button>
       <button class="${boxSub==='register'?'active':''}" onclick="setBoxSub('register')">Register For Classes</button>
+      <button class="${boxSub==='elite'?'active':''}" style="${boxSub==='elite'?'':'border-color:var(--gold-dim);color:var(--gold)'}" onclick="setBoxSub('elite')">★ Legacy Elite</button>
     </div>
     <div id="boxContent"></div>`;
   renderBoxSub();
@@ -491,7 +501,60 @@ function renderBoxSub(){
   if(boxSub==="fitness")renderBoxFitness();
   else if(boxSub==="byo")renderBoxBYO();
   else if(boxSub==="register")renderBoxRegister();
+  else if(boxSub==="elite")renderBoxElite();
   else renderSparringClub();
+}
+
+/* ---- Legacy Elite (premium, $9.99/wk) ---- */
+const ELITE_SESSIONS=[
+{id:"champ12",name:"The Championship 12",rounds:["shOpen","bgStraight","bgLead","bgBack","bgCombo","bgMax15","bgUnders","bgInside","bgMid","bgCounter","bgPower","bgMax10"],len:180,rest:60,
+ desc:"Twelve championship rounds, 3:00 with a minute in the corner. Opens easy, builds through every range, finishes on max effort. The full fight distance."},
+{id:"engine8",name:"Engine Builder 8",rounds:["skip5","shOpen","bgStraight","bgMax10","bgUnders","bgMax15","bgPower","bgMax20"],len:120,rest:30,
+ desc:"Five minutes of skipping into seven two-minute rounds with short 30-second turnarounds. Built for one thing: a bigger tank."},
+{id:"switch6",name:"The Switch Hitter",rounds:["shSwitch","bgSwitch","bgFirstThird","bgTwoPhase","bgCombo","bgMax15"],len:180,rest:60,
+ desc:"Six rounds living in both stances — switch shadow, switch punching on the bag, firsts and thirds, and two-phase attacks. Uncomfortable on purpose."},
+{id:"defence8",name:"Defence Masterclass",rounds:["shDef","bgUnders","bgCounter","bgFrame","dbUnders","bgInside","bgUnders","bgMax10"],len:120,rest:30,
+ desc:"Eight rounds where the defence does the scoring — slips, rolls, counters, framing, and dumbbell unders to burn the movement in."},
+{id:"grinder10",name:"The Grinder",rounds:["skip10","bgPower","bgClinch","bgInside","bgMid","bgLong","bgMax20","bgUnders","bgPower","bgMax10"],len:180,rest:60,
+ desc:"Ten heavy rounds after a ten-minute skip. Power punching, clinch work, every range. This is the session that builds the fighters."},
+{id:"speed6",name:"Speed Week Special",rounds:["shLead","bgStraight","bgMax10","bgFirstThird","bgMax15","dbShadow"],len:120,rest:30,
+ desc:"Six fast two-minute rounds — lead hand speed, straight punching, max-effort bursts and light dumbbells to finish. Sharp, not slow."}
+];
+function renderBoxElite(){
+  const prem=profile&&(profile.is_premium||profile.is_staff);
+  if(!prem){
+    $("boxContent").innerHTML=`
+      <div class="eliteCard">
+        <div class="eliteStar">★</div>
+        <h3 class="fcName" style="font-size:26px">Legacy Elite</h3>
+        <div class="sub" style="margin:6px 0 14px">Premium Training · Members Only</div>
+        <div class="elitePrice">$9.99<small>/week</small></div>
+        <ul style="text-align:left;margin-top:14px">
+          <li>Coach-built full boxing sessions — every round programmed, timed and called for you</li>
+          <li>The Championship 12, The Grinder, Defence Masterclass and more</li>
+          <li>Fresh sessions added every camp</li>
+          <li>Cancel anytime</li>
+        </ul>
+        <p style="margin-top:16px;color:var(--muted);font-size:12.5px;line-height:1.6">See the team at reception or message <b style="color:var(--gold)">0401 587 508</b> to switch Elite on — it's added straight to your weekly membership, and this tab unlocks on the spot.</p>
+      </div>`;
+    return;
+  }
+  $("boxContent").innerHTML=`
+    <div class="pillRow" style="margin-bottom:14px"><span class="pill" style="border-color:var(--gold);color:var(--gold)">★ Elite Member — Unlocked</span></div>
+    <p style="color:var(--muted);font-size:12.5px;margin:0 2px 14px;line-height:1.5">Coach-built sessions, ready to go — hit start and the timer runs every round, rest and changeover for you.</p>
+    ${ELITE_SESSIONS.map(s=>`<div class="card" style="border-color:var(--gold-dim)">
+      <h3>${s.name}</h3>
+      <div class="sub">${s.rounds.length} rounds · ${s.len/60}:00 rounds · ${s.rest===60?"1:00":"0:30"} rest</div>
+      <p>${s.desc}</p>
+      <button class="btnGold" style="margin-top:12px" onclick="startElite('${s.id}')">Start This Session</button>
+    </div>`).join("")}`;
+}
+function startElite(id){
+  const s=ELITE_SESSIONS.find(x=>x.id===id);if(!s)return;
+  byo.len=s.len;byo.rest=s.rest;byo.list=[...s.rounds];byoSave();
+  boxSub="byo";renderBoxing();
+  byoStart();
+  toast(s.name+" loaded — hit start when you're gloved up.");
 }
 function renderBoxFull(){
   $("boxContent").innerHTML=`
@@ -2008,7 +2071,7 @@ function renderStaffChat(){
     <div class="card">
       <p style="margin-bottom:12px">Grant a team member access once they've created their normal member login. Their tab appears automatically.</p>
       <div class="field"><label>Their Login Email</label><input id="gaEmail" type="email" placeholder="name@email.com"></div>
-      <div class="field"><label>Access Level</label><select id="gaRole"><option value="staff">Staff</option><option value="manager">Manager (sees all tasks + commissions)</option><option value="remove">Remove staff access</option></select></div>
+      <div class="field"><label>Access Level</label><select id="gaRole"><option value="staff">Staff</option><option value="manager">Manager (sees all tasks + commissions)</option><option value="remove">Remove staff access</option><option value="premium">Unlock Legacy Elite ($9.99/wk member)</option><option value="unpremium">Remove Legacy Elite access</option></select></div>
       <button class="btnGold" onclick="grantStaff()">Update Access</button>
     </div>`:""}`;
   const box=$("stMsgs");if(box)box.scrollTop=box.scrollHeight;
@@ -2028,6 +2091,12 @@ async function handlePtRequest(id){
 async function grantStaff(){
   const em=$("gaEmail").value.trim();if(!em){toast("Put their email in.");return;}
   const role=$("gaRole").value;
+  if(role==="premium"||role==="unpremium"){
+    const {data,error}=await sb.rpc("grant_premium",{target_email:em,make_premium:role==="premium"});
+    toast(error?error.message:data);
+    if(!error)renderStaff();
+    return;
+  }
   const {data,error}=await sb.rpc("grant_staff",{target_email:em,make_staff:role!=="remove",make_manager:role==="manager"});
   toast(error?error.message:data);
   if(!error)renderStaff();
