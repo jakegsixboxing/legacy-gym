@@ -520,10 +520,12 @@ const ELITE_SESSIONS=[
 {id:"speed6",name:"Speed Week Special",rounds:["shLead","bgStraight","bgMax10","bgFirstThird","bgMax15","dbShadow"],len:120,rest:30,
  desc:"Six fast two-minute rounds — lead hand speed, straight punching, max-effort bursts and light dumbbells to finish. Sharp, not slow."}
 ];
+let elitePreview=false;
 function renderBoxElite(){
   const prem=profile&&(profile.is_premium||profile.is_staff);
-  if(!prem){
+  if(!prem||elitePreview){
     $("boxContent").innerHTML=`
+      ${elitePreview?`<button class="backBtn" onclick="elitePreview=false;renderBoxElite()">‹ Back To Elite (staff preview off)</button>`:""}
       <div class="eliteCard">
         <div class="eliteStar">★</div>
         <h3 class="fcName" style="font-size:26px">Legacy Elite</h3>
@@ -540,7 +542,8 @@ function renderBoxElite(){
     return;
   }
   $("boxContent").innerHTML=`
-    <div class="pillRow" style="margin-bottom:14px"><span class="pill" style="border-color:var(--gold);color:var(--gold)">★ Elite Member — Unlocked</span></div>
+    <div class="pillRow" style="margin-bottom:14px"><span class="pill" style="border-color:var(--gold);color:var(--gold)">★ Elite Member — Unlocked</span>
+    ${profile.is_staff?`<span class="pill" style="cursor:pointer" onclick="elitePreview=true;renderBoxElite()">Preview locked view</span>`:""}</div>
     <p style="color:var(--muted);font-size:12.5px;margin:0 2px 14px;line-height:1.5">Coach-built sessions, ready to go — hit start and the timer runs every round, rest and changeover for you.</p>
     ${ELITE_SESSIONS.map(s=>`<div class="card" style="border-color:var(--gold-dim)">
       <h3>${s.name}</h3>
