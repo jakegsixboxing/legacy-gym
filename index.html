@@ -1536,7 +1536,6 @@ const WOD_CATS=[["ft","For Time"],["amrap","AMRAP"],["emom","EMOM"],["tabata","T
 const WODS=[
 {n:"Fran",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 10:00 cap",d:"21-15-9 reps: Thrusters 42.5/30kg \u00b7 Pull-Ups. The most famous WOD in CrossFit.",t:{type:"fortime",cap:600}},
 {n:"Grace",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 8:00 cap",d:"30 Clean & Jerks 61/43kg \u2014 one bar, thirty reps, go.",t:{type:"fortime",cap:480}},
-{n:"Isabel",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 8:00 cap",d:"30 Power Snatches 61/43kg.",t:{type:"fortime",cap:480}},
 {n:"Helen",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 3 RFT \u00b7 15:00 cap",d:"400m Run \u00b7 21 KB Swings 24/16kg \u00b7 12 Pull-Ups.",t:{type:"fortime",cap:900}},
 {n:"Diane",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 10:00 cap",d:"21-15-9: Deadlifts 102/70kg \u00b7 Handstand Push-Ups.",t:{type:"fortime",cap:600}},
 {n:"Elizabeth",cat:"ft",f:"Benchmark 'Girls' WOD \u00b7 For Time \u00b7 12:00 cap",d:"21-15-9: Squat Cleans 61/43kg \u00b7 Ring Dips.",t:{type:"fortime",cap:720}},
@@ -1551,17 +1550,25 @@ const WODS=[
 {n:"Filthy Fifty",cat:"ft",f:"Classic Chipper \u00b7 For Time \u00b7 30:00 cap",d:"50 each: Box Jumps \u00b7 Jumping Pull-Ups \u00b7 KB Swings \u00b7 Walking Lunges \u00b7 Knees-to-Elbows \u00b7 Push Press \u00b7 Back Extensions \u00b7 Wall Balls \u00b7 Burpees \u00b7 Double-Unders.",t:{type:"fortime",cap:1800}},
 {n:"Murph",cat:"ft",f:"Hero WOD \u00b7 For Time \u00b7 60:00 cap",d:"1.6km Run \u00b7 100 Pull-Ups \u00b7 200 Push-Ups \u00b7 300 Air Squats \u00b7 1.6km Run. Partition as needed. Wear a vest if you dare.",t:{type:"fortime",cap:3600}},
 {n:"DT",cat:"ft",f:"Hero WOD \u00b7 5 RFT \u00b7 15:00 cap",d:"12 Deadlifts \u00b7 9 Hang Power Cleans \u00b7 6 Push Jerks \u2014 70/47.5kg.",t:{type:"fortime",cap:900}},
-{n:"Randy",cat:"ft",f:"Hero WOD \u00b7 For Time \u00b7 12:00 cap",d:"75 Power Snatches 34/25kg.",t:{type:"fortime",cap:720}},
+{n:"Christine",cat:"ft",f:"Classic Benchmark \u00b7 3 RFT \u00b7 15:00 cap",d:"500m Row \u00b7 12 Bodyweight Deadlifts \u00b7 21 Box Jumps.",t:{type:"fortime",cap:900}},
+{n:"Wittman",cat:"ft",f:"Hero WOD \u00b7 7 RFT \u00b7 25:00 cap",d:"15 KB Swings 24/16kg \u00b7 15 Power Cleans 43/30kg \u00b7 15 Box Jumps 60/50cm.",t:{type:"fortime",cap:1500}},
+{n:"Hammer",cat:"ft",f:"Hero WOD \u00b7 5 rounds \u00b7 90s rest between",d:"5 Power Cleans \u00b7 10 Front Squats \u00b7 5 Jerks \u2014 61/43kg \u00b7 20 Pull-Ups. Rest 90 seconds between rounds.",t:{type:"fortime",cap:1800}},
 {n:"Cindy",cat:"amrap",f:"Benchmark 'Girls' WOD \u00b7 AMRAP 20",d:"5 Pull-Ups \u00b7 10 Push-Ups \u00b7 15 Air Squats \u2014 as many rounds as possible in 20 minutes.",t:{type:"amrap",min:20}},
 {n:"Mary",cat:"amrap",f:"Benchmark 'Girls' WOD \u00b7 AMRAP 20",d:"5 Handstand Push-Ups \u00b7 10 Pistols \u00b7 15 Pull-Ups.",t:{type:"amrap",min:20}},
 {n:"Nicole",cat:"amrap",f:"Benchmark 'Girls' WOD \u00b7 AMRAP 20",d:"400m Run \u00b7 Max-rep Pull-Ups each round. Score is total pull-ups.",t:{type:"amrap",min:20}},
 {n:"Nate",cat:"amrap",f:"Hero WOD \u00b7 AMRAP 20",d:"2 Muscle-Ups \u00b7 4 Handstand Push-Ups \u00b7 8 KB Swings 32kg.",t:{type:"amrap",min:20}},
 {n:"The Chief",cat:"amrap",f:"Classic Benchmark \u00b7 5 \u00d7 AMRAP 3:00 \u00b7 1:00 rest",d:"3 Power Cleans 61/43kg \u00b7 6 Push-Ups \u00b7 9 Air Squats \u2014 restart each 3-minute AMRAP fresh.",t:{type:"interval",work:180,rest:60,rounds:5,workLabel:"AMRAP"}},
 {n:"Fight Gone Bad",cat:"amrap",f:"Classic Benchmark \u00b7 3 rounds \u00b7 5\u00d71:00 stations",d:"1:00 each: Wall Balls \u00b7 Sumo Deadlift High Pull 35kg \u00b7 Box Jumps \u00b7 Push Press 35kg \u00b7 Row (cals) \u00b7 then 1:00 rest. Score total reps.",t:{type:"interval",work:300,rest:60,rounds:3,workLabel:"ROUND"}},
+{n:"Open 12.3",cat:"amrap",f:"CrossFit Open WOD · AMRAP 18",d:"15 Box Jumps 60/50cm · 12 Push Press 52/35kg · 9 Toes-to-Bar — as many rounds as possible in 18 minutes.",t:{type:"amrap",min:18}},
+{n:"The Ghost",cat:"amrap",f:"Classic Benchmark · 6 rounds · 3:00 on / 1:00 off",d:"Each round: 1:00 max-cal Row · 1:00 max Burpees · 1:00 max Double-Unders · then 1:00 rest. Score total reps + cals.",t:{type:"interval",work:180,rest:60,rounds:6,workLabel:"ROUND"}},
 {n:"Chelsea",cat:"emom",f:"Benchmark 'Girls' WOD \u00b7 EMOM 30",d:"Every minute: 5 Pull-Ups \u00b7 10 Push-Ups \u00b7 15 Air Squats. Miss a minute and you're done \u2014 score completed minutes.",t:{type:"emom",min:30}},
 {n:"Death By Burpees",cat:"emom",f:"Classic CrossFit ladder \u00b7 EMOM to failure",d:"Minute 1: 1 burpee. Minute 2: 2 burpees. Add one every minute until you can't finish inside the minute.",t:{type:"emom",min:20}},
 {n:"Death By Thrusters",cat:"emom",f:"Classic CrossFit ladder \u00b7 EMOM to failure",d:"Minute 1: 1 thruster 42.5/30kg. Add one each minute until the minute beats you.",t:{type:"emom",min:20}},
 {n:"Power Clean EMOM",cat:"emom",f:"Classic strength EMOM \u00b7 EMOM 10",d:"2 Power Cleans every minute at ~80% \u2014 heavy, crisp, no misses.",t:{type:"emom",min:10}},
+{n:"Kalsu",cat:"emom",f:"Hero WOD · EMOM until 100 thrusters",d:"On every minute: 5 Burpees, then Thrusters 61/43kg for the rest of the minute — finish when you hit 100 total thrusters. One of the hardest WODs ever written.",t:{type:"emom",min:30}},
+{n:"Death By Calories",cat:"emom",f:"Classic ladder · Assault Bike · EMOM to failure",d:"Minute 1: 1 calorie on the assault bike. Minute 2: 2 calories. Add one every minute until the bike wins.",t:{type:"emom",min:20}},
+{n:"Tabata Row",cat:"tabata",f:"Classic · Tabata · Rower",d:"20 seconds max effort on the rower, 10 seconds rest, eight rounds. Score total metres.",t:{type:"tabata"}},
+{n:"Tabata Assault Bike",cat:"tabata",f:"Classic · Tabata · Assault Bike",d:"20 seconds flat out on the assault bike, 10 seconds rest, eight rounds. Score total calories.",t:{type:"tabata"}},
 {n:"Tabata This",cat:"tabata",f:"Classic Benchmark \u00b7 Tabata \u00d7 5 movements",d:"Tabata (20s on / 10s off \u00d7 8) each: Row \u00b7 Air Squats \u00b7 Pull-Ups \u00b7 Push-Ups \u00b7 Sit-Ups, 1:00 between movements. Score is lowest interval each.",t:{type:"tabata"}},
 {n:"Tabata Something Else",cat:"tabata",f:"Classic Benchmark \u00b7 32 intervals",d:"8 intervals each, back to back: Pull-Ups \u00b7 Push-Ups \u00b7 Sit-Ups \u00b7 Air Squats. Score total reps.",t:{type:"tabata"}},
 {n:"Tabata Squats",cat:"tabata",f:"Classic \u00b7 Tabata",d:"20 seconds max air squats, 10 seconds rest, eight rounds. Score is your lowest round.",t:{type:"tabata"}}
@@ -1639,7 +1646,7 @@ function renderFunctional(){
     <div class="hero" style="${bgStyle('functional',.5)}">
       <div class="heroKicker">GRUNT Territory</div>
       <div class="heroTitle">CrossFit WODs</div>
-      <div class="heroText">The real benchmarks \u2014 Girls, Heroes and classics. Pick one, hit start, the timer runs the format.</div>
+      <div class="heroText">The real benchmarks \u2014 Girls, Heroes, Opens and classics. Pick one, hit start, the timer runs the format. Any run becomes shuttle runs on the 10/20/30m markers.</div>
     </div>
     <div class="subTabs">
       ${WOD_CATS.map(c=>`<button class="${fnCat===c[0]?'active':''}" onclick="fnCat='${c[0]}';fnSel=null;fnQ='';renderFunctional()">${c[1]}</button>`).join("")}
