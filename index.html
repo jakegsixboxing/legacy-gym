@@ -705,12 +705,46 @@ async function submitClassPoint(date,time){
 /* ---- Build Your Own Session ---- */
 const BYO_LIB=[
 {cat:"Skipping",items:[
+  {id:"skip3",n:"3 Minute Skip",fixed:180,tag:"3:00 straight through"},
   {id:"skip5",n:"5 Minute Skip",fixed:300,tag:"5:00 straight through"},
+  {id:"skip7",n:"7 Minute Skip",fixed:420,tag:"7:00 straight through"},
   {id:"skip10",n:"10 Minute Skip",fixed:600,tag:"10:00 straight through"}]},
+{cat:"Footwork",items:[
+  {id:"fwABC",n:"ABC Footwork",seg:{abcAuto:true},tag:"Changes every 20s on 2:00 rounds, 30s on 3:00 — auto"}]},
 {cat:"Shadow Boxing",items:[
   {id:"shOpen",n:"Open Shadow",tag:"Free-flow shadow"},
   {id:"shDef",n:"Defence-Based Shadow",tag:"Slips, rolls, feet"},
   {id:"shSwitch",n:"Switch Punching Shadow",tag:"Switch through stances"}]},
+{cat:"Coordination",items:[
+  {id:"tbUnders",n:"Tennis Ball Drill — Unders",tag:"Ball work under the shots"},
+  {id:"tbOvers",n:"Tennis Ball Drill — Overs",tag:"Ball work over the shots"},
+  {id:"tbShadow",n:"Tennis Ball Drill — Shadow",tag:"Shadow with the ball in play"}]},
+{cat:"Defensive Actions",items:[
+  {id:"daMirror",n:"Mirror Shadow",tag:"Defensive shadow in the mirror"},
+  {id:"daArmHand",n:"Arm & Hand Defence",tag:"Blocks, parries, covers"},
+  {id:"daArmHandFoot",n:"Arm, Hand & Foot Defence",tag:"Defence with the feet involved"},
+  {id:"daCounter",n:"Counter Punching",tag:"Defence into counters"}]},
+{cat:"Ring Shadow",items:[
+  {id:"rsCorner",n:"Corner Defence",tag:"Working off the corner"},
+  {id:"rsRopes",n:"Rope Defence",tag:"Defending on the ropes"},
+  {id:"rsCatchReturn",n:"Catch & Return From The Corner",tag:"Catch, turn, return to centre"}]},
+{cat:"Conditioning",items:[
+  {id:"cdBikeSprint",n:"Assault Bike Sprints",seg:{work:15,rest:15,wl:"SPRINT"},tag:"15 on / 15 off — auto"},
+  {id:"cdBikeLadder",n:"Assault Bike Ladder",fixed:180,seg:{ladder:[10,20,30,30,20,10],lrest:10,wl:"WORK"},tag:"10-20-30-30-20-10 on, 10 off — auto"},
+  {id:"cdRowSprint",n:"Row Sprints",seg:{work:20,rest:20,wl:"SPRINT"},tag:"20 on / 20 off — auto"},
+  {id:"cdPushChin",n:"Push-Ups & Chin-Ups",fixed:240,seg:{cycle:["PUSH-UPS","REST","CHIN-UPS","REST"],every:15},tag:"15s push-ups / 15s rest / 15s chin-ups / 15s rest × 4 — auto"}]},
+{cat:"Core — 0:30 or 1:00 rounds (set below)",items:[
+  {id:"coSitups",n:"Sit-Ups",core:true,tag:"Core round"},
+  {id:"coCrunch",n:"Crunches",core:true,tag:"Core round"},
+  {id:"coAnkle",n:"Ankle Taps",core:true,tag:"Core round"},
+  {id:"coPlank",n:"Plank",core:true,tag:"Core round"},
+  {id:"coBridge",n:"Bridges",core:true,tag:"Core round"},
+  {id:"coToe",n:"Toe Touches",core:true,tag:"Core round"},
+  {id:"coRussian",n:"Russian Twists",core:true,tag:"Core round"},
+  {id:"coLegRaise",n:"Leg Raises",core:true,tag:"Core round"},
+  {id:"coFlutter",n:"Flutter Kicks",core:true,tag:"Core round"},
+  {id:"coClimber",n:"Mountain Climbers",core:true,tag:"Core round"},
+  {id:"coCircuit",n:"Core Circuit",core:true,seg:{alt:["SIT-UPS","ANKLE TAPS","PLANK"],every:20},tag:"Rotates every 20s — auto"}]},
 {cat:"Bag Work",items:[
   {id:"bgLead",n:"Lead Hand Attacks",tag:"Everything off the lead"},
   {id:"bgBack",n:"Backhand Attacks",tag:"Everything off the back hand"},
@@ -742,7 +776,7 @@ function byoFind(id){for(const c of BYO_LIB){const it=c.items.find(x=>x.id===id)
 function byoAdd(id){byo.list.push(id);byoSave();renderBoxBYO();}
 function byoRm(i){byo.list.splice(i,1);byoSave();renderBoxBYO();}
 function byoSet(k,v){byo[k]=v;byoSave();renderBoxBYO();}
-function byoRoundLen(it){return it.fixed||byo.len;}
+function byoRoundLen(it){return it.fixed||(it.core?(byo.core||60):byo.len);}
 function byoTotal(){let t=0;byo.list.forEach((id,i)=>{const it=byoFind(id);if(!it)return;t+=byoRoundLen(it);if(i<byo.list.length-1)t+=byo.rest;});return t;}
 
 function renderBoxBYO(){
@@ -772,6 +806,11 @@ function renderBoxBYO(){
         <button class="${byo.rest===30?'on':''}" onclick="byoSet('rest',30)">0:30 Rest</button>
         <button class="${byo.rest===60?'on':''}" onclick="byoSet('rest',60)">1:00 Rest</button>
       </div>
+      <label class="byoLbl">Core Round Length</label>
+      <div class="pillBtns">
+        <button class="${(byo.core||60)===30?'on':''}" onclick="byoSet('core',30)">0:30 Rounds</button>
+        <button class="${(byo.core||60)===60?'on':''}" onclick="byoSet('core',60)">1:00 Rounds</button>
+      </div>
     </div>
     ${lib}
     <div class="secTitle">Your Session</div>
@@ -780,7 +819,8 @@ function renderBoxBYO(){
       ${byo.list.length?`<div class="priceRow"><span class="price">${byo.list.length} rounds</span><span class="priceNote">${fmtSec(byoTotal())} total with rests</span></div>
       <button class="btnGold" style="margin-top:14px" onclick="byoStart()">Confirm — Start My Session</button>
       <button class="btnLink" style="margin-top:10px;border-color:var(--danger);color:var(--danger)" onclick="byo.list=[];byoSave();renderBoxBYO()">Clear Session</button>`:""}
-    </div>`;
+    </div>
+    ${btHtml()}`;
 }
 function byoPhases(){
   const p=[];
@@ -791,6 +831,18 @@ function byoPhases(){
     if(it.seg&&it.seg.work){
       let t=0,on=true;
       while(t<L){const d=Math.min(on?it.seg.work:it.seg.rest,L-t);p.push({b:on?it.seg.wl:"REST",sm:rn,s:d,k:on?"work":"rest",fl:on?"g":"r"});t+=d;on=!on;}
+    }else if(it.seg&&it.seg.ladder){
+      it.seg.ladder.forEach(w=>{
+        p.push({b:it.seg.wl||"WORK",sm:rn,s:w,k:"work",fl:"g"});
+        p.push({b:"REST",sm:rn,s:it.seg.lrest||10,k:"rest",fl:"r"});
+      });
+    }else if(it.seg&&it.seg.cycle){
+      let t=0,j=0;
+      while(t<L){const lbl=it.seg.cycle[j%it.seg.cycle.length];const d=Math.min(it.seg.every,L-t);
+        p.push({b:lbl,sm:rn,s:d,k:lbl==="REST"?"rest":"work",fl:lbl==="REST"?"r":"g"});t+=d;j++;}
+    }else if(it.seg&&it.seg.abcAuto){
+      const ev=L===120?20:30;let t=0,j=0;
+      while(t<L){const d=Math.min(ev,L-t);p.push({b:"ABC FOOTWORK",sm:rn+" · change every "+ev+"s",s:d,k:"work",fl:j%2===0?"g":"r"});t+=d;j++;}
     }else if(it.seg&&it.seg.alt){
       let t=0,j=0;
       while(t<L){const d=Math.min(it.seg.every,L-t);p.push({b:it.seg.alt[j%it.seg.alt.length],sm:rn,s:d,k:"work",fl:j%2===0?"g":"r"});t+=d;j++;}
@@ -804,6 +856,47 @@ function byoPhases(){
     }
   });
   return p;
+}
+/* 20m Beep Test — real MSFT schedule */
+const BEEP_TBL=[[8,7],[9,8],[9.5,8],[10,9],[10.5,9],[11,10],[11.5,10],[12,11],[12.5,11],[13,11],[13.5,12],[14,12],[14.5,13],[15,13],[15.5,13],[16,14],[16.5,14],[17,15],[17.5,15],[18,16],[18.5,16]];
+let BT={active:false,run:false,int:null,start:0,sched:[],idx:0};
+function btBuild(){const s=[];let t=0;BEEP_TBL.forEach(([sp,n],li)=>{const iv=72/sp;for(let i=1;i<=n;i++){t+=iv;s.push({t,lvl:li+1,sh:i,last:i===n});}});return s;}
+function btStart(){
+  clearInterval(BT.int);
+  BT={active:true,run:true,int:null,start:Date.now(),sched:btBuild(),idx:0};
+  beep(880,.4);
+  BT.int=setInterval(btTick,100);
+  renderBoxBYO();
+}
+function btStop(){clearInterval(BT.int);BT.run=false;const s=$("btSh");if(s&&BT.idx>0){const b=BT.sched[BT.idx-1];s.textContent="Finished at Level "+b.lvl+", Shuttle "+b.sh+". Solid effort.";}renderBoxBYO();}
+function btExit(){clearInterval(BT.int);BT={active:false,run:false,int:null,start:0,sched:[],idx:0};renderBoxBYO();}
+function btTick(){
+  const el=$("btTime");if(!el){clearInterval(BT.int);return;}
+  const now=(Date.now()-BT.start)/1000;
+  while(BT.idx<BT.sched.length&&now>=BT.sched[BT.idx].t){
+    const b=BT.sched[BT.idx];
+    if(b.last){beep(660,.25);setTimeout(()=>beep(990,.35),260);}else beep(880,.22);
+    BT.idx++;
+  }
+  if(BT.idx>=BT.sched.length){btStop();return;}
+  const nxt=BT.sched[BT.idx];
+  $("btLvl").textContent="LEVEL "+nxt.lvl;
+  $("btSh").textContent="Shuttle "+nxt.sh+" · next beep in "+Math.max(0,nxt.t-now).toFixed(1)+"s";
+  el.textContent=fmtSec(Math.floor(now));
+}
+function btHtml(){
+  if(BT.active)return `<div class="secTitle">The Beep Test — 20m</div>
+    <div class="timerCard">
+      <div class="timerPhase gold" id="btLvl">LEVEL 1</div>
+      <div class="timerTime" id="btTime">0:00</div>
+      <div class="timerSub" id="btSh">Get to the line…</div>
+      <div class="timerBtns"><button class="tReset" onclick="btExit()">Exit</button><button class="tStart" onclick="${BT.run?"btStop()":"btStart()"}">${BT.run?"Stop":"Go Again"}</button></div>
+    </div>`;
+  return `<div class="secTitle">The Beep Test — 20m</div>
+    <div class="card">
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.6">The real 20-metre multi-stage fitness test. Set two markers 20 metres apart — reach the line before each beep. Single beep every shuttle, double beep for a new level, and it speeds up every level. Run until you can't hold the pace.</p>
+      <button class="btnGold" style="margin-top:12px" onclick="btStart()">Start The Beep Test</button>
+    </div>`;
 }
 function byoStart(){
   if(!byo.list.length){toast("Add some rounds first.");return;}
