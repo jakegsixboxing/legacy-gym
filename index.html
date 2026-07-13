@@ -438,7 +438,9 @@ async function signOut(){
 function showAuth(){$("appScreen").classList.add("hidden");$("authScreen").classList.remove("hidden");}
 async function enterApp(){
   $("authScreen").classList.add("hidden");$("appScreen").classList.remove("hidden");
-  const {data:mp}=await sb.from("member_profiles").select("user_id").eq("user_id",session.user.id).maybeSingle();
+  const {data:mp}=await sb.from("member_profiles").select("*").eq("user_id",session.user.id).maybeSingle();
+  myMpCache=mp||null;
+  needsSetup=!mp;
   go(mp?"home":"setup");
   initChatFeed();
 }
@@ -459,7 +461,10 @@ function renderNav(){
     <svg viewBox="0 0 24 24">${n.icon}</svg><span>${n.label}</span></button>`).join("");
   updateBadges();
 }
-function go(v){view=v;wpSel=null;wsSel=null;fnSel=null;renderNav();render();window.scrollTo(0,0);if(v==="chat")markRead();}
+function go(v){
+  if(needsSetup&&session&&v!=="setup"){toast("Finish your Legacy Profile first — photo and all. No profile, no app.");v="setup";}
+  view=v;wpSel=null;wsSel=null;fnSel=null;renderNav();render();window.scrollTo(0,0);if(v==="chat")markRead();
+}
 
 /* ======== RENDER ======== */
 function render(){
@@ -485,7 +490,7 @@ function render(){
 
 /* ---- Home ---- */
 const HOME_CARDS=[
-  {id:"classes",kicker:"Next 48 Hours",title:"Book In For Classes",sub:"Every class for the next two days — tap in, you're booked.",img:"boxing"},
+  {id:"classes",kicker:"This Week",title:"Book In For Classes",sub:"The full week opens every Sunday 7 AM — tap in, you're booked.",img:"boxing"},
   {id:"boxing",kicker:"Legacy Boxing Series",title:"Boxing",sub:"The Sparring Club hub, session builder & Legacy Elite.",img:"boxing"},
   {id:"weights",kicker:"The Gym Floor",title:"Weights",sub:"Ten training programs — machines to barbells.",img:"weights"},
   {id:"functional",kicker:"GRUNT Territory",title:"Functional Fitness",sub:"Real CrossFit workouts — Girls, Heroes & Opens, timers built in.",img:"crossfit"},
@@ -620,25 +625,50 @@ function renderBoxClasses(){
 }
 
 /* ---- Register For Classes (2 full days ahead) ---- */
+function bookingHorizon(){
+  const now=new Date();
+  const end=new Date(now);
+  const dow=now.getDay();
+  let daysToSunday=(7-dow)%7;
+  if(dow===0&&now.getHours()>=7)daysToSunday=7;
+  end.setDate(end.getDate()+daysToSunday);
+  end.setHours(23,59,59,999);
+  return end;
+}
 function upcomingClasses48(){
   const now=new Date(),out=[];
-  for(let off=0;off<=2;off++){
+  const horizon=bookingHorizon();
+  for(let off=0;off<=13;off++){
     const day=new Date(now);day.setDate(day.getDate()+off);
+    if(day>horizon&&off>0)break;
     const dow=day.getDay();
     CLASS_SCHEDULE.filter(c=>c.d===dow).forEach(c=>{
       const [h,m]=c.t.split(":").map(Number);
       const start=new Date(day);start.setHours(h,m,0,0);
-      if(start>now)out.push({...c,start,date:isoDateLocal(day),off});
+      if(start>now&&start<=horizon)out.push({...c,start,date:isoDateLocal(day),off});
     });
   }
   return out.sort((a,b)=>a.start-b.start);
 }
 async function renderClasses(){
+  if(!tierHasClasses()){
+    $("main").innerHTML=`
+      <div style="background:#0d0d0b;border:1px solid #2a2417;border-radius:16px;padding:40px 22px;text-align:center;margin-top:8px">
+        <div style="font-weight:900;letter-spacing:4px;color:#9e9e9e;font-size:11px">CLASS MEMBERS ONLY</div>
+        <h2 style="font-size:22px;margin-top:8px;color:#f5f5f5;letter-spacing:1px;line-height:1.3">BOOK IN FOR CLASSES</h2>
+        <div style="margin:20px auto;width:56px;height:56px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:22px">🔒</div>
+        <p style="color:var(--gold);font-weight:800;font-size:14px;letter-spacing:1px">SORRY — THIS IS FOR A HIGHER LEVEL OF MEMBERSHIP.</p>
+        <p style="color:#9e9e9e;font-size:13px;margin-top:10px;line-height:1.6">Open Gym membership covers the gym floor — classes are the next level up.</p>
+        <p style="color:#6e6e6e;font-size:11.5px;margin-top:18px;letter-spacing:.5px">Want in? See the staff at the front desk to upgrade your membership.</p>
+        <button class="btnLink" style="margin-top:16px" onclick="go('timetable')">See What You're Missing — Full Timetable ›</button>
+      </div>`;
+    return;
+  }
   $("main").innerHTML=`
     <div class="hero" style="${bgStyle('boxing',.55)}">
-      <div class="heroKicker">Next 48 Hours</div>
+      <div class="heroKicker">This Week's Timetable</div>
       <div class="heroTitle">Book In For Classes</div>
-      <div class="heroText">Tap a class and you're booked — the coaches see exactly who's coming. Sparring bookings carry your boxer profile straight onto the matchup list.</div>
+      <div class="heroText">The full week's timetable opens every Sunday at 7 AM. Tap a class and you're booked — the coaches see exactly who's coming. Sparring bookings carry your fight profile straight onto the list.</div>
     </div>
     <div id="classList"><div class="loadingDots">Loading upcoming classes…</div></div>`;
   const cls=upcomingClasses48();
@@ -675,7 +705,7 @@ async function renderClasses(){
   cls.forEach(c=>{
     if(c.date!==lastDate){
       lastDate=c.date;
-      const lbl=c.off===0?"Today":c.off===1?"Tomorrow":"";
+      const lbl=c.off===0?"Today":c.off===1?"Tomorrow":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(c.date+"T12:00:00").getDay()];
       html+=`<div class="secTitle">${lbl?lbl+" — ":""}${fmtDateAU(c.date)}</div>`;
     }
     const these=regs.filter(r=>r.class_date===c.date&&r.class_time===c.t);
@@ -1082,12 +1112,24 @@ function lvlCardHtml(pts,big){
     <div class="lvlPts">${pts} Legacy Points${lv.next?` · ${lv.next.pts-pts} to ${lv.next.name}`:" · Top of the mountain"}</div>
     <div class="lvlShine"></div></div>`;
 }
-const MEMBERSHIPS=["Open Gym","Gym + Classes"];
+const MEMBERSHIPS=[
+  {n:"Local Blokes",d:"The Heavyweight Program crew — full access"},
+  {n:"Sparring Club / Fight Club / Amateur / Pro",d:"Fighters — classes + the Sparring Club"},
+  {n:"Fitness Club",d:"All classes + the full gym floor"},
+  {n:"Open Gym",d:"Gym floor access — no classes"}];
+const TIER_LB="Local Blokes",TIER_FIGHT="Sparring Club / Fight Club / Amateur / Pro",TIER_FIT="Fitness Club",TIER_OPEN="Open Gym";
+let myMpCache=null,needsSetup=false;
+function myTier(){const m=myMpCache||myMp();return (m&&m.membership)||"";}
+function tierHasClasses(){
+  if(profile&&(profile.is_staff||profile.is_coach||profile.is_blokes||profile.is_fighter))return true;
+  const t=myTier();
+  return t===TIER_LB||t===TIER_FIGHT||t===TIER_FIT||t==="Gym + Classes";
+}
 let mpMembership="";
 function mpPrepForm(){const ex=myMp()||{};mpMembership=ex.membership||"";mpPhotoUrl=null;}
 function mpPickMembership(m){mpMembership=m;const el=$("mpMemBtns");if(el)el.innerHTML=mpMemBtnsHtml();}
 function mpMemBtnsHtml(){
-  return MEMBERSHIPS.map(m=>`<button type="button" class="rankBtn${mpMembership===m?' on':''}" data-m="${esc(m)}" onclick="mpPickMembership(this.dataset.m)">${mpMembership===m?'<span class="rankNum">✓</span>':''}${esc(m)}${m==="Open Gym"?'<small style="color:var(--muted);margin-left:auto">Gym floor access</small>':'<small style="color:var(--muted);margin-left:auto">Floor + all classes</small>'}</button>`).join("");
+  return MEMBERSHIPS.map(m=>`<button type="button" class="rankBtn${mpMembership===m.n?' on':''}" data-m="${esc(m.n)}" onclick="mpPickMembership(this.dataset.m)">${mpMembership===m.n?'<span class="rankNum">✓</span>':''}<span style="min-width:0">${esc(m.n)}<br><small style="color:var(--muted)">${esc(m.d)}</small></span></button>`).join("");
 }
 const CARDIO={
 stairs:[
@@ -1141,7 +1183,7 @@ async function loadWorld(force){
 }
 function myPoints(){return ptsData.events.filter(e=>e.user_id===session.user.id).reduce((a,b)=>a+b.points,0);}
 function pointsOf(uid){return ptsData.events.filter(e=>e.user_id===uid).reduce((a,b)=>a+b.points,0);}
-function myMp(){return ptsData.mprofiles.find(m=>m.user_id===session.user.id)||null;}
+function myMp(){return ptsData.mprofiles.find(m=>m.user_id===session.user.id)||myMpCache||null;}
 function myDisplayName(){const m=myMp();return (m&&m.full_name)||(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";}
 async function awardPoints(kind,ref,pts){
   const {error}=await sb.from("points_events").upsert({user_id:session.user.id,kind,ref,points:pts},{onConflict:"user_id,kind,ref",ignoreDuplicates:true});
@@ -1331,8 +1373,17 @@ async function saveMemberProfile(){
   if(!mob||mob.replace(/\D/g,"").length<8){toast("Add your mobile number.");return;}
   if(!photo){toast("Take your member photo first — no photo, no profile.");return;}
   const age=dob?Math.floor((Date.now()-new Date(dob+"T12:00:00").getTime())/31557600000):null;
-  const {error}=await sb.from("member_profiles").upsert({user_id:session.user.id,full_name:name,age,dob,email:em,mobile:mob,membership:mpMembership,member_type:mpMembership,photo_url:photo});
+  const rec={user_id:session.user.id,full_name:name,age,dob,email:em,mobile:mob,membership:mpMembership,member_type:mpMembership,photo_url:photo};
+  const {error}=await sb.from("member_profiles").upsert(rec);
   if(error){toast(error.message);return;}
+  myMpCache=rec;needsSetup=false;
+  if(mpMembership===TIER_LB){
+    await sb.from("profiles").update({is_blokes:true,is_fighter:true}).eq("id",session.user.id);
+    profile.is_blokes=true;profile.is_fighter=true;
+  }else if(mpMembership===TIER_FIGHT){
+    await sb.from("profiles").update({is_fighter:true}).eq("id",session.user.id);
+    profile.is_fighter=true;
+  }
   mpEditing=false;mpPhotoUrl=null;
   toast("Legacy Profile saved. Welcome aboard.");
   await loadWorld(true);
@@ -1473,7 +1524,7 @@ function renderBlokes(){
         <div style="margin:20px auto;width:56px;height:56px;border-radius:50%;border:2px solid #c9994d;display:flex;align-items:center;justify-content:center;font-size:22px">🔒</div>
         <p style="color:#c9994d;font-weight:800;font-size:14px;letter-spacing:1px">SORRY — THIS IS A VIP GROUP ONLY.</p>
         <p style="color:#9e9e9e;font-size:13px;margin-top:10px;line-height:1.6">You don't have access to this.<br>What happens behind this door stays behind this door.</p>
-        <p style="color:#6e6e6e;font-size:11.5px;margin-top:18px;letter-spacing:.5px">A small crew of men. One program. Ask the coaches how spots open up.</p>
+        <p style="color:#6e6e6e;font-size:11.5px;margin-top:18px;letter-spacing:.5px">A small crew of men. One program. Want in? See the staff at the front desk.</p>
       </div>`;
     return;
   }
@@ -1976,7 +2027,7 @@ async function renderSparringClub(){
         <div style="margin:20px auto;width:56px;height:56px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:22px">🔒</div>
         <p style="color:var(--gold);font-weight:800;font-size:14px;letter-spacing:1px">PRIVATE — SPARRING CLUB & ABOVE.</p>
         <p style="color:#9e9e9e;font-size:13px;margin-top:10px;line-height:1.6">This room is for Sparring Club fighters, Fight Club, amateurs and professionals.<br>Fight profiles, the matchup list, fight tape — earned, not given.</p>
-        <p style="color:#6e6e6e;font-size:11.5px;margin-top:18px;letter-spacing:.5px">Ready to step up? Talk to the coaches about joining the Sparring Club.</p>
+        <p style="color:#6e6e6e;font-size:11.5px;margin-top:18px;letter-spacing:.5px">Want in? Upgrade your membership — see the staff at the front desk.</p>
       </div>`;
     return;
   }
@@ -1996,7 +2047,7 @@ async function renderSparringClub(){
       <button class="${sparTab==='profile'?'on':''}" onclick="sparTab='profile';renderSparringClub()">Profile</button>
       <button class="${sparTab==='log'?'on':''}" onclick="sparTab='log';renderSparringClub()">Log Rounds</button>
       <button class="${sparTab==='tape'?'on':''}" onclick="sparTab='tape';renderSparringClub()">Fight Tape</button>
-      <button class="${sparTab==='match'?'on':''}" onclick="sparTab='match';renderSparringClub()">Matchups</button>
+      <button class="${sparTab==='match'?'on':''}" onclick="sparTab='match';renderSparringClub()">Sparring</button>
       ${profile&&profile.is_coach?`<button class="${sparTab==='coach'?'on':''}" onclick="sparTab='coach';renderSparringClub()">Coach</button>`:""}
     </div>`;
     if(sparTab==="match"){
@@ -2055,7 +2106,10 @@ async function renderSparWed(){
         <div style="font-weight:900;letter-spacing:2px;font-size:11px;color:var(--gold)">${lo===hi?lo+" KG":lo+"–"+hi+" KG"} · ${g.list.length} BOXER${g.list.length>1?"S":""}</div>
         ${g.list.map(s=>{const b=bps[s.user_id];const d=DIVISIONS[(b&&b.division)||s.division]||DIVISIONS["Sparring Club"];
           const rec=b?((b.wins||0)+"-"+(b.losses||0)+"-"+(b.draws||0)):"";
-          return `<div class="weekRow"><span style="min-width:0"><b>${esc(s.name)}</b><br><small style="color:${d.color}">${d.label}</small>${rec?` <small style="color:var(--muted)">· ${rec}</small>`:""}</span><span style="color:var(--gold);font-weight:800;flex-shrink:0">${Number(s.weight)}kg</span></div>`;}).join("")}
+          const picked=isC&&muPick&&muPick.id===s.user_id;
+          return `<div class="weekRow" ${isC?`style="cursor:pointer;${picked?'background:rgba(212,175,55,.12);border-radius:8px;padding-left:6px;padding-right:6px':''}" onclick="sparPick('${s.user_id}','${esc(s.name)}')"`:""}>
+            <span style="min-width:0"><b>${esc(s.name)}</b>${picked?' <small style="color:var(--gold);font-weight:900">← RED CORNER</small>':""}<br><small style="color:${d.color}">${d.label}</small>${rec?` <small style="color:var(--muted)">· ${rec}</small>`:""}</span>
+            <span style="color:var(--gold);font-weight:800;flex-shrink:0">${Number(s.weight)}kg</span></div>`;}).join("")}
       </div>`;}).join(""):'<div class="card"><p>Nobody on the list yet — be the first name down.</p></div>'}
     <div class="secTitle">The Card — Who's Sparring Who</div>
     ${matchups.length?matchups.map(m=>`<div class="card" style="border-color:var(--gold-dim)">
@@ -2067,16 +2121,18 @@ async function renderSparWed(){
       </div>
       <p style="text-align:center;font-size:11.5px;color:var(--muted);margin-top:4px">${m.rounds} × ${Number(m.mins||3)}:00 rounds</p>
     </div>`).join(""):'<div class="card"><p>Matchups go up here once the coaches set the card.</p></div>'}
-    ${isC?`<div class="secTitle">Coach — Set A Matchup</div>
-    <div class="card">
-      <div class="field"><label>In The Red Corner</label><select id="muA">${signups.map(s=>`<option value="${s.user_id}|${esc(s.name)}">${esc(s.name)} — ${Number(s.weight)}kg</option>`).join("")}</select></div>
-      <div class="field"><label>In The Blue Corner</label><select id="muB">${signups.map(s=>`<option value="${s.user_id}|${esc(s.name)}">${esc(s.name)} — ${Number(s.weight)}kg</option>`).join("")}</select></div>
-      <div class="row2">
-        <div class="field"><label>Rounds</label><select id="muR"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select></div>
-        <div class="field"><label>Minutes Per Round</label><select id="muM"><option>2</option><option selected>3</option></select></div>
+    ${isC&&signups.length>1?`<div class="secTitle">Coach — Tap To Match</div>
+    <div class="card" style="border-color:var(--gold-dim)">
+      <p style="font-size:12px;color:var(--muted)">${muPick?`<b style="color:var(--gold)">${esc(muPick.name)}</b> is in the red corner — now tap their opponent in the list above.`:"Tap a boxer in the list above, then tap who they're sparring. Done."}</p>
+      <label class="byoLbl" style="margin-top:10px">Rounds</label>
+      <div class="pillBtns">${[2,3,4,5,6,8].map(r=>`<button class="${muRounds===r?'on':''}" onclick="muRounds=${r};renderSparWed()">${r}</button>`).join("")}</div>
+      <label class="byoLbl">Minutes Per Round</label>
+      <div class="pillBtns">
+        <button class="${muMins===2?'on':''}" onclick="muMins=2;renderSparWed()">2:00</button>
+        <button class="${muMins===3?'on':''}" onclick="muMins=3;renderSparWed()">3:00</button>
       </div>
-      <button class="btnGold" onclick="addMatchup('${wed}')">Put It On The Card</button>
-      <p style="font-size:11px;color:var(--muted);margin-top:8px">Same boxer can go on the card as many times as you like — just keep adding matchups.</p>
+      ${muPick?`<button class="btnLink" style="margin-top:10px;border-color:#f87171;color:#f87171" onclick="muPick=null;renderSparWed()">Cancel Selection</button>`:""}
+      <p style="font-size:11px;color:var(--muted);margin-top:10px">Same boxer can go on the card against as many opponents as you like.</p>
     </div>`:""}`;
 }
 async function sparAttend(wed){
@@ -2093,12 +2149,15 @@ async function sparPullOut(wed){
   toast("Pulled out of Wednesday night.");
   renderSparWed();
 }
-async function addMatchup(wed){
-  const [aid,aname]=$("muA").value.split("|"),[bid,bname]=$("muB").value.split("|");
-  if(aid===bid){toast("Pick two different boxers.");return;}
-  const {error}=await sb.from("spar_matchups").insert({week_date:wed,a_user:aid,a_name:aname,b_user:bid,b_name:bname,rounds:parseInt($("muR").value),mins:parseFloat($("muM").value),created_by:session.user.id});
-  if(error){toast(error.message);return;}
-  toast(aname+" vs "+bname+" — on the card.");
+let muPick=null,muRounds=3,muMins=3;
+async function sparPick(uid,name){
+  if(!muPick){muPick={id:uid,name};renderSparWed();return;}
+  if(muPick.id===uid){muPick=null;renderSparWed();return;}
+  const a=muPick;muPick=null;
+  const {error}=await sb.from("spar_matchups").insert({week_date:nextWednesday(),a_user:a.id,a_name:a.name,b_user:uid,b_name:name,rounds:muRounds,mins:muMins,created_by:session.user.id});
+  if(error){toast(error.message);renderSparWed();return;}
+  bell();
+  toast(a.name+" vs "+name+" — "+muRounds+" × "+muMins+":00. On the card.");
   renderSparWed();
 }
 async function delMatchup(id){
@@ -2585,7 +2644,7 @@ const WPROGRAMS=[
   {t:"Day 2 \u2014 Deadlift",ex:["Deadlift \u2014 5/3/1 sets","Deadlift \u2014 5\u00d710 @50%","Hanging Leg Raise \u2014 5\u00d710"]},
   {t:"Day 3 \u2014 Bench",ex:["Bench Press \u2014 5/3/1 sets","Bench Press \u2014 5\u00d710 @50%","DB Row \u2014 5\u00d710"]},
   {t:"Day 4 \u2014 Squat",ex:["Back Squat \u2014 5/3/1 sets","Back Squat \u2014 5\u00d710 @50%","Leg Curl \u2014 5\u00d710"]}]},
-{id:"phul",name:"PHUL",len:"8 weeks",days:"4 days/wk",gear:"Barbell, dumbbells + machines",
+{id:"phul",name:"The Power Builder",len:"8 weeks",days:"4 days/wk",gear:"Barbell, dumbbells + machines",
  blurb:"Power Hypertrophy Upper Lower \u2014 the recognised four-day split that builds strength on power days and size on hypertrophy days.",
  prog:"Power days: add weight when you top the rep range on every set. Hypertrophy days: chase 8\u201312, add weight at 12s. Weeks 1\u20134 build, week 5 heavier, weeks 6\u20138 push top sets near failure.",
  daysList:[
@@ -2593,7 +2652,7 @@ const WPROGRAMS=[
   {t:"Day 2 \u2014 Lower Power",ex:["Back Squat \u2014 3\u00d75","Deadlift \u2014 3\u00d75","Leg Press \u2014 3\u00d710","Standing Calf Raise \u2014 4\u00d710"]},
   {t:"Day 3 \u2014 Upper Hypertrophy",ex:["Incline DB Press \u2014 4\u00d710","Cable Fly \u2014 4\u00d712","Seated Cable Row \u2014 4\u00d710","DB Lateral Raise \u2014 4\u00d712","Curl + Pushdown superset \u2014 4\u00d712"]},
   {t:"Day 4 \u2014 Lower Hypertrophy",ex:["Front Squat \u2014 4\u00d710","Romanian Deadlift \u2014 4\u00d710","Leg Extension \u2014 4\u00d715","Lying Leg Curl \u2014 4\u00d715","Seated Calf Raise \u2014 4\u00d715"]}]},
-{id:"phat",name:"PHAT",len:"8 weeks",days:"5 days/wk",gear:"Full gym floor",
+{id:"phat",name:"Power & Pump",len:"8 weeks",days:"5 days/wk",gear:"Full gym floor",
  blurb:"Layne Norton's Power Hypertrophy Adaptive Training \u2014 two power days, three hypertrophy days. A recognised heavyweight of intermediate programming.",
  prog:"Power days 3\u20135 reps heavy. Hypertrophy days open with speed work at 65\u201370%, then volume in the 8\u201320 range. Add weight when the top of any range is beaten. Deload week 8 if beaten up.",
  daysList:[
@@ -2602,7 +2661,7 @@ const WPROGRAMS=[
   {t:"Day 3 \u2014 Back & Shoulders",ex:["Speed Rows \u2014 6\u00d73 @70%","Lat Pulldown \u2014 3\u00d78-12","Seated Row \u2014 3\u00d78-12","Lateral Raise \u2014 3\u00d712-20","Rear Delt Fly \u2014 3\u00d712-20"]},
   {t:"Day 4 \u2014 Lower Hypertrophy",ex:["Speed Squats \u2014 6\u00d73 @70%","Leg Press \u2014 3\u00d78-12","Walking Lunge \u2014 3\u00d712","Leg Curl \u2014 3\u00d712-15","Calf Raise \u2014 4\u00d712-20"]},
   {t:"Day 5 \u2014 Chest & Arms",ex:["Speed Bench \u2014 6\u00d73 @70%","Incline DB Press \u2014 3\u00d78-12","Cable Fly \u2014 3\u00d712","Curls \u2014 3\u00d712-15","Triceps \u2014 3\u00d712-15"]}]},
-{id:"gzclp",name:"GZCLP",len:"8 weeks",days:"4 days/wk",gear:"Barbell + machines",
+{id:"gzclp",name:"The Strength Ladder",len:"8 weeks",days:"4 days/wk",gear:"Barbell + machines",
  blurb:"Cody LeFever's tiered linear program \u2014 heavy Tier 1 triples, Tier 2 volume, Tier 3 pump work. One of the most recommended programs on the internet for a reason.",
  prog:"T1: 5\u00d73+ \u2014 add 2.5\u20135kg each session; stall and shift to 6\u00d72, then 10\u00d71, then reset at 85%. T2: 3\u00d710 \u2192 3\u00d78 \u2192 3\u00d76. T3: 3\u00d715+ \u2014 add weight when the last set hits 25 reps.",
  daysList:[
@@ -2610,7 +2669,7 @@ const WPROGRAMS=[
   {t:"Day 2",ex:["T1 Overhead Press \u2014 5\u00d73+","T2 Deadlift \u2014 3\u00d710","T3 DB Row \u2014 3\u00d715+"]},
   {t:"Day 3",ex:["T1 Bench Press \u2014 5\u00d73+","T2 Back Squat \u2014 3\u00d710","T3 Face Pull \u2014 3\u00d715+"]},
   {t:"Day 4",ex:["T1 Deadlift \u2014 5\u00d73+","T2 Overhead Press \u2014 3\u00d710","T3 Curl + Pushdown \u2014 3\u00d715+"]}]},
-{id:"nsuns",name:"nSuns 5/3/1 LP",len:"8 weeks",days:"4 days/wk",gear:"Barbell + rack",
+{id:"nsuns",name:"High Volume 5/3/1",len:"8 weeks",days:"4 days/wk",gear:"Barbell + rack",
  blurb:"The internet-famous high-volume 5/3/1 variant \u2014 nine-set main-lift pyramids with a secondary lift every day. Brutal, recognised, and it works.",
  prog:"The 1+ AMRAP set decides your week: 0\u20131 reps hold the weight, 2\u20133 reps +2.5kg, 4\u20135 reps +5kg upper / +7.5kg lower. Accessories: 3\u20134 sets of 8\u201312 after the main work.",
  daysList:[
@@ -2618,7 +2677,7 @@ const WPROGRAMS=[
   {t:"Day 2 \u2014 Squat + Sumo",ex:["Back Squat \u2014 9-set pyramid, 1+ AMRAP","Sumo Deadlift \u2014 8 sets","Accessories: hamstrings + core"]},
   {t:"Day 3 \u2014 OHP + Incline",ex:["Overhead Press \u2014 9-set pyramid, 1+ AMRAP","Incline Bench \u2014 8 sets","Accessories: back width"]},
   {t:"Day 4 \u2014 Deadlift + Front Squat",ex:["Deadlift \u2014 9-set pyramid, 1+ AMRAP","Front Squat \u2014 8 sets","Accessories: upper back + abs"]}]},
-{id:"ppl",name:"The Reddit PPL",len:"8 weeks",days:"6 days/wk",gear:"Barbell, dumbbells + machines",
+{id:"ppl",name:"Push Pull Legs",len:"8 weeks",days:"6 days/wk",gear:"Barbell, dumbbells + machines",
  blurb:"Metallicadpa's Push Pull Legs \u2014 the most upvoted routine in r/Fitness history. Six days, every muscle twice a week, linear progress on the big lifts.",
  prog:"Main lifts 5\u00d75 with the last set AMRAP \u2014 add 2.5kg per session (deadlift 1\u00d75+, add 5kg). Accessories 8\u201312, add weight when you beat 12. Run Push/Pull/Legs twice through, one rest day.",
  daysList:[
