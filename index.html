@@ -1614,7 +1614,7 @@ function renderBlokes(){
 const LB_TILES=[
   {id:"program",k:"The 10-Week Block",t:"Strength Program",s:"Monday push, Wednesday legs & pull — bank every set.",img:"https://heavyweight-app.vercel.app/images/strength.jpg"},
   {id:"boxing",k:"Monday & Wednesday Nights",t:"Boxing",s:"The club sessions, full round timer built in.",img:"https://heavyweight-app.vercel.app/images/boxing.jpg"},
-  {id:"fuel",k:"Fuel Plans A–D",t:"Meal Plan",s:"Named meals, recipes & your one-tap weekly shop.",img:"https://heavyweight-app.vercel.app/images/recovery.jpg"},
+  {id:"fuel",k:"Fuel Plans A–D",t:"Meal Plan",s:"Named meals, recipes & your one-tap weekly shop.",img:"https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=1000&q=70"},
   {id:"golf",k:"The Local Blokes Classic",t:"Golf Days",s:"Two Sundays at Mangrove Mountain — get your name down.",img:"https://images.unsplash.com/photo-1606443192517-919653213206?auto=format&fit=crop&w=1000&q=70"},
   {id:"yarn",k:"Group Chat + Coach Corner",t:"The Yarn",s:"The banter lives here. What's said here stays here.",img:"https://heavyweight-app.vercel.app/images/members.jpg"},
   {id:"ladder",k:"Blokes Only",t:"The Ladder",s:"Same points, our own comp — Fresh Meat to Heavyweight Champion.",logo:true}];
@@ -2144,6 +2144,7 @@ async function renderSparringClub(){
       <button class="${sparTab==='log'?'on':''}" onclick="sparTab='log';renderSparringClub()">Log Rounds</button>
       <button class="${sparTab==='tape'?'on':''}" onclick="sparTab='tape';renderSparringClub()">Fight Tape</button>
       <button class="${sparTab==='match'?'on':''}" onclick="sparTab='match';renderSparringClub()">Sparring</button>
+      <button class="${sparTab==='chat'?'on':''}" onclick="sparTab='chat';renderSparringClub()">Chat</button>
       ${profile&&profile.is_coach?`<button class="${sparTab==='coach'?'on':''}" onclick="sparTab='coach';renderSparringClub()">Coach</button>`:""}
     </div>`;
     if(sparTab==="match"){
@@ -2151,12 +2152,75 @@ async function renderSparringClub(){
       renderSparWed();
       return;
     }
+    if(sparTab==="chat"){
+      c.innerHTML=html+`<div id="sparChatWrap"><div class="loadingDots">Loading the chat…</div></div>`;
+      renderSparChat();
+      return;
+    }
     if(sparTab==="log")html+=logFormHtml()+historyHtml();
     else if(sparTab==="tape")html+=fightTapeHtml()+notesHtml();
     else if(sparTab==="coach"&&profile&&profile.is_coach)html+=coachHtml();
-    else html+=boxerCardHtml(bp)+sparringStatsHtml();
+    else html+=boxerCardHtml(bp)+(profile&&profile.is_coach?'<div id="coachRoster"><div class="loadingDots">Pulling up the fighters…</div></div>':"")+sparringStatsHtml();
   }
   c.innerHTML=html;
+  if(!bpEditing&&bp&&sparTab==="profile"&&profile&&profile.is_coach)coachRosterLoad();
+}
+function rosterCardHtml(bp){
+  const wc=weightClass(bp.fight_weight,bp.division);
+  const d=divisionOf(bp);
+  const titles=(bp.titles||"").split(",").map(t=>t.trim()).filter(Boolean);
+  return `<div class="fightCard" style="margin-top:12px">
+    <div class="fcBanner" style="border-bottom-color:${d.color}"><span class="fcDiv" style="color:${d.color}">${d.banner}</span></div>
+    <div class="fcTop">
+      <div class="fcPhotoWrap">${bp.photo_url?`<img class="fcPhoto" src="${esc(bp.photo_url)}" alt="">`:`<div class="fcPhoto fcPhotoEmpty">${esc((bp.name||"?").trim()[0]||"?")}</div>`}
+        <span class="dvBadge ${d.cls}">${d.label}</span></div>
+      <div style="flex:1;min-width:0">
+        <h3 class="fcName">${esc(bp.name)}</h3>
+        <div class="fcMeta">${[wc,bp.stance,bp.age?bp.age+" yrs":"",bp.current_weight?Number(bp.current_weight)+"kg now":""].filter(Boolean).join(" · ")}</div>
+      </div>
+    </div>
+    ${bp.division==="Fitness Club"?"":`<div class="fcRecordRow">
+      <div class="fcRec"><span>${bp.wins||0}</span><small>Wins</small></div>
+      <div class="fcRec"><span>${bp.losses||0}</span><small>Losses</small></div>
+      <div class="fcRec"><span>${bp.draws||0}</span><small>Draws</small></div>
+    </div>`}
+    ${titles.length?`<div class="beltRow">${titles.map((t,i)=>`<div class="belt">${beltSvg(beltSpecFor(t),i)}<small>${esc(t)}</small></div>`).join("")}</div>`:""}
+  </div>`;
+}
+async function coachRosterLoad(){
+  const {data}=await sb.from("boxer_profiles").select("*").neq("user_id",session.user.id).order("name",{ascending:true});
+  const box=$("coachRoster");if(!box)return;
+  const rows=data||[];
+  box.innerHTML=`<div class="secTitle">Coach's View — Registered Fighters (${rows.length})</div>`+
+    (rows.length?rows.map(rosterCardHtml).join(""):`<div class="card"><p>No fighter profiles registered yet.</p></div>`);
+}
+async function renderSparChat(){
+  const {data}=await sb.from("spar_messages").select("*").order("created_at",{ascending:true}).limit(300);
+  if(view!=="boxing"||boxSub!=="sparring"||sparTab!=="chat")return;
+  const box=$("sparChatWrap");if(!box)return;
+  const h=m=>`<div class="yMsg"><span class="who">${esc(m.name)}</span><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`;
+  box.innerHTML=`
+  <div style="position:fixed;top:0;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:20;background:#0d0d0d;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid #2a2417;background:#111009;flex-shrink:0">
+      <button class="backBtn" style="color:var(--gold);margin:0;padding:2px 6px;font-size:22px" onclick="sparTab='profile';renderSparringClub()">‹</button>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:900;letter-spacing:3px;color:var(--gold);font-size:9.5px">SPARRING CLUB</div>
+        <div style="font-weight:900;font-size:17px;color:#f5f5f5;letter-spacing:.5px">FIGHTERS' CHAT</div>
+      </div>
+    </div>
+    <div id="scMsgs" style="flex:1;overflow-y:auto;padding:12px 16px">${(data||[]).map(h).join("")||'<div class="emptyMsg">Quiet in here. Someone break the silence.</div>'}</div>
+    <div style="display:flex;gap:8px;padding:10px 12px;border-top:1px solid #2a2417;background:#111009;flex-shrink:0">
+      <input id="scMsgIn" placeholder="Talk to the fighters…" maxlength="1000" style="flex:1" onkeydown="if(event.key==='Enter')scSend()">
+      <button class="btnGold" style="width:auto;margin:0;padding:12px 16px" onclick="scSend()">➤</button>
+    </div>
+  </div>`;
+  const mb=$("scMsgs");if(mb)mb.scrollTop=mb.scrollHeight;
+}
+async function scSend(){
+  const el=$("scMsgIn"),v=el.value.trim();if(!v)return;el.value="";
+  const {error}=await sb.from("spar_messages").insert({user_id:session.user.id,name:myDisplayName(),body:v});
+  if(error){toast(error.message);el.value=v;return;}
+  renderSparChat();
 }
 let sparTab="profile";
 function nextWednesday(){
@@ -3309,7 +3373,7 @@ function renderKrOffers(){
       <div style="font-size:19px;font-weight:900;text-transform:uppercase;margin-top:4px">${o.name}</div>
       <div style="margin:8px 0;display:flex;align-items:baseline;gap:8px"><span style="font-size:22px;font-weight:900;color:${KR.blue}">${o.price}</span>${o.was?`<span style="font-size:13px;color:var(--muted);text-decoration:line-through">${o.was}</span>`:""}<span style="font-size:11px;color:var(--muted);font-weight:700;letter-spacing:1px;text-transform:uppercase">${o.note}</span></div>
       <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px">${o.desc}</div>
-      <button style="width:100%;padding:12px;border-radius:8px;background:transparent;border:1px solid ${KR.blue};color:${KR.blue};font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase" onclick="toast('Good pick — see reception or call 0401 587 508 and we\'ll lock it in.')">I'm Interested</button>
+      <button style="width:100%;padding:12px;border-radius:8px;background:transparent;border:1px solid ${KR.blue};color:${KR.blue};font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase" onclick="toast('Good pick — see reception or call 0401 587 508 and we'll lock it in.')">I'm Interested</button>
     </div>`).join("")}
     <p style="font-size:12px;color:var(--muted);margin-top:6px">All packages are subject to availability — private takeovers need seven days' notice.</p>`;
 }
