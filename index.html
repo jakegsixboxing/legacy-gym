@@ -371,7 +371,8 @@ const IMGS = {
   stairs:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=70",
   race:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",
   crossfit:"https://images.unsplash.com/photo-1533681904393-9ab6eee7e408?auto=format&fit=crop&w=1000&q=70",
-  mvmhero:"https://images.unsplash.com/photo-1521804906057-1df8fdb718b7?auto=format&fit=crop&w=1000&q=70"
+  mvmhero:"https://images.unsplash.com/photo-1521804906057-1df8fdb718b7?auto=format&fit=crop&w=1000&q=70",
+  podcast:"https://image-cdn-ak.spotifycdn.com/image/ab67656300005f1f5d32aec57c8bab76584350e6"
 };
 function bgStyle(id,strength){const a=strength??.45;return `background:linear-gradient(180deg,rgba(8,8,10,${a}),rgba(8,8,10,.93)),url('${IMGS[id]}') center/cover no-repeat #0a0b0e`;}
 
@@ -477,6 +478,7 @@ function render(){
   if(view==="board")return renderLeaderboard();
   if(view==="blokes")return renderBlokes();
   if(view==="setup")return renderSetup();
+  if(view==="podcast")return renderPodcast();
   if(view==="recovery")return renderRecovery();
   if(view==="timetable")return renderTimetable();
   if(view==="classes")return renderClasses();
@@ -495,6 +497,7 @@ const HOME_CARDS=[
   {id:"weights",kicker:"The Gym Floor",title:"Weights",sub:"Ten training programs — machines to barbells.",img:"weights"},
   {id:"functional",kicker:"GRUNT Territory",title:"Functional Fitness",sub:"Real CrossFit workouts — Girls, Heroes & Opens, timers built in.",img:"crossfit"},
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
+  {id:"podcast",kicker:"Stories From The Club",title:"Local Blokes Podcast",sub:"The podcast — real talk from the crew.",img:"podcast"},
   {id:"cardio",kicker:"Climb The World",title:"Cardio Challenges",sub:"StairMaster & treadmill missions — 1 to 10 points a finish.",img:"stairs"},
   {id:"mvm",kicker:"Club Records",title:"Member vs Member",sub:"Heaviest lifts, fastest times. Take the crown, take 5 points.",img:"mvmhero"},
   {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:null},
@@ -2007,6 +2010,25 @@ async function lbLadder(){
     </div>`).join("")}
     <div class="secTitle">End Of Program Awards</div>
     <div class="card">${LB_DATA.awards.map(a=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b style="font-size:13px;color:#c9994d">${esc(a.name)}</b><p style="font-size:11.5px;color:var(--muted);margin-top:2px">${esc(a.desc)}</p></div>`).join("")}</div>`;
+}
+
+/* ---- Local Blokes Podcast ---- */
+const PODCAST_EPS=[
+  {n:2,title:"Comparison Is The Thief Of Joy",id:"3vdd0whdeRkfcUKYLKuY3e"},
+  {n:1,title:"How Local Blokes Started (And Why It Became More Than Fitness)",id:"3sayMbQ65TvCxBpdz1C9Aq"}];
+function renderPodcast(){
+  $("main").innerHTML=`
+    <div class="hero" style="background:linear-gradient(180deg,rgba(8,8,10,.45),rgba(8,8,10,.9)),url('${IMGS.podcast}') center 30%/cover no-repeat #0a0b0e">
+      <div class="heroKicker">Stories From The Club</div>
+      <div class="heroTitle">Local Blokes Podcast</div>
+      <div class="heroText">Real conversations from the Local Blokes crew — training, life, and everything in between.</div>
+    </div>
+    ${PODCAST_EPS.map(e=>`<div class="card">
+      <span class="pill" style="border-color:var(--gold-dim);color:var(--gold)">EPISODE ${e.n}</span>
+      <h3 style="margin:10px 0 12px;font-size:16px">${esc(e.title)}</h3>
+      <iframe style="border-radius:12px;border:0" src="https://open.spotify.com/embed/episode/${e.id}" width="100%" height="152" title="${esc(e.title)}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+      <p style="margin-top:10px"><a href="https://open.spotify.com/episode/${e.id}" target="_blank" rel="noreferrer" style="color:var(--gold);font-size:12.5px">Open in Spotify ›</a></p>
+    </div>`).join("")}`;
 }
 
 /* ---- Sparring Club hub ---- */
