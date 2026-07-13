@@ -459,7 +459,8 @@ const NAV=[
   {id:"functional",label:"Functional",icon:'<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/>'},
   {id:"recovery",label:"Recovery",icon:'<path d="M4 13c2-2 4-2 6 0s4 2 6 0 4-2 4 0"/><path d="M4 18c2-2 4-2 6 0s4 2 6 0 4-2 4 0"/><path d="M12 3v5M9 5l3 3 3-3"/>'},
   {id:"timetable",label:"Times",icon:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/>'},
-  {id:"nutrition",label:"Nutrition",icon:'<path d="M12 20c-4 0-7-3-7-7 0-3 2-5 4-5 1.5 0 2.5.6 3 1.2.5-.6 1.5-1.2 3-1.2 2 0 4 2 4 5 0 4-3 7-7 7z"/><path d="M12 8c0-2 1-4 3-5"/>'}
+  {id:"nutrition",label:"Nutrition",icon:'<path d="M12 20c-4 0-7-3-7-7 0-3 2-5 4-5 1.5 0 2.5.6 3 1.2.5-.6 1.5-1.2 3-1.2 2 0 4 2 4 5 0 4-3 7-7 7z"/><path d="M12 8c0-2 1-4 3-5"/>'},
+  {id:"shop",label:"Shop",icon:'<path d="M6 7V6a6 6 0 0 1 12 0v1"/><path d="M4 7h16l-1.2 12.2a2 2 0 0 1-2 1.8H7.2a2 2 0 0 1-2-1.8L4 7z"/>'}
 ];
 function renderNav(){
   $("nav").innerHTML=NAV.map(n=>`<button class="navBtn ${view===n.id?'active':''}" onclick="go('${n.id}')">
@@ -485,6 +486,7 @@ function render(){
   if(view==="setup")return renderSetup();
   if(view==="podcast")return renderPodcast();
   if(view==="nutrition")return renderNutrition();
+  if(view==="shop")return renderShop();
   if(view==="recovery")return renderRecovery();
   if(view==="timetable")return renderTimetable();
   if(view==="classes")return renderClasses();
@@ -528,6 +530,7 @@ function renderHome(){
       </span>
       <span style="color:var(--gold);font-size:28px">›</span>
     </button>
+    <div id="fdBanner"></div>
     ${HOME_CARDS.map(c=>`<button class="homeCard" style="${c.lb?`background:linear-gradient(90deg,rgba(13,13,13,.55) 0%,rgba(13,13,13,.96) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
       
       <div class="hcKicker">${c.kicker}</div>
@@ -539,6 +542,7 @@ function renderHome(){
       <div class="hcTitle">Staff Room</div>
       <div class="hcSub">Team chat, daily tasks & PT commissions.</div>
     </button>`:""}`;
+  loadFdBanner();
   updateBadges();
 }
 
@@ -3750,6 +3754,135 @@ async function cancelPtRequest(id){
 }
 
 /* ---- Staff Room (staff only, RLS enforced) ---- */
+/* ---- Members directory, manager DMs + store credit, Shop ---- */
+let crPend={},crModeD={},mdUid=null,mdTitle="";
+async function renderStaffMembersTab(){
+  $("staffContent").innerHTML='<div class="loadingDots">Loading every member…</div>';
+  const [mp,ce]=await Promise.all([
+    sb.from("member_profiles").select("*").order("full_name",{ascending:true}),
+    sb.from("credit_events").select("member_id,amount")]);
+  if(view!=="staff"||staffSub!=="members")return;
+  const box=$("staffContent");if(!box)return;
+  const bal={};(ce.data||[]).forEach(e=>bal[e.member_id]=(bal[e.member_id]||0)+Number(e.amount));
+  const mgr=profile&&profile.is_manager;
+  const rows=mp.data||[];
+  box.innerHTML=`<div class="secTitle">Every Member (${rows.length})</div>`+
+    (mgr?"":`<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Direct messages and store credit are manager-only.</p>`)+
+    (rows.length?rows.map(m=>{
+      const b=bal[m.user_id]||0;
+      return `<div class="card">
+        <div style="display:flex;align-items:center;gap:12px">
+          ${m.photo_url?`<img src="${esc(m.photo_url)}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-dim)" alt="">`:`<div class="lbAv" style="width:52px;height:52px">${esc((m.full_name||"?")[0])}</div>`}
+          <div style="flex:1;min-width:0">
+            <b style="font-size:14.5px">${esc(m.full_name||"Unnamed Member")}</b>
+            <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc((m.member_type||"").split(" · ")[0]||"")}</div>
+          </div>
+          <span class="pill" style="border-color:var(--gold-dim);color:var(--gold);flex-shrink:0">$${b} credit</span>
+        </div>
+        ${mgr?`
+        <button class="btnLink" style="margin-top:12px" onclick="openMemberDm('${m.user_id}','${esc(m.full_name||"Member")}')">💬 Message ${esc((m.full_name||"them").split(" ")[0])} Directly</button>
+        <details style="margin-top:8px"><summary style="font-size:12px;color:var(--gold);font-weight:800;cursor:pointer">💰 Gift / Adjust Store Credit</summary>
+          <div class="pillBtns" style="margin-top:10px;flex-wrap:wrap">
+            ${[1,5,10,15,20].map(a=>`<button onclick="crBump('${m.user_id}',${a})">+$${a}</button>`).join("")}
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+            <button class="btnLink" id="crm_${m.user_id}" style="width:auto;margin:0;padding:8px 12px;font-size:11px" onclick="crFlip('${m.user_id}')">Mode: GIFT</button>
+            <b id="crp_${m.user_id}" style="color:var(--gold);font-size:17px;flex:1;text-align:center">$0</b>
+            <button class="btnLink" style="width:auto;margin:0;padding:8px 12px;font-size:11px" onclick="crClear('${m.user_id}')">Clear</button>
+          </div>
+          <button class="btnGold" style="margin-top:10px" onclick="crCommit('${m.user_id}','${esc(m.full_name||"Member")}')">Confirm</button>
+          <p style="font-size:10.5px;color:var(--muted);margin-top:6px">Tap the dollar buttons to build the amount — e.g. $1 four times = $4. Flip the mode to DEDUCT to take credit back off.</p>
+        </details>`:""}
+      </div>`;}).join(""):'<div class="emptyMsg">No member profiles yet.</div>');
+}
+function crBump(u,a){crPend[u]=(crPend[u]||0)+a;const e=$("crp_"+u);if(e)e.textContent="$"+crPend[u];}
+function crClear(u){crPend[u]=0;const e=$("crp_"+u);if(e)e.textContent="$0";}
+function crFlip(u){crModeD[u]=!crModeD[u];const e=$("crm_"+u);if(e){e.textContent="Mode: "+(crModeD[u]?"DEDUCT":"GIFT");e.style.color=crModeD[u]?"#e05252":"";e.style.borderColor=crModeD[u]?"#e05252":"";}}
+async function crCommit(u,nm){
+  const amt=crPend[u]||0;if(!amt){toast("Tap the dollar buttons to build an amount first.");return;}
+  const ded=!!crModeD[u];
+  const {error}=await sb.from("credit_events").insert({member_id:u,amount:ded?-amt:amt,note:(ded?"Adjusted by ":"Gifted by ")+myDisplayName(),created_by:session.user.id});
+  if(error){toast(error.message);return;}
+  crPend[u]=0;crModeD[u]=false;
+  toast((ded?"Took $":"Gifted $")+amt+(ded?" back off ":" to ")+nm+".");
+  renderStaffMembersTab();
+}
+async function openMemberDm(uid,title){
+  mdUid=uid;mdTitle=title;
+  let ov=$("mdOverlay");
+  if(!ov){ov=document.createElement("div");ov.id="mdOverlay";document.body.appendChild(ov);}
+  ov.innerHTML='<div style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:60;background:#0d0d0d"><div class="loadingDots" style="margin-top:40vh;text-align:center">Opening the chat…</div></div>';
+  mdPaint();
+}
+async function mdPaint(){
+  const {data}=await sb.from("member_dms").select("*").eq("member_id",mdUid).order("created_at",{ascending:true}).limit(300);
+  const ov=$("mdOverlay");if(!ov||!mdUid)return;
+  const h=m=>`<div class="yMsg"><span class="who">${esc(m.name)}</span><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`;
+  const isMe=mdUid===session.user.id;
+  ov.innerHTML=`
+  <div style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:60;background:#0d0d0d;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid #2a2417;background:#111009;flex-shrink:0">
+      <button class="backBtn" style="color:var(--gold);margin:0;padding:2px 6px;font-size:22px" onclick="closeMemberDm()">‹</button>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:900;letter-spacing:3px;color:var(--gold);font-size:9.5px">${isMe?"LEGACY GYM":"DIRECT LINE"}</div>
+        <div style="font-weight:900;font-size:17px;color:#f5f5f5;letter-spacing:.5px">${esc(isMe?"Front Desk":mdTitle)}</div>
+      </div>
+    </div>
+    <div id="mdMsgs" style="flex:1;overflow-y:auto;padding:12px 16px">${(data||[]).map(h).join("")||'<div class="emptyMsg">No messages yet.</div>'}</div>
+    <div style="display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid #2a2417;background:#111009;flex-shrink:0">
+      <input id="mdIn" placeholder="${isMe?"Message the front desk…":"Message them directly…"}" maxlength="1000" style="flex:1" onkeydown="if(event.key==='Enter')mdSend()">
+      <button class="btnGold" style="width:auto;margin:0;padding:12px 16px" onclick="mdSend()">➤</button>
+    </div>
+  </div>`;
+  const mb=$("mdMsgs");if(mb)mb.scrollTop=mb.scrollHeight;
+}
+function closeMemberDm(){const ov=$("mdOverlay");if(ov)ov.remove();mdUid=null;}
+async function mdSend(){
+  const el=$("mdIn"),v=el.value.trim();if(!v)return;el.value="";
+  const nm=mdUid===session.user.id?myDisplayName():"Front Desk — "+((profile.first_name||"").trim()||"Legacy");
+  const {error}=await sb.from("member_dms").insert({member_id:mdUid,sender_id:session.user.id,name:nm,body:v});
+  if(error){toast(error.message);el.value=v;return;}
+  mdPaint();
+}
+async function loadFdBanner(){
+  if(!session)return;
+  const {data}=await sb.from("member_dms").select("id").eq("member_id",session.user.id).limit(1);
+  const b=$("fdBanner");if(!b)return;
+  if((data||[]).length)b.innerHTML=`<button class="amaTile" onclick="openMemberDm(session.user.id,'Front Desk')">
+    <span style="font-size:26px">📨</span>
+    <span style="text-align:left;flex:1">
+      <span class="hcKicker" style="display:block">Legacy Gym</span>
+      <span class="hcTitle" style="display:block;font-size:19px">Front Desk Messages</span>
+      <span class="hcSub" style="display:block;padding-right:0">The gym has messaged you — tap to read & reply.</span>
+    </span>
+    <span style="color:var(--gold);font-size:28px">›</span>
+  </button>`;
+}
+async function renderShop(){
+  $("main").innerHTML=`
+    <div class="hero" style="${bgStyle('weights',.5)}">
+      <div class="heroKicker">Legacy Gym Apparel</div>
+      <div class="heroTitle">Shop Apparel</div>
+      <div class="heroText">Official Legacy Gym gear. The racks are being stocked now.</div>
+    </div>
+    <div class="card" style="border-color:var(--gold-dim);text-align:center;padding:26px 20px">
+      <div style="font-weight:900;letter-spacing:4px;color:var(--gold);font-size:12px">YOUR STORE CREDIT</div>
+      <div id="shopBal" style="font-size:42px;font-weight:900;color:#f5f5f5;margin-top:8px">$—</div>
+      <p style="color:var(--muted);font-size:12px;margin-top:8px;line-height:1.6">Win challenges, impress the coaches, get gifted Legacy dollars — then spend them right here on apparel when the shop opens.</p>
+      <div id="shopHist"></div>
+    </div>
+    <div class="card" style="text-align:center;padding:30px 20px">
+      <div style="font-size:30px">🛍️</div>
+      <h3 style="margin-top:8px;letter-spacing:2px">COMING SOON</h3>
+      <p style="margin-top:8px;color:var(--muted);font-size:12.5px;line-height:1.6">Hoodies, tees and training kit — the full Legacy range is on its way. Watch this space.</p>
+    </div>`;
+  const {data}=await sb.from("credit_events").select("*").eq("member_id",session.user.id).order("created_at",{ascending:false});
+  if(view!=="shop")return;
+  const rows=data||[],bal=rows.reduce((a,e)=>a+Number(e.amount),0);
+  const el=$("shopBal");if(el)el.textContent="$"+bal;
+  const hh=$("shopHist");
+  if(hh&&rows.length)hh.innerHTML=`<details style="margin-top:12px"><summary style="font-size:12px;color:var(--gold);font-weight:800;cursor:pointer">Credit History</summary>${rows.map(e=>`<div class="weekRow"><span style="font-size:12px;text-align:left">${esc(e.note||"Credit")}<br><small style="color:var(--muted)">${fmtWhen(e.created_at)}</small></span><b style="color:${Number(e.amount)<0?"#e05252":"var(--gold)"}">${Number(e.amount)<0?"−$"+Math.abs(Number(e.amount)):"+$"+Number(e.amount)}</b></div>`).join("")}</details>`;
+}
 let staffSub="chat";
 let staffData={loaded:false,staff:[],tasks:[],comms:[],msgs:[]};
 let staffChannel=null;
@@ -3778,7 +3911,7 @@ async function renderStaff(){
   $("main").innerHTML=`<div class="loadingDots">Opening the staff room…</div>`;
   await loadStaffData();
   if(view!=="staff")return;
-  const tabs=[{id:"chat",label:"Team Chat"},...staffData.staff.map(s=>({id:s.id,label:s.first_name||s.email.split("@")[0]}))];
+  const tabs=[{id:"chat",label:"Team Chat"},{id:"members",label:"Members"},...staffData.staff.map(s=>({id:s.id,label:s.first_name||s.email.split("@")[0]}))];
   $("main").innerHTML=`
     <div class="hero" style="background:linear-gradient(160deg,#17171a 0%,#0b0b0e 75%);padding:24px 22px">
       <div class="heroKicker">Staff Eyes Only</div>
@@ -3788,6 +3921,7 @@ async function renderStaff(){
     <div class="subTabs">${tabs.map(t=>`<button class="${staffSub===t.id?'active':''}" onclick="staffSub='${t.id}';renderStaff()">${esc(t.label)}</button>`).join("")}</div>
     <div id="staffContent"></div>`;
   if(staffSub==="chat")renderStaffChat();
+  else if(staffSub==="members")renderStaffMembersTab();
   else renderStaffMember(staffSub);
 }
 function staffMsgHtml(m){
