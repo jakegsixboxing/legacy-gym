@@ -368,6 +368,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const LOGO = "icon-512.png";
 const TIMETABLE_IMG = "https://cdn.shopify.com/s/files/1/0016/0966/2576/files/TIMETABLE_-_FROM_28th_April.png?v=1776828044";
 const IMGS = {
+  shopmerch:"https://cdn.shopify.com/s/files/1/0016/0966/2576/files/F5A81FC4-BB8B-48FD-96C5-0B9AFCDFC052.jpg?v=1779876356&width=900",
   boxing:  "https://heavyweight-app.vercel.app/images/boxing.jpg",
   weights: "https://heavyweight-app.vercel.app/images/strength.jpg",
   recovery:"https://heavyweight-app.vercel.app/images/recovery.jpg",
@@ -512,6 +513,7 @@ const HOME_CARDS=[
   {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:null},
   {id:"pt",kicker:"1-On-1 Coaching",title:"Book A PT",sub:"Train one-on-one with the Legacy coaches.",img:"boxing"},
   {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"functional"},
+  {id:"shop",kicker:"Official Store",title:"Shop Apparel",sub:"Hoodies, tees & gear straight from our store — spend your credit here.",img:"shopmerch"},
   {id:"nutrition",kicker:"Fuel The Work",title:"Nutritionist",sub:"Meal guidance from our nutritionist — coming soon.",img:"food"}
 ];
 function renderHome(){
