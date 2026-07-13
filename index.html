@@ -474,6 +474,7 @@ function render(){
   if(view==="setup")return renderSetup();
   if(view==="recovery")return renderRecovery();
   if(view==="timetable")return renderTimetable();
+  if(view==="classes")return renderClasses();
   if(view==="pt")return renderPT();
   if(view==="social")return renderSocial();
   if(view==="ama")return renderAMA();
@@ -484,7 +485,8 @@ function render(){
 
 /* ---- Home ---- */
 const HOME_CARDS=[
-  {id:"boxing",kicker:"Legacy Boxing Series",title:"Boxing",sub:"Your classes and the Sparring Club hub.",img:"boxing"},
+  {id:"classes",kicker:"Next 48 Hours",title:"Book In For Classes",sub:"Every class for the next two days — tap in, you're booked.",img:"boxing"},
+  {id:"boxing",kicker:"Legacy Boxing Series",title:"Boxing",sub:"The Sparring Club hub, session builder & Legacy Elite.",img:"boxing"},
   {id:"weights",kicker:"The Gym Floor",title:"Weights",sub:"Ten training programs — machines to barbells.",img:"weights"},
   {id:"functional",kicker:"GRUNT Territory",title:"Functional Fitness",sub:"Real CrossFit workouts — Girls, Heroes & Opens, timers built in.",img:"crossfit"},
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
@@ -492,7 +494,6 @@ const HOME_CARDS=[
   {id:"mvm",kicker:"Club Records",title:"Member vs Member",sub:"Heaviest lifts, fastest times. Take the crown, take 5 points.",img:"mvmhero"},
   {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:null},
   {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true},
-  {id:"timetable",kicker:"This Week",title:"Timetable",sub:"Every session, all in one place.",img:null},
   {id:"pt",kicker:"1-On-1 Coaching",title:"Book A PT",sub:"Train one-on-one with the Legacy coaches.",img:"boxing"},
   {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"functional"},
   {id:"chat",kicker:"The Community",title:"Members Chat",sub:"The Legacy crew, in your pocket.",img:null}
@@ -528,7 +529,7 @@ function renderHome(){
 }
 
 /* ---- Boxing (sub-tabs: Classes / Fitness Club / Sparring Club) ---- */
-let boxSub="register";
+let boxSub="sparring";
 let boxData={loaded:false,profile:null,sessions:[],notes:[],fights:[],noms:[],allNotes:[]};
 let bpEditing=false,bpPhotoUrl=null;
 
@@ -542,7 +543,6 @@ function renderBoxing(){
     <div class="subTabs">
       <button class="${boxSub==='sparring'?'active':''}" onclick="setBoxSub('sparring')">Sparring Club</button>
       <button class="${boxSub==='byo'?'active':''}" onclick="setBoxSub('byo')">Build Your Own</button>
-      <button class="${boxSub==='register'?'active':''}" onclick="setBoxSub('register')">Register For Classes</button>
       <button class="${boxSub==='elite'?'active':''}" style="${boxSub==='elite'?'':'border-color:var(--gold-dim);color:var(--gold)'}" onclick="setBoxSub('elite')">★ Legacy Elite</button>
     </div>
     <div id="boxContent"></div>`;
@@ -551,7 +551,6 @@ function renderBoxing(){
 function setBoxSub(s){boxSub=s;bpEditing=false;if(typeof S!=="undefined")clearInterval(S.int);byoActive=false;renderBoxing();}
 function renderBoxSub(){
   if(boxSub==="byo")renderBoxBYO();
-  else if(boxSub==="register")renderBoxRegister();
   else if(boxSub==="elite")renderBoxElite();
   else renderSparringClub();
 }
@@ -647,8 +646,14 @@ function upcomingClasses48(){
   }
   return out.sort((a,b)=>a.start-b.start);
 }
-async function renderBoxRegister(){
-  $("boxContent").innerHTML=`<div class="loadingDots">Loading upcoming classes…</div>`;
+async function renderClasses(){
+  $("main").innerHTML=`
+    <div class="hero" style="${bgStyle('boxing',.55)}">
+      <div class="heroKicker">Next 48 Hours</div>
+      <div class="heroTitle">Book In For Classes</div>
+      <div class="heroText">Tap a class and you're booked — the coaches see exactly who's coming. Sparring bookings carry your boxer profile straight onto the matchup list.</div>
+    </div>
+    <div id="classList"><div class="loadingDots">Loading upcoming classes…</div></div>`;
   const cls=upcomingClasses48();
   const dates=[...new Set(cls.map(c=>c.date))];
   const now=new Date();
@@ -662,9 +667,9 @@ async function renderBoxRegister(){
   doneRegs=(res[0].data||[]).filter(r=>r.class_date<d0||(r.class_date===d0&&r.class_time<=nowHM));
   claimedRefs=new Set((res[1].data||[]).map(r=>r.ref));
   regs=res[2]?(res[2].data||[]):[];
-  if(view!=="boxing"||boxSub!=="register")return;
-  const c2=$("boxContent");if(!c2)return;
-  let html=`<p style="color:var(--muted);font-size:12.5px;margin:-4px 2px 14px;line-height:1.5">Book up to two days ahead — tick attending and the coaches know you're coming. Tap again to pull out.</p>`;
+  if(view!=="classes")return;
+  const c2=$("classList");if(!c2)return;
+  let html="";
   if(doneRegs.length){
     html+=`<div class="secTitle">Claim Your Class Points</div>`;
     doneRegs.forEach(r=>{
@@ -695,18 +700,20 @@ async function renderBoxRegister(){
         <span style="color:inherit;font-weight:800;font-size:14px;flex-shrink:0">${fmtClassTime(c.t)}</span>
       </div>
       <p style="margin-top:6px;color:inherit"><b style="color:inherit">${these.length} attending</b>${these.length?": "+these.map(r=>esc(r.name)).join(", "):""}</p>
-      ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="unattendClass('${c.date}','${c.t}')">Attending ✓ — Tap To Pull Out</button>`
-            :`<button class="btnGold" style="margin-top:12px" onclick="attendClass('${c.date}','${c.t}','${esc(c.n)}')">I'm Attending</button>`}
+      ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="unattendClass('${c.date}','${c.t}','${esc(c.n)}')">BOOKED IN ✓</button>
+      <p style="margin-top:8px;font-size:11px;color:inherit;opacity:.75;text-align:center">Can no longer attend? Please tap above to remove yourself so the coaches know.</p>`
+            :`<button class="btnGold" style="margin-top:12px" onclick="attendClass('${c.date}','${c.t}','${esc(c.n)}')">Book Me In</button>`}
     </div>`;
   });
-  if(!cls.length)html+='<div class="card"><p>No classes in the next two days — check the Timetable tab for the full week.</p></div>';
+  if(!cls.length)html+='<div class="card"><p>No classes in the next two days — check the full weekly timetable below.</p></div>';
+  html+=`<button class="btnLink" style="margin-top:6px" onclick="go('timetable')">See The Full Weekly Timetable ›</button>`;
   c2.innerHTML=html;
 }
 
 async function submitClassPoint(date,time){
   const ok=await awardPoints("class","class:"+date+":"+time,1);
   toast(ok?"Class submitted — 1 point on the board!":"Couldn't submit — try again.");
-  renderBoxRegister();
+  renderClasses();
 }
 
 /* ---- Build Your Own Session ---- */
@@ -937,7 +944,7 @@ function sToggle(){
   if(!S.phases.length)return;
   if(S.idx>=S.phases.length)sReset();
   S.run=!S.run;clearInterval(S.int);
-  if(S.run){beep(660,.15);S.int=setInterval(sTick,1000);}
+  if(S.run){horn(.45);S.int=setInterval(sTick,1000);}
   updS();
 }
 function sReset(){clearInterval(S.int);S.idx=0;S.remain=S.phases.length?S.phases[0].s:0;S.run=false;updS();}
@@ -950,7 +957,7 @@ function sTick(){
     if(p&&p.end)bell();
     S.idx++;
     if(S.idx>=S.phases.length){S.run=false;clearInterval(S.int);if(!(p&&p.end))bell();}
-    else{S.remain=S.phases[S.idx].s;if(!(p&&p.end))beep(520,.5);}
+    else{S.remain=S.phases[S.idx].s;if(!(p&&p.end))horn(.5);}
   }
   updS();
 }
@@ -1756,22 +1763,26 @@ async function renderSparringClub(){
       <p style="margin-top:6px">Set up your profile — photo, weights, record — then bank your sparring rounds week by week.</p>
       <button class="btnGold" style="margin-top:14px" onclick="startBpEdit()">Build My Profile</button></div>`;
   else{
-    html+=`<div class="pillBtns" style="margin-bottom:14px">
-      <button class="${sparTab==='hub'?'on':''}" onclick="sparTab='hub';renderSparringClub()">My Hub</button>
-      <button class="${sparTab==='wed'?'on':''}" onclick="sparTab='wed';renderSparringClub()">Wednesday Night Sparring</button>
+    html+=`<div class="pillBtns" style="margin-bottom:14px;flex-wrap:wrap">
+      <button class="${sparTab==='profile'?'on':''}" onclick="sparTab='profile';renderSparringClub()">Profile</button>
+      <button class="${sparTab==='log'?'on':''}" onclick="sparTab='log';renderSparringClub()">Log Rounds</button>
+      <button class="${sparTab==='tape'?'on':''}" onclick="sparTab='tape';renderSparringClub()">Fight Tape</button>
+      <button class="${sparTab==='match'?'on':''}" onclick="sparTab='match';renderSparringClub()">Matchups</button>
+      ${profile&&profile.is_coach?`<button class="${sparTab==='coach'?'on':''}" onclick="sparTab='coach';renderSparringClub()">Coach</button>`:""}
     </div>`;
-    if(sparTab==="wed"){
+    if(sparTab==="match"){
       c.innerHTML=html+`<div id="sparWed"><div class="loadingDots">Loading the list…</div></div>`;
       renderSparWed();
       return;
     }
-    html+=boxerCardHtml(bp);
+    if(sparTab==="log")html+=logFormHtml()+historyHtml();
+    else if(sparTab==="tape")html+=fightTapeHtml()+notesHtml();
+    else if(sparTab==="coach"&&profile&&profile.is_coach)html+=coachHtml();
+    else html+=boxerCardHtml(bp)+sparringStatsHtml();
   }
-  if(bp&&!bpEditing)html+=sparringStatsHtml()+logFormHtml()+fightTapeHtml()+historyHtml()+notesHtml();
-  if(profile&&profile.is_coach)html+=coachHtml();
   c.innerHTML=html;
 }
-let sparTab="hub";
+let sparTab="profile";
 function nextWednesday(){
   const d=new Date();const diff=(3-d.getDay()+7)%7;
   const w=new Date(d);w.setDate(d.getDate()+diff);
@@ -1782,7 +1793,12 @@ async function renderSparWed(){
   const [su,mu]=await Promise.all([
     sb.from("spar_signups").select("*").eq("week_date",wed).order("weight",{ascending:true}),
     sb.from("spar_matchups").select("*").eq("week_date",wed).order("created_at",{ascending:true})]);
-  if(view!=="boxing"||boxSub!=="sparring"||sparTab!=="wed")return;
+  let bps={};
+  if((su.data||[]).length){
+    const {data:bpRows}=await sb.from("boxer_profiles").select("user_id,wins,losses,draws,division").in("user_id",su.data.map(s=>s.user_id));
+    (bpRows||[]).forEach(b=>bps[b.user_id]=b);
+  }
+  if(view!=="boxing"||boxSub!=="sparring"||sparTab!=="match")return;
   const box=$("sparWed");if(!box)return;
   const signups=su.data||[],matchups=mu.data||[];
   const bp=boxData.profile;
@@ -1801,15 +1817,16 @@ async function renderSparWed(){
       </div>
       <p style="font-size:12px;color:var(--muted);margin-top:4px">Tap attending and you're on the list at your current walk-around weight. The list matches you with everyone within 10kg.</p>
       ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="sparPullOut('${wed}')">You're In ✓ — ${Number(mine.weight)}kg · Tap To Pull Out</button>`
-        :`<button class="btnGold" style="margin-top:12px" onclick="sparAttend('${wed}')">I'm Attending Wednesday Night</button>`}
+        :`<button class="btnGold" style="margin-top:12px" onclick="go('classes')">Book In Via Book In For Classes ›</button>`}
     </div>
     <div class="secTitle">Who's In — ${signups.length} Registered</div>
     ${groups.length?groups.map(g=>{
       const lo=Math.min(...g.list.map(x=>Number(x.weight))),hi=Math.max(...g.list.map(x=>Number(x.weight)));
       return `<div class="card">
         <div style="font-weight:900;letter-spacing:2px;font-size:11px;color:var(--gold)">${lo===hi?lo+" KG":lo+"–"+hi+" KG"} · ${g.list.length} BOXER${g.list.length>1?"S":""}</div>
-        ${g.list.map(s=>{const d=DIVISIONS[s.division]||DIVISIONS["Sparring Club"];
-          return `<div class="weekRow"><span><b>${esc(s.name)}</b> <small style="color:${d.color}">${d.label}</small></span><span style="color:var(--muted)">${Number(s.weight)}kg</span></div>`;}).join("")}
+        ${g.list.map(s=>{const b=bps[s.user_id];const d=DIVISIONS[(b&&b.division)||s.division]||DIVISIONS["Sparring Club"];
+          const rec=b?((b.wins||0)+"-"+(b.losses||0)+"-"+(b.draws||0)):"";
+          return `<div class="weekRow"><span style="min-width:0"><b>${esc(s.name)}</b><br><small style="color:${d.color}">${d.label}</small>${rec?` <small style="color:var(--muted)">· ${rec}</small>`:""}</span><span style="color:var(--gold);font-weight:800;flex-shrink:0">${Number(s.weight)}kg</span></div>`;}).join("")}
       </div>`;}).join(""):'<div class="card"><p>Nobody on the list yet — be the first name down.</p></div>'}
     <div class="secTitle">The Card — Who's Sparring Who</div>
     ${matchups.length?matchups.map(m=>`<div class="card" style="border-color:var(--gold-dim)">
@@ -2551,8 +2568,9 @@ const WODS=[
 /* Workout timer engine */
 let T={phases:[],idx:0,remain:0,up:false,run:false,int:null};
 let __ac=null;
-function beep(freq,dur){try{__ac=__ac||new (window.AudioContext||window.webkitAudioContext)();const o=__ac.createOscillator(),g=__ac.createGain();o.frequency.value=freq;o.connect(g);g.connect(__ac.destination);g.gain.setValueAtTime(.4,__ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,__ac.currentTime+dur);o.start();o.stop(__ac.currentTime+dur);}catch(e){}}
-function bell(){try{__ac=__ac||new (window.AudioContext||window.webkitAudioContext)();const t=__ac.currentTime;[0,.35].forEach(off=>{[790,1580,2372].forEach((f,i)=>{const o=__ac.createOscillator(),g=__ac.createGain();o.frequency.value=f;o.connect(g);g.connect(__ac.destination);g.gain.setValueAtTime(i?.15:.5,t+off);g.gain.exponentialRampToValueAtTime(.001,t+off+1.3);o.start(t+off);o.stop(t+off+1.3);});});}catch(e){}}
+function beep(freq,dur){try{__ac=__ac||new (window.AudioContext||window.webkitAudioContext)();const o=__ac.createOscillator(),g=__ac.createGain();o.type="square";o.frequency.value=freq;o.connect(g);g.connect(__ac.destination);g.gain.setValueAtTime(.85,__ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,__ac.currentTime+dur);o.start();o.stop(__ac.currentTime+dur);}catch(e){}}
+function horn(dur){try{dur=dur||.7;__ac=__ac||new (window.AudioContext||window.webkitAudioContext)();const t=__ac.currentTime;[233,311,349].forEach(f=>{const o=__ac.createOscillator(),g=__ac.createGain();o.type="sawtooth";o.frequency.setValueAtTime(f*.94,t);o.frequency.linearRampToValueAtTime(f,t+.06);o.connect(g);g.connect(__ac.destination);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.55,t+.05);g.gain.setValueAtTime(.55,t+dur*.75);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.start(t);o.stop(t+dur);});}catch(e){}}
+function bell(){try{__ac=__ac||new (window.AudioContext||window.webkitAudioContext)();const t=__ac.currentTime;[0,.35,.7].forEach(off=>{[790,1580,2372].forEach((f,i)=>{const o=__ac.createOscillator(),g=__ac.createGain();o.frequency.value=f;o.connect(g);g.connect(__ac.destination);g.gain.setValueAtTime(i?.35:1,t+off);g.gain.exponentialRampToValueAtTime(.001,t+off+1.4);o.start(t+off);o.stop(t+off+1.4);});});}catch(e){}}
 function say(txt){try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.rate=1.05;window.speechSynthesis.speak(u);}catch(e){}}
 function fmtSec(s){s=Math.max(0,s);return Math.floor(s/60)+":"+pad(s%60);}
 function buildPhases(t){
@@ -2572,7 +2590,7 @@ function wtToggle(){
   if(!T.phases.length)return;
   if(T.idx>=T.phases.length)wtReset();
   T.run=!T.run;clearInterval(T.int);
-  if(T.run){beep(660,.15);T.int=setInterval(wtTick,1000);}
+  if(T.run){horn(.45);T.int=setInterval(wtTick,1000);}
   updWT();
 }
 function wtReset(){clearInterval(T.int);T.idx=0;T.remain=T.phases.length?T.phases[0].s:0;T.run=false;updWT();}
@@ -2581,8 +2599,8 @@ function wtTick(){
   if(T.remain>0&&T.remain<=3)beep(880,.12);
   if(T.remain<=0){
     T.idx++;
-    if(T.idx>=T.phases.length){T.run=false;clearInterval(T.int);beep(520,.4);setTimeout(()=>beep(520,.4),450);setTimeout(()=>beep(780,.8),900);}
-    else{T.remain=T.phases[T.idx].s;beep(520,.5);}
+    if(T.idx>=T.phases.length){T.run=false;clearInterval(T.int);bell();}
+    else{T.remain=T.phases[T.idx].s;horn(.5);}
   }
   updWT();
 }
@@ -2698,19 +2716,34 @@ async function renderTimetable(){
     <div class="card"><h3>Gym Floor Staffed Hours</h3><ul style="margin-top:8px"><li>Mon – Thu: 5:15am – 7:45am</li><li>Mon – Fri: 4:00pm – 7:00pm</li><li>Saturday: 8:00am – 11:00am</li></ul></div>`;
 }
 function refreshClassReg(){
-  if(view==="boxing"&&boxSub==="register")renderBoxRegister();
+  if(view==="classes")renderClasses();
   else if(view==="timetable")renderTimetable();
 }
 async function attendClass(date,time,name){
+  const isSpar=/sparring/i.test(name);
+  let bp=null;
+  if(isSpar){
+    const {data}=await sb.from("boxer_profiles").select("*").eq("user_id",session.user.id).maybeSingle();
+    bp=data;
+    if(!bp||!bp.current_weight){
+      toast("Sparring needs your boxer profile — set your name and current weight first. Taking you there now.");
+      setTimeout(()=>{view="boxing";boxSub="sparring";sparTab="profile";renderNav();render();},1200);
+      return;
+    }
+  }
   const me=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";
-  const {error}=await sb.from("class_regs").insert({user_id:session.user.id,name:me,class_name:name,class_date:date,class_time:time});
-  if(error){toast(/duplicate|unique/i.test(error.message)?"You're already in for that one.":error.message);}
-  else toast("You're in — "+name+" at "+fmtClassTime(time)+". See you there.");
+  const {error}=await sb.from("class_regs").insert({user_id:session.user.id,name:isSpar?bp.name:me,class_name:name,class_date:date,class_time:time});
+  if(error){toast(/duplicate|unique/i.test(error.message)?"You're already booked in for that one.":error.message);refreshClassReg();return;}
+  if(isSpar){
+    await sb.from("spar_signups").insert({user_id:session.user.id,name:bp.name,weight:bp.current_weight,division:bp.division||"Sparring Club",week_date:date});
+    toast("Booked in for Sparring at "+Number(bp.current_weight)+"kg — you're on the matchup list.");
+  }else toast("You're booked in — "+name+" at "+fmtClassTime(time)+". See you there.");
   refreshClassReg();
 }
-async function unattendClass(date,time){
+async function unattendClass(date,time,name){
   const {error}=await sb.from("class_regs").delete().eq("user_id",session.user.id).eq("class_date",date).eq("class_time",time);
-  toast(error?error.message:"Pulled out — spot freed up.");
+  if(name&&/sparring/i.test(name))await sb.from("spar_signups").delete().eq("user_id",session.user.id).eq("week_date",date);
+  toast(error?error.message:"You've been removed from "+(name||"the class")+" — spot freed up.");
   refreshClassReg();
 }
 
@@ -2812,7 +2845,7 @@ const AMA_KB=[
 {k:"camp start when begins fight club three",a:"Camp 3 commences Monday July 20. We're on the school-holiday timetable until then."},
 {k:"junior boxing kids age children young",a:"Junior Boxing is for ages 10–15, all levels — Mon, Wed and Fri at 4:30pm. Multiple coaches every session, juniors grouped by ability."},
 {k:"sparring club boxer profile rounds bank log",a:"Head to Boxing → Sparring Club. Build your boxer profile — photo, weights, record — then log every spar: rounds, minutes, who you sparred. It all banks up week by week."},
-{k:"wednesday night sparring matchup attending register spar who list card",a:"Wednesday Night Sparring lives in Boxing → Sparring Club. Tap 'I'm Attending' and you're on the list at your current weight — the list groups everyone within 10kg so you can see exactly who you might be sparring, and the coaches set the card for the night."},
+{k:"wednesday night sparring matchup attending register spar who list card",a:"Book into Sparring through Book In For Classes on the home screen — it puts you on the matchup list at your current weight automatically — the list groups everyone within 10kg so you can see exactly who you might be sparring, and the coaches set the card for the night."},
 {k:"coach notes question ask review feedback",a:"In Boxing → Sparring Club there's a Sparring Notes section — post your notes or questions and the coaches reply right there in your thread."},
 {k:"build own session rounds boxing bag workout create",a:"Boxing → Build Your Own. Pick 2 or 3 minute rounds, 30 or 60 second rests, then stack rounds from skipping, shadow, bag work and dumbbell work. The timer runs the whole session and auto-switches the special rounds."},
 {k:"max effort round ten seconds timer",a:"The Max Effort rounds in Build Your Own run themselves — 10, 15 or 20 seconds flat out with matching rest, beeping you in and out until the round's done."},
