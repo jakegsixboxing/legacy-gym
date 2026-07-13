@@ -1019,17 +1019,12 @@ function lvlCardHtml(pts,big){
     <div class="lvlPts">${pts} Legacy Points${lv.next?` · ${lv.next.pts-pts} to ${lv.next.name}`:" · Top of the mountain"}</div>
     <div class="lvlShine"></div></div>`;
 }
-const REASONS=["Competitive Boxing","Boxing For Fitness","Weights & Strength","Functional Fitness & Conditioning","Recovery & Wellbeing","The Community & Socials","All-Rounder — Bit Of Everything"];
-let mpRank=[];
-function mpPrepForm(){const ex=myMp()||{};mpRank=(ex.member_type||"").split(" · ").filter(r=>REASONS.includes(r));mpPhotoUrl=null;}
-function mpRankBtnsHtml(){
-  return REASONS.map(r=>{const idx=mpRank.indexOf(r);
-    return `<button type="button" class="rankBtn${idx>-1?' on':''}" onclick="mpToggleRank(this.dataset.r)" data-r="${esc(r)}">${idx>-1?`<span class="rankNum">${idx+1}</span>`:""}${esc(r)}</button>`;}).join("");
-}
-function mpToggleRank(r){
-  const i=mpRank.indexOf(r);
-  if(i>-1)mpRank.splice(i,1);else mpRank.push(r);
-  const el=$("mpRankBtns");if(el)el.innerHTML=mpRankBtnsHtml();
+const MEMBERSHIPS=["Open Gym","Gym + Classes"];
+let mpMembership="";
+function mpPrepForm(){const ex=myMp()||{};mpMembership=ex.membership||"";mpPhotoUrl=null;}
+function mpPickMembership(m){mpMembership=m;const el=$("mpMemBtns");if(el)el.innerHTML=mpMemBtnsHtml();}
+function mpMemBtnsHtml(){
+  return MEMBERSHIPS.map(m=>`<button type="button" class="rankBtn${mpMembership===m?' on':''}" data-m="${esc(m)}" onclick="mpPickMembership(this.dataset.m)">${mpMembership===m?'<span class="rankNum">✓</span>':''}${esc(m)}${m==="Open Gym"?'<small style="color:var(--muted);margin-left:auto">Gym floor access</small>':'<small style="color:var(--muted);margin-left:auto">Floor + all classes</small>'}</button>`).join("");
 }
 const CARDIO={
 stairs:[
@@ -1248,14 +1243,20 @@ async function uploadMemberPhoto(e){
   toast("Photo's in. Hit Save to lock it.");
 }
 async function saveMemberProfile(){
-  const name=$("mpName").value.trim(),age=parseInt($("mpAge").value)||null;
-  if(!name){toast("Put your name in first.");return;}
-  if(!mpRank.length){toast("Tap at least one reason you come to Legacy.");return;}
+  const name=$("mpName").value.trim(),dob=$("mpDob").value,em=$("mpEmail").value.trim(),mob=$("mpMobile").value.trim();
   const ex=myMp();
-  const {error}=await sb.from("member_profiles").upsert({user_id:session.user.id,full_name:name,age,member_type:mpRank.join(" · "),photo_url:mpPhotoUrl||(ex&&ex.photo_url)||""});
+  const photo=mpPhotoUrl||(ex&&ex.photo_url)||"";
+  if(!mpMembership){toast("Pick your membership — Open Gym or Gym + Classes.");return;}
+  if(!name){toast("Put your full name in first.");return;}
+  if(!dob){toast("Add your date of birth.");return;}
+  if(!em||!/.+@.+\..+/.test(em)){toast("Add a valid email address.");return;}
+  if(!mob||mob.replace(/\D/g,"").length<8){toast("Add your mobile number.");return;}
+  if(!photo){toast("Take your member photo first — no photo, no profile.");return;}
+  const age=dob?Math.floor((Date.now()-new Date(dob+"T12:00:00").getTime())/31557600000):null;
+  const {error}=await sb.from("member_profiles").upsert({user_id:session.user.id,full_name:name,age,dob,email:em,mobile:mob,membership:mpMembership,member_type:mpMembership,photo_url:photo});
   if(error){toast(error.message);return;}
   mpEditing=false;mpPhotoUrl=null;
-  toast("Legacy Profile saved. Welcome to the board.");
+  toast("Legacy Profile saved. Welcome aboard.");
   await loadWorld(true);
   if(view==="setup")view="home";
   renderNav();render();
@@ -1267,25 +1268,32 @@ function renderSetup(){
       <div class="hwKicker">Welcome To Legacy</div>
       <div class="hwTitle">Build Your<br>Legacy Profile.</div>
     </div>
-    <p style="color:var(--muted);font-size:12.5px;margin:-4px 2px 14px;line-height:1.6">Every member has one — takes 30 seconds. Your name goes on the board, your points start counting from tonight.</p>
+    <p style="color:var(--muted);font-size:12.5px;margin:-4px 2px 14px;line-height:1.6">Two questions, your details, one photo — takes 30 seconds and you're in.</p>
     ${mpFormHtml()}`;
 }
 function mpFormHtml(){
   const ex=myMp()||{};
   const ph=mpPhotoUrl||ex.photo_url||"";
+  const defName=ex.full_name||(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim();
   return `<div class="card" style="border-color:var(--gold-dim)">
     <h3 style="font-size:15px">${ex.user_id?"Edit":"Build"} Your Legacy Profile</h3>
-    <div style="display:flex;align-items:center;gap:14px;margin-top:12px">
+    <label class="byoLbl" style="margin-top:12px">What kind of member are you?</label>
+    <div id="mpMemBtns">${mpMemBtnsHtml()}</div>
+    <label class="byoLbl" style="margin-top:14px">Full Name</label>
+    <input id="mpName" value="${esc(defName)}" maxlength="60">
+    <label class="byoLbl">Date Of Birth</label>
+    <input id="mpDob" type="date" value="${ex.dob||(profile&&profile.dob)||""}">
+    <div class="row2">
+      <div class="field"><label>Email</label><input id="mpEmail" type="email" value="${esc(ex.email||(profile&&profile.email)||"")}"></div>
+      <div class="field"><label>Mobile</label><input id="mpMobile" type="tel" inputmode="tel" value="${esc(ex.mobile||(profile&&profile.phone)||"")}" placeholder="04xx xxx xxx"></div>
+    </div>
+    <label class="byoLbl">Your Member Photo — required</label>
+    <div style="display:flex;align-items:center;gap:14px;margin-top:4px">
       <img id="mpPhotoPrev" src="${esc(ph)}" style="width:74px;height:74px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-dim);${ph?"":"display:none"}" alt="">
-      <label class="btnLink" style="margin:0;display:inline-block;width:auto;padding:10px 16px;cursor:pointer">Take / Upload Photo
+      <label class="btnLink" style="margin:0;display:inline-block;width:auto;padding:10px 16px;cursor:pointer;border-color:var(--gold);color:var(--gold)">${ph?"Retake Photo":"Take Your Photo"}
         <input type="file" accept="image/*" capture="user" style="display:none" onchange="uploadMemberPhoto(event)"></label>
     </div>
-    <label class="byoLbl" style="margin-top:14px">Full Name</label>
-    <input id="mpName" value="${esc(ex.full_name||myDisplayName())}" maxlength="60">
-    <label class="byoLbl">Age</label>
-    <input id="mpAge" type="number" min="10" max="99" value="${ex.age||""}" placeholder="Age">
-    <label class="byoLbl">Why do you come to Legacy? Tap in order — 1st reason first.</label>
-    <div id="mpRankBtns">${mpRankBtnsHtml()}</div>
+    <p style="font-size:11px;color:var(--muted);margin-top:6px">No photo, no profile — it's how the coaches and the leaderboard know it's you.</p>
     <button class="btnGold" style="margin-top:14px" onclick="saveMemberProfile()">Save Legacy Profile</button>
     ${ex.user_id?`<button class="btnLink" style="margin-top:10px" onclick="mpEditing=false;render()">Cancel</button>`:""}
   </div>`;
@@ -1751,6 +1759,19 @@ async function loadSparringData(){
   boxData={loaded:true,profile:bp.data||null,sessions:ss.data||[],notes:nt.data||[],fights:fn.data||[],noms:nm.data||[],allNotes:an.data||[],clips:cl.data||[],allClips:ac.data||[]};
 }
 async function renderSparringClub(){
+  if(!(profile&&(profile.is_fighter||profile.is_staff||profile.is_coach))){
+    const c0=$("boxContent");if(!c0)return;
+    c0.innerHTML=`
+      <div style="background:#0d0d0b;border:1px solid #2a2417;border-radius:16px;padding:40px 22px;text-align:center;margin-top:4px">
+        <div style="font-weight:900;letter-spacing:4px;color:#9e9e9e;font-size:11px">FIGHTERS ONLY</div>
+        <h2 style="font-size:22px;margin-top:8px;color:#f5f5f5;letter-spacing:1px;line-height:1.3">THE SPARRING CLUB</h2>
+        <div style="margin:20px auto;width:56px;height:56px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:22px">🔒</div>
+        <p style="color:var(--gold);font-weight:800;font-size:14px;letter-spacing:1px">PRIVATE — SPARRING CLUB & ABOVE.</p>
+        <p style="color:#9e9e9e;font-size:13px;margin-top:10px;line-height:1.6">This room is for Sparring Club fighters, Fight Club, amateurs and professionals.<br>Fight profiles, the matchup list, fight tape — earned, not given.</p>
+        <p style="color:#6e6e6e;font-size:11.5px;margin-top:18px;letter-spacing:.5px">Ready to step up? Talk to the coaches about joining the Sparring Club.</p>
+      </div>`;
+    return;
+  }
   $("boxContent").innerHTML=`<div class="loadingDots">Loading your sparring hub…</div>`;
   await loadSparringData();
   if(view!=="boxing"||boxSub!=="sparring")return;
@@ -1812,12 +1833,12 @@ async function renderSparWed(){
   box.innerHTML=`
     <div class="card" style="border-color:var(--gold-dim)">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
-        <h3 style="font-size:16px">Wednesday Night Sparring</h3>
+        <h3 style="font-size:16px">Wednesday Night Sparring — 6:00 PM</h3>
         <span style="font-size:12px;color:var(--gold);font-weight:800;flex-shrink:0">${fmtDateAU(wed)}</span>
       </div>
-      <p style="font-size:12px;color:var(--muted);margin-top:4px">Tap attending and you're on the list at your current walk-around weight. The list matches you with everyone within 10kg.</p>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">Tap attending — your fight profile carries straight onto the list: weight, record, division, the lot. Grouped within 10kg.</p>
       ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="sparPullOut('${wed}')">You're In ✓ — ${Number(mine.weight)}kg · Tap To Pull Out</button>`
-        :`<button class="btnGold" style="margin-top:12px" onclick="go('classes')">Book In Via Book In For Classes ›</button>`}
+        :`<button class="btnGold" style="margin-top:12px" onclick="sparAttend('${wed}')">Yes — I'm Attending Sparring</button>`}
     </div>
     <div class="secTitle">Who's In — ${signups.length} Registered</div>
     ${groups.length?groups.map(g=>{
@@ -1836,14 +1857,18 @@ async function renderSparWed(){
         <div style="flex:1;font-weight:800;font-size:14px">${esc(m.b_name)}</div>
         ${isC?`<button class="xBtn" onclick="delMatchup('${m.id}')">×</button>`:""}
       </div>
-      <p style="text-align:center;font-size:11.5px;color:var(--muted);margin-top:4px">${m.rounds} rounds</p>
+      <p style="text-align:center;font-size:11.5px;color:var(--muted);margin-top:4px">${m.rounds} × ${Number(m.mins||3)}:00 rounds</p>
     </div>`).join(""):'<div class="card"><p>Matchups go up here once the coaches set the card.</p></div>'}
     ${isC?`<div class="secTitle">Coach — Set A Matchup</div>
     <div class="card">
       <div class="field"><label>In The Red Corner</label><select id="muA">${signups.map(s=>`<option value="${s.user_id}|${esc(s.name)}">${esc(s.name)} — ${Number(s.weight)}kg</option>`).join("")}</select></div>
       <div class="field"><label>In The Blue Corner</label><select id="muB">${signups.map(s=>`<option value="${s.user_id}|${esc(s.name)}">${esc(s.name)} — ${Number(s.weight)}kg</option>`).join("")}</select></div>
-      <div class="field"><label>Rounds</label><select id="muR"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></div>
+      <div class="row2">
+        <div class="field"><label>Rounds</label><select id="muR"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option></select></div>
+        <div class="field"><label>Minutes Per Round</label><select id="muM"><option>2</option><option selected>3</option></select></div>
+      </div>
       <button class="btnGold" onclick="addMatchup('${wed}')">Put It On The Card</button>
+      <p style="font-size:11px;color:var(--muted);margin-top:8px">Same boxer can go on the card as many times as you like — just keep adding matchups.</p>
     </div>`:""}`;
 }
 async function sparAttend(wed){
@@ -1863,7 +1888,7 @@ async function sparPullOut(wed){
 async function addMatchup(wed){
   const [aid,aname]=$("muA").value.split("|"),[bid,bname]=$("muB").value.split("|");
   if(aid===bid){toast("Pick two different boxers.");return;}
-  const {error}=await sb.from("spar_matchups").insert({week_date:wed,a_user:aid,a_name:aname,b_user:bid,b_name:bname,rounds:parseInt($("muR").value),created_by:session.user.id});
+  const {error}=await sb.from("spar_matchups").insert({week_date:wed,a_user:aid,a_name:aname,b_user:bid,b_name:bname,rounds:parseInt($("muR").value),mins:parseFloat($("muM").value),created_by:session.user.id});
   if(error){toast(error.message);return;}
   toast(aname+" vs "+bname+" — on the card.");
   renderSparWed();
@@ -1888,7 +1913,7 @@ function bpFormHtml(bp){
     </div>
     <div class="field"><label>Name</label><input id="bpName" value="${esc(defName)}"></div>
     <div class="field"><label>Where Are You At?</label><select id="bpDiv" onchange="bpDivChanged(this.value)">
-      ${Object.keys(DIVISIONS).map(k=>`<option value="${k}" ${(bp.division||"Fitness Club")===k?"selected":""}>${DIVISIONS[k].label} — ${DIVISIONS[k].pick}</option>`).join("")}
+      ${["Sparring Club","Fight Club","Amateur","Professional"].map(k=>`<option value="${k}" ${(bp.division||"Sparring Club")===k?"selected":""}>${DIVISIONS[k].label} — ${DIVISIONS[k].pick}</option>`).join("")}
     </select></div>
     <div class="field"><label>Stance</label><select id="bpStance">
       <option ${bp.stance==="Orthodox"?"selected":""}>Orthodox</option>
@@ -1898,7 +1923,7 @@ function bpFormHtml(bp){
       <div class="field"><label>Age</label><input id="bpAge" type="number" inputmode="numeric" value="${bp.age??""}"></div>
       <div class="field"><label>Current Weight (kg)</label><input id="bpCw" type="number" step="0.1" inputmode="decimal" value="${bp.current_weight??""}"></div>
     </div>
-    <div id="bpBoxerOnly" style="${(bp.division||"Fitness Club")==="Fitness Club"?"display:none":""}">
+    <div id="bpBoxerOnly">
       <div class="field"><label>Fight Weight (kg)</label><input id="bpFw" type="number" step="0.1" inputmode="decimal" value="${bp.fight_weight??""}"></div>
       <label style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Record — Wins / Losses / Draws (if you have one)</label>
       <div class="row2">
@@ -2685,7 +2710,7 @@ function renderRecovery(){
 const CLASS_SCHEDULE=[
   {d:1,t:"05:15",n:"Boxing"},{d:1,t:"18:00",n:"Boxing"},
   {d:2,t:"05:15",n:"Strength & Conditioning"},{d:2,t:"18:00",n:"Strength & Conditioning"},
-  {d:3,t:"05:15",n:"Boxing"},{d:3,t:"18:00",n:"Boxing"},{d:3,t:"18:45",n:"Sparring"},
+  {d:3,t:"05:15",n:"Boxing"},{d:3,t:"17:00",n:"Boxing"},{d:3,t:"18:00",n:"Sparring"},
   {d:4,t:"05:15",n:"Strength & Conditioning"},{d:4,t:"18:00",n:"Strength & Conditioning"},
   {d:5,t:"05:15",n:"Boxing"},{d:5,t:"18:00",n:"Boxing"},
   {d:6,t:"08:00",n:"Boxing"},{d:6,t:"09:00",n:"Strength & Conditioning"}
@@ -3120,7 +3145,7 @@ function renderStaffChat(){
     <div class="card">
       <p style="margin-bottom:12px">Grant a team member access once they've created their normal member login. Their tab appears automatically.</p>
       <div class="field"><label>Their Login Email</label><input id="gaEmail" type="email" placeholder="name@email.com"></div>
-      <div class="field"><label>Access Level</label><select id="gaRole"><option value="staff">Staff</option><option value="manager">Manager (sees all tasks + commissions)</option><option value="remove">Remove staff access</option><option value="premium">Unlock Legacy Elite ($9.99/wk member)</option><option value="unpremium">Remove Legacy Elite access</option><option value="blokes">Grant Local Blokes — Heavyweight Club</option><option value="unblokes">Remove Local Blokes access</option></select></div>
+      <div class="field"><label>Access Level</label><select id="gaRole"><option value="staff">Staff</option><option value="manager">Manager (sees all tasks + commissions)</option><option value="remove">Remove staff access</option><option value="premium">Unlock Legacy Elite ($9.99/wk member)</option><option value="unpremium">Remove Legacy Elite access</option><option value="blokes">Grant Local Blokes — Heavyweight Club</option><option value="unblokes">Remove Local Blokes access</option><option value="fighter">Grant Sparring Club (fighter) access</option><option value="unfighter">Remove Sparring Club access</option></select></div>
       <button class="btnGold" onclick="grantStaff()">Update Access</button>
     </div>`:""}`;
   const box=$("stMsgs");if(box)box.scrollTop=box.scrollHeight;
@@ -3140,6 +3165,12 @@ async function handlePtRequest(id){
 async function grantStaff(){
   const em=$("gaEmail").value.trim();if(!em){toast("Put their email in.");return;}
   const role=$("gaRole").value;
+  if(role==="fighter"||role==="unfighter"){
+    const {data,error}=await sb.rpc("grant_fighter",{target_email:em,make_fighter:role==="fighter"});
+    toast(error?error.message:data);
+    if(!error)renderStaff();
+    return;
+  }
   if(role==="blokes"||role==="unblokes"){
     const {data,error}=await sb.rpc("grant_blokes",{target_email:em,make_blokes:role==="blokes"});
     toast(error?error.message:data);
