@@ -593,17 +593,13 @@ function renderBoxElite(){
   $("boxContent").innerHTML=`
     <div class="eliteCard">
       <div class="eliteStar">★</div>
-      <h3 class="fcName" style="font-size:26px">Train With Jake</h3>
-      <div class="sub" style="margin:6px 0 14px">A Private Service · Head Coach Jake Williamson</div>
-      <p style="text-align:left;color:var(--text);font-size:13.5px;line-height:1.7;margin-top:6px">Fully customised training, built around you by Head Coach Jake Williamson — your goals, your schedule, your level. Programming, technical work and accountability, one on one with the head coach.</p>
-      <ul style="text-align:left;margin-top:14px">
-        <li>Custom programs written for you personally</li>
-        <li>Boxing, strength or the full package</li>
-        <li>Reviewed and adjusted as you progress</li>
-      </ul>
+      <div style="font-weight:900;letter-spacing:5px;color:var(--gold);font-size:12px;margin-top:4px">COMING SOON</div>
+      <h3 class="fcName" style="font-size:26px;margin-top:6px">Train With Jake</h3>
+      <div class="sub" style="margin:6px 0 14px">Custom Boxing Programming · Written By Head Coach Jake Williamson</div>
+      <p style="text-align:left;color:var(--text);font-size:13.5px;line-height:1.7;margin-top:6px">One-on-one boxing programming, built for you personally by the head coach — your goals, your schedule, your level. The doors aren’t open yet, but when they swing open, spots will be strictly limited.</p>
       <div id="twjWrap">
-        <button class="btnGold" style="margin-top:18px" onclick="twjSend()">I'm Interested — Tell Me More</button>
-        <p style="margin-top:10px;color:var(--muted);font-size:11.5px">Tap the button and Jake gets a note directly — he'll come to you with the details.</p>
+        <button class="btnGold" style="margin-top:18px" onclick="twjSend()">Let Us Know You're Interested</button>
+        <p style="margin-top:10px;color:var(--muted);font-size:11.5px">Tap the button and Jake gets a note directly — you'll be the first to hear when the doors open.</p>
       </div>
     </div>`;
 }
@@ -687,7 +683,7 @@ async function renderClasses(){
   const cls=upcomingClasses48();
   const dates=[...new Set(cls.map(c=>c.date))];
   const now=new Date();
-  const d0=now.toISOString().slice(0,10),dY=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  const d0=isoDateLocal(now),dY=isoDateLocal(new Date(Date.now()-86400000));
   const nowHM=pad(now.getHours())+":"+pad(now.getMinutes());
   let regs=[],doneRegs=[],claimedRefs=new Set();
   const q=[sb.from("class_regs").select("*").eq("user_id",session.user.id).in("class_date",[dY,d0]),
@@ -1453,6 +1449,46 @@ async function delPointsEvent(id){
   toast("Removed — tally updated.");
   await loadWorld(true);render();
 }
+function renderPointsRules(){
+  $("main").innerHTML=`
+    <div class="homeWelcome" style="margin-top:4px">
+      <div class="hwKicker">Legacy Points</div>
+      <div class="hwTitle">How The<br>Points Work.</div>
+    </div>
+    <button class="btnLink" style="margin-bottom:12px" onclick="render()">‹ Back To The Leaderboard</button>
+    <div class="card">
+      <h3>What It’s All About</h3>
+      <p style="margin-top:8px;line-height:1.7">Every member of Legacy Gym earns Legacy Points for putting in the work. Your points stack up, push you through eleven ranks — Prospect all the way to Legacy Legend — and put your name on the Members Leaderboard for the whole gym to see.</p>
+    </div>
+    <div class="secTitle">How You Earn Points</div>
+    <div class="card">
+      <h3>🥊 Classes — 1 Point Each</h3>
+      <p style="margin-top:8px;line-height:1.7">Book in, turn up, do the work. After the class, head back into <b>Book In For Classes</b> and hit <b>Submit Class</b> — that banks your point. No submit, no point.</p>
+    </div>
+    <div class="card">
+      <h3>🏃 Cardio Challenges — 1 to 10 Points</h3>
+      <p style="margin-top:8px;line-height:1.7">Every challenge pays out based on how brutal it is. The quick missions are worth 1–2 points — the monsters, your marathons and big stair climbs, pay the full 10. Start the timer, finish the job, bank the points.</p>
+    </div>
+    <div class="card">
+      <h3>🏆 Member vs Member — 5 Point Bonus</h3>
+      <p style="margin-top:8px;line-height:1.7">Take a club record off another member — heaviest lifts or fastest times — and you pocket a 5-point bonus on top of the bragging rights. It’s yours until someone takes it off you.</p>
+    </div>
+    <div class="secTitle">The Prizes</div>
+    <div class="card" style="border-color:var(--gold-dim)">
+      <p style="line-height:1.7">This isn’t just for bragging rights. Off the back of your points we give away:</p>
+      <ul style="margin-top:10px;line-height:1.8">
+        <li><b>Weekly prizes</b> — for the biggest movers each week</li>
+        <li><b>Monthly prizes</b> — for the members leading the charge</li>
+        <li><b>End-of-term prizes</b> — the big ones, for the top of the ladder</li>
+      </ul>
+      <p style="margin-top:10px;line-height:1.7">Winners get called out in the gym. Turn up, do the work, take the prizes.</p>
+    </div>
+    <div class="card">
+      <h3>Keep It Honest</h3>
+      <p style="margin-top:8px;line-height:1.7">The system runs on trust, same as the gym floor — only submit what you’ve actually done. Hit something by mistake? Open your card on the leaderboard and use <b>My Points History</b> to undo it. Anyone gaming the board gets their points stripped — and everyone will know why.</p>
+    </div>`;
+  window.scrollTo(0,0);
+}
 async function renderLeaderboard(){
   $("main").innerHTML=`
     <img class="chatBgLogo" src="${LOGO}" alt="">
@@ -1461,6 +1497,7 @@ async function renderLeaderboard(){
         <div class="hwKicker">The Ladder</div>
         <div class="hwTitle">Members<br>Leaderboard.</div>
       </div>
+      <button class="btnLink" style="margin:0 0 10px" onclick="renderPointsRules()">📖 How The Points Work — Rules &amp; Prizes ›</button>
       <div id="lbBody"><div class="loadingDots">Loading the board…</div></div>
     </div>`;
   await loadWorld();
@@ -1512,7 +1549,7 @@ async function renderLeaderboard(){
 
 /* ---- Local Blokes — Heavyweight Club (VIP, invitation only) ---- */
 const LB={logo:"https://heavyweight-app.vercel.app/icons/icon-192.png",gold:"#c9994d",bg:"#0d0d0d",surf:"#1a1a1a",surf2:"#262626",dim:"#9e9e9e"};
-const LB_LEVELS=[[0,"Fresh Meat","bronze",0],[5,"Sparring Dummy","bronze",1],[12,"Fair Dinkum","silver",0],[20,"The Tradesman","silver",1],[30,"Workhorse","gold",0],[45,"Heavy Hitter","gold",1],[60,"The Machine","platinum",0],[80,"Absolute Weapon","platinum",1],[105,"Local Legend","platinum",2],[135,"Absolute Unit","platinum",3],[170,"Heavyweight Champion","champion",3]];
+const LB_LEVELS=[[0,"Fresh Meat","bronze",0],[5,"Cannon Fodder","bronze",1],[12,"Scrapper","silver",0],[20,"Hard Bastard","silver",1],[30,"The Enforcer","gold",0],[45,"Silverback","gold",1],[60,"Wrecking Ball","platinum",0],[80,"Savage","platinum",1],[105,"Stone Cold","platinum",2],[135,"Apex Predator","platinum",3],[170,"Heavyweight Champion","champion",3]];
 function lbLevelOf(p){let i=0;LB_LEVELS.forEach((l,n)=>{if(p>=l[0])i=n;});const L=LB_LEVELS[i];return {pts:L[0],name:L[1],tier:L[2],stars:L[3],n:i+1,next:LB_LEVELS[i+1]||null};}
 let lbSub="home",lbWeek=1,lbDay="mon",lbFuelTab="plan",lbPlan="A",lbTimerDay=null;
 let lbData={loaded:false,lifts:[],msgs:[],events:[],rsvps:[],members:null};
@@ -1885,7 +1922,7 @@ async function lbYarn(){
   box.innerHTML=`
     <div class="secTitle">The Yarn — Group Chat</div>
     <div class="card" style="border-color:#3a2f1b;background:#131110">
-      <div id="lbMsgs" style="max-height:340px;overflow-y:auto">${lbData.msgs.map(m=>`<div class="msg${m.user_id===session.user.id?' mine':''}"><div class="who">${esc(m.name)}</div><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`).join("")||'<div class="emptyMsg">Dead quiet. Someone spin a yarn.</div>'}</div>
+      <div id="lbMsgs" style="height:min(62vh,560px);overflow-y:auto">${lbData.msgs.map(m=>`<div class="msg${m.user_id===session.user.id?' mine':''}"><div class="who">${esc(m.name)}</div><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`).join("")||'<div class="emptyMsg">Dead quiet. Someone spin a yarn.</div>'}</div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <input id="lbMsgIn" placeholder="Talk to the blokes…" maxlength="1000" style="flex:1" onkeydown="if(event.key==='Enter')lbSend()">
         <button class="btnGold" style="width:auto;margin:0;padding:12px 16px;background:#c9994d" onclick="lbSend()">➤</button>
@@ -3422,7 +3459,7 @@ async function delSocial(id){
 
 /* ---- Ask Me Anything (voice in, typed answers) ---- */
 const AMA_KB=[
-{k:"points legacy points how earn score tally leaderboard rank level",a:"Legacy Points: 1 point every time you attend a class and hit Submit afterwards, 1–10 points for cardio challenges depending on how big the mission is, and a 5-point bonus for taking a club record off someone in Member vs Member. Points climb you through the ranks — Prospect all the way to Legacy Legend. Check the Members Leaderboard on the home screen."},
+{k:"points legacy points how earn score tally leaderboard rank level",a:"Legacy Points: 1 point every time you attend a class and hit Submit afterwards, 1–10 points for cardio challenges depending on how big the mission is, and a 5-point bonus for taking a club record off someone in Member vs Member. Points climb you through the ranks — Prospect all the way to Legacy Legend. Check the Members Leaderboard on the home screen — and tap How The Points Work in there for the full rules plus the weekly, monthly and end-of-term prizes."},
 {k:"cardio challenge stairmaster treadmill climb steps run stairs",a:"Cardio Challenges are on the home screen — famous stair climbs on the StairMaster (Big Ben up to the Great Wall Gauntlet) and iconic runs on the treadmill (Bondi to Bronte up to City2Surf). Hit start, do the work, claim between 1 and 10 points — the bigger the mission, the bigger the reward. The Niesen Stairway and the full Marathon are the 10-pointers."},
 {k:"member versus member record crown heaviest deadlift squat bench fastest",a:"Member vs Member is the club record board — heaviest deadlift, squat, overhead press and bench, plus fastest times on the assault bike, rower, ski erg, StairMaster and runs from 1K to 10K. Post your result; take the crown off someone and you bank a 5-point bonus."},
 {k:"local blokes heavyweight club vip private program what is behind door",a:"The Local Blokes Heavyweight Club is an invitation-only program for a small crew of men — training, fuel plans and more, all behind a locked door. If you're in it, you know. If you're not, have a word with the coaches about how spots open up."},
