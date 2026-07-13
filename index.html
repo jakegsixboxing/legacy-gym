@@ -3836,7 +3836,8 @@ async function openMemberDm(uid,title){
 async function mdPaint(){
   const {data}=await sb.from("member_dms").select("*").eq("member_id",mdUid).order("created_at",{ascending:true}).limit(300);
   const ov=$("mdOverlay");if(!ov||!mdUid)return;
-  const h=m=>`<div class="yMsg"><span class="who">${esc(m.name)}</span><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`;
+  const lk=t=>esc(t).replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:underline;word-break:break-all">$1</a>');
+  const h=m=>`<div class="yMsg"><span class="who">${esc(m.name)}</span><div class="txt">${lk(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`;
   const isMe=mdUid===session.user.id;
   ov.innerHTML=`
   <div style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:60;background:#0d0d0d;display:flex;flex-direction:column">
