@@ -543,7 +543,7 @@ function renderBoxing(){
     <div class="subTabs">
       <button class="${boxSub==='sparring'?'active':''}" onclick="setBoxSub('sparring')">Sparring Club</button>
       <button class="${boxSub==='byo'?'active':''}" onclick="setBoxSub('byo')">Build Your Own</button>
-      <button class="${boxSub==='elite'?'active':''}" style="${boxSub==='elite'?'':'border-color:var(--gold-dim);color:var(--gold)'}" onclick="setBoxSub('elite')">★ Legacy Elite</button>
+      <button class="${boxSub==='elite'?'active':''}" style="${boxSub==='elite'?'':'border-color:var(--gold-dim);color:var(--gold)'}" onclick="setBoxSub('elite')">★ Train With Jake</button>
     </div>
     <div id="boxContent"></div>`;
   renderBoxSub();
@@ -572,42 +572,29 @@ const ELITE_SESSIONS=[
 ];
 let elitePreview=false;
 function renderBoxElite(){
-  const prem=profile&&(profile.is_premium||profile.is_staff);
-  if(!prem||elitePreview){
-    $("boxContent").innerHTML=`
-      ${elitePreview?`<button class="backBtn" onclick="elitePreview=false;renderBoxElite()">‹ Back To Elite (staff preview off)</button>`:""}
-      <div class="eliteCard">
-        <div class="eliteStar">★</div>
-        <h3 class="fcName" style="font-size:26px">Legacy Elite</h3>
-        <div class="sub" style="margin:6px 0 14px">Premium Training · Members Only</div>
-        <div class="elitePrice">$9.99<small>/week</small></div>
-        <ul style="text-align:left;margin-top:14px">
-          <li>Coach-built full boxing sessions — every round programmed, timed and called for you</li>
-          <li>The Championship 12, The Grinder, Defence Masterclass and more</li>
-          <li>Fresh sessions added every camp</li>
-          <li>Cancel anytime</li>
-        </ul>
-        <p style="margin-top:16px;color:var(--muted);font-size:12.5px;line-height:1.6">See the team at reception or message <b style="color:var(--gold)">0401 587 508</b> to switch Elite on — it's added straight to your weekly membership, and this tab unlocks on the spot.</p>
-      </div>`;
-    return;
-  }
   $("boxContent").innerHTML=`
-    <div class="pillRow" style="margin-bottom:14px"><span class="pill" style="border-color:var(--gold);color:var(--gold)">★ Elite Member — Unlocked</span>
-    ${profile.is_staff?`<span class="pill" style="cursor:pointer" onclick="elitePreview=true;renderBoxElite()">Preview locked view</span>`:""}</div>
-    <p style="color:var(--muted);font-size:12.5px;margin:0 2px 14px;line-height:1.5">Coach-built sessions, ready to go — hit start and the timer runs every round, rest and changeover for you.</p>
-    ${ELITE_SESSIONS.map(s=>`<div class="card" style="border-color:var(--gold-dim)">
-      <h3>${s.name}</h3>
-      <div class="sub">${s.rounds.length} rounds · ${s.len/60}:00 rounds · ${s.rest===60?"1:00":"0:30"} rest</div>
-      <p>${s.desc}</p>
-      <button class="btnGold" style="margin-top:12px" onclick="startElite('${s.id}')">Start This Session</button>
-    </div>`).join("")}`;
+    <div class="eliteCard">
+      <div class="eliteStar">★</div>
+      <h3 class="fcName" style="font-size:26px">Train With Jake</h3>
+      <div class="sub" style="margin:6px 0 14px">A Private Service · Head Coach Jake Williamson</div>
+      <p style="text-align:left;color:var(--text);font-size:13.5px;line-height:1.7;margin-top:6px">Fully customised training, built around you by Head Coach Jake Williamson — your goals, your schedule, your level. Programming, technical work and accountability, one on one with the head coach.</p>
+      <ul style="text-align:left;margin-top:14px">
+        <li>Custom programs written for you personally</li>
+        <li>Boxing, strength or the full package</li>
+        <li>Reviewed and adjusted as you progress</li>
+      </ul>
+      <div id="twjWrap">
+        <button class="btnGold" style="margin-top:18px" onclick="twjSend()">I'm Interested — Tell Me More</button>
+        <p style="margin-top:10px;color:var(--muted);font-size:11.5px">Tap the button and Jake gets a note directly — he'll come to you with the details.</p>
+      </div>
+    </div>`;
 }
-function startElite(id){
-  const s=ELITE_SESSIONS.find(x=>x.id===id);if(!s)return;
-  byo.len=s.len;byo.rest=s.rest;byo.list=[...s.rounds];byoSave();
-  boxSub="byo";renderBoxing();
-  byoStart();
-  toast(s.name+" loaded — hit start when you're gloved up.");
+async function twjSend(){
+  const me=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";
+  const {error}=await sb.from("pt_requests").insert({user_id:session.user.id,member_name:me,trainer:"Jake Williamson",duration:"Train With Jake — customised programming",preferred:"",note:"This member is interested in having customised programming done through you."});
+  if(error){toast(/duplicate/i.test(error.message)?"You've already registered your interest — Jake's onto it.":error.message);return;}
+  const w=$("twjWrap");if(w)w.innerHTML='<p style="margin-top:18px;font-weight:900;letter-spacing:2px;color:var(--ok)">SENT ✓ — JAKE WILL BE IN TOUCH</p>';
+  toast("Done — Jake's been notified you're keen.");
 }
 function renderBoxFull(){
   $("boxContent").innerHTML=`
@@ -793,8 +780,34 @@ function byoSet(k,v){byo[k]=v;byoSave();renderBoxBYO();}
 function byoRoundLen(it){return it.fixed||(it.core?(byo.core||60):byo.len);}
 function byoTotal(){let t=0;byo.list.forEach((id,i)=>{const it=byoFind(id);if(!it)return;t+=byoRoundLen(it);if(i<byo.list.length-1)t+=byo.rest;});return t;}
 
+let byoSaved=null;
+async function byoLoadSaved(){
+  const {data}=await sb.from("saved_sessions").select("*").order("created_at",{ascending:false});
+  byoSaved=data||[];
+}
+async function byoSaveSession(){
+  if(!byo.list.length){toast("Nothing to save — add some rounds first.");return;}
+  const name=prompt("Name this session — e.g. Tuesday Burner");
+  if(!name||!name.trim())return;
+  const {error}=await sb.from("saved_sessions").insert({user_id:session.user.id,name:name.trim().slice(0,50),data:{list:byo.list,len:byo.len,rest:byo.rest,core:byo.core||60,db:byo.db}});
+  if(error){toast(error.message);return;}
+  toast('"'+name.trim()+'" saved to your profile.');
+  byoSaved=null;
+  if(!byoActive)renderBoxBYO();
+}
+async function byoLoadSession(id){
+  const s=(byoSaved||[]).find(x=>x.id===id);if(!s)return;
+  byo={...byo,...s.data};byoSave();
+  toast('"'+s.name+'" loaded — hit start when you\'re ready.');
+  renderBoxBYO();
+}
+async function byoDelSaved(id){
+  await sb.from("saved_sessions").delete().eq("id",id);
+  byoSaved=null;renderBoxBYO();
+}
 function renderBoxBYO(){
   if(byoActive)return renderBYOTimer();
+  if(byoSaved===null){byoLoadSaved().then(()=>{if(view==="boxing"&&boxSub==="byo"&&!byoActive)renderBoxBYO();});}
   const counts={};byo.list.forEach(id=>counts[id]=(counts[id]||0)+1);
   const lib=BYO_LIB.map(c=>`
     <div class="secTitle">${c.cat}</div>
@@ -832,8 +845,17 @@ function renderBoxBYO(){
       ${sess||'<div class="emptyMsg">No rounds yet — tap any round above to add it. Tap twice to do it twice.</div>'}
       ${byo.list.length?`<div class="priceRow"><span class="price">${byo.list.length} rounds</span><span class="priceNote">${fmtSec(byoTotal())} total with rests</span></div>
       <button class="btnGold" style="margin-top:14px" onclick="byoStart()">Confirm — Start My Session</button>
+      <button class="btnLink" style="margin-top:10px" onclick="byoSaveSession()">💾 Save This Session To My Profile</button>
       <button class="btnLink" style="margin-top:10px;border-color:var(--danger);color:var(--danger)" onclick="byo.list=[];byoSave();renderBoxBYO()">Clear Session</button>`:""}
     </div>
+    ${(byoSaved&&byoSaved.length)?`<div class="secTitle">My Saved Sessions</div>
+    <div class="card">${byoSaved.map(s=>`<div class="sessItem">
+      <div style="min-width:0"><b>${esc(s.name)}</b><small>${(s.data.list||[]).length} rounds · ${fmtSec(s.data.len||180)} rounds</small></div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btnLink" style="width:auto;margin:0;padding:8px 12px;border-color:var(--gold-dim);color:var(--gold)" onclick="byoLoadSession('${s.id}')">Load</button>
+        <button class="xBtn" onclick="byoDelSaved('${s.id}')">×</button>
+      </div>
+    </div>`).join("")}</div>`:""}
     ${btHtml()}`;
 }
 function byoPhases(){
@@ -932,6 +954,10 @@ function renderBYOTimer(){
       <div class="timerTime" id="sTime">--:--</div>
       <div class="timerSub" id="sNext"></div>
       <div class="timerBtns"><button class="tReset" onclick="sReset()">Reset</button><button class="tStart" id="sGo" onclick="sToggle()">Start</button></div>
+      <div class="timerBtns" style="margin-top:8px">
+        <button class="tReset" onclick="sDropNext()">✕ Drop Next Round</button>
+        <button class="tReset" style="border-color:var(--gold-dim);color:var(--gold)" onclick="sSkipRound()">Skip Round ›</button>
+      </div>
       </div>
     </div>
     <div class="card">
@@ -948,6 +974,42 @@ function sToggle(){
   updS();
 }
 function sReset(){clearInterval(S.int);S.idx=0;S.remain=S.phases.length?S.phases[0].s:0;S.run=false;updS();}
+function sNextRoundStart(from){
+  let j=from;
+  while(j<S.phases.length&&!S.phases[j].end)j++;
+  j++;
+  if(S.phases[j]&&S.phases[j].br)j++;
+  return j;
+}
+function sSkipRound(){
+  if(!S.phases.length||S.idx>=S.phases.length)return;
+  const j=sNextRoundStart(S.idx);
+  if(j>=S.phases.length){S.idx=S.phases.length;S.run=false;clearInterval(S.int);bell();updS();return;}
+  S.idx=j;S.remain=S.phases[j].s;horn(.4);toast("Skipped ahead — next round.");updS();
+}
+function sDropNext(){
+  if(!S.phases.length||S.idx>=S.phases.length)return;
+  const j=sNextRoundStart(S.idx);
+  if(j>=S.phases.length){toast("Nothing left to drop — you're on the last round.");return;}
+  const k=sNextRoundStart(j);
+  S.phases.splice(j,k-j);
+  if(S.total)S.total--;
+  toast("Next round dropped from the session.");
+  updS();
+}
+function sOneMore(){
+  if(!byo.list.length)return;
+  byo.list.push(byo.list[byo.list.length-1]);
+  const ph=byoPhases();
+  byo.list.pop();
+  let starts=[0];
+  ph.forEach((p,i)=>{if(p.end&&ph[i+1])starts.push(ph[i+1]&&ph[i+1].br?i+2:i+1);});
+  const j=starts[starts.length-1];
+  S={phases:ph,idx:j,remain:ph[j]?ph[j].s:0,run:true,int:null,total:(S.total||byo.list.length)+1};
+  horn(.5);
+  S.int=setInterval(sTick,1000);
+  updS();
+}
 function sTick(){
   S.remain--;
   const p=S.phases[S.idx];
@@ -968,7 +1030,8 @@ function updS(){
     if(card)card.className="timerCard";
     const vD=$("sVid");if(vD)vD.style.display="none";
     ph.textContent="DONE";ph.className="timerPhase gold";tm.textContent="0:00";
-    sub.textContent="Session complete";nx.textContent=(S.total||byo.list.length)+" rounds in the bank. Well earned.";go.textContent="Go Again";return;
+    sub.innerHTML=`Session complete · <span style="color:var(--gold);font-weight:800;cursor:pointer" onclick="sOneMore()">+ One More Round</span> · <span style="color:var(--gold);font-weight:800;cursor:pointer" onclick="byoSaveSession()">💾 Save Session</span>`;
+    nx.textContent=(S.total||byo.list.length)+" rounds in the bank. Well earned.";go.textContent="Go Again";return;
   }
   const p=S.phases[S.idx];
   const vd=$("sVid");
@@ -1071,7 +1134,7 @@ let cardioSub="stairs",mvmOpen=null,chatSub="chat",mpEditing=false,mpPhotoUrl=nu
 async function loadWorld(force){
   if(ptsData.loaded&&!force)return;
   const [ev,mp,ce]=await Promise.all([
-    sb.from("points_events").select("user_id,kind,ref,points"),
+    sb.from("points_events").select("id,user_id,kind,ref,points,created_at"),
     sb.from("member_profiles").select("*"),
     sb.from("challenge_entries").select("*").order("created_at",{ascending:false}).limit(2000)]);
   ptsData={loaded:true,events:ev.data||[],mprofiles:mp.data||[],entries:ce.data||[]};
@@ -1116,7 +1179,7 @@ async function renderCardio(){
       <h3>${esc(c.name)}</h3>
       <p>${esc(c.blurb)} <span style="color:#cfcfd4">\u00b7 ${c.how}</span></p>
       ${n?`<p style="font-size:11px;color:#b8b8be;margin-top:6px">Conquered ${n}\u00d7 across the club</p>`:""}
-      ${done?`<div class="chDone">CONQUERED \u2713 \u00b7 ${c.pts} POINT${c.pts>1?"S":""} BANKED</div>`
+      ${done?`<div class="chDone">CONQUERED \u2713 \u00b7 ${c.pts} POINT${c.pts>1?"S":""} BANKED <span style="color:#f87171;font-weight:700;letter-spacing:0;font-size:10.5px;cursor:pointer;margin-left:8px" onclick="chUndo('${cardioSub}',${i})">undo</span></div>`
         :running?`
         <div style="text-align:center;margin-top:12px">
           <div style="font-size:40px;font-weight:900;font-variant-numeric:tabular-nums;text-shadow:0 2px 8px rgba(0,0,0,.9)" id="chTimer">${fmtSec(chElapsed())}</div>
@@ -1126,6 +1189,14 @@ async function renderCardio(){
         <button class="btnLink" style="margin-top:8px;border-color:#f87171;color:#f87171" onclick="chAbandon()">Pull Out</button>`
         :`<button class="btnGold" style="margin-top:12px" ${chRun?'disabled style="margin-top:12px;opacity:.5"':''} onclick="chStart('${cardioSub}',${i})">Start The Challenge</button>`}
     </div>`;}).join("");
+}
+async function chUndo(cat,i){
+  const c=CARDIO[cat][i];
+  if(!confirm("Remove "+c.name+" from your record? The "+c.pts+" points come off your tally."))return;
+  const {error}=await sb.from("points_events").delete().eq("user_id",session.user.id).eq("kind","challenge").eq("ref",cat+":"+c.name);
+  if(error){toast(error.message);return;}
+  toast(c.name+" removed — have another crack any time.");
+  await loadWorld(true);renderCardio();
 }
 function chStart(cat,i){
   if(chRun){toast("Finish "+chRun.name+" first \u2014 one mission at a time.");return;}
@@ -1201,7 +1272,7 @@ async function renderMvM(){
       </div>
       ${lead?`<p style="margin-top:8px;text-shadow:0 1px 4px rgba(0,0,0,.9)">👑 <b style="color:var(--gold)">${esc(lead.name||"Member")}</b> — <b>${fmtChalVal(m,lead.value)}</b></p>`
             :`<p style="margin-top:8px;color:#cfcfd4;text-shadow:0 1px 4px rgba(0,0,0,.9)">No entries yet — set the first mark and wear the crown.</p>`}
-      ${mine&&(!lead||mine.id!==lead.id)?`<p style="font-size:12px;color:#cfcfd4;margin-top:4px;text-shadow:0 1px 4px rgba(0,0,0,.9)">Your best: ${fmtChalVal(m,mine.value)}</p>`:""}
+      ${mine?`<p style="font-size:12px;color:#cfcfd4;margin-top:4px;text-shadow:0 1px 4px rgba(0,0,0,.9)">Your best: ${fmtChalVal(m,mine.value)} <span style="color:#f87171;font-size:10.5px;cursor:pointer" onclick="mvmRemove('${mine.id}','${m.id}')">remove</span></p>`:""}
       ${open?`
         ${board.length>1?`<div style="margin-top:10px">${board.slice(1,5).map((e,i)=>`<div class="weekRow"><span style="text-shadow:0 1px 4px rgba(0,0,0,.9)">${i+2}. ${esc(e.name||"Member")}</span><span style="color:#cfcfd4;text-shadow:0 1px 4px rgba(0,0,0,.9)">${fmtChalVal(m,e.value)}</span></div>`).join("")}</div>`:""}
         <div style="display:flex;gap:8px;margin-top:12px">
@@ -1211,6 +1282,13 @@ async function renderMvM(){
         <button class="btnLink" style="margin-top:10px" onclick="mvmOpen=null;renderMvM()">Close</button>`
       :`<button class="btnLink" style="margin-top:12px" onclick="mvmOpen='${m.id}';renderMvM()">Post A Result / See The Board</button>`}
     </div>`;}).join("")).join("");
+}
+async function mvmRemove(entryId,chalId){
+  if(!confirm("Remove your entry from this board? If it earned you a record bonus, take that off in My Points History too."))return;
+  const {error}=await sb.from("challenge_entries").delete().eq("id",entryId).eq("user_id",session.user.id);
+  if(error){toast(error.message);return;}
+  toast("Entry removed.");
+  await loadWorld(true);renderMvM();
 }
 async function mvmSubmit(id){
   const m=MVM.find(x=>x.id===id);
@@ -1298,6 +1376,19 @@ function mpFormHtml(){
     ${ex.user_id?`<button class="btnLink" style="margin-top:10px" onclick="mpEditing=false;render()">Cancel</button>`:""}
   </div>`;
 }
+function ptsLabel(e){
+  if(e.kind==="class"){const p=e.ref.split(":");return e.ref.startsWith("class:lb")||e.ref.startsWith("lb:")?"Blokes training session":"Class — "+(p[1]?fmtDateAU(p[1]):"")+(p[2]?" "+fmtClassTime(p[2]):"");}
+  if(e.kind==="challenge"){const p=e.ref.split(":");return "Cardio challenge — "+(p[1]||e.ref);}
+  if(e.kind==="record"){const p=e.ref.split(":");const m=MVM.find(x=>x.id===p[1]);return "Record bonus — "+(m?m.n:p[1]);}
+  return e.ref;
+}
+async function delPointsEvent(id){
+  if(!confirm("Remove this from your tally? The points come off straight away."))return;
+  const {error}=await sb.from("points_events").delete().eq("id",id).eq("user_id",session.user.id);
+  if(error){toast(error.message);return;}
+  toast("Removed — tally updated.");
+  await loadWorld(true);render();
+}
 async function renderLeaderboard(){
   $("main").innerHTML=`
     <img class="chatBgLogo" src="${LOGO}" alt="">
@@ -1330,6 +1421,12 @@ async function renderLeaderboard(){
           <button class="btnLink" style="width:auto;margin:0;padding:8px 14px" onclick="mpEditing=true;mpPrepForm();render()">Edit</button>
         </div>
         <div style="margin-top:14px">${lvlCardHtml(pts,true)}</div>
+        <details style="margin-top:12px"><summary style="font-size:12px;color:var(--gold);font-weight:800;cursor:pointer">My Points History — tap to view or undo</summary>
+          <p style="font-size:10.5px;color:var(--muted);margin-top:6px">Submitted something by mistake? Hit × and it's gone off your tally.</p>
+          ${ptsData.events.filter(e=>e.user_id===session.user.id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(e=>`
+            <div class="weekRow"><span style="min-width:0;font-size:12px">${esc(ptsLabel(e))}<br><small style="color:var(--muted)">${fmtWhen(e.created_at)}</small></span>
+            <span style="flex-shrink:0;display:flex;align-items:center;gap:8px"><b style="color:var(--gold)">+${e.points}</b><button class="xBtn" onclick="delPointsEvent('${e.id}')">×</button></span></div>`).join("")||'<div class="emptyMsg">Nothing earned yet.</div>'}
+        </details>
       </div>`}
     <div class="secTitle">Members Leaderboard</div>
     <div class="card">
@@ -1357,12 +1454,13 @@ let lbSub="program",lbWeek=1,lbDay="mon",lbFuelTab="plan",lbPlan="A",lbTimerDay=
 let lbData={loaded:false,lifts:[],msgs:[],events:[],rsvps:[],members:null};
 async function loadBlokes(force){
   if(lbData.loaded&&!force)return;
-  const [lf,ms,ev,rs]=await Promise.all([
+  const [lf,ms,dm,gr,gt]=await Promise.all([
     sb.from("blokes_lifts").select("*").order("created_at",{ascending:false}).limit(1000),
     sb.from("blokes_messages").select("*").order("created_at",{ascending:true}).limit(200),
-    sb.from("blokes_events").select("*").order("event_date",{ascending:true}),
-    sb.from("blokes_rsvps").select("*")]);
-  lbData={loaded:true,lifts:lf.data||[],msgs:ms.data||[],events:ev.data||[],rsvps:rs.data||[],members:lbData.members};
+    sb.from("blokes_dms").select("*").order("created_at",{ascending:true}).limit(500),
+    sb.from("golf_registrations").select("*").order("created_at",{ascending:true}),
+    sb.from("golf_teams").select("*")]);
+  lbData={loaded:true,lifts:lf.data||[],msgs:ms.data||[],dms:dm.data||[],golfRegs:gr.data||[],golfTeams:gt.data||[],members:lbData.members};
 }
 function renderBlokes(){
   if(typeof S!=="undefined")clearInterval(S.int);
@@ -1393,6 +1491,7 @@ function renderBlokes(){
       <button class="${lbSub==='program'?'active':''}" onclick="lbSub='program';renderBlokes()">Program</button>
       <button class="${lbSub==='boxing'?'active':''}" onclick="lbSub='boxing';lbTimerDay=null;renderBlokes()">Boxing</button>
       <button class="${lbSub==='fuel'?'active':''}" onclick="lbSub='fuel';renderBlokes()">Meal Plan</button>
+      <button class="${lbSub==='golf'?'active':''}" onclick="lbSub='golf';renderBlokes()">Golf Days</button>
       <button class="${lbSub==='yarn'?'active':''}" onclick="lbSub='yarn';renderBlokes()">The Yarn</button>
       <button class="${lbSub==='ladder'?'active':''}" onclick="lbSub='ladder';renderBlokes()">Ladder</button>
     </div>
@@ -1401,6 +1500,7 @@ function renderBlokes(){
   else if(lbSub==="boxing")lbBoxing();
   else if(lbSub==="fuel")lbFuel();
   else if(lbSub==="yarn")lbYarn();
+  else if(lbSub==="golf")lbGolf();
   else lbLadder();
 }
 async function lbProgram(){
@@ -1526,6 +1626,27 @@ function lbBoxTimer(){
     </div>`;
   updS();
 }
+const DESSERT_NAMES=["Ice-Cream Pop & Berries","Vanilla Ice-Cream & Biscoff","Caramello Koala or Twirl"];
+function optDisplayName(meal,o,oi){
+  if(/^dessert/i.test(meal.title)&&/^Option \d+$/.test(o.name))return DESSERT_NAMES[oi]||o.name;
+  return o.name.replace(/^Option \d+ \u2013 /,"");
+}
+function lbFindRecipe(p,name){
+  const cats=p.recipes&&!Array.isArray(p.recipes)?p.recipes:{"Recipes":p.recipes||[]};
+  for(const list of Object.values(cats)){const r=list.find(x=>x.name===name||x.name.startsWith(name));if(r)return r;}
+  return null;
+}
+function lbCopyShop(){
+  const p=LB_DATA.plans[lbPlan];
+  const out=$("lbShopOut");if(!out)return;
+  const lines=[...out.querySelectorAll(".weekRow")].map(r=>{const s=r.querySelectorAll("span,b");return s[1].textContent+"  "+s[0].textContent;});
+  if(!lines.length){toast("Nothing on the list yet — tap some + buttons first.");return;}
+  const txt="LEGACY SHOP — "+p.name+"\n"+lines.join("\n");
+  const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();
+  let ok=false;try{ok=document.execCommand("copy");}catch(e){}
+  ta.remove();
+  toast(ok?"Shopping list copied — paste it straight into the Woolies or Coles app.":"Couldn't copy — screenshot the list instead.");
+}
 let lbShopData=(function(){try{return JSON.parse(localStorage.getItem("lg_lbshop"))||{}}catch(e){return {}}})();
 function lbShopSave(){localStorage.setItem("lg_lbshop",JSON.stringify(lbShopData));}
 function cssId(k){return String(k).replace(/[^a-zA-Z0-9]/g,"_");}
@@ -1582,6 +1703,11 @@ function lbShopListHtml(){
       items.forEach((it,ii)=>add(it,shopGet(lbPlan+":m"+mi+":b:"+cat+":"+ii)));
     });
   });
+  const rcats=p.recipes&&!Array.isArray(p.recipes)?p.recipes:{"Recipes":p.recipes||[]};
+  Object.values(rcats).forEach(list=>list.forEach(r=>{
+    const t=shopGet(lbPlan+":rec:"+r.name);
+    if(t)(r.ingredients||[]).forEach(it=>add(it,t));
+  }));
   (lbShopData.custom||[]).forEach(c=>add(c.name,c.count));
   if(!any)return '<div class="emptyMsg">Tap the + buttons above — every tap is one meal that week, and your shopping list builds itself here.</div>';
   const rows=Object.values(totals).sort((a,b)=>a.name.localeCompare(b.name));
@@ -1616,16 +1742,24 @@ function lbFuel(){
     </div>
     ${lbFuelTab==="shop"?`
       <p style="font-size:12px;color:var(--muted);margin:2px 2px 6px;line-height:1.6">Eggs on toast four mornings this week? Tap + four times. Do it for every meal \u2014 the list below totals every gram you need to buy.</p>
-      ${p.meals.map((m,mi)=>`<div class="card">
+      ${p.meals.map((m,mi)=>{
+        const isBrekkie=/^breakfast/i.test(m.title);
+        const rcats=p.recipes&&!Array.isArray(p.recipes)?p.recipes:{};
+        return `<div class="card">
         <div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="font-size:14.5px">${esc(m.title)}</h3><span style="font-size:10.5px;color:var(--muted)">${esc(m.kcal)}</span></div>
         ${m.options.filter(o=>!/^or pick/i.test(o.name)).map(o=>{
           const oi=m.options.indexOf(o);
-          return stepHtml(lbPlan+":m"+mi+":o"+oi,`<b style="color:#c9994d">${esc(o.name.replace(/^Option \d+ \u2013 /,""))}</b>`,"times this week");
+          return stepHtml(lbPlan+":m"+mi+":o"+oi,`<b style="color:#c9994d">${esc(optDisplayName(m,o,oi))}</b>`,"times this week");
         }).join("")}
-        ${m.build?Object.entries(m.build).map(([cat,items])=>`
-          <p style="font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:var(--muted);margin-top:12px">${esc(cat.toUpperCase())} \u2014 ONE PER ${esc(m.title.toUpperCase())}</p>
+        ${isBrekkie&&rcats["Brekkies"]?rcats["Brekkies"].map(r=>stepHtml(lbPlan+":rec:"+r.name,`<b style="color:#c9994d">${esc(r.name)}</b>`,"times this week")).join(""):""}
+        ${m.build?`<p style="font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:var(--muted);margin-top:12px">OR BUILD A PLATE \u2014 ONE FROM EACH PER ${esc(m.title.toUpperCase())}</p>`+Object.entries(m.build).map(([cat,items])=>`
+          <p style="font-size:10px;font-weight:900;letter-spacing:1px;color:#6e6e6e;margin-top:10px">${esc(cat.toUpperCase())}</p>
           ${items.map((it,ii)=>stepHtml(lbPlan+":m"+mi+":b:"+cat+":"+ii,esc(it),"times this week")).join("")}`).join(""):""}
-      </div>`).join("")}
+      </div>`+(mi===1&&rcats["Lunch & Dinner"]?`<div class="card" style="border-color:#3a2f1b">
+        <h3 style="font-size:14.5px">Lunch & Dinner Mains \u2014 Named Meals</h3>
+        <p style="font-size:11px;color:var(--muted);margin-top:4px">Tap how many times you'll cook each meal this week \u2014 lunches and dinners combined. Every raw ingredient lands on your list.</p>
+        ${rcats["Lunch & Dinner"].map(r=>stepHtml(lbPlan+":rec:"+r.name,`<b style="color:#c9994d">${esc(r.name)}</b>`,"meals this week")).join("")}
+      </div>`:"");}).join("")}
       <div class="card">
         <h3 style="font-size:14px">Add Your Own Item</h3>
         <div style="display:flex;gap:8px;margin-top:10px">
@@ -1640,11 +1774,15 @@ function lbFuel(){
         </div>`).join("")}
       </div>
       <div class="secTitle">Your Weekly Shop \u2014 ${esc(p.name)}</div>
-      <div class="card" style="border-color:#3a2f1b;background:#131110"><div id="lbShopOut">${lbShopListHtml()}</div></div>`
+      <div class="card" style="border-color:#3a2f1b;background:#131110">
+        <div id="lbShopOut">${lbShopListHtml()}</div>
+        <button class="btnGold" style="margin-top:14px;background:#c9994d" onclick="lbCopyShop()">Copy Shopping List \u2014 Woolies / Coles Ready</button>
+        <p style="font-size:10.5px;color:var(--muted);margin-top:8px;text-align:center">Your list saves automatically on this phone \u2014 it'll be here when you're at the shops.</p>
+      </div>`
     :lbFuelTab==="plan"?p.meals.map(m=>`<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="font-size:15px">${esc(m.title)}</h3><span style="font-size:11.5px;color:var(--muted)">${esc(m.kcal)}</span></div>
-      ${m.options.map(o=>`<div style="margin-top:10px">
-        <b style="font-size:13px;color:#c9994d">${esc(o.name)}</b>
+      ${m.options.map((o,oi)=>`<div style="margin-top:10px">
+        <b style="font-size:13px;color:#c9994d">${esc(/^dessert/i.test(m.title)&&/^Option \d+$/.test(o.name)?("Option "+(oi+1)+" \u2013 "+optDisplayName(m,o,oi)):o.name)}</b>
         <ul style="margin:4px 0 0 18px;font-size:12.5px;color:var(--text);line-height:1.6">${o.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
         ${o.note?`<p style="font-size:11px;color:var(--muted);margin-top:3px">${esc(o.note)}</p>`:""}
       </div>`).join("")}
@@ -1660,35 +1798,38 @@ function lbFuel(){
       </details>
     </div>`).join("")).join("")}`;
 }
+let dmSel=null;
 async function lbYarn(){
   await loadBlokes();
   if(view!=="blokes"||lbSub!=="yarn")return;const box=$("lbContent");if(!box)return;
-  const myRsvp=ev=>lbData.rsvps.find(r=>r.event_id===ev.id&&r.user_id===session.user.id);
+  const isC=profile&&profile.is_coach;
+  if(isC&&!lbData.members){const {data}=await sb.rpc("blokes_members");lbData.members=data||[];}
+  const myDms=isC?(dmSel?lbData.dms.filter(d=>d.member_id===dmSel):[]):lbData.dms.filter(d=>d.member_id===session.user.id);
+  const dmHtml=myDms.map(m=>`<div class="msg${m.sender_id===session.user.id?' mine':''}"><div class="who">${esc(m.name)}</div><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`).join("");
   box.innerHTML=`
-    ${lbData.events.length?`<div class="secTitle">Blokes Social Days</div>`+lbData.events.map(ev=>{
-      const going=lbData.rsvps.filter(r=>r.event_id===ev.id);
-      return `<div class="card" style="border-color:#3a2f1b;background:#131110">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="font-size:15px">${esc(ev.title)}</h3><span style="font-size:11.5px;color:#c9994d;flex-shrink:0">${ev.event_date?fmtDateAU(ev.event_date):""} ${esc(ev.event_time||"")}</span></div>
-        ${ev.location?`<p style="font-size:12px;color:var(--muted);margin-top:3px">📍 ${esc(ev.location)}</p>`:""}
-        ${ev.details?`<p style="font-size:12.5px;margin-top:6px">${esc(ev.details)}</p>`:""}
-        <p style="font-size:12px;margin-top:8px"><b>${going.length} in</b>${going.length?": "+going.map(r=>esc(r.name)).join(", "):""}</p>
-        ${myRsvp(ev)?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:10px" onclick="lbRsvp('${ev.id}',false)">I'm In ✓ — Tap To Pull Out</button>`
-          :`<button class="btnGold" style="margin-top:10px;background:#c9994d" onclick="lbRsvp('${ev.id}',true)">Count Me In</button>`}
-      </div>`;}).join(""):""}
-    ${profile.is_staff?`<div class="card"><h3 style="font-size:14px">Post A Social Day (staff)</h3>
-      <div class="field"><label>What's On</label><input id="lbEvT" placeholder="Golf day, fight night…"></div>
-      <div class="field"><label>Date</label><input id="lbEvD" type="date"></div>
-      <div class="field"><label>Time / Details</label><input id="lbEvX" placeholder="10am tee off, Kincumber"></div>
-      <button class="btnGold" onclick="lbAddEvent()">Post It</button></div>`:""}
-    <div class="secTitle">The Yarn</div>
+    <div class="secTitle">The Yarn — Group Chat</div>
     <div class="card" style="border-color:#3a2f1b;background:#131110">
       <div id="lbMsgs" style="max-height:340px;overflow-y:auto">${lbData.msgs.map(m=>`<div class="msg${m.user_id===session.user.id?' mine':''}"><div class="who">${esc(m.name)}</div><div class="txt">${esc(m.body)}</div><div class="time">${fmtWhen(m.created_at)}</div></div>`).join("")||'<div class="emptyMsg">Dead quiet. Someone spin a yarn.</div>'}</div>
       <div style="display:flex;gap:8px;margin-top:10px">
         <input id="lbMsgIn" placeholder="Talk to the blokes…" maxlength="1000" style="flex:1" onkeydown="if(event.key==='Enter')lbSend()">
         <button class="btnGold" style="width:auto;margin:0;padding:12px 16px;background:#c9994d" onclick="lbSend()">➤</button>
       </div>
+    </div>
+    <div class="secTitle">${isC?"Coach Corner — Private Chats":"Coach Corner — Private Line To Coach Jake"}</div>
+    <div class="card">
+      ${isC?`<div class="field"><label>Talk To</label><select id="dmSelEl" onchange="dmSel=this.value||null;renderBlokes()">
+        <option value="">Pick a bloke…</option>
+        ${(lbData.members||[]).filter(m=>m.user_id!==session.user.id).map(m=>`<option value="${m.user_id}" ${dmSel===m.user_id?"selected":""}>${esc(m.full_name||"Bloke")}</option>`).join("")}
+      </select></div>`:`<p style="font-size:11.5px;color:var(--muted);margin-bottom:8px">Just you and the coach — no one else sees this.</p>`}
+      ${(!isC||dmSel)?`
+      <div id="lbDms" style="max-height:280px;overflow-y:auto">${dmHtml||'<div class="emptyMsg">No messages yet.</div>'}</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input id="lbDmIn" placeholder="${isC?"Message them privately…":"Message Coach Jake…"}" maxlength="1000" style="flex:1" onkeydown="if(event.key==='Enter')lbDmSend()">
+        <button class="btnGold" style="width:auto;margin:0;padding:12px 16px;background:#c9994d" onclick="lbDmSend()">➤</button>
+      </div>`:""}
     </div>`;
   const mb=$("lbMsgs");if(mb)mb.scrollTop=mb.scrollHeight;
+  const db=$("lbDms");if(db)db.scrollTop=db.scrollHeight;
 }
 async function lbSend(){
   const el=$("lbMsgIn"),v=el.value.trim();if(!v)return;el.value="";
@@ -1696,17 +1837,84 @@ async function lbSend(){
   if(error){toast(error.message);el.value=v;return;}
   await loadBlokes(true);renderBlokes();
 }
-async function lbRsvp(id,inn){
-  if(inn){const {error}=await sb.from("blokes_rsvps").insert({event_id:id,user_id:session.user.id,name:myDisplayName()});if(error&&!/duplicate/i.test(error.message)){toast(error.message);return;}}
-  else await sb.from("blokes_rsvps").delete().eq("event_id",id).eq("user_id",session.user.id);
+async function lbDmSend(){
+  const el=$("lbDmIn"),v=el.value.trim();if(!v)return;el.value="";
+  const isC=profile&&profile.is_coach;
+  const member=isC?dmSel:session.user.id;
+  if(!member){toast("Pick who you're messaging first.");return;}
+  const {error}=await sb.from("blokes_dms").insert({member_id:member,sender_id:session.user.id,name:isC?"Coach Jake":myDisplayName(),body:v});
+  if(error){toast(error.message);el.value=v;return;}
   await loadBlokes(true);renderBlokes();
 }
-async function lbAddEvent(){
-  const t=$("lbEvT").value.trim(),d=$("lbEvD").value,x=$("lbEvX").value.trim();
-  if(!t){toast("Give it a name.");return;}
-  const {error}=await sb.from("blokes_events").insert({title:t,event_date:d||null,details:x,created_by:session.user.id});
+const GOLF_DAYS=[{flag:"day_aug23",label:"Round One — Sunday 23 August 2026"},{flag:"day_sep27",label:"Round Two — Sunday 27 September 2026"}];
+const GOLF_SKILLS=["Never swung a club","Weekend hacker","Social golfer","Plays off a handicap"];
+async function lbGolf(){
+  await loadBlokes();
+  if(view!=="blokes"||lbSub!=="golf")return;const box=$("lbContent");if(!box)return;
+  const isC=profile&&(profile.is_coach||profile.is_staff);
+  const regs=lbData.golfRegs,teams=lbData.golfTeams;
+  const mine=regs.find(r=>r.user_id===session.user.id)||{};
+  const regName=r=>((r.first_name||"")+(r.nickname?" '"+r.nickname+"'":"")+" "+(r.last_name||"")).trim();
+  box.innerHTML=`
+    <div style="background:linear-gradient(160deg,#12200f,#0d0d0d);border:1px solid #2a3a20;border-radius:16px;padding:20px;margin-bottom:12px">
+      <div style="font-weight:900;letter-spacing:3px;color:#8fce7a;font-size:10.5px">GOLF DAY · BOTH ROUNDS ON A SUNDAY</div>
+      <div style="font-weight:900;font-size:22px;letter-spacing:1px;color:#f5f5f5;margin-top:4px">THE LOCAL BLOKES CLASSIC</div>
+    </div>
+    <div class="card">
+      <div class="weekRow"><span style="color:var(--muted)">Round One</span><span>Sun 23 August 2026</span></div>
+      <div class="weekRow"><span style="color:var(--muted)">Round Two</span><span>Sun 27 September 2026</span></div>
+      <div class="weekRow"><span style="color:var(--muted)">Tee off</span><span>10:00 AM both days</span></div>
+      <div class="weekRow"><span style="color:var(--muted)">Format</span><span>18 holes · 2-person Ambrose</span></div>
+      <div class="weekRow"><span style="color:var(--muted)">Groups</span><span>Four per team</span></div>
+      <div class="weekRow"><span style="color:var(--muted)">Where</span><span style="text-align:right">Mangrove Mountain Golf Club<br><small style="color:var(--muted)">Hallards Road, Central Mangrove NSW</small></span></div>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;font-style:italic">Doesn't matter if you play golf or you don't — it's all about getting around each other.</p>
+    </div>
+    <div class="secTitle">Put Your Name Down</div>
+    <div class="card" style="border-color:#3a2f1b;background:#131110">
+      <div class="field"><label>Nickname (for the team sheet)</label><input id="gfNick" value="${esc(mine.nickname||"")}" maxlength="30" placeholder="Optional"></div>
+      <div class="field"><label>Where's Your Golf At?</label><select id="gfSkill">${GOLF_SKILLS.map(s=>`<option ${mine.skill===s?"selected":""}>${s}</option>`).join("")}</select></div>
+      <label class="byoLbl">Which Days Are You In? Pick one or both</label>
+      <div id="gfDays">${GOLF_DAYS.map(d=>`<button type="button" class="rankBtn${mine[d.flag]?" on":""}" data-f="${d.flag}" onclick="this.classList.toggle('on')">${mine[d.flag]?'<span class="rankNum">✓</span>':""}${d.label}</button>`).join("")}</div>
+      <button class="btnGold" style="margin-top:14px;background:#c9994d" onclick="golfSave()">${mine.user_id?"Update My Registration":"Lock Me In"}</button>
+    </div>
+    ${GOLF_DAYS.map(d=>{
+      const dayRegs=regs.filter(r=>r[d.flag]);
+      const dayTeams=teams.filter(t=>t.event_day===d.flag);
+      const teamed=new Set(dayTeams.flatMap(t=>[t.player1,t.player2]));
+      const free=dayRegs.filter(r=>!teamed.has(r.user_id));
+      return `<div class="secTitle">${d.label} — ${dayRegs.length} In</div>
+      <div class="card">
+        ${dayRegs.length?dayRegs.map(r=>`<div class="weekRow"><span><b>${esc(regName(r)||"Bloke")}</b></span><span style="color:var(--muted);font-size:11px">${esc(r.skill||"")}</span></div>`).join(""):'<div class="emptyMsg">No one registered yet — be the first name on the sheet.</div>'}
+        ${dayTeams.length?`<p style="font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:#8fce7a;margin-top:12px">TEAMS</p>${dayTeams.map(t=>{
+          const p1=regs.find(r=>r.user_id===t.player1),p2=regs.find(r=>r.user_id===t.player2);
+          return `<div class="weekRow"><span>${esc(p1?regName(p1):"?")} & ${esc(p2?regName(p2):"?")}</span>${isC?`<button class="xBtn" onclick="golfDelTeam('${t.id}')">×</button>`:""}</div>`;}).join("")}`:""}
+        ${isC&&free.length>1?`<p style="font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:var(--muted);margin-top:12px">COACH — LOCK IN A TEAM</p>
+        <div class="row2" style="margin-top:8px">
+          <div class="field"><select id="gtA-${d.flag}">${free.map(r=>`<option value="${r.user_id}">${esc(regName(r))}</option>`).join("")}</select></div>
+          <div class="field"><select id="gtB-${d.flag}">${free.map(r=>`<option value="${r.user_id}">${esc(regName(r))}</option>`).join("")}</select></div>
+        </div>
+        <button class="btnLink" style="border-color:#8fce7a;color:#8fce7a" onclick="golfAddTeam('${d.flag}')">Lock In Team</button>`:""}
+      </div>`;}).join("")}`;
+}
+async function golfSave(){
+  const days={};GOLF_DAYS.forEach(d=>{const b=document.querySelector(`#gfDays [data-f="${d.flag}"]`);days[d.flag]=b?b.classList.contains("on"):false;});
+  if(!days.day_aug23&&!days.day_sep27){toast("Pick at least one day, champion.");return;}
+  const rec={user_id:session.user.id,first_name:(profile&&profile.first_name)||"",last_name:(profile&&profile.last_name)||"",nickname:$("gfNick").value.trim(),skill:$("gfSkill").value,...days};
+  const {error}=await sb.from("golf_registrations").upsert(rec);
   if(error){toast(error.message);return;}
-  toast("Posted to the blokes.");await loadBlokes(true);renderBlokes();
+  toast("You're on the sheet. See you on the tee.");
+  await loadBlokes(true);renderBlokes();
+}
+async function golfAddTeam(flag){
+  const a=$("gtA-"+flag).value,b=$("gtB-"+flag).value;
+  if(a===b){toast("Pick two different blokes.");return;}
+  const {error}=await sb.from("golf_teams").insert({event_day:flag,player1:a,player2:b,created_by:session.user.id});
+  if(error){toast(error.message);return;}
+  toast("Team locked in.");await loadBlokes(true);renderBlokes();
+}
+async function golfDelTeam(id){
+  await sb.from("golf_teams").delete().eq("id",id);
+  await loadBlokes(true);renderBlokes();
 }
 async function lbLadder(){
   await loadWorld();
