@@ -256,6 +256,11 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .rankNum{width:22px;height:22px;border-radius:50%;background:var(--gold);color:#161307;font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .stepBtn{width:36px;height:36px;border-radius:50%;background:#1c1c20;border:1px solid var(--line);color:var(--text);font-size:19px;font-weight:800;flex-shrink:0;display:flex;align-items:center;justify-content:center;line-height:1;padding:0}
 .stepBtn.goldStep{background:rgba(201,153,77,.16);border-color:#c9994d;color:#c9994d}
+.chPts{background:linear-gradient(135deg,#6e5313,#d4af37 55%,#f5d76e);color:#221803;font-weight:900;font-size:11px;letter-spacing:1px;padding:5px 11px;border-radius:20px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.boomCard{background:linear-gradient(150deg,#f5d76e 0%,#d4af37 40%,#b8912a 75%,#8a6d1f 100%);border-radius:22px;padding:34px 28px;text-align:center;max-width:340px;width:100%;box-shadow:0 0 60px rgba(212,175,55,.55),0 24px 60px rgba(0,0,0,.6);animation:boomIn .55s cubic-bezier(.2,1.6,.4,1);position:relative;overflow:hidden}
+.boomCard::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.65),transparent);transform:skewX(-20deg);animation:boomShine 1.6s ease-out .3s 2}
+@keyframes boomIn{0%{transform:scale(.3) rotate(-6deg);opacity:0}60%{transform:scale(1.06) rotate(1deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes boomShine{0%{left:-60%}100%{left:130%}}
 .tStart{background:var(--gold);border:none;color:#161307}
 .tReset{background:transparent;border:1px solid var(--line);color:var(--muted)}
 
@@ -483,7 +488,7 @@ const HOME_CARDS=[
   {id:"weights",kicker:"The Gym Floor",title:"Weights",sub:"Ten training programs — machines to barbells.",img:"weights"},
   {id:"functional",kicker:"GRUNT Territory",title:"Functional Fitness",sub:"Real CrossFit workouts — Girls, Heroes & Opens, timers built in.",img:"crossfit"},
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
-  {id:"cardio",kicker:"Climb The World",title:"Cardio Challenges",sub:"StairMaster & treadmill missions — 5 points a finish.",img:"stairs"},
+  {id:"cardio",kicker:"Climb The World",title:"Cardio Challenges",sub:"StairMaster & treadmill missions — 1 to 10 points a finish.",img:"stairs"},
   {id:"mvm",kicker:"Club Records",title:"Member vs Member",sub:"Heaviest lifts, fastest times. Take the crown, take 5 points.",img:"mvmhero"},
   {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:null},
   {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true},
@@ -707,46 +712,46 @@ async function submitClassPoint(date,time){
 /* ---- Build Your Own Session ---- */
 const BYO_LIB=[
 {cat:"Skipping",items:[
-  {id:"skip3",vid:"https://videos.pexels.com/video-files/35585674/15079796_360_640_30fps.mp4",n:"3 Minute Skip",fixed:180,tag:"3:00 straight through"},
-  {id:"skip5",vid:"https://videos.pexels.com/video-files/35585674/15079796_360_640_30fps.mp4",n:"5 Minute Skip",fixed:300,tag:"5:00 straight through"},
-  {id:"skip7",vid:"https://videos.pexels.com/video-files/35585674/15079796_360_640_30fps.mp4",n:"7 Minute Skip",fixed:420,tag:"7:00 straight through"},
-  {id:"skip10",vid:"https://videos.pexels.com/video-files/35585674/15079796_360_640_30fps.mp4",n:"10 Minute Skip",fixed:600,tag:"10:00 straight through"}]},
+  {id:"skip3",vid:"https://videos.pexels.com/video-files/9943343/9943343-sd_360_640_24fps.mp4",n:"3 Minute Skip",fixed:180,tag:"3:00 straight through"},
+  {id:"skip5",vid:"https://videos.pexels.com/video-files/9943343/9943343-sd_360_640_24fps.mp4",n:"5 Minute Skip",fixed:300,tag:"5:00 straight through"},
+  {id:"skip7",vid:"https://videos.pexels.com/video-files/9943343/9943343-sd_360_640_24fps.mp4",n:"7 Minute Skip",fixed:420,tag:"7:00 straight through"},
+  {id:"skip10",vid:"https://videos.pexels.com/video-files/9943343/9943343-sd_360_640_24fps.mp4",n:"10 Minute Skip",fixed:600,tag:"10:00 straight through"}]},
 {cat:"Footwork",items:[
   {id:"fwABC",n:"ABC Footwork",seg:{abcAuto:true},tag:"Changes every 20s on 2:00 rounds, 30s on 3:00 — auto"}]},
 {cat:"Shadow Boxing",items:[
-  {id:"shOpen",n:"Open Shadow",tag:"Free-flow shadow"},
-  {id:"shDef",n:"Defence-Based Shadow",tag:"Slips, rolls, feet"},
-  {id:"shSwitch",n:"Switch Punching Shadow",tag:"Switch through stances"}]},
+  {id:"shOpen",vid:"https://videos.pexels.com/video-files/7187405/7187405-sd_640_360_24fps.mp4",n:"Open Shadow",tag:"Free-flow shadow"},
+  {id:"shDef",vid:"https://videos.pexels.com/video-files/34425523/14583598_640_360_50fps.mp4",n:"Defence-Based Shadow",tag:"Slips, rolls, feet"},
+  {id:"shSwitch",vid:"https://videos.pexels.com/video-files/7187405/7187405-sd_640_360_24fps.mp4",n:"Switch Punching Shadow",tag:"Switch through stances"}]},
 {cat:"Coordination",items:[
   {id:"tbUnders",n:"Tennis Ball Drill — Unders",tag:"Ball work under the shots"},
   {id:"tbOvers",n:"Tennis Ball Drill — Overs",tag:"Ball work over the shots"},
   {id:"tbShadow",n:"Tennis Ball Drill — Shadow",tag:"Shadow with the ball in play"}]},
 {cat:"Defensive Actions",items:[
-  {id:"daMirror",n:"Mirror Shadow",tag:"Defensive shadow in the mirror"},
-  {id:"daArmHand",n:"Arm & Hand Defence",tag:"Blocks, parries, covers"},
-  {id:"daArmHandFoot",n:"Arm, Hand & Foot Defence",tag:"Defence with the feet involved"},
-  {id:"daCounter",n:"Counter Punching",tag:"Defence into counters"}]},
+  {id:"daMirror",vid:"https://videos.pexels.com/video-files/4804863/4804863-sd_640_360_25fps.mp4",n:"Mirror Shadow",tag:"Defensive shadow in the mirror"},
+  {id:"daArmHand",vid:"https://videos.pexels.com/video-files/34425523/14583598_640_360_50fps.mp4",n:"Arm & Hand Defence",tag:"Blocks, parries, covers"},
+  {id:"daArmHandFoot",vid:"https://videos.pexels.com/video-files/8612124/8612124-sd_640_360_30fps.mp4",n:"Arm, Hand & Foot Defence",tag:"Defence with the feet involved"},
+  {id:"daCounter",vid:"https://videos.pexels.com/video-files/8612124/8612124-sd_640_360_30fps.mp4",n:"Counter Punching",tag:"Defence into counters"}]},
 {cat:"Ring Shadow",items:[
-  {id:"rsCorner",n:"Corner Defence",tag:"Working off the corner"},
-  {id:"rsRopes",n:"Rope Defence",tag:"Defending on the ropes"},
-  {id:"rsCatchReturn",n:"Catch & Return From The Corner",tag:"Catch, turn, return to centre"}]},
+  {id:"rsCorner",vid:"https://videos.pexels.com/video-files/8745655/8745655-sd_960_506_25fps.mp4",n:"Corner Defence",tag:"Working off the corner"},
+  {id:"rsRopes",vid:"https://videos.pexels.com/video-files/12011729/12011729-sd_640_360_30fps.mp4",n:"Rope Defence",tag:"Defending on the ropes"},
+  {id:"rsCatchReturn",vid:"https://videos.pexels.com/video-files/8745655/8745655-sd_960_506_25fps.mp4",n:"Catch & Return From The Corner",tag:"Catch, turn, return to centre"}]},
 {cat:"Conditioning",items:[
-  {id:"cdBikeSprint",n:"Assault Bike Sprints",seg:{work:15,rest:15,wl:"SPRINT"},tag:"15 on / 15 off — auto"},
-  {id:"cdBikeLadder",n:"Assault Bike Ladder",fixed:180,seg:{ladder:[10,20,30,30,20,10],lrest:10,wl:"WORK"},tag:"10-20-30-30-20-10 on, 10 off — auto"},
-  {id:"cdRowSprint",n:"Row Sprints",seg:{work:20,rest:20,wl:"SPRINT"},tag:"20 on / 20 off — auto"},
-  {id:"cdPushChin",n:"Push-Ups & Chin-Ups",fixed:240,seg:{cycle:["PUSH-UPS","REST","CHIN-UPS","REST"],every:15},tag:"15s push-ups / 15s rest / 15s chin-ups / 15s rest × 4 — auto"}]},
+  {id:"cdBikeSprint",vid:"https://videos.pexels.com/video-files/6389564/6389564-sd_640_360_25fps.mp4",n:"Assault Bike Sprints",seg:{work:15,rest:15,wl:"SPRINT"},tag:"15 on / 15 off — auto"},
+  {id:"cdBikeLadder",vid:"https://videos.pexels.com/video-files/6389564/6389564-sd_640_360_25fps.mp4",n:"Assault Bike Ladder",fixed:180,seg:{ladder:[10,20,30,30,20,10],lrest:10,wl:"WORK"},tag:"10-20-30-30-20-10 on, 10 off — auto"},
+  {id:"cdRowSprint",vid:"https://videos.pexels.com/video-files/29354833/12650379_360_640_30fps.mp4",n:"Row Sprints",seg:{work:20,rest:20,wl:"SPRINT"},tag:"20 on / 20 off — auto"},
+  {id:"cdPushChin",vid:"https://videos.pexels.com/video-files/6389831/6389831-sd_640_360_25fps.mp4",n:"Push-Ups & Chin-Ups",fixed:240,seg:{cycle:["PUSH-UPS","REST","CHIN-UPS","REST"],every:15},tag:"15s push-ups / 15s rest / 15s chin-ups / 15s rest × 4 — auto"}]},
 {cat:"Core — 0:30 or 1:00 rounds (set below)",items:[
-  {id:"coSitups",vid:"https://videos.pexels.com/video-files/4259001/4259001-sd_640_360_25fps.mp4",n:"Sit-Ups",core:true,tag:"Core round"},
-  {id:"coCrunch",vid:"https://videos.pexels.com/video-files/4259001/4259001-sd_640_360_25fps.mp4",n:"Crunches",core:true,tag:"Core round"},
-  {id:"coAnkle",vid:"https://videos.pexels.com/video-files/4259001/4259001-sd_640_360_25fps.mp4",n:"Ankle Taps",core:true,tag:"Core round"},
-  {id:"coPlank",vid:"https://videos.pexels.com/video-files/4742757/4742757-sd_640_360_25fps.mp4",n:"Plank",core:true,tag:"Core round"},
-  {id:"coBridge",vid:"https://videos.pexels.com/video-files/4742757/4742757-sd_640_360_25fps.mp4",n:"Bridges",core:true,tag:"Core round"},
-  {id:"coToe",vid:"https://videos.pexels.com/video-files/4259001/4259001-sd_640_360_25fps.mp4",n:"Toe Touches",core:true,tag:"Core round"},
-  {id:"coRussian",vid:"https://videos.pexels.com/video-files/4259001/4259001-sd_640_360_25fps.mp4",n:"Russian Twists",core:true,tag:"Core round"},
-  {id:"coLegRaise",vid:"https://videos.pexels.com/video-files/4259001/4259001-sd_640_360_25fps.mp4",n:"Leg Raises",core:true,tag:"Core round"},
-  {id:"coFlutter",vid:"https://videos.pexels.com/video-files/4259001/4259001-sd_640_360_25fps.mp4",n:"Flutter Kicks",core:true,tag:"Core round"},
-  {id:"coClimber",vid:"https://videos.pexels.com/video-files/4742757/4742757-sd_640_360_25fps.mp4",n:"Mountain Climbers",core:true,tag:"Core round"},
-  {id:"coCircuit",vid:"https://videos.pexels.com/video-files/4742757/4742757-sd_640_360_25fps.mp4",n:"Core Circuit",core:true,seg:{alt:["SIT-UPS","ANKLE TAPS","PLANK"],every:20},tag:"Rotates every 20s — auto"}]},
+  {id:"coSitups",vid:"https://videos.pexels.com/video-files/4367634/4367634-sd_640_360_30fps.mp4",n:"Sit-Ups",core:true,tag:"Core round"},
+  {id:"coCrunch",vid:"https://videos.pexels.com/video-files/4367634/4367634-sd_640_360_30fps.mp4",n:"Crunches",core:true,tag:"Core round"},
+  {id:"coAnkle",vid:"https://videos.pexels.com/video-files/4367634/4367634-sd_640_360_30fps.mp4",n:"Ankle Taps",core:true,tag:"Core round"},
+  {id:"coPlank",vid:"https://videos.pexels.com/video-files/31540631/13442527_640_360_30fps.mp4",n:"Plank",core:true,tag:"Core round"},
+  {id:"coBridge",vid:"https://videos.pexels.com/video-files/31540631/13442527_640_360_30fps.mp4",n:"Bridges",core:true,tag:"Core round"},
+  {id:"coToe",vid:"https://videos.pexels.com/video-files/4367634/4367634-sd_640_360_30fps.mp4",n:"Toe Touches",core:true,tag:"Core round"},
+  {id:"coRussian",vid:"https://videos.pexels.com/video-files/4367634/4367634-sd_640_360_30fps.mp4",n:"Russian Twists",core:true,tag:"Core round"},
+  {id:"coLegRaise",vid:"https://videos.pexels.com/video-files/4367634/4367634-sd_640_360_30fps.mp4",n:"Leg Raises",core:true,tag:"Core round"},
+  {id:"coFlutter",vid:"https://videos.pexels.com/video-files/4367634/4367634-sd_640_360_30fps.mp4",n:"Flutter Kicks",core:true,tag:"Core round"},
+  {id:"coClimber",vid:"https://videos.pexels.com/video-files/31540631/13442527_640_360_30fps.mp4",n:"Mountain Climbers",core:true,tag:"Core round"},
+  {id:"coCircuit",vid:"https://videos.pexels.com/video-files/31540631/13442527_640_360_30fps.mp4",n:"Core Circuit",core:true,seg:{alt:["SIT-UPS","ANKLE TAPS","PLANK"],every:20},tag:"Rotates every 20s — auto"}]},
 {cat:"Bag Work",items:[
   {id:"bgLead",n:"Lead Hand Attacks",tag:"Everything off the lead"},
   {id:"bgBack",n:"Backhand Attacks",tag:"Everything off the back hand"},
@@ -1021,23 +1026,30 @@ function mpToggleRank(r){
 }
 const CARDIO={
 stairs:[
-  {img:"https://images.unsplash.com/photo-1512734099960-65a682cbfe2b?auto=format&fit=crop&w=1000&q=70",name:"Big Ben",target:"334 steps",how:"StairMaster",blurb:"To the top of the Elizabeth Tower. The warm-up of the stair world."},
-  {img:"https://images.unsplash.com/photo-1598948485421-33a1655d3c18?auto=format&fit=crop&w=1000&q=70",name:"The Harbour Bridge Climb",target:"1,332 steps",how:"StairMaster",blurb:"The full BridgeClimb — every step of the coathanger."},
-  {img:"https://images.unsplash.com/photo-1719451271224-a91c9c755547?auto=format&fit=crop&w=1000&q=70",name:"Sydney Tower Stair Challenge",target:"1,504 steps",how:"StairMaster",blurb:"To the top of the Golden Bucket, just like the charity race."},
-  {img:"https://images.unsplash.com/photo-1555109307-f7d9da25c244?auto=format&fit=crop&w=1000&q=70",name:"Empire State Run-Up",target:"1,576 steps",how:"StairMaster",blurb:"86 floors of the world's most famous skyscraper."},
-  {img:"https://images.unsplash.com/photo-1570097703229-b195d6dd291f?auto=format&fit=crop&w=1000&q=70",name:"The Eiffel Tower",target:"1,665 steps",how:"StairMaster",blurb:"Ground to summit, the hard way. No lift pass here."},
-  {img:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=70",name:"Burj Khalifa Vertical",target:"2,909 steps",how:"StairMaster",blurb:"The tallest building on earth. The big one — respect it."},
-  {img:"https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=1000&q=70",name:"The Great Wall Gauntlet",target:"5,164 steps",how:"StairMaster",blurb:"The Great Wall Marathon's infamous step count. Legendary status if you finish."}],
+  {pts:1,img:"https://images.unsplash.com/photo-1512734099960-65a682cbfe2b?auto=format&fit=crop&w=1000&q=70",name:"Big Ben",target:"334 steps",how:"StairMaster",blurb:"To the top of the Elizabeth Tower. The warm-up of the stair world."},
+  {pts:2,img:"https://images.unsplash.com/photo-1502224562085-639556652f33?auto=format&fit=crop&w=1000&q=70",name:"Statue of Liberty",target:"354 steps",how:"StairMaster",blurb:"Crown of Lady Liberty. Short, sharp, iconic."},
+  {pts:3,img:"https://images.unsplash.com/photo-1598948485421-33a1655d3c18?auto=format&fit=crop&w=1000&q=70",name:"The Harbour Bridge Climb",target:"1,332 steps",how:"StairMaster",blurb:"The full BridgeClimb \u2014 every step of the coathanger."},
+  {pts:4,img:"https://images.unsplash.com/photo-1719451271224-a91c9c755547?auto=format&fit=crop&w=1000&q=70",name:"Sydney Tower Stair Challenge",target:"1,504 steps",how:"StairMaster",blurb:"To the top of the Golden Bucket, just like the charity race."},
+  {pts:4,img:"https://images.unsplash.com/photo-1555109307-f7d9da25c244?auto=format&fit=crop&w=1000&q=70",name:"Empire State Run-Up",target:"1,576 steps",how:"StairMaster",blurb:"86 floors of the world's most famous skyscraper."},
+  {pts:5,img:"https://images.unsplash.com/photo-1570097703229-b195d6dd291f?auto=format&fit=crop&w=1000&q=70",name:"The Eiffel Tower",target:"1,665 steps",how:"StairMaster",blurb:"Ground to summit, the hard way. No lift pass here."},
+  {pts:5,img:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=70",name:"CN Tower Climb",target:"1,776 steps",how:"StairMaster",blurb:"Toronto's giant \u2014 the famous charity stair climb, every step."},
+  {pts:6,img:"https://images.unsplash.com/photo-1555109307-f7d9da25c244?auto=format&fit=crop&w=1000&q=70",name:"Willis Tower SkyRise",target:"2,109 steps",how:"StairMaster",blurb:"Chicago's SkyRise climb \u2014 103 floors of burn."},
+  {pts:7,img:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=70",name:"Burj Khalifa Vertical",target:"2,909 steps",how:"StairMaster",blurb:"The tallest building on earth. The big one \u2014 respect it."},
+  {pts:8,img:"https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&w=1000&q=70",name:"The Great Wall Gauntlet",target:"5,164 steps",how:"StairMaster",blurb:"The Great Wall Marathon's infamous step count. Legendary status if you finish."},
+  {pts:10,img:"https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=1000&q=70",name:"The Niesen Stairway",target:"11,674 steps",how:"StairMaster",blurb:"The longest staircase on the planet \u2014 a Swiss mountain, bottom to summit. The 10-pointer. Few will ever own it."}],
 tread:[
-  {img:"https://images.unsplash.com/photo-1551955682-78a3c53ab544?auto=format&fit=crop&w=1000&q=70",name:"Bondi to Bronte",target:"2.5 km",how:"Treadmill, or do it for real",blurb:"The iconic coastal path. The perfect starter."},
-  {img:"https://images.unsplash.com/photo-1672212602462-006b5f22f39f?auto=format&fit=crop&w=1000&q=70",name:"Quarter Bay to Bay",target:"3 km",how:"Treadmill or road",blurb:"A taste of the Central Coast classic."},
-  {img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"Quarter City2Surf",target:"3.5 km",how:"Treadmill or road",blurb:"The first quarter — get the legs used to it."},
-  {img:"https://images.unsplash.com/photo-1672212602462-006b5f22f39f?auto=format&fit=crop&w=1000&q=70",name:"Half Bay to Bay",target:"6 km",how:"Treadmill or road",blurb:"Halfway from Woy Woy to Gosford. Earn the full one."},
-  {img:"https://images.unsplash.com/photo-1628466277622-32a785141b0e?auto=format&fit=crop&w=1000&q=70",name:"Bondi to Coogee",target:"6 km",how:"Treadmill, or do it for real",blurb:"The full coastal walk — every bay, every headland."},
-  {img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"Half City2Surf",target:"7 km",how:"Treadmill or road",blurb:"Half the famous fun run. Heartbreak Hill's in the second half…"},
-  {img:"https://images.unsplash.com/photo-1529108190281-9a4f620bc2d8?auto=format&fit=crop&w=1000&q=70",name:"Lap of Uluru",target:"10.6 km",how:"Treadmill or road",blurb:"A full lap of the Rock. Flat, long, and honest."},
-  {img:"https://images.unsplash.com/photo-1672212602462-006b5f22f39f?auto=format&fit=crop&w=1000&q=70",name:"Bay to Bay",target:"12 km",how:"Treadmill or road",blurb:"The Central Coast classic — Woy Woy to Gosford, the whole way."},
-  {img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"City2Surf",target:"14 km",how:"Treadmill or road",blurb:"Sydney's famous fun run — Heartbreak Hill included, no excuses."}]};
+  {pts:1,img:"https://images.unsplash.com/photo-1551955682-78a3c53ab544?auto=format&fit=crop&w=1000&q=70",name:"Bondi to Bronte",target:"2.5 km",how:"Treadmill, or do it for real",blurb:"The iconic coastal path. The perfect starter."},
+  {pts:1,img:"https://images.unsplash.com/photo-1672212602462-006b5f22f39f?auto=format&fit=crop&w=1000&q=70",name:"Quarter Bay to Bay",target:"3 km",how:"Treadmill or road",blurb:"A taste of the Central Coast classic."},
+  {pts:2,img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"Quarter City2Surf",target:"3.5 km",how:"Treadmill or road",blurb:"The first quarter \u2014 get the legs used to it."},
+  {pts:2,img:"https://images.unsplash.com/photo-1474546652694-a33dd8161d66?auto=format&fit=crop&w=1000&q=70",name:"The Parkrun",target:"5 km",how:"Treadmill or road",blurb:"The classic Saturday morning 5. Honest kilometres."},
+  {pts:3,img:"https://images.unsplash.com/photo-1672212602462-006b5f22f39f?auto=format&fit=crop&w=1000&q=70",name:"Half Bay to Bay",target:"6 km",how:"Treadmill or road",blurb:"Halfway from Woy Woy to Gosford. Earn the full one."},
+  {pts:3,img:"https://images.unsplash.com/photo-1628466277622-32a785141b0e?auto=format&fit=crop&w=1000&q=70",name:"Bondi to Coogee",target:"6 km",how:"Treadmill, or do it for real",blurb:"The full coastal walk \u2014 every bay, every headland."},
+  {pts:3,img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"Half City2Surf",target:"7 km",how:"Treadmill or road",blurb:"Half the famous fun run. Heartbreak Hill's in the second half\u2026"},
+  {pts:5,img:"https://images.unsplash.com/photo-1529108190281-9a4f620bc2d8?auto=format&fit=crop&w=1000&q=70",name:"Lap of Uluru",target:"10.6 km",how:"Treadmill or road",blurb:"A full lap of the Rock. Flat, long, and honest."},
+  {pts:6,img:"https://images.unsplash.com/photo-1672212602462-006b5f22f39f?auto=format&fit=crop&w=1000&q=70",name:"Bay to Bay",target:"12 km",how:"Treadmill or road",blurb:"The Central Coast classic \u2014 Woy Woy to Gosford, the whole way."},
+  {pts:7,img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"City2Surf",target:"14 km",how:"Treadmill or road",blurb:"Sydney's famous fun run \u2014 Heartbreak Hill included, no excuses."},
+  {pts:8,img:"https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&w=1000&q=70",name:"The Half Marathon",target:"21.1 km",how:"Treadmill or road",blurb:"The real deal. 21.1 kilometres, no shortcuts."},
+  {pts:10,img:"https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?auto=format&fit=crop&w=1000&q=70",name:"The Marathon",target:"42.2 km",how:"Treadmill or road",blurb:"42.2 kilometres. The one they name legends after. The 10-pointer."}]};
 const MVM=[
   {id:"deadlift",n:"Heaviest Deadlift",unit:"kg",img:"1517963879433-6ad2b056d712"},
   {id:"squat",n:"Heaviest Back Squat",unit:"kg",img:"1541600383005-565c949cf777"},
@@ -1072,18 +1084,20 @@ async function awardPoints(kind,ref,pts){
   return !error;
 }
 /* Cardio Challenges */
+let chRun=null;
+function chElapsed(){return chRun?Math.floor((Date.now()-chRun.start)/1000):0;}
 async function renderCardio(){
   $("main").innerHTML=`
     <div class="hero" style="${bgStyle('stairs',.5)}">
       <div class="heroKicker">Climb The World</div>
       <div class="heroTitle">Cardio Challenges</div>
-      <div class="heroText">Famous climbs and iconic runs, done on the gym floor. Knock one over, hit the button, bank 5 Legacy Points.</div>
+      <div class="heroText">Famous climbs and iconic runs, done on the gym floor. The bigger the mission, the bigger the points \u2014 1 for the starters, 10 for the monsters. Hit start, do the work, claim it.</div>
     </div>
     <div class="subTabs">
       <button class="${cardioSub==='stairs'?'active':''}" onclick="cardioSub='stairs';renderCardio()">StairMaster</button>
       <button class="${cardioSub==='tread'?'active':''}" onclick="cardioSub='tread';renderCardio()">Treadmill</button>
     </div>
-    <div id="cardioList"><div class="loadingDots">Loading challenges…</div></div>`;
+    <div id="cardioList"><div class="loadingDots">Loading challenges\u2026</div></div>`;
   await loadWorld();
   if(view!=="cardio")return;const box=$("cardioList");if(!box)return;
   const doneRefs=new Set(ptsData.events.filter(e=>e.user_id===session.user.id&&e.kind==="challenge").map(e=>e.ref));
@@ -1091,23 +1105,66 @@ async function renderCardio(){
   box.innerHTML=CARDIO[cardioSub].map((c,i)=>{
     const ref=cardioSub+":"+c.name;
     const done=doneRefs.has(ref),n=clubCounts[ref]||0;
+    const running=chRun&&chRun.ref===ref;
     return `<div class="chCard" style="background:linear-gradient(180deg,rgba(8,8,10,.35),rgba(8,8,10,.9)),url('${c.img}') center/cover no-repeat #0a0b0e">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
-        <span class="chTarget">${c.target}</span><span class="chHow">${c.how}</span>
+        <span class="chTarget">${c.target}</span>
+        <span style="flex-shrink:0"><span class="chPts">+${c.pts} PT${c.pts>1?"S":""}</span></span>
       </div>
       <h3>${esc(c.name)}</h3>
-      <p>${esc(c.blurb)}</p>
-      ${n?`<p style="font-size:11px;color:#b8b8be;margin-top:6px">Conquered ${n}× across the club</p>`:""}
-      ${done?`<div class="chDone">CONQUERED ✓ · 5 POINTS BANKED</div>`
-            :`<button class="btnGold" style="margin-top:12px" onclick="completeCardio('${cardioSub}',${i})">I Did It — Claim 5 Points</button>`}
+      <p>${esc(c.blurb)} <span style="color:#cfcfd4">\u00b7 ${c.how}</span></p>
+      ${n?`<p style="font-size:11px;color:#b8b8be;margin-top:6px">Conquered ${n}\u00d7 across the club</p>`:""}
+      ${done?`<div class="chDone">CONQUERED \u2713 \u00b7 ${c.pts} POINT${c.pts>1?"S":""} BANKED</div>`
+        :running?`
+        <div style="text-align:center;margin-top:12px">
+          <div style="font-size:40px;font-weight:900;font-variant-numeric:tabular-nums;text-shadow:0 2px 8px rgba(0,0,0,.9)" id="chTimer">${fmtSec(chElapsed())}</div>
+          <div style="font-size:10.5px;letter-spacing:2px;color:#4ade80;font-weight:900;text-shadow:0 1px 4px rgba(0,0,0,.9)">CHALLENGE RUNNING</div>
+        </div>
+        <button class="btnGold" style="margin-top:12px" onclick="chFinish()">Finish \u2014 I Made It</button>
+        <button class="btnLink" style="margin-top:8px;border-color:#f87171;color:#f87171" onclick="chAbandon()">Pull Out</button>`
+        :`<button class="btnGold" style="margin-top:12px" ${chRun?'disabled style="margin-top:12px;opacity:.5"':''} onclick="chStart('${cardioSub}',${i})">Start The Challenge</button>`}
     </div>`;}).join("");
 }
-async function completeCardio(cat,i){
+function chStart(cat,i){
+  if(chRun){toast("Finish "+chRun.name+" first \u2014 one mission at a time.");return;}
   const c=CARDIO[cat][i];
-  if(!confirm("Full "+c.target+" done? Honesty system — the club's watching."))return;
-  const ok=await awardPoints("challenge",cat+":"+c.name,5);
-  toast(ok?"🏆 "+c.name+" conquered — 5 points on the board!":"Couldn't save it — try again.");
+  chRun={ref:cat+":"+c.name,name:c.name,target:c.target,pts:c.pts,start:Date.now(),int:null};
+  chRun.int=setInterval(()=>{const el=$("chTimer");if(el)el.textContent=fmtSec(chElapsed());},1000);
+  beep(880,.3);
+  toast("Clock's running. "+c.target+" \u2014 go.");
+  renderCardio();
+}
+function chAbandon(){
+  if(chRun)clearInterval(chRun.int);
+  chRun=null;
+  toast("Pulled out \u2014 the mountain will still be here tomorrow.");
+  renderCardio();
+}
+async function chFinish(){
+  if(!chRun)return;
+  const {ref,name,target,pts}=chRun;
+  const t=chElapsed();
+  if(!confirm("Did you complete the full "+target+"? Honesty system \u2014 the club's watching.")){return;}
+  clearInterval(chRun.int);chRun=null;
+  const ok=await awardPoints("challenge",ref,pts);
+  if(!ok){toast("Couldn't save it \u2014 try again.");renderCardio();return;}
+  boomBanner(name,target+" in "+fmtSec(t),"+"+pts+" POINT"+(pts>1?"S":"")+" BANKED");
+  bell();
   await loadWorld(true);renderCardio();
+}
+function boomBanner(title,sub,ptsTxt){
+  const old=$("boomWrap");if(old)old.remove();
+  document.body.insertAdjacentHTML("beforeend",`
+  <div id="boomWrap" onclick="this.remove()" style="position:fixed;inset:0;z-index:9999;background:rgba(5,5,7,.92);display:flex;align-items:center;justify-content:center;padding:24px">
+    <div class="boomCard">
+      <div style="font-size:54px;line-height:1">\ud83c\udfc6</div>
+      <div style="font-weight:900;letter-spacing:6px;font-size:15px;color:#1d1402;margin-top:10px">CONQUERED!</div>
+      <div style="font-weight:900;font-size:26px;line-height:1.15;color:#1d1402;text-transform:uppercase;margin-top:8px">${esc(title)}</div>
+      <div style="font-size:13px;font-weight:700;color:#3d2c05;margin-top:8px">${esc(sub)}</div>
+      <div style="display:inline-block;background:#161307;color:#f5d76e;font-weight:900;letter-spacing:2px;font-size:14px;padding:10px 22px;border-radius:30px;margin-top:16px">${esc(ptsTxt)}</div>
+      <div style="font-size:10.5px;color:#3d2c05;margin-top:14px;letter-spacing:1px">TAP ANYWHERE TO KEEP TRAINING</div>
+    </div>
+  </div>`);
 }
 /* Member vs Member */
 function fmtChalVal(m,v){if(m.unit==="kg")return (+v)+" kg";v=Math.round(+v);const h=Math.floor(v/3600),mm=Math.floor(v%3600/60),s=v%60;return (h?h+":"+pad(mm):mm)+":"+pad(s);}
@@ -1261,7 +1318,7 @@ async function renderLeaderboard(){
       </div>`}
     <div class="secTitle">Members Leaderboard</div>
     <div class="card">
-      <p style="font-size:11.5px;color:var(--muted);margin-bottom:6px">1 point a class · 5 points a cardio challenge · 5-point bonus for taking a club record.</p>
+      <p style="font-size:11.5px;color:var(--muted);margin-bottom:6px">1 point a class · 1–10 points a cardio challenge (bigger mission, bigger points) · 5-point bonus for taking a club record.</p>
       ${rows.length?rows.map((r,i)=>{
         const lv=levelOf(r.p),st=TIER_STYLES[lv.tier];
         return `<div class="lbRow${r.uid===session.user.id?" me":""}">
@@ -2737,8 +2794,8 @@ async function delSocial(id){
 
 /* ---- Ask Me Anything (voice in, typed answers) ---- */
 const AMA_KB=[
-{k:"points legacy points how earn score tally leaderboard rank level",a:"Legacy Points: 1 point every time you attend a class and hit Submit afterwards, 5 points for finishing a cardio challenge, and a 5-point bonus for taking a club record off someone in Member vs Member. Points climb you through the ranks — Prospect all the way to Legacy Legend. Check the Leaderboard tab inside Members Chat."},
-{k:"cardio challenge stairmaster treadmill climb steps run stairs",a:"Cardio Challenges are on the home screen — famous stair climbs on the StairMaster (Big Ben up to the Great Wall Gauntlet) and iconic runs on the treadmill (Bondi to Bronte up to City2Surf). Finish one, hit the button, bank 5 Legacy Points."},
+{k:"points legacy points how earn score tally leaderboard rank level",a:"Legacy Points: 1 point every time you attend a class and hit Submit afterwards, 1–10 points for cardio challenges depending on how big the mission is, and a 5-point bonus for taking a club record off someone in Member vs Member. Points climb you through the ranks — Prospect all the way to Legacy Legend. Check the Leaderboard tab inside Members Chat."},
+{k:"cardio challenge stairmaster treadmill climb steps run stairs",a:"Cardio Challenges are on the home screen — famous stair climbs on the StairMaster (Big Ben up to the Great Wall Gauntlet) and iconic runs on the treadmill (Bondi to Bronte up to City2Surf). Hit start, do the work, claim between 1 and 10 points — the bigger the mission, the bigger the reward. The Niesen Stairway and the full Marathon are the 10-pointers."},
 {k:"member versus member record crown heaviest deadlift squat bench fastest",a:"Member vs Member is the club record board — heaviest deadlift, squat, overhead press and bench, plus fastest times on the assault bike, rower, ski erg, StairMaster and runs from 1K to 10K. Post your result; take the crown off someone and you bank a 5-point bonus."},
 {k:"local blokes heavyweight club vip private program what is behind door",a:"The Local Blokes Heavyweight Club is an invitation-only program for a small crew of men — training, fuel plans and more, all behind a locked door. If you're in it, you know. If you're not, have a word with the coaches about how spots open up."},
 {k:"legacy profile photo member type build profile",a:"Your Legacy Profile lives in Members Chat under the Leaderboard tab — add your photo, name, age and what kind of member you are, and you're on the board."},
