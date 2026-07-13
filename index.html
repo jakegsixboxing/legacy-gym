@@ -577,6 +577,14 @@ const ELITE_SESSIONS=[
 ];
 let elitePreview=false;
 function renderBoxElite(){
+  if(profile&&profile.is_staff&&(profile.email||"").toLowerCase()!=="jakegsixboxing@gmail.com"){
+    $("boxContent").innerHTML=`<div class="card" style="text-align:center;padding:30px 20px">
+      <div style="font-weight:900;letter-spacing:3px;color:var(--muted);font-size:11px">STAFF ACCOUNT</div>
+      <h3 style="margin-top:8px">Train With Jake</h3>
+      <p style="margin-top:8px;color:var(--muted);font-size:12.5px;line-height:1.6">This is the members' door to Jake's paid one-on-one programming — not part of staff access. Want something programmed? Tap Jake on the shoulder.</p>
+    </div>`;
+    return;
+  }
   $("boxContent").innerHTML=`
     <div class="eliteCard">
       <div class="eliteStar">★</div>
@@ -1515,7 +1523,7 @@ async function loadBlokes(force){
 }
 function renderBlokes(){
   if(typeof S!=="undefined")clearInterval(S.int);
-  if(!profile||!profile.is_blokes){
+  if(!profile||!(profile.is_blokes||profile.is_staff)){
     $("main").innerHTML=`
       <div style="background:#0d0d0d;border:1px solid #2a2a2a;border-radius:16px;padding:40px 22px;text-align:center;margin-top:8px">
         <img src="${LB.logo}" style="width:86px;height:86px;border-radius:20px;filter:grayscale(1) brightness(.5);margin:0 auto 14px;display:block" alt="">
@@ -2330,10 +2338,10 @@ function bpAddTitle(){
 const COACH_CARDS={
   "jakegsixboxing@gmail.com":{
     title:"Head Boxing Coach",
-    sub:"Retired AM / Pro Boxer",
-    div:"Heavyweight",
-    amateur:["6× Australian Champions","3× NSW Champions","2× Australasian Champions"],
-    pro:["2× NSW Champions","2× Australian Champions","1× Australasian Champion","2× UBF Champions","1× WBO Asia Pacific Champion","1× WBC Asian Gold Champion"]
+    sub:"Jake Williamson",
+    div:"",
+    amateur:[],
+    pro:[]
   }
 };
 const MONTH_TIERS=[[50,"Platinum","platinum"],[35,"Gold","goldT"],[20,"Silver","silver"],[10,"Bronze","bronze"]];
@@ -2370,11 +2378,11 @@ function boxerCardHtml(bp){
       </div>
       <button class="btnLink" style="width:auto;padding:8px 12px;margin:0" onclick="startBpEdit()">Edit</button>
     </div>
-    ${cc?`<div class="fcAcc">
-      <div class="accT">Coaching Accomplishments — Amateur</div>
-      <div class="accList">${cc.amateur.map(a=>`<span class="pill accPill">${a}</span>`).join("")}</div>
-      <div class="accT" style="margin-top:12px">Coaching Accomplishments — Professional</div>
-      <div class="accList">${cc.pro.map(a=>`<span class="pill accPill">${a}</span>`).join("")}</div>
+    ${cc&&(cc.amateur.length||cc.pro.length)?`<div class="fcAcc">
+      ${cc.amateur.length?`<div class="accT">Coaching Accomplishments — Amateur</div>
+      <div class="accList">${cc.amateur.map(a=>`<span class="pill accPill">${a}</span>`).join("")}</div>`:""}
+      ${cc.pro.length?`<div class="accT" style="margin-top:12px">Coaching Accomplishments — Professional</div>
+      <div class="accList">${cc.pro.map(a=>`<span class="pill accPill">${a}</span>`).join("")}</div>`:""}
     </div>`:""}
     ${cc?"":bp.division==="Fitness Club"?`<div class="fcRecordRow">
       <div class="fcRec gold"><span>${total}</span><small>Rounds Banked</small></div>
