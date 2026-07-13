@@ -3774,7 +3774,7 @@ async function renderStaffMembersTab(){
   const openReds=reds.filter(r=>r.status==="pending"||r.status==="active");
   box.innerHTML=(mgr&&openReds.length?`<div class="card" style="border-color:var(--gold-dim)">
       <h3>🎟 Credit Checkout Codes</h3>
-      <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">A member cashed credit into a code. In Shopify Admin → Discounts, create a one-off "Amount off order" code with the <b>exact same name and dollar value</b>, then hit Activate here. Mark it Spent after they use it. Cancel puts the money straight back on their balance.</p>
+      <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">Codes are created in Shopify automatically the moment a member redeems — nothing for you to do here. Mark one Spent to tidy the list, or Cancel &amp; Refund to void it (if you cancel, also delete the code in Shopify Admin → Discounts so it can’t be used).</p>
       ${openReds.map(r=>`<div style="border-top:1px solid var(--line);padding:10px 0;margin-top:10px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
           <b style="color:var(--gold);letter-spacing:1px">${esc(r.code)}</b>
@@ -3931,14 +3931,14 @@ async function shopLoadCredit(){
   const w=$("shopRedeemWrap");if(!w)return;
   const live=rds.filter(r=>r.status==="pending"||r.status==="active");
   w.innerHTML=`
-    ${bal>0?`<p style="color:var(--muted);font-size:11.5px;margin-top:8px;line-height:1.6">Cash credit into a one-off checkout code — once the front desk activates it, enter it in the discount box at checkout on legacygym.net.</p>
+    ${bal>0?`<p style="color:var(--muted);font-size:11.5px;margin-top:8px;line-height:1.6">Cash credit into a one-off checkout code — it goes live instantly. Enter it in the discount box at checkout on legacygym.net.</p>
     <div class="pillBtns" style="margin-top:10px;flex-wrap:wrap;justify-content:center">
       ${[5,10,20].filter(a=>a<bal).map(a=>`<button onclick="shopRedeem(${a})">Use $${a}</button>`).join("")}
       <button onclick="shopRedeem(${bal})">Use All — $${bal}</button>
     </div>`:evs.length?"":`<p style="color:var(--muted);font-size:11.5px;margin-top:8px;line-height:1.6">Win challenges and impress the coaches to earn Legacy dollars — then spend them right here.</p>`}
     ${live.length?`<div style="margin-top:14px;text-align:left">
       <div style="font-weight:900;letter-spacing:2px;font-size:10px;color:var(--muted)">YOUR CHECKOUT CODES</div>
-      ${live.map(r=>`<div class="weekRow"><span style="font-size:12px"><b style="color:var(--gold);letter-spacing:1px;font-size:14px">${esc(r.code)}</b> — $${Number(r.amount)}<br><small style="color:${r.status==="active"?"var(--ok)":"var(--muted)"}">${r.status==="active"?"READY ✓ — enter it at checkout":"Waiting on the front desk to activate it"}</small></span></div>`).join("")}
+      ${live.map(r=>`<div class="weekRow"><span style="font-size:12px"><b style="color:var(--gold);letter-spacing:1px;font-size:14px">${esc(r.code)}</b> — $${Number(r.amount)}<br><small style="color:${r.status==="active"?"var(--ok)":"var(--muted)"}">${r.status==="active"?"LIVE ✓ — enter it in the discount box at checkout (one use)":"Being set up — check back shortly"}</small></span></div>`).join("")}
     </div>`:""}`;
   const hh=$("shopHist");
   const hist=[...evs.map(e=>({d:e.created_at,t:e.note||"Credit",a:Number(e.amount)})),...rds.filter(r=>r.status!=="cancelled").map(r=>({d:r.created_at,t:"Checkout code "+r.code+(r.status==="used"?" (spent)":""),a:-Number(r.amount)}))].sort((a,b)=>new Date(b.d)-new Date(a.d));
@@ -3946,11 +3946,15 @@ async function shopLoadCredit(){
 }
 async function shopRedeem(amt){
   if(!confirm("Turn $"+amt+" of your store credit into a one-off checkout code?"))return;
-  const code="LEGACY-"+Array.from(crypto.getRandomValues(new Uint8Array(5))).map(b=>"ABCDEFGHJKMNPQRSTUVWXYZ23456789"[b%31]).join("");
-  const {error}=await sb.from("credit_redemptions").insert({member_id:session.user.id,name:myDisplayName(),code,amount:amt,status:"pending"});
-  if(error){toast(error.message);return;}
-  toast("Code "+code+" locked in — the front desk will activate it.");
-  shopLoadCredit();
+  toast("Creating your checkout code…");
+  try{
+    const r=await fetch("/api/redeem",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token:session.access_token,amount:amt})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.code){toast(j.code+" is live — enter it at checkout. One use only.");shopLoadCredit();return;}
+    if(j.error==="not_configured"){toast("The checkout link is still being switched on — no credit has been taken. Try again soon.");return;}
+    if(j.error==="insufficient_credit"){toast("Not enough credit for that amount.");return;}
+    toast("Couldn't create the code — nothing was taken off your balance. Try again.");
+  }catch(e){toast("Couldn't reach the store — no credit taken. Try again in a minute.");}
 }
 async function rdSet(id,st){
   const {error}=await sb.from("credit_redemptions").update({status:st}).eq("id",id);
