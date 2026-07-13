@@ -3758,15 +3758,32 @@ async function cancelPtRequest(id){
 let crPend={},crModeD={},mdUid=null,mdTitle="";
 async function renderStaffMembersTab(){
   $("staffContent").innerHTML='<div class="loadingDots">Loading every member…</div>';
-  const [mp,ce]=await Promise.all([
+  const [mp,ce,rd]=await Promise.all([
     sb.from("member_profiles").select("*").order("full_name",{ascending:true}),
-    sb.from("credit_events").select("member_id,amount")]);
+    sb.from("credit_events").select("member_id,amount"),
+    sb.from("credit_redemptions").select("*").order("created_at",{ascending:false})]);
   if(view!=="staff"||staffSub!=="members")return;
   const box=$("staffContent");if(!box)return;
   const bal={};(ce.data||[]).forEach(e=>bal[e.member_id]=(bal[e.member_id]||0)+Number(e.amount));
+  const reds=rd.data||[];
+  reds.filter(r=>r.status!=="cancelled").forEach(r=>bal[r.member_id]=(bal[r.member_id]||0)-Number(r.amount));
   const mgr=profile&&profile.is_manager;
   const rows=mp.data||[];
-  box.innerHTML=`<div class="secTitle">Every Member (${rows.length})</div>`+
+  const openReds=reds.filter(r=>r.status==="pending"||r.status==="active");
+  box.innerHTML=(mgr&&openReds.length?`<div class="card" style="border-color:var(--gold-dim)">
+      <h3>🎟 Credit Checkout Codes</h3>
+      <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">A member cashed credit into a code. In Shopify Admin → Discounts, create a one-off "Amount off order" code with the <b>exact same name and dollar value</b>, then hit Activate here. Mark it Spent after they use it. Cancel puts the money straight back on their balance.</p>
+      ${openReds.map(r=>`<div style="border-top:1px solid var(--line);padding:10px 0;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+          <b style="color:var(--gold);letter-spacing:1px">${esc(r.code)}</b>
+          <span style="font-size:12px;flex-shrink:0">$${Number(r.amount)} — ${esc(r.name)}</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          ${r.status==="pending"?`<button class="btnGold" style="flex:1;margin:0;padding:9px" onclick="rdSet('${r.id}','active')">Activate</button>`:`<button class="btnLink" style="flex:1;margin:0;padding:9px;border-color:var(--ok);color:var(--ok)" onclick="rdSet('${r.id}','used')">Mark Spent</button>`}
+          <button class="btnLink" style="flex:1;margin:0;padding:9px;border-color:#e05252;color:#e05252" onclick="rdSet('${r.id}','cancelled')">Cancel & Refund</button>
+        </div>
+      </div>`).join("")}
+    </div>`:"")+`<div class="secTitle">Every Member (${rows.length})</div>`+
     (mgr?"":`<p style="font-size:11px;color:var(--muted);margin-bottom:10px">Direct messages and store credit are manager-only.</p>`)+
     (rows.length?rows.map(m=>{
       const b=bal[m.user_id]||0;
@@ -3858,30 +3875,86 @@ async function loadFdBanner(){
     <span style="color:var(--gold);font-size:28px">›</span>
   </button>`;
 }
+let shopColl="frontpage";
+const SHOP_URL="https://www.legacygym.net";
+const SHOP_COLLS=[["frontpage","Apparel"],["boxing-gear-accessories","Boxing Gear"],["swipe-passes-and-casual-visits-1","Passes"]];
 async function renderShop(){
   $("main").innerHTML=`
     <div class="hero" style="${bgStyle('weights',.5)}">
-      <div class="heroKicker">Legacy Gym Apparel</div>
+      <div class="heroKicker">Legacy Gym Official Store</div>
       <div class="heroTitle">Shop Apparel</div>
-      <div class="heroText">Official Legacy Gym gear. The racks are being stocked now.</div>
+      <div class="heroText">Live from legacygym.net — tap any product to buy it straight from our store.</div>
     </div>
-    <div class="card" style="border-color:var(--gold-dim);text-align:center;padding:26px 20px">
+    <div class="card" style="border-color:var(--gold-dim);text-align:center;padding:22px 18px">
       <div style="font-weight:900;letter-spacing:4px;color:var(--gold);font-size:12px">YOUR STORE CREDIT</div>
-      <div id="shopBal" style="font-size:42px;font-weight:900;color:#f5f5f5;margin-top:8px">$—</div>
-      <p style="color:var(--muted);font-size:12px;margin-top:8px;line-height:1.6">Win challenges, impress the coaches, get gifted Legacy dollars — then spend them right here on apparel when the shop opens.</p>
+      <div id="shopBal" style="font-size:42px;font-weight:900;color:#f5f5f5;margin-top:6px">$—</div>
+      <div id="shopRedeemWrap"></div>
       <div id="shopHist"></div>
     </div>
-    <div class="card" style="text-align:center;padding:30px 20px">
-      <div style="font-size:30px">🛍️</div>
-      <h3 style="margin-top:8px;letter-spacing:2px">COMING SOON</h3>
-      <p style="margin-top:8px;color:var(--muted);font-size:12.5px;line-height:1.6">Hoodies, tees and training kit — the full Legacy range is on its way. Watch this space.</p>
-    </div>`;
-  const {data}=await sb.from("credit_events").select("*").eq("member_id",session.user.id).order("created_at",{ascending:false});
+    <div class="pillBtns" style="margin:14px 0 10px">${SHOP_COLLS.map(c=>`<button class="${shopColl===c[0]?'on':''}" onclick="shopColl='${c[0]}';renderShop()">${c[1]}</button>`).join("")}</div>
+    <div id="shopGrid"><div class="loadingDots">Loading the racks…</div></div>
+    <button class="btnLink" style="margin-top:10px" onclick="window.open(SHOP_URL+'/collections/'+shopColl,'_blank')">Open The Full Store On legacygym.net ›</button>`;
+  shopLoadCredit();shopLoadProducts();
+}
+async function shopLoadProducts(){
+  let j=null;
+  try{const r=await fetch(SHOP_URL+"/collections/"+shopColl+"/products.json?limit=250");j=await r.json();}catch(e){}
+  if(view!=="shop")return;const g=$("shopGrid");if(!g)return;
+  const ps=(j&&j.products)||[];
+  if(!ps.length){g.innerHTML=`<div class="card"><p>Couldn't reach the store just now — tap "Open The Full Store" below instead.</p></div>`;return;}
+  g.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+ps.map(p=>{
+    const img=(p.images&&p.images[0]&&p.images[0].src)||"";
+    const v=p.variants&&p.variants[0];
+    const avail=(p.variants||[]).some(x=>x.available!==false);
+    const price=v?Number(v.price):0;
+    return `<button onclick="window.open('${SHOP_URL}/products/${p.handle}','_blank')" style="background:#131110;border:1px solid #2a2417;border-radius:14px;padding:0;overflow:hidden;text-align:left;cursor:pointer">
+      <div style="position:relative">
+        ${img?`<img src="${img}${img.includes("?")?"&":"?"}width=480" style="width:100%;aspect-ratio:1;object-fit:cover;display:block" loading="lazy" alt="">`:`<div style="width:100%;aspect-ratio:1;background:#0d0d0d"></div>`}
+        ${avail?"":'<span style="position:absolute;top:8px;left:8px;background:#000c;border:1px solid #555;color:#ccc;font-size:9px;font-weight:900;letter-spacing:1px;padding:3px 7px;border-radius:20px">SOLD OUT</span>'}
+      </div>
+      <div style="padding:10px 12px 12px">
+        <div style="font-size:12px;font-weight:800;color:#f5f5f5;line-height:1.35">${esc(p.title)}</div>
+        <div style="font-size:13px;font-weight:900;color:var(--gold);margin-top:4px">$${price.toFixed(2)}</div>
+      </div>
+    </button>`;}).join("")+'</div>';
+}
+async function shopLoadCredit(){
+  const [ce,rd]=await Promise.all([
+    sb.from("credit_events").select("*").eq("member_id",session.user.id).order("created_at",{ascending:false}),
+    sb.from("credit_redemptions").select("*").eq("member_id",session.user.id).order("created_at",{ascending:false})]);
   if(view!=="shop")return;
-  const rows=data||[],bal=rows.reduce((a,e)=>a+Number(e.amount),0);
+  const evs=ce.data||[],rds=rd.data||[];
+  const bal=evs.reduce((a,e)=>a+Number(e.amount),0)-rds.filter(r=>r.status!=="cancelled").reduce((a,r)=>a+Number(r.amount),0);
   const el=$("shopBal");if(el)el.textContent="$"+bal;
+  const w=$("shopRedeemWrap");if(!w)return;
+  const live=rds.filter(r=>r.status==="pending"||r.status==="active");
+  w.innerHTML=`
+    ${bal>0?`<p style="color:var(--muted);font-size:11.5px;margin-top:8px;line-height:1.6">Cash credit into a one-off checkout code — once the front desk activates it, enter it in the discount box at checkout on legacygym.net.</p>
+    <div class="pillBtns" style="margin-top:10px;flex-wrap:wrap;justify-content:center">
+      ${[5,10,20].filter(a=>a<bal).map(a=>`<button onclick="shopRedeem(${a})">Use $${a}</button>`).join("")}
+      <button onclick="shopRedeem(${bal})">Use All — $${bal}</button>
+    </div>`:evs.length?"":`<p style="color:var(--muted);font-size:11.5px;margin-top:8px;line-height:1.6">Win challenges and impress the coaches to earn Legacy dollars — then spend them right here.</p>`}
+    ${live.length?`<div style="margin-top:14px;text-align:left">
+      <div style="font-weight:900;letter-spacing:2px;font-size:10px;color:var(--muted)">YOUR CHECKOUT CODES</div>
+      ${live.map(r=>`<div class="weekRow"><span style="font-size:12px"><b style="color:var(--gold);letter-spacing:1px;font-size:14px">${esc(r.code)}</b> — $${Number(r.amount)}<br><small style="color:${r.status==="active"?"var(--ok)":"var(--muted)"}">${r.status==="active"?"READY ✓ — enter it at checkout":"Waiting on the front desk to activate it"}</small></span></div>`).join("")}
+    </div>`:""}`;
   const hh=$("shopHist");
-  if(hh&&rows.length)hh.innerHTML=`<details style="margin-top:12px"><summary style="font-size:12px;color:var(--gold);font-weight:800;cursor:pointer">Credit History</summary>${rows.map(e=>`<div class="weekRow"><span style="font-size:12px;text-align:left">${esc(e.note||"Credit")}<br><small style="color:var(--muted)">${fmtWhen(e.created_at)}</small></span><b style="color:${Number(e.amount)<0?"#e05252":"var(--gold)"}">${Number(e.amount)<0?"−$"+Math.abs(Number(e.amount)):"+$"+Number(e.amount)}</b></div>`).join("")}</details>`;
+  const hist=[...evs.map(e=>({d:e.created_at,t:e.note||"Credit",a:Number(e.amount)})),...rds.filter(r=>r.status!=="cancelled").map(r=>({d:r.created_at,t:"Checkout code "+r.code+(r.status==="used"?" (spent)":""),a:-Number(r.amount)}))].sort((a,b)=>new Date(b.d)-new Date(a.d));
+  if(hh&&hist.length)hh.innerHTML=`<details style="margin-top:12px"><summary style="font-size:12px;color:var(--gold);font-weight:800;cursor:pointer">Credit History</summary>${hist.map(e=>`<div class="weekRow"><span style="font-size:12px;text-align:left">${esc(e.t)}<br><small style="color:var(--muted)">${fmtWhen(e.d)}</small></span><b style="color:${e.a<0?"#e05252":"var(--gold)"}">${e.a<0?"−$"+Math.abs(e.a):"+$"+e.a}</b></div>`).join("")}</details>`;
+}
+async function shopRedeem(amt){
+  if(!confirm("Turn $"+amt+" of your store credit into a one-off checkout code?"))return;
+  const code="LEGACY-"+Array.from(crypto.getRandomValues(new Uint8Array(5))).map(b=>"ABCDEFGHJKMNPQRSTUVWXYZ23456789"[b%31]).join("");
+  const {error}=await sb.from("credit_redemptions").insert({member_id:session.user.id,name:myDisplayName(),code,amount:amt,status:"pending"});
+  if(error){toast(error.message);return;}
+  toast("Code "+code+" locked in — the front desk will activate it.");
+  shopLoadCredit();
+}
+async function rdSet(id,st){
+  const {error}=await sb.from("credit_redemptions").update({status:st}).eq("id",id);
+  if(error){toast(error.message);return;}
+  toast(st==="active"?"Code activated.":st==="used"?"Marked as spent.":"Cancelled — credit is back on their balance.");
+  renderStaffMembersTab();
 }
 let staffSub="chat";
 let staffData={loaded:false,staff:[],tasks:[],comms:[],msgs:[]};
