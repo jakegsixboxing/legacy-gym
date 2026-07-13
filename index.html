@@ -1527,11 +1527,105 @@ async function renderSparringClub(){
       <h3>Build Your Boxer Profile</h3>
       <p style="margin-top:6px">Set up your profile — photo, weights, record — then bank your sparring rounds week by week.</p>
       <button class="btnGold" style="margin-top:14px" onclick="startBpEdit()">Build My Profile</button></div>`;
-  else html+=boxerCardHtml(bp);
+  else{
+    html+=`<div class="pillBtns" style="margin-bottom:14px">
+      <button class="${sparTab==='hub'?'on':''}" onclick="sparTab='hub';renderSparringClub()">My Hub</button>
+      <button class="${sparTab==='wed'?'on':''}" onclick="sparTab='wed';renderSparringClub()">Wednesday Night Sparring</button>
+    </div>`;
+    if(sparTab==="wed"){
+      c.innerHTML=html+`<div id="sparWed"><div class="loadingDots">Loading the list…</div></div>`;
+      renderSparWed();
+      return;
+    }
+    html+=boxerCardHtml(bp);
+  }
   if(bp&&!bpEditing)html+=sparringStatsHtml()+logFormHtml()+fightTapeHtml()+historyHtml()+notesHtml();
-  html+=fightsHtml();
   if(profile&&profile.is_coach)html+=coachHtml();
   c.innerHTML=html;
+}
+let sparTab="hub";
+function nextWednesday(){
+  const d=new Date();const diff=(3-d.getDay()+7)%7;
+  const w=new Date(d);w.setDate(d.getDate()+diff);
+  return w.getFullYear()+"-"+pad(w.getMonth()+1)+"-"+pad(w.getDate());
+}
+async function renderSparWed(){
+  const wed=nextWednesday();
+  const [su,mu]=await Promise.all([
+    sb.from("spar_signups").select("*").eq("week_date",wed).order("weight",{ascending:true}),
+    sb.from("spar_matchups").select("*").eq("week_date",wed).order("created_at",{ascending:true})]);
+  if(view!=="boxing"||boxSub!=="sparring"||sparTab!=="wed")return;
+  const box=$("sparWed");if(!box)return;
+  const signups=su.data||[],matchups=mu.data||[];
+  const bp=boxData.profile;
+  const mine=signups.find(s=>s.user_id===session.user.id);
+  const isC=profile&&(profile.is_coach||profile.is_staff);
+  const groups=[];let cur=null;
+  signups.forEach(s=>{
+    if(!cur||Number(s.weight)>cur.start+10){cur={start:Number(s.weight),list:[]};groups.push(cur);}
+    cur.list.push(s);
+  });
+  box.innerHTML=`
+    <div class="card" style="border-color:var(--gold-dim)">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+        <h3 style="font-size:16px">Wednesday Night Sparring</h3>
+        <span style="font-size:12px;color:var(--gold);font-weight:800;flex-shrink:0">${fmtDateAU(wed)}</span>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">Tap attending and you're on the list at your current walk-around weight. The list matches you with everyone within 10kg.</p>
+      ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="sparPullOut('${wed}')">You're In ✓ — ${Number(mine.weight)}kg · Tap To Pull Out</button>`
+        :`<button class="btnGold" style="margin-top:12px" onclick="sparAttend('${wed}')">I'm Attending Wednesday Night</button>`}
+    </div>
+    <div class="secTitle">Who's In — ${signups.length} Registered</div>
+    ${groups.length?groups.map(g=>{
+      const lo=Math.min(...g.list.map(x=>Number(x.weight))),hi=Math.max(...g.list.map(x=>Number(x.weight)));
+      return `<div class="card">
+        <div style="font-weight:900;letter-spacing:2px;font-size:11px;color:var(--gold)">${lo===hi?lo+" KG":lo+"–"+hi+" KG"} · ${g.list.length} BOXER${g.list.length>1?"S":""}</div>
+        ${g.list.map(s=>{const d=DIVISIONS[s.division]||DIVISIONS["Sparring Club"];
+          return `<div class="weekRow"><span><b>${esc(s.name)}</b> <small style="color:${d.color}">${d.label}</small></span><span style="color:var(--muted)">${Number(s.weight)}kg</span></div>`;}).join("")}
+      </div>`;}).join(""):'<div class="card"><p>Nobody on the list yet — be the first name down.</p></div>'}
+    <div class="secTitle">The Card — Who's Sparring Who</div>
+    ${matchups.length?matchups.map(m=>`<div class="card" style="border-color:var(--gold-dim)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;text-align:right;font-weight:800;font-size:14px">${esc(m.a_name)}</div>
+        <div style="color:var(--gold);font-weight:900;font-size:12px;letter-spacing:1px;flex-shrink:0">VS</div>
+        <div style="flex:1;font-weight:800;font-size:14px">${esc(m.b_name)}</div>
+        ${isC?`<button class="xBtn" onclick="delMatchup('${m.id}')">×</button>`:""}
+      </div>
+      <p style="text-align:center;font-size:11.5px;color:var(--muted);margin-top:4px">${m.rounds} rounds</p>
+    </div>`).join(""):'<div class="card"><p>Matchups go up here once the coaches set the card.</p></div>'}
+    ${isC?`<div class="secTitle">Coach — Set A Matchup</div>
+    <div class="card">
+      <div class="field"><label>In The Red Corner</label><select id="muA">${signups.map(s=>`<option value="${s.user_id}|${esc(s.name)}">${esc(s.name)} — ${Number(s.weight)}kg</option>`).join("")}</select></div>
+      <div class="field"><label>In The Blue Corner</label><select id="muB">${signups.map(s=>`<option value="${s.user_id}|${esc(s.name)}">${esc(s.name)} — ${Number(s.weight)}kg</option>`).join("")}</select></div>
+      <div class="field"><label>Rounds</label><select id="muR"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></div>
+      <button class="btnGold" onclick="addMatchup('${wed}')">Put It On The Card</button>
+    </div>`:""}`;
+}
+async function sparAttend(wed){
+  const bp=boxData.profile;
+  if(!bp){toast("Build your boxer profile first.");return;}
+  if(!bp.current_weight){toast("Set your current weight in your profile first — that's how we match you.");startBpEdit();return;}
+  const {error}=await sb.from("spar_signups").insert({user_id:session.user.id,name:bp.name,weight:bp.current_weight,division:bp.division||"Sparring Club",week_date:wed});
+  if(error&&!/duplicate/i.test(error.message)){toast(error.message);return;}
+  toast("You're on the list at "+Number(bp.current_weight)+"kg. See you Wednesday.");
+  renderSparWed();
+}
+async function sparPullOut(wed){
+  await sb.from("spar_signups").delete().eq("user_id",session.user.id).eq("week_date",wed);
+  toast("Pulled out of Wednesday night.");
+  renderSparWed();
+}
+async function addMatchup(wed){
+  const [aid,aname]=$("muA").value.split("|"),[bid,bname]=$("muB").value.split("|");
+  if(aid===bid){toast("Pick two different boxers.");return;}
+  const {error}=await sb.from("spar_matchups").insert({week_date:wed,a_user:aid,a_name:aname,b_user:bid,b_name:bname,rounds:parseInt($("muR").value),created_by:session.user.id});
+  if(error){toast(error.message);return;}
+  toast(aname+" vs "+bname+" — on the card.");
+  renderSparWed();
+}
+async function delMatchup(id){
+  await sb.from("spar_matchups").delete().eq("id",id);
+  renderSparWed();
 }
 function startBpEdit(){bpEditing=true;bpPhotoUrl=(boxData.profile&&boxData.profile.photo_url)||null;renderSparringClub();}
 
@@ -1857,7 +1951,10 @@ function logFormHtml(){
       <div class="field"><label>Minutes Per Round</label><select id="ssMins"><option value="1.5">1.5 min</option><option value="2">2 min</option><option value="3" selected>3 min</option><option value="4">4 min</option></select></div>
     </div>
     <div class="field"><label>Who You Sparred</label><input id="ssPartner" placeholder="Partner's name"></div>
-    <div class="field"><label>Notes (optional)</label><input id="ssNote" placeholder="How'd it go?"></div>
+    <div class="row2">
+      <div class="field"><label>When</label><input id="ssDate" type="date" value="${new Date().getFullYear()+"-"+pad(new Date().getMonth()+1)+"-"+pad(new Date().getDate())}"></div>
+      <div class="field"><label>Notes (optional)</label><input id="ssNote" placeholder="How'd it go?"></div>
+    </div>
     <button class="btnGold" onclick="logSparring()">Bank The Rounds</button>
   </div>`;
 }
@@ -1892,24 +1989,6 @@ function notesHtml(){
     </div>
   </div>`;
 }
-function fightsHtml(){
-  const myNoms=new Set(boxData.noms.filter(n=>n.user_id===session.user.id).map(n=>n.fight_id));
-  const isC=profile&&profile.is_coach;
-  const cards=boxData.fights.map(f=>{
-    const mine=myNoms.has(f.id);
-    const noms=boxData.noms.filter(n=>n.fight_id===f.id);
-    return `<div class="card">
-      <h3>${esc(f.title)}</h3>
-      <div class="sub">${f.event_date?fmtDateAU(f.event_date):"Date TBC"}${f.location?" · "+esc(f.location):""}</div>
-      ${f.details?`<p>${esc(f.details)}</p>`:""}
-      ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="withdrawNom('${f.id}')">You're Nominated ✓ — Tap To Withdraw</button>`
-            :`<button class="btnGold" style="margin-top:12px" onclick="nominate('${f.id}')">Nominate Me</button>`}
-      ${isC?`<p style="margin-top:12px"><b style="color:var(--gold)">${noms.length} nominated:</b> ${noms.map(n=>esc(n.name)).join(", ")||"no one yet"}</p>
-      <button class="btnLink" style="border-color:var(--danger);color:var(--danger);margin-top:10px" onclick="delFightNight('${f.id}')">Remove Fight Night</button>`:""}
-    </div>`;}).join("");
-  return `<div class="secTitle">Fight Night Nominations</div>
-    ${cards||'<div class="card"><p>No fight nights listed right now — when one goes up, you can nominate right here.</p></div>'}`;
-}
 function coachHtml(){
   const groups={};
   boxData.allNotes.forEach(n=>{(groups[n.member_id]=groups[n.member_id]||[]).push(n);});
@@ -1928,16 +2007,7 @@ function coachHtml(){
     ${pend.length?pend.map(c=>clipCardHtml(c,true)).join(""):'<div class="card"><p>No tape waiting on review — all caught up.</p></div>'}
     <div class="secTitle">Coach Panel — Member Notes</div>
     ${out||'<div class="card"><p>No member notes yet.</p></div>'}
-    <div class="secTitle">Coach Panel — Add Fight Night</div>
-    <div class="card">
-      <div class="field"><label>Title</label><input id="fnTitle" placeholder="e.g. Legacy Fight Night — Red vs Blue"></div>
-      <div class="row2">
-        <div class="field"><label>Date</label><input id="fnDate" type="date"></div>
-        <div class="field"><label>Location</label><input id="fnLoc" placeholder="Venue"></div>
-      </div>
-      <div class="field"><label>Details</label><input id="fnDetails" placeholder="Optional details"></div>
-      <button class="btnGold" onclick="addFightNight()">List Fight Night</button>
-    </div>`;
+    `;
 }
 
 async function uploadBoxerPhoto(e){
@@ -1975,6 +2045,7 @@ async function logSparring(){
   const rounds=parseInt($("ssRounds").value);
   if(!rounds||rounds<1){toast("How many rounds?");return;}
   const rec={user_id:session.user.id,rounds,minutes_per_round:parseFloat($("ssMins").value),partner:$("ssPartner").value.trim(),note:$("ssNote").value.trim()};
+  const sd=$("ssDate")&&$("ssDate").value;if(sd)rec.session_date=sd;
   const {error}=await sb.from("sparring_sessions").insert(rec);
   if(error){toast(error.message);return;}
   toast(rounds+" rounds banked. Good work.");renderSparringClub();
@@ -1996,27 +2067,6 @@ async function coachReply(mid){
   const {error}=await sb.from("sparring_notes").insert({member_id:mid,author_id:session.user.id,author_name:name,body:v,is_coach_reply:true});
   if(error){toast(error.message);return;}
   renderSparringClub();
-}
-async function nominate(fid){
-  const bp=boxData.profile;
-  const name=(bp&&bp.name)||(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";
-  const {error}=await sb.from("fight_nominations").insert({fight_id:fid,user_id:session.user.id,name});
-  if(error){toast(error.message);return;}
-  toast("Nominated. The coaches will see your name.");renderSparringClub();
-}
-async function withdrawNom(fid){
-  const {error}=await sb.from("fight_nominations").delete().eq("fight_id",fid).eq("user_id",session.user.id);
-  toast(error?error.message:"Nomination withdrawn.");renderSparringClub();
-}
-async function addFightNight(){
-  const t=$("fnTitle").value.trim();if(!t){toast("Give it a title.");return;}
-  const {error}=await sb.from("fight_nights").insert({title:t,event_date:$("fnDate").value||null,location:$("fnLoc").value.trim(),details:$("fnDetails").value.trim()});
-  if(error){toast(error.message);return;}
-  toast("Fight night listed.");renderSparringClub();
-}
-async function delFightNight(id){
-  const {error}=await sb.from("fight_nights").delete().eq("id",id);
-  toast(error?error.message:"Fight night removed.");renderSparringClub();
 }
 
 /* ---- Weights: recognised programs + training log ---- */
@@ -2534,7 +2584,7 @@ const AMA_KB=[
 {k:"camp start when begins fight club three",a:"Camp 3 commences Monday July 20. We're on the school-holiday timetable until then."},
 {k:"junior boxing kids age children young",a:"Junior Boxing is for ages 10–15, all levels — Mon, Wed and Fri at 4:30pm. Multiple coaches every session, juniors grouped by ability."},
 {k:"sparring club boxer profile rounds bank log",a:"Head to Boxing → Sparring Club. Build your boxer profile — photo, weights, record — then log every spar: rounds, minutes, who you sparred. It all banks up week by week."},
-{k:"fight nominate nomination night bout compete",a:"Fight night nominations live in Boxing → Sparring Club. When a fight night is listed, hit 'Nominate Me' and the coaches see your name."},
+{k:"wednesday night sparring matchup attending register spar who list card",a:"Wednesday Night Sparring lives in Boxing → Sparring Club. Tap 'I'm Attending' and you're on the list at your current weight — the list groups everyone within 10kg so you can see exactly who you might be sparring, and the coaches set the card for the night."},
 {k:"coach notes question ask review feedback",a:"In Boxing → Sparring Club there's a Sparring Notes section — post your notes or questions and the coaches reply right there in your thread."},
 {k:"build own session rounds boxing bag workout create",a:"Boxing → Build Your Own. Pick 2 or 3 minute rounds, 30 or 60 second rests, then stack rounds from skipping, shadow, bag work and dumbbell work. The timer runs the whole session and auto-switches the special rounds."},
 {k:"max effort round ten seconds timer",a:"The Max Effort rounds in Build Your Own run themselves — 10, 15 or 20 seconds flat out with matching rest, beeping you in and out until the round's done."},
