@@ -1630,7 +1630,7 @@ const LB_TILES=[
   {id:"yarn",k:"Group Chat + Coach Corner",t:"The Yarn",s:"The banter lives here. What's said here stays here.",img:"https://heavyweight-app.vercel.app/images/members.jpg"},
   {id:"ladder",k:"Blokes Only",t:"The Ladder",s:"Same points, our own comp — Fresh Meat to Heavyweight Champion.",logo:true}];
 async function lbProgram(){
-  await loadBlokes();await loadWorld();
+  await loadBlokes();await loadWorld();if(!wLogsLoaded)await loadWLogs();
   if(view!=="blokes"||lbSub!=="program")return;const box=$("lbContent");if(!box)return;
   const wk=LB_DATA.weeks[lbWeek],st=LB_DATA.strength[lbDay];
   const d0=new Date().toISOString().slice(0,10);
@@ -1655,7 +1655,7 @@ async function lbProgram(){
       </div>`).join("")}
       <button class="btnLink" style="margin-top:8px;border-color:#c9994d;color:#c9994d" onclick="lbLogSets('${esc(e.name)}',${i},${e.sets})">Bank ${e.sets} Sets — ${esc(e.name)}</button>
     </div>`;};
-  let n=0;
+  let n=0,otN=500;
   box.innerHTML=`
     <div class="pillBtns" style="flex-wrap:wrap">${[1,2,3,4,5,6,7,8,9,10].map(w=>`<button class="${lbWeek===w?'on':''}" style="min-width:52px" onclick="lbWeek=${w};renderBlokes()">Wk ${w}</button>`).join("")}</div>
     <div class="pillBtns" style="margin-top:8px">
@@ -1675,10 +1675,11 @@ async function lbProgram(){
       <p style="font-size:11px;color:#9e9e9e;margin-top:6px;text-align:center">Done for the day? Hit submit — your lifts go on record and a point goes on the board.</p>`}
     </div>
     <div class="secTitle">Overtime — Optional Extras</div>
+    <p style="font-size:11.5px;color:#9e9e9e;margin:0 2px 8px;line-height:1.6">Same deal as the main session — punch in your kilos, tap your reps, bank every set. It all lands on your profile.</p>
     ${["a","b"].map(k=>{const o=LB_DATA.overtime[k];return `<div class="card">
       <h3 style="font-size:15px">${o.label} — ${esc(o.title)}</h3>
       <p style="font-size:12px;color:var(--muted);margin-top:4px">${esc(o.when)}</p>
-      <div style="margin-top:8px">${o.exercises.map(e=>`<div class="weekRow"><span>${esc(e.name)}</span><span style="color:var(--muted)">${e.sets} × ${e.rx}</span></div>`).join("")}</div>
+      ${o.exercises.map(e=>wExRowHtml(e.name+" — "+e.sets+"×"+e.rx,otN++,"Local Blokes Overtime",o.label)).join("")}
     </div>`;}).join("")}
     <div class="card">
       <h3 style="font-size:15px">Optional Finisher — pick one</h3>
@@ -2882,7 +2883,7 @@ async function coachReply(mid){
 }
 
 /* ---- Weights: recognised programs + training log ---- */
-let wpSel=null,wsSel=null,wSub="4",wLogs=[],wLogsLoaded=false;
+let wpSel=null,wsSel=null,wSub="4",wLogs=[],wLogsLoaded=false,liftLogs=[];
 const WPROGRAMS=[
 {id:"ss",name:"Starting Strength",len:"4 weeks",days:"3 days/wk \u00b7 A/B alternating",gear:"Barbell + rack",
  blurb:"Mark Rippetoe's classic novice program \u2014 the fastest recognised road to base strength. Alternate Workout A and B across three sessions a week.",
@@ -2981,8 +2982,78 @@ const WSINGLES=[
  ex:["Leg Press \u2014 100","Chest Press \u2014 100","Seated Row \u2014 100","Shoulder Press \u2014 100","Leg Curl \u2014 100","Lat Pulldown \u2014 100","Cable Crunch \u2014 100","Calf Raise \u2014 100","KB Swing \u2014 100","Cal Bike \u2014 100"]}
 ];
 async function loadWLogs(){
-  const {data}=await sb.from("training_logs").select("*").eq("user_id",session.user.id).order("created_at",{ascending:false}).limit(100);
-  wLogs=data||[];wLogsLoaded=true;
+  const [tl,ll]=await Promise.all([
+    sb.from("training_logs").select("*").eq("user_id",session.user.id).order("created_at",{ascending:false}).limit(100),
+    sb.from("lift_logs").select("*").eq("user_id",session.user.id).order("created_at",{ascending:false}).limit(1000)]);
+  wLogs=tl.data||[];liftLogs=ll.data||[];wLogsLoaded=true;
+}
+/* ---- Per-set lift logger (shared: Weights programs, Super Sessions, LB Overtime) ---- */
+function wParseEx(line){
+  const raw=String(line);
+  const parts=raw.split(/\s+\u2014\s+|\s+-\s+/);
+  const name=(parts[0]||raw).replace(/^Finisher:\s*/i,"").trim();
+  const rx=(parts[1]||"").trim();
+  let sets=3;
+  let m=rx.match(/(\d+)\s*[\u00d7x]\s*\d+/i);                 // 3×5
+  if(m)sets=parseInt(m[1],10);
+  else if(/(\d+)\s*sets?/i.test(rx))sets=parseInt(rx.match(/(\d+)\s*sets?/i)[1],10);
+  else if(/^\d+\s*reps/i.test(rx))sets=1;                     // "100 reps"
+  m=rx.match(/(\d+)\s*[\u00d7x]\s*\d+\s*\+\s*(\d+)\s*[\u00d7x]/i);  // 2×5 + 1×5+
+  if(m)sets=parseInt(m[1],10)+parseInt(m[2],10);
+  sets=Math.max(1,Math.min(10,sets));
+  return {name,rx:rx||"",sets,raw};
+}
+function wBestOf(ex){return liftLogs.filter(l=>l.exercise===ex).reduce((m,l)=>Math.max(m,+l.weight_kg),0);}
+function wTodayOf(ex){const d=isoDateLocal();return liftLogs.filter(l=>l.exercise===ex&&l.session_date===d);}
+function wRep(i,j,d){const el=$("wRp-"+i+"-"+j);if(!el)return;el.textContent=Math.max(0,(parseInt(el.textContent)||0)+d);}
+function wExRowHtml(line,i,program,sessionName){
+  const e=wParseEx(line);
+  const best=wBestOf(e.name),today=wTodayOf(e.name);
+  return `<div style="padding:10px 0;border-bottom:1px solid var(--line)">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+      <b style="font-size:13.5px">${esc(e.name)}</b>
+      <span style="font-size:11.5px;color:var(--muted);flex-shrink:0">${esc(e.rx||e.sets+" sets")}</span>
+    </div>
+    ${best?`<div style="font-size:11px;color:var(--gold);margin-top:2px">Your best: ${best} kg</div>`:""}
+    ${today.length?`<div style="font-size:11px;color:var(--ok);margin-top:2px">Banked today: ${today.slice().sort((a,b)=>a.set_no-b.set_no).map(t=>t.weight_kg+"kg\u00d7"+t.reps).join(" \u00b7 ")}</div>`:""}
+    ${Array.from({length:e.sets},(_,j)=>`<div style="display:flex;gap:6px;margin-top:7px;align-items:center">
+      <span style="width:38px;font-size:10.5px;color:var(--muted);font-weight:800;flex-shrink:0">SET ${j+1}</span>
+      <input id="wKg-${i}-${j}" type="number" inputmode="decimal" placeholder="kg" style="flex:1;min-width:0">
+      <button class="stepBtn" onclick="wRep(${i},${j},-1)">\u2212</button>
+      <b id="wRp-${i}-${j}" style="min-width:26px;text-align:center;font-size:16px;color:var(--gold)">0</b>
+      <button class="stepBtn goldStep" onclick="wRep(${i},${j},1)">+</button>
+    </div>`).join("")}
+    <button class="btnLink" style="margin-top:8px" onclick="wLogSets('${esc(e.name)}',${i},${e.sets},'${esc(program)}','${esc(sessionName)}')">Bank ${e.sets} Set${e.sets>1?"s":""} \u2014 ${esc(e.name)}</button>
+  </div>`;
+}
+async function wLogSets(ex,i,sets,program,sessionName){
+  const rows=[];
+  for(let j=0;j<sets;j++){
+    const kgEl=$("wKg-"+i+"-"+j),rpEl=$("wRp-"+i+"-"+j);
+    if(!kgEl||!rpEl)continue;
+    const kg=parseFloat(kgEl.value),rp=parseInt(rpEl.textContent)||0;
+    if(!isNaN(kg)&&kg>=0&&rp)rows.push({user_id:session.user.id,program,session:sessionName,exercise:ex,set_no:j+1,weight_kg:kg,reps:rp,session_date:isoDateLocal()});
+  }
+  if(!rows.length){toast("Fill in at least one set \u2014 kilos and reps.");return;}
+  const {error}=await sb.from("lift_logs").insert(rows);
+  if(error){toast(error.message);return;}
+  toast(ex+" \u2014 "+rows.length+" set"+(rows.length>1?"s":"")+" banked.");
+  await loadWLogs();
+  if(view==="blokes")renderBlokes();
+  else if(wpSel)renderWProgram(wpSel);else if(wsSel)renderWSingle(wsSel);else renderWeights();
+}
+function wHistoryHtml(program){
+  const mine=liftLogs.filter(l=>!program||l.program===program);
+  if(!mine.length)return '<div class="emptyMsg">No sets logged yet \u2014 punch your first numbers in above.</div>';
+  const days={};
+  mine.forEach(l=>{(days[l.session_date]=days[l.session_date]||[]).push(l);});
+  return Object.keys(days).sort().reverse().slice(0,8).map(d=>{
+    const rows=days[d];
+    const byEx={};rows.forEach(r=>{(byEx[r.exercise]=byEx[r.exercise]||[]).push(r);});
+    const vol=rows.reduce((a,r)=>a+(+r.weight_kg)*r.reps,0);
+    return `<details class="foldCard"><summary>${fmtDateAU(d)} \u2014 ${rows.length} sets \u00b7 ${Math.round(vol).toLocaleString()} kg volume</summary>
+      <div style="margin-top:6px">${Object.entries(byEx).map(([ex,list])=>`<div class="weekRow"><span>${esc(ex)}</span><span style="color:var(--gold);font-size:11.5px">${list.slice().sort((a,b)=>a.set_no-b.set_no).map(l=>l.weight_kg+"\u00d7"+l.reps).join(", ")}</span></div>`).join("")}</div>
+    </details>`;}).join("");
 }
 function wLogRow(l){return `<div class="sessItem"><div style="min-width:0"><b>${esc(l.program)}</b><small>${l.session?esc(l.session)+" \u00b7 ":""}${fmtDateAU(l.session_date)}${l.note?" \u2014 "+esc(l.note):""}</small></div><button class="xBtn" onclick="delWLog('${l.id}')">\u00d7</button></div>`;}
 async function renderWeights(){
@@ -3025,6 +3096,7 @@ async function renderWeights(){
       <div class="statBox"><div class="sv">${new Set(wLogs.map(l=>l.program)).size}</div><div class="sl">Programs Used</div></div>
     </div>
     ${wLogs.length?`<details class="foldCard"><summary>Recent Sessions (${Math.min(wLogs.length,15)})</summary><div style="margin-top:6px">${wLogs.slice(0,15).map(wLogRow).join("")}</div></details>`:'<div class="card"><p>Nothing logged yet \u2014 open a program and bank your first session.</p></div>'}
+    ${liftLogs.length?`<div class="secTitle">Every Set You've Banked</div><div class="card">${wHistoryHtml(null)}</div>`:""}
     <div class="secTitle">Staffed Hours</div>
     <div class="card">
       <ul style="margin-top:0"><li>Mon \u2013 Thu: 5:15am \u2013 7:45am</li><li>Mon \u2013 Fri: 4:00pm \u2013 7:00pm</li><li>Saturday: 8:00am \u2013 11:00am</li></ul>
@@ -3044,15 +3116,15 @@ function renderWProgram(id){
     </div>
     <div class="secTitle">How To Progress</div>
     <div class="card"><p>${p.prog}</p></div>
-    <div class="secTitle">The Sessions</div>
-    ${p.daysList.map(d=>`<div class="card"><h3 style="font-size:16px">${d.t}</h3>
-      <ul style="margin-top:8px">${d.ex.map(e=>`<li>${e}</li>`).join("")}</ul></div>`).join("")}
-    <div class="secTitle">Log Today's Session</div>
-    <div class="card">
-      <div class="field"><label>Which Session?</label><select id="wlDay">${p.daysList.map(d=>`<option value="${esc(d.t)}">${d.t}</option>`).join("")}</select></div>
-      <div class="field"><label>Notes (optional \u2014 weights, PBs, how it felt)</label><input id="wlNote" placeholder="e.g. Squat 5\u00d75 @ 100kg, felt strong" maxlength="200"></div>
-      <button class="btnGold" onclick="logTraining('${esc(p.name)}',$('wlDay').value)">Bank The Session</button>
-    </div>
+    <div class="secTitle">The Sessions \u2014 Log Every Set</div>
+    <p style="font-size:11.5px;color:var(--muted);margin:0 2px 8px;line-height:1.6">Punch in the kilos, tap the reps, hit bank. Your numbers save to your profile so you can see exactly what you lifted last time.</p>
+    ${(()=>{let n=0;return p.daysList.map(d=>`<div class="card">
+      <h3 style="font-size:16px">${d.t}</h3>
+      ${d.ex.map(e=>wExRowHtml(e,n++,p.name,d.t)).join("")}
+      <button class="btnGold" style="margin-top:12px" onclick="logTraining('${esc(p.name)}','${esc(d.t)}')">Mark ${esc(d.t)} Complete</button>
+    </div>`).join("");})()}
+    <div class="secTitle">My Progress \u2014 ${esc(p.name)}</div>
+    <div class="card">${wHistoryHtml(p.name)}</div>
     <div class="notice">Warm up first \u2014 5 minutes of cardio plus light sets of your first lift. Ask a coach for a form check any time.</div>`;
 }
 function renderWSingle(id){
@@ -3065,12 +3137,14 @@ function renderWSingle(id){
       <div class="sub">${x.tag}</div>
       ${mine.length?`<div class="pillRow" style="margin-bottom:10px"><span class="pill" style="border-color:var(--gold);color:var(--gold)">Done ${mine.length}\u00d7</span></div>`:""}
       <p>${x.blurb}</p>
-      <ul style="margin-top:12px">${x.ex.map(e=>`<li>${e}</li>`).join("")}</ul>
     </div>
+    <div class="secTitle">The Work \u2014 Log Every Set</div>
     <div class="card">
-      <div class="field"><label>Notes (optional)</label><input id="wlNote" placeholder="Time, loads, how it went\u2026" maxlength="200"></div>
-      <button class="btnGold" onclick="logTraining('${esc(x.name)}','Super Session')">Mark It Done</button>
+      ${x.ex.map((e,i)=>wExRowHtml(e,i,x.name,"Super Session")).join("")}
+      <button class="btnGold" style="margin-top:12px" onclick="logTraining('${esc(x.name)}','Super Session')">Mark It Done</button>
     </div>
+    <div class="secTitle">My Progress \u2014 ${esc(x.name)}</div>
+    <div class="card">${wHistoryHtml(x.name)}</div>
     <div class="notice">Warm up properly, scale loads to your level, and keep the last rep of every set clean.</div>`;
 }
 async function logTraining(program,sessionName){
