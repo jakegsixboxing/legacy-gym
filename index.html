@@ -504,8 +504,7 @@ function render(){
 const HOME_CARDS=[
   {id:"classes",kicker:"This Week",title:"Book In For Classes",sub:"The full week opens every Sunday 7 AM — tap in, you're booked.",img:"boxing"},
   {id:"boxing",kicker:"Legacy Boxing Series",title:"Boxing",sub:"The Sparring Club hub, session builder & Legacy Elite.",img:"boxing"},
-  {id:"weights",kicker:"The Gym Floor",title:"Weights",sub:"Ten training programs — machines to barbells.",img:"weights"},
-  {id:"functional",kicker:"GRUNT Territory",title:"Functional Fitness",sub:"Real CrossFit workouts — Girls, Heroes & Opens, timers built in.",img:"crossfit"},
+  {id:"weights",kicker:"The Gym Floor",title:"Weights & Functional Fitness",sub:"Ten training programs plus real CrossFit workouts, timers built in.",img:"weights"},
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
   {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true},
   {id:"podcast",kicker:"Stories From The Club",title:"Local Blokes Podcast",sub:"The podcast — real talk from the crew.",img:"podcast"},
@@ -2900,8 +2899,12 @@ async function renderWeights(){
   $("main").innerHTML=`
     <div class="hero" style="${bgStyle('weights',.55)}">
       <div class="heroKicker">The Gym Floor</div>
-      <div class="heroTitle">Weights</div>
+      <div class="heroTitle">Weights & Functional Fitness</div>
       <div class="heroText">Recognised training programs, logged session by session.</div>
+    </div>
+    <div class="subTabs" style="border:1px solid var(--gold-dim);border-radius:12px;padding:4px">
+      <button class="active">Weights</button>
+      <button onclick="go('functional')">Functional Fitness</button>
     </div>
     <div class="subTabs">
       <button class="${wSub==='4'?'active':''}" onclick="wSub='4';renderWeights()">4 Week</button>
@@ -3110,6 +3113,10 @@ function renderFunctional(){
       <div class="heroKicker">GRUNT Territory</div>
       <div class="heroTitle">CrossFit Workouts</div>
       <div class="heroText">The real benchmarks \u2014 Girls, Heroes, Opens and classics. Pick one, hit start, the timer runs the format. Any run becomes shuttle runs on the 10/20/30m markers.</div>
+    </div>
+    <div class="subTabs" style="border:1px solid var(--gold-dim);border-radius:12px;padding:4px">
+      <button onclick="go('weights')">Weights</button>
+      <button class="active">Functional Fitness</button>
     </div>
     <div class="subTabs">
       ${WOD_CATS.map(c=>`<button class="${fnCat===c[0]?'active':''}" onclick="fnCat='${c[0]}';fnSel=null;fnQ='';renderFunctional()">${c[1]}</button>`).join("")}
@@ -3892,15 +3899,27 @@ async function loadFdBanner(){
   if(!session)return;
   const {data}=await sb.from("member_dms").select("id").eq("member_id",session.user.id).limit(1);
   const b=$("fdBanner");if(!b)return;
-  if((data||[]).length)b.innerHTML=`<button class="amaTile" style="background:#000;border:2px solid var(--gold);animation:fdFlash 1.1s ease-in-out infinite" onclick="openMemberDm(session.user.id,'Front Desk')">
+  if((data||[]).length){
+    b.innerHTML=`<button class="amaTile" style="background:#000;border:2px solid var(--gold);animation:fdFlash 1.1s ease-in-out infinite" onclick="openMemberDm(session.user.id,'Front Desk')">
     <span style="font-size:26px">📨</span>
     <span style="text-align:left;flex:1">
       <span style="display:block;font-weight:900;letter-spacing:3px;color:var(--gold);font-size:10px">YOU HAVE AN OFFER</span>
       <span style="display:block;font-size:19px;font-weight:900;color:#ffffff;margin-top:2px">Front Desk Messages</span>
       <span style="display:block;font-size:11.5px;color:#ffffff;opacity:.85;margin-top:2px">The gym has sent you something — tap to open it.</span>
+      <span id="fdCount" style="display:block;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:1.5px;color:var(--gold);font-size:15px;margin-top:6px">⏳ OFFER ENDS SOON</span>
     </span>
     <span style="color:var(--gold);font-size:28px">›</span>
   </button>`;
+    clearInterval(window.fdInt);window.fdInt=setInterval(fdTick,1000);fdTick();
+  }
+}
+const FD_DEADLINE=new Date("2026-07-15T05:59:00+10:00").getTime();
+function fdTick(){
+  const el=$("fdCount");if(!el){clearInterval(window.fdInt);return;}
+  const s=Math.floor((FD_DEADLINE-Date.now())/1000);
+  if(s<=0){el.textContent="⏳ OFFER ENDED — SEE THE FRONT DESK";return;}
+  const h=Math.floor(s/3600),m=Math.floor(s%3600/60);
+  el.textContent="⏳ OFFER ENDS IN "+h+"h "+pad(m)+"m "+pad(s%60)+"s";
 }
 let shopColl="frontpage";
 const SHOP_URL="https://www.legacygym.net";
