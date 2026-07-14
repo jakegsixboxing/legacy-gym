@@ -1566,7 +1566,7 @@ async function renderLeaderboard(){
 const LB={logo:"https://heavyweight-app.vercel.app/icons/icon-192.png",gold:"#c9994d",bg:"#0d0d0d",surf:"#1a1a1a",surf2:"#262626",dim:"#9e9e9e"};
 const LB_LEVELS=[[0,"Fresh Meat","bronze",0],[5,"Cannon Fodder","bronze",1],[12,"Scrapper","silver",0],[20,"Hard Bastard","silver",1],[30,"The Enforcer","gold",0],[45,"Silverback","gold",1],[60,"Wrecking Ball","platinum",0],[80,"Savage","platinum",1],[105,"Stone Cold","platinum",2],[135,"Apex Predator","platinum",3],[170,"Heavyweight Champion","champion",3]];
 function lbLevelOf(p){let i=0;LB_LEVELS.forEach((l,n)=>{if(p>=l[0])i=n;});const L=LB_LEVELS[i];return {pts:L[0],name:L[1],tier:L[2],stars:L[3],n:i+1,next:LB_LEVELS[i+1]||null};}
-let lbSub="home",lbWeek=1,lbDay="mon",lbFuelTab="plan",lbPlan="A",lbTimerDay=null;
+let lbSub="home",lbWeek=1,lbDay="mon",lbFuelTab=(localStorage.getItem("lg_fuel_seen")?"plan":"guides"),lbPlan="A",lbTimerDay=null,lbGuide=null;
 let lbData={loaded:false,lifts:[],msgs:[],events:[],rsvps:[],members:null};
 async function loadBlokes(force){
   if(lbData.loaded&&!force)return;
@@ -1795,12 +1795,38 @@ function lbCustBump(i,d){
   c.count+=d;if(c.count<=0)lbShopData.custom.splice(i,1);
   lbShopSave();renderBlokes();
 }
-function lbParseItem(s){
-  const m=s.match(/^(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l)\b\s*(.*)$/i)||s.match(/^(\d+(?:[.,]\d+)?)\s*(?:x|\u00d7)?\s+(.*)$/i);
-  if(m&&m.length===4)return {qty:parseFloat(m[1].replace(",",".")),unit:m[2].toLowerCase(),name:m[3]||s};
-  if(m)return {qty:parseFloat(m[1].replace(",",".")),unit:"",name:m[2]||s};
-  return {qty:1,unit:"",name:s};
+const LB_FRACS={"\u00bd":.5,"\u00bc":.25,"\u00be":.75,"\u2153":1/3,"\u2154":2/3,"\u215b":.125};
+function lbNum(str){
+  const m=String(str).match(/^(\d+(?:[.,]\d+)?)?\s*([\u00bd\u00bc\u00be\u2153\u2154\u215b])?/);
+  if(!m||(!m[1]&&!m[2]))return null;
+  return (m[1]?parseFloat(m[1].replace(",",".")):0)+(m[2]?LB_FRACS[m[2]]:0);
 }
+function lbParseItem(s){
+  s=String(s).trim();
+  let m=s.match(/^(\d+(?:[.,]\d+)?[\u00bd\u00bc\u00be\u2153\u2154\u215b]?|[\u00bd\u00bc\u00be\u2153\u2154\u215b])\s*(g|kg|ml|l|tsp|tbsp|cups?|scoops?)\b\s*(.*)$/i);
+  if(m){
+    let unit=m[2].toLowerCase();if(unit==="cups")unit="cup";if(unit==="scoops")unit="scoop";
+    let name=(m[3]||"").replace(/^\((?:[^)]*)\)\s*/,"").trim()||s;
+    return {qty:lbNum(m[1]),unit,name,div:true};
+  }
+  m=s.match(/^(\d+)\s*(?:x|\u00d7)?\s+(.+)$/i);
+  if(m)return {qty:parseInt(m[1],10),unit:"",name:m[2].trim(),div:false};
+  return {qty:1,unit:"",name:s,div:false};
+}
+function lbFmtQty(q){
+  const whole=Math.floor(q+1e-6),fr=q-whole;
+  const G=[[.25,"\u00bc"],[1/3,"\u2153"],[.5,"\u00bd"],[2/3,"\u2154"],[.75,"\u00be"]];
+  for(const [v,g] of G)if(Math.abs(fr-v)<.03)return (whole?whole:"")+g;
+  if(fr<.03)return String(whole);
+  return String(Math.round(q*10)/10);
+}
+const LB_AISLES=[
+["Meat & Seafood",/chicken|turkey|beef|mince|salmon|steak|bacon|fish|prawn|sausage|pork|lamb/i],
+["Produce",/avocado|banana|\bfruit\b|salad|vegetable|veggie|potato|tomato|onion|garlic|capsicum|mushroom|spinach|lemon|lime|cucumber|carrot|broccoli|zucchini|(?:^|[^n] )berries/i],
+["Dairy & Eggs",/\beggs?\b|milk|cheese|yoghurt|yogurt|yopro|butter|pudding|custard/i],
+["Freezer",/frozen|ice[- ]?cream|icecream|ice-cream|\bpop\b/i],
+["Pantry & Other",/./]];
+function lbAisle(name){for(const [a,re] of LB_AISLES){if(re.test(name))return a;}return "Pantry & Other";}
 function stepHtml(k,label,sub){
   return `<div style="display:flex;align-items:center;gap:8px;margin-top:9px">
     <div style="flex:1;min-width:0"><div style="font-size:12.5px;line-height:1.4">${label}</div>${sub?`<div style="font-size:10.5px;color:var(--muted)">${sub}</div>`:""}</div>
@@ -1815,8 +1841,8 @@ function lbShopListHtml(){
   const add=(itemStr,times)=>{
     if(!times)return;any=true;
     const q=lbParseItem(itemStr);
-    const key=(q.unit+"|"+q.name).toLowerCase();
-    if(!totals[key])totals[key]={qty:0,unit:q.unit,name:q.name};
+    const key=((q.div?"d":"c")+"|"+q.unit+"|"+q.name).toLowerCase();
+    if(!totals[key])totals[key]={qty:0,unit:q.unit,name:q.name,div:q.div};
     totals[key].qty+=q.qty*times;
   };
   p.meals.forEach((meal,mi)=>{
@@ -1837,27 +1863,85 @@ function lbShopListHtml(){
   (lbShopData.custom||[]).forEach(c=>add(c.name,c.count));
   if(!any)return '<div class="emptyMsg">Tap the + buttons above — every tap is one meal that week, and your shopping list builds itself here.</div>';
   const rows=Object.values(totals).sort((a,b)=>a.name.localeCompare(b.name));
-  return rows.map(t=>{
-    let qty=t.qty,unit=t.unit;
-    if(unit==="g"&&qty>=1000){qty=Math.round(qty/100)/10;unit="kg";}
-    if(unit==="ml"&&qty>=1000){qty=Math.round(qty/100)/10;unit="L";}
-    const q=Math.round(qty*10)/10;
-    return `<div class="weekRow"><span>${esc(t.name)}</span><b style="color:#c9994d;flex-shrink:0">${q}${unit?" "+unit:"\u00d7"}</b></div>`;
+  const groups={};
+  rows.forEach(t=>{const a=lbAisle(t.name);(groups[a]=groups[a]||[]).push(t);});
+  return LB_AISLES.map(([aisle])=>{
+    const list=groups[aisle];if(!list||!list.length)return "";
+    return `<p style="font-size:10px;font-weight:900;letter-spacing:2px;color:var(--muted);margin:14px 0 2px">${aisle.toUpperCase()}</p>`+list.map(t=>{
+      let qty=t.qty,unit=t.unit,label;
+      if(t.div){
+        if(unit==="g"&&qty>=1000){qty=Math.round(qty/10)/100;unit="kg";}
+        if(unit==="ml"&&qty>=1000){qty=Math.round(qty/10)/100;unit="L";}
+        if(unit==="cup"&&qty>1.001)unit="cups";
+        if(unit==="scoop"&&qty>1.001)unit="scoops";
+        label=lbFmtQty(qty)+" "+unit;
+      }else label=lbFmtQty(qty)+" \u00d7";
+      return `<div class="weekRow"><span>${esc(t.name)}</span><b style="color:#c9994d;flex-shrink:0">${label}</b></div>`;
+    }).join("");
   }).join("");
+}
+const LB_GUIDES=[
+{t:"Start Here",sub:"Mindset. The restrict-binge cycle, 80/20, and your weekly calorie budget.",quick:false},
+{t:"How To Use Your Fuel Plan",sub:"The read-me. AND/OR, raw vs cooked weight, swapping meals, free sauces, cooking oils.",quick:false},
+{t:"The Why",sub:"Why protein, why fibre, how fat loss actually works, the plate method.",quick:false},
+{t:"Real Life",sub:"Fast food, servo, pub, eating out \u2014 the principles.",quick:false},
+{t:"When It Goes Sideways",sub:"\u201cI overate\u201d \u00b7 \u201cthe scale went up\u201d \u00b7 \u201cI\u2019m always hungry\u201d \u00b7 \u201cnothing\u2019s happening\u201d.",quick:false},
+{t:"Know Your Order",sub:"Maccas, KFC, Subway, GYG, Grill\u2019d, servo \u2014 exact orders with calories + protein.",quick:true},
+{t:"The Alcohol Sheet",sub:"What\u2019s actually in a drink, and how to have a big night without wrecking the week.",quick:true}
+].map(g=>(g.md="## "+g.t+"\n\n> Content coming \u2014 the full guide from our nutrition coach drops in here shortly. The structure below shows how it will read.\n\n### What this guide covers\n\n- "+g.sub+"\n- Written for real life, not a lab\n- Short, phone-readable sections\n\n### How to use it\n\n1. Read it once, start to finish\n2. Come back to the bits you need, when you need them\n\n| Section | What you get |\n|---|---|\n| The idea | Why this matters |\n| The how | Exactly what to do |\n| The catch | Where blokes go wrong |",g));
+function lbMd(md){
+  const esc2=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const inline=t=>esc2(t).replace(/\*\*([^*]+)\*\*/g,"<b style=\"color:#f5f5f5\">$1</b>");
+  const lines=md.split(/\r?\n/);let out="",i=0;
+  while(i<lines.length){
+    const L=lines[i];
+    if(!L.trim()){i++;continue;}
+    if(/^###\s/.test(L)){out+='<h3 style="color:#c9994d;font-size:14.5px;letter-spacing:.5px;margin:18px 0 6px">'+inline(L.slice(4))+"</h3>";i++;continue;}
+    if(/^##\s/.test(L)){out+='<h2 style="color:#c9994d;font-size:19px;letter-spacing:.5px;margin:20px 0 8px">'+inline(L.slice(3))+"</h2>";i++;continue;}
+    if(/^>\s?/.test(L)){let buf=[];while(i<lines.length&&/^>\s?/.test(lines[i])){buf.push(inline(lines[i].replace(/^>\s?/,"")));i++;}
+      out+='<div style="border-left:3px solid #c9994d;background:#161310;border-radius:0 10px 10px 0;padding:10px 12px;margin:12px 0;font-size:13px;line-height:1.65;color:#e8e8e8">'+buf.join("<br>")+"</div>";continue;}
+    if(/^\|/.test(L)){let rows=[];while(i<lines.length&&/^\|/.test(lines[i])){rows.push(lines[i]);i++;}
+      const cells=r=>r.replace(/^\||\|$/g,"").split("|").map(c=>inline(c.trim()));
+      let html='<div style="overflow-x:auto;margin:12px 0"><table style="width:100%;border-collapse:collapse;font-size:12.5px">';
+      rows.forEach((r,ri)=>{ if(/^\|[\s:-]+\|/.test(r)&&/^[\s|:\-]+$/.test(r))return;
+        const tag=ri===0?"th":"td";
+        html+="<tr>"+cells(r).map(c=>"<"+tag+' style="text-align:left;padding:7px 9px;border-bottom:1px solid #2a2417;'+(tag==="th"?"color:#c9994d;font-size:11px;letter-spacing:1px;text-transform:uppercase":"color:#e8e8e8")+'">'+c+"</"+tag+">").join("")+"</tr>";});
+      out+=html+"</table></div>";continue;}
+    if(/^[-*]\s/.test(L)){let buf=[];while(i<lines.length&&/^[-*]\s/.test(lines[i])){buf.push("<li>"+inline(lines[i].replace(/^[-*]\s/,""))+"</li>");i++;}
+      out+='<ul style="margin:8px 0 8px 20px;font-size:13.5px;line-height:1.8;color:#e8e8e8">'+buf.join("")+"</ul>";continue;}
+    if(/^\d+[.)]\s/.test(L)){let buf=[];while(i<lines.length&&/^\d+[.)]\s/.test(lines[i])){buf.push("<li>"+inline(lines[i].replace(/^\d+[.)]\s/,""))+"</li>");i++;}
+      out+='<ol style="margin:8px 0 8px 20px;font-size:13.5px;line-height:1.8;color:#e8e8e8">'+buf.join("")+"</ol>";continue;}
+    out+='<p style="font-size:13.5px;line-height:1.75;color:#e8e8e8;margin:8px 0">'+inline(L)+"</p>";i++;
+  }
+  return out;
 }
 function lbFuel(){
   const box=$("lbContent");if(!box)return;
+  if(!localStorage.getItem("lg_fuel_seen"))localStorage.setItem("lg_fuel_seen","1");
+  const hasBuild=m=>!!(m.build&&Object.keys(m.build).length);
+  if(lbFuelTab==="guides"&&lbGuide!==null){
+    const g=LB_GUIDES[lbGuide];
+    box.innerHTML=`
+      <button class="backBtn" style="color:#c9994d" onclick="lbGuide=null;renderBlokes();window.scrollTo(0,0)">\u2039 The Guides</button>
+      <div class="card" style="border-color:#3a2f1b;background:#131110;padding:18px 16px 22px">
+        <div style="font-weight:900;letter-spacing:3px;color:#c9994d;font-size:10px">${g.quick?"QUICK LOOKUP":"GUIDE "+(lbGuide+1)+" OF "+LB_GUIDES.length}</div>
+        <h2 style="font-size:22px;color:#f5f5f5;margin-top:6px;line-height:1.2">${esc(g.t)}</h2>
+        <div style="height:2px;background:linear-gradient(90deg,#c9994d,transparent);margin:12px 0 4px"></div>
+        ${lbMd(g.md)}
+      </div>`;
+    return;
+  }
   const p=LB_DATA.plans[lbPlan];
   const recCats=p.recipes&&!Array.isArray(p.recipes)?p.recipes:{"Recipes":p.recipes||[]};
   const buildBlock=m=>`
-    <p style="font-size:12px;color:#c9994d;font-weight:800;letter-spacing:1px;margin-top:10px">BUILD YOUR PLATE \u2014 PICK ONE FROM EACH</p>
     ${Object.entries(m.build).map(([cat,items])=>`
-      <div style="margin-top:8px"><b style="font-size:12px;letter-spacing:1.5px;color:var(--muted)">${esc(cat.toUpperCase())}</b>
-      <ul style="margin:4px 0 0 18px;font-size:12.5px;line-height:1.7">${items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`).join("")}
-    ${m.extra?`<p style="font-size:11.5px;color:var(--ok);margin-top:8px">${esc(m.extra)}</p>`:""}`;
+      <div style="margin-top:12px"><b style="font-size:11.5px;letter-spacing:1.5px;color:#c9994d">CHOOSE ONE ${esc(cat.toUpperCase())}</b>
+      <ul style="margin:5px 0 0 18px;font-size:12.5px;line-height:1.7">${items.map((x,xi)=>`<li>${xi?"OR ":""}${esc(x)}</li>`).join("")}</ul></div>`).join("")}
+    ${m.extra?`<p style="font-size:11.5px;color:var(--ok);margin-top:10px">${esc(m.extra)}</p>`:""}`;
   box.innerHTML=`
     <div class="pillBtns" style="flex-wrap:wrap">${Object.keys(LB_DATA.plans).map(k=>`<button class="${lbPlan===k?'on':''}" onclick="lbPlan='${k}';renderBlokes()">Plan ${k} \u00b7 ${LB_DATA.plans[k].kcal.replace("~","").replace(" kcal","")}</button>`).join("")}</div>
-    <div class="pillBtns" style="margin-top:8px">
+    <div class="pillBtns" style="margin-top:8px;flex-wrap:wrap">
+      <button class="${lbFuelTab==='guides'?'on':''}" onclick="lbFuelTab='guides';lbGuide=null;renderBlokes()">Start Here</button>
       <button class="${lbFuelTab==='plan'?'on':''}" onclick="lbFuelTab='plan';renderBlokes()">The Plan</button>
       <button class="${lbFuelTab==='rec'?'on':''}" onclick="lbFuelTab='rec';renderBlokes()">Recipes</button>
       <button class="${lbFuelTab==='shop'?'on':''}" onclick="lbFuelTab='shop';renderBlokes()">Weekly Shop</button>
@@ -1866,20 +1950,33 @@ function lbFuel(){
       <h3 style="font-size:16px">${esc(p.name)} \u2014 ${esc(p.kcal)}</h3>
       <p style="font-size:12px;color:#c9994d;margin-top:4px">${esc(p.macros)}</p>
     </div>
-    ${lbFuelTab==="shop"?`
+    ${lbFuelTab==="guides"?`
+      <p style="font-size:12px;color:var(--muted);margin:2px 2px 8px;line-height:1.6">Read these before you touch the numbers. The plan makes ten times more sense once you know why it's built this way.</p>
+      ${LB_GUIDES.map((g,i)=>`<button class="card" style="display:block;width:100%;text-align:left;cursor:pointer;border-color:${g.quick?"#c9994d":"#3a2f1b"}" onclick="lbGuide=${i};renderBlokes();window.scrollTo(0,0)">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:34px;height:34px;border-radius:50%;border:1.5px solid #c9994d;color:#c9994d;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
+          <div style="flex:1;min-width:0">
+            <b style="font-size:14.5px;color:#f5f5f5">${esc(g.t)}</b>
+            ${g.quick?'<span style="font-size:8.5px;font-weight:900;letter-spacing:1px;color:#1d1402;background:#c9994d;border-radius:20px;padding:2px 7px;margin-left:8px;vertical-align:2px">QUICK LOOKUP</span>':""}
+            <div style="font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.5">${g.sub}</div>
+          </div>
+          <span style="color:#c9994d;font-size:22px;flex-shrink:0">\u203a</span>
+        </div>
+      </button>`).join("")}`
+    :lbFuelTab==="shop"?`
       <p style="font-size:12px;color:var(--muted);margin:2px 2px 6px;line-height:1.6">Eggs on toast four mornings this week? Tap + four times. Do it for every meal \u2014 the list below totals every gram you need to buy.</p>
       ${p.meals.map((m,mi)=>{
         const isBrekkie=/^breakfast/i.test(m.title);
         const rcats=p.recipes&&!Array.isArray(p.recipes)?p.recipes:{};
         return `<div class="card">
         <div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="font-size:14.5px">${esc(m.title)}</h3><span style="font-size:10.5px;color:var(--muted)">${esc(m.kcal)}</span></div>
-        <p style="font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:#c9994d;margin-top:3px">${m.build?"BUILD YOUR PLATE — PICK ONE FROM EACH":"CHOOSE ONE OPTION"}</p>
+        <p style="font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:#c9994d;margin-top:3px">${hasBuild(m)?"BUILD YOUR OWN — CHOOSE ONE FROM EACH":"SELECT ONE OPTION"}</p>
         ${m.options.filter(o=>!/^or pick/i.test(o.name)).map(o=>{
           const oi=m.options.indexOf(o);
           return stepHtml(lbPlan+":m"+mi+":o"+oi,`<b style="color:#c9994d">${esc(optDisplayName(m,o,oi))}</b>`,"times this week");
         }).join("")}
         ${isBrekkie&&rcats["Brekkies"]?rcats["Brekkies"].map(r=>stepHtml(lbPlan+":rec:"+r.name,`<b style="color:#c9994d">${esc(r.name)}</b>`,"times this week")).join(""):""}
-        ${m.build?`<p style="font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:var(--muted);margin-top:12px">OR BUILD A PLATE \u2014 ONE FROM EACH PER ${esc(m.title.toUpperCase())}</p>`+Object.entries(m.build).map(([cat,items])=>`
+        ${hasBuild(m)?`<p style="font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:var(--muted);margin-top:12px">BUILD YOUR OWN \u2014 TAP ONE FROM EACH PER ${esc(m.title.toUpperCase())}</p>`+Object.entries(m.build).map(([cat,items])=>`
           <p style="font-size:10px;font-weight:900;letter-spacing:1px;color:#6e6e6e;margin-top:10px">${esc(cat.toUpperCase())}</p>
           ${items.map((it,ii)=>stepHtml(lbPlan+":m"+mi+":b:"+cat+":"+ii,esc(it),"times this week")).join("")}`).join(""):""}
       </div>`+(mi===1&&rcats["Lunch & Dinner"]?`<div class="card" style="border-color:#3a2f1b">
@@ -1908,13 +2005,13 @@ function lbFuel(){
       </div>`
     :lbFuelTab==="plan"?p.meals.map(m=>`<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="font-size:15px">${esc(m.title)}</h3><span style="font-size:11.5px;color:var(--muted)">${esc(m.kcal)}</span></div>
-      <p style="font-size:11px;font-weight:900;letter-spacing:1.5px;color:#c9994d;margin-top:4px">${m.build?"BUILD YOUR PLATE — PICK ONE FROM EACH":"CHOOSE ONE OPTION"}</p>
+      <p style="font-size:11px;font-weight:900;letter-spacing:1.5px;color:#c9994d;margin-top:4px">${hasBuild(m)?"BUILD YOUR OWN — CHOOSE ONE FROM EACH":"SELECT ONE OPTION"}</p>
       ${m.options.map((o,oi)=>`<div style="margin-top:10px">
         <b style="font-size:13px;color:#c9994d">${esc(/^dessert/i.test(m.title)&&/^Option \d+$/.test(o.name)?("Option "+(oi+1)+" \u2013 "+optDisplayName(m,o,oi)):o.name)}</b>
         <ul style="margin:4px 0 0 18px;font-size:12.5px;color:var(--text);line-height:1.6">${o.items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
         ${o.note?`<p style="font-size:11px;color:var(--muted);margin-top:3px">${esc(o.note)}</p>`:""}
       </div>`).join("")}
-      ${m.build?buildBlock(m):""}
+      ${hasBuild(m)?buildBlock(m):""}
     </div>`).join("")
     :Object.entries(recCats).map(([cat,list])=>`<div class="secTitle">${esc(cat)}</div>`+list.map((r,i)=>`<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><h3 style="font-size:14.5px">${esc(r.name)}</h3><span style="font-size:11px;color:#c9994d;flex-shrink:0">${esc(r.cal||"")}</span></div>
@@ -3913,7 +4010,7 @@ async function loadFdBanner(){
     clearInterval(window.fdInt);window.fdInt=setInterval(fdTick,1000);fdTick();
   }
 }
-const FD_DEADLINE=new Date("2026-07-15T05:59:00+10:00").getTime();
+const FD_DEADLINE=new Date("2026-07-15T07:04:00+10:00").getTime();
 function fdTick(){
   const el=$("fdCount");if(!el){clearInterval(window.fdInt);return;}
   const s=Math.floor((FD_DEADLINE-Date.now())/1000);
