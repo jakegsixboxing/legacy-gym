@@ -509,8 +509,7 @@ const HOME_CARDS=[
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
   {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true},
   {id:"podcast",kicker:"Stories From The Club",title:"Local Blokes Podcast",sub:"The podcast — real talk from the crew.",img:"podcast"},
-  {id:"cardio",kicker:"Climb The World",title:"Cardio Challenges",sub:"StairMaster & treadmill missions — 1 to 10 points a finish.",img:"stairs"},
-  {id:"mvm",kicker:"Club Records",title:"Member vs Member",sub:"Heaviest lifts, fastest times. Take the crown, take 5 points.",img:"mvmhero"},
+  {id:"cardio",kicker:"Climb, Run & Compete",title:"Cardio & Member Challenges",sub:"StairMaster missions, iconic runs & the club record board.",img:"stairs"},
   {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:null},
   {id:"pt",kicker:"1-On-1 Coaching",title:"Book A PT",sub:"Train one-on-one with the Legacy coaches.",img:"boxing"},
   {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"functional"},
@@ -1216,17 +1215,19 @@ function chElapsed(){return chRun?Math.floor((Date.now()-chRun.start)/1000):0;}
 async function renderCardio(){
   $("main").innerHTML=`
     <div class="hero" style="${bgStyle('stairs',.5)}">
-      <div class="heroKicker">Climb The World</div>
-      <div class="heroTitle">Cardio Challenges</div>
-      <div class="heroText">Famous climbs and iconic runs, done on the gym floor. The bigger the mission, the bigger the points \u2014 1 for the starters, 10 for the monsters. Hit start, do the work, claim it.</div>
+      <div class="heroKicker">Climb, Run & Compete</div>
+      <div class="heroTitle">Cardio & Member Challenges</div>
+      <div class="heroText">Famous climbs, iconic runs and the club record board \u2014 all in one place. Cardio missions pay 1 to 10 points, and taking a club record banks a 5-point bonus.</div>
     </div>
     <div class="subTabs">
       <button class="${cardioSub==='stairs'?'active':''}" onclick="cardioSub='stairs';renderCardio()">StairMaster</button>
       <button class="${cardioSub==='tread'?'active':''}" onclick="cardioSub='tread';renderCardio()">Treadmill</button>
+      <button class="${cardioSub==='mvm'?'active':''}" onclick="cardioSub='mvm';renderCardio()">Member vs Member</button>
     </div>
     <div id="cardioList"><div class="loadingDots">Loading challenges\u2026</div></div>`;
   await loadWorld();
   if(view!=="cardio")return;const box=$("cardioList");if(!box)return;
+  if(cardioSub==="mvm"){box.innerHTML=mvmBoardHtml();return;}
   const doneRefs=new Set(ptsData.events.filter(e=>e.user_id===session.user.id&&e.kind==="challenge").map(e=>e.ref));
   const clubCounts={};ptsData.events.filter(e=>e.kind==="challenge").forEach(e=>clubCounts[e.ref]=(clubCounts[e.ref]||0)+1);
   box.innerHTML=CARDIO[cardioSub].map((c,i)=>{
@@ -1322,8 +1323,12 @@ async function renderMvM(){
     <div id="mvmList"><div class="loadingDots">Loading the record board…</div></div>`;
   await loadWorld();
   if(view!=="mvm")return;const box=$("mvmList");if(!box)return;
+  box.innerHTML=mvmBoardHtml();
+}
+function mvmRefresh(){view==="cardio"?renderCardio():renderMvM();}
+function mvmBoardHtml(){
   const secs=[["Heaviest Lifts",MVM.filter(m=>m.unit==="kg")],["For Time",MVM.filter(m=>m.unit==="time")]];
-  box.innerHTML=secs.map(([t,list])=>`<div class="secTitle">${t}</div>`+list.map(m=>{
+  return secs.map(([t,list])=>`<div class="secTitle">${t}</div>`+list.map(m=>{
     const board=bestEntries(m.id),lead=board[0]||null;
     const mine=board.find(e=>e.user_id===session.user.id);
     const open=mvmOpen===m.id;
@@ -1341,8 +1346,8 @@ async function renderMvM(){
           <input id="mvmIn-${m.id}" placeholder="${m.unit==="kg"?"Weight in kg":"Time — mm:ss"}" inputmode="${m.unit==="kg"?"decimal":"numeric"}" style="flex:1">
           <button class="btnGold" style="width:auto;padding:12px 18px;margin:0" onclick="mvmSubmit('${m.id}')">Post It</button>
         </div>
-        <button class="btnLink" style="margin-top:10px" onclick="mvmOpen=null;renderMvM()">Close</button>`
-      :`<button class="btnLink" style="margin-top:12px" onclick="mvmOpen='${m.id}';renderMvM()">Post A Result / See The Board</button>`}
+        <button class="btnLink" style="margin-top:10px" onclick="mvmOpen=null;mvmRefresh()">Close</button>`
+      :`<button class="btnLink" style="margin-top:12px" onclick="mvmOpen='${m.id}';mvmRefresh()">Post A Result / See The Board</button>`}
     </div>`;}).join("")).join("");
 }
 async function mvmRemove(entryId,chalId){
@@ -1350,7 +1355,7 @@ async function mvmRemove(entryId,chalId){
   const {error}=await sb.from("challenge_entries").delete().eq("id",entryId).eq("user_id",session.user.id);
   if(error){toast(error.message);return;}
   toast("Entry removed.");
-  await loadWorld(true);renderMvM();
+  await loadWorld(true);mvmRefresh();
 }
 async function mvmSubmit(id){
   const m=MVM.find(x=>x.id===id);
@@ -1367,7 +1372,7 @@ async function mvmSubmit(id){
     toast(prevLead?"👑 You've taken the "+m.n+" crown — +5 bonus points!":"👑 First mark on the board — crown's yours, +5 points!");
   }else if(beats){toast("You beat your own record. Crown retained.");}
   else toast("Result posted — keep chasing that crown.");
-  mvmOpen=null;await loadWorld(true);renderMvM();
+  mvmOpen=null;await loadWorld(true);mvmRefresh();
 }
 /* Legacy Profile + Leaderboard (inside Members) */
 async function uploadMemberPhoto(e){
@@ -3547,7 +3552,7 @@ async function delSocial(id){
 const AMA_KB=[
 {k:"points legacy points how earn score tally leaderboard rank level",a:"Legacy Points: 1 point every time you attend a class and hit Submit afterwards, 1–10 points for cardio challenges depending on how big the mission is, and a 5-point bonus for taking a club record off someone in Member vs Member. Points climb you through the ranks — Prospect all the way to Legacy Legend. Check the Members Leaderboard on the home screen — and tap How The Points Work in there for the full rules plus the weekly, monthly and end-of-term prizes."},
 {k:"cardio challenge stairmaster treadmill climb steps run stairs",a:"Cardio Challenges are on the home screen — famous stair climbs on the StairMaster (Big Ben up to the Great Wall Gauntlet) and iconic runs on the treadmill (Bondi to Bronte up to City2Surf). Hit start, do the work, claim between 1 and 10 points — the bigger the mission, the bigger the reward. The Niesen Stairway and the full Marathon are the 10-pointers."},
-{k:"member versus member record crown heaviest deadlift squat bench fastest",a:"Member vs Member is the club record board — heaviest deadlift, squat, overhead press and bench, plus fastest times on the assault bike, rower, ski erg, StairMaster and runs from 1K to 10K. Post your result; take the crown off someone and you bank a 5-point bonus."},
+{k:"member versus member record crown heaviest deadlift squat bench fastest",a:"Member vs Member is the club record board — heaviest deadlift, squat, overhead press and bench, plus fastest times on the assault bike, rower, ski erg, StairMaster and runs from 1K to 10K. Post your result; take the crown off someone and you bank a 5-point bonus. You will find it inside the Cardio & Member Challenges tile on the home screen."},
 {k:"local blokes heavyweight club vip private program what is behind door",a:"The Local Blokes Heavyweight Club is an invitation-only program for a small crew of men — training, fuel plans and more, all behind a locked door. If you're in it, you know. If you're not, have a word with the coaches about how spots open up."},
 {k:"legacy profile photo member type build profile",a:"Your Legacy Profile lives under the Members Leaderboard on the home screen — photo, name and membership, and you're on the board."},
 {k:"staffed hours reception open desk staff front",a:"The gym floor is staffed Mon–Thu 5:15–7:45am, Mon–Fri 4–7pm, and Saturday 8–11am. Outside those times it's swipe access."},
