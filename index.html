@@ -2375,9 +2375,9 @@ async function renderSparWed(){
         <div style="font-weight:900;letter-spacing:2px;font-size:11px;color:var(--gold)">${lo===hi?lo+" KG":lo+"–"+hi+" KG"} · ${g.list.length} BOXER${g.list.length>1?"S":""}</div>
         ${g.list.map(s=>{const b=bps[s.user_id];const d=DIVISIONS[(b&&b.division)||s.division]||DIVISIONS["Sparring Club"];
           const rec=b?((b.wins||0)+"-"+(b.losses||0)+"-"+(b.draws||0)):"";
-          const picked=isC&&muPick&&muPick.id===s.user_id;
+          const pickA=isC&&muA&&muA.id===s.user_id,pickB=isC&&muB&&muB.id===s.user_id,picked=pickA||pickB;
           return `<div class="weekRow" ${isC?`style="cursor:pointer;${picked?'background:rgba(212,175,55,.12);border-radius:8px;padding-left:6px;padding-right:6px':''}" onclick="sparPick('${s.user_id}','${esc(s.name)}')"`:""}>
-            <span style="min-width:0"><b>${esc(s.name)}</b>${picked?' <small style="color:var(--gold);font-weight:900">← RED CORNER</small>':""}<br><small style="color:${d.color}">${d.label}</small>${rec?` <small style="color:var(--muted)">· ${rec}</small>`:""}</span>
+            <span style="min-width:0"><b>${esc(s.name)}</b>${pickA?' <small style="color:#e05252;font-weight:900">← RED CORNER</small>':pickB?' <small style="color:#6ea8fe;font-weight:900">← BLUE CORNER</small>':""}<br><small style="color:${d.color}">${d.label}</small>${rec?` <small style="color:var(--muted)">· ${rec}</small>`:""}</span>
             <span style="color:var(--gold);font-weight:800;flex-shrink:0">${Number(s.weight)}kg</span></div>`;}).join("")}
       </div>`;}).join(""):'<div class="card"><p>Nobody on the list yet — be the first name down.</p></div>'}
     <div class="secTitle">The Card — Who's Sparring Who</div>
@@ -2388,19 +2388,22 @@ async function renderSparWed(){
         <div style="flex:1;font-weight:800;font-size:14px">${esc(m.b_name)}</div>
         ${isC?`<button class="xBtn" onclick="delMatchup('${m.id}')">×</button>`:""}
       </div>
-      <p style="text-align:center;font-size:11.5px;color:var(--muted);margin-top:4px">${m.rounds} × ${Number(m.mins||3)}:00 rounds</p>
+      <p style="text-align:center;font-size:11.5px;color:var(--muted);margin-top:4px">${m.rounds} × ${Number(m.mins||3)}:00 rounds${m.ring?` · <b style="color:var(--gold)">Ring ${m.ring}</b>`:""}</p>
     </div>`).join(""):'<div class="card"><p>Matchups go up here once the coaches set the card.</p></div>'}
-    ${isC&&signups.length>1?`<div class="secTitle">Coach — Tap To Match</div>
+    ${isC&&signups.length>1?`<div class="secTitle">Coach — Set The Card</div>
     <div class="card" style="border-color:var(--gold-dim)">
-      <p style="font-size:12px;color:var(--muted)">${muPick?`<b style="color:var(--gold)">${esc(muPick.name)}</b> is in the red corner — now tap their opponent in the list above.`:"Tap a boxer in the list above, then tap who they're sparring. Done."}</p>
+      <p style="font-size:12px;color:var(--muted)">${muA&&muB?`<b style="color:#e05252">${esc(muA.name)}</b> vs <b style="color:#6ea8fe">${esc(muB.name)}</b> — set rounds, minutes and ring, then lock it in.`:muA?`<b style="color:#e05252">${esc(muA.name)}</b> is in the red corner — now tap their opponent in the list above.`:"Tap a boxer for the red corner, then tap their opponent. Set the details, hit Lock It In."}</p>
       <label class="byoLbl" style="margin-top:10px">Rounds</label>
-      <div class="pillBtns">${[2,3,4,5,6,8].map(r=>`<button class="${muRounds===r?'on':''}" onclick="muRounds=${r};renderSparWed()">${r}</button>`).join("")}</div>
+      <div class="pillBtns" style="flex-wrap:wrap">${[1,2,3,4,5,6,7,8,9,10].map(r=>`<button class="${muRounds===r?'on':''}" style="min-width:52px" onclick="muRounds=${r};renderSparWed()">${r}</button>`).join("")}</div>
       <label class="byoLbl">Minutes Per Round</label>
       <div class="pillBtns">
         <button class="${muMins===2?'on':''}" onclick="muMins=2;renderSparWed()">2:00</button>
         <button class="${muMins===3?'on':''}" onclick="muMins=3;renderSparWed()">3:00</button>
       </div>
-      ${muPick?`<button class="btnLink" style="margin-top:10px;border-color:#f87171;color:#f87171" onclick="muPick=null;renderSparWed()">Cancel Selection</button>`:""}
+      <label class="byoLbl">Ring</label>
+      <div class="pillBtns">${[1,2,3,4].map(r=>`<button class="${muRing===r?'on':''}" onclick="muRing=${r};renderSparWed()">Ring ${r}</button>`).join("")}</div>
+      ${muA&&muB?`<button class="btnGold" style="margin-top:12px" onclick="sparLockIn()">Lock It In — ${muRounds} × ${muMins}:00 · Ring ${muRing}</button>`:""}
+      ${muA?`<button class="btnLink" style="margin-top:10px;border-color:#f87171;color:#f87171" onclick="muA=null;muB=null;renderSparWed()">Clear Selection</button>`:""}
       <p style="font-size:11px;color:var(--muted);margin-top:10px">Same boxer can go on the card against as many opponents as you like.</p>
     </div>`:""}`;
 }
@@ -2418,15 +2421,23 @@ async function sparPullOut(wed){
   toast("Pulled out of Wednesday night.");
   renderSparWed();
 }
-let muPick=null,muRounds=3,muMins=3;
-async function sparPick(uid,name){
-  if(!muPick){muPick={id:uid,name};renderSparWed();return;}
-  if(muPick.id===uid){muPick=null;renderSparWed();return;}
-  const a=muPick;muPick=null;
-  const {error}=await sb.from("spar_matchups").insert({week_date:nextWednesday(),a_user:a.id,a_name:a.name,b_user:uid,b_name:name,rounds:muRounds,mins:muMins,created_by:session.user.id});
-  if(error){toast(error.message);renderSparWed();return;}
+let muA=null,muB=null,muRounds=3,muMins=3,muRing=1,muBusy=false;
+function sparPick(uid,name){
+  if((muA&&muA.id===uid)||(muB&&muB.id===uid))return;
+  if(!muA)muA={id:uid,name};
+  else muB={id:uid,name};
+  renderSparWed();
+}
+async function sparLockIn(){
+  if(!muA||!muB||muBusy)return;
+  muBusy=true;
+  const a=muA,b=muB;
+  const {error}=await sb.from("spar_matchups").insert({week_date:nextWednesday(),a_user:a.id,a_name:a.name,b_user:b.id,b_name:b.name,rounds:muRounds,mins:muMins,ring:muRing,created_by:session.user.id});
+  muBusy=false;
+  if(error){toast(error.message);return;}
+  muA=null;muB=null;
   bell();
-  toast(a.name+" vs "+name+" — "+muRounds+" × "+muMins+":00. On the card.");
+  toast(a.name+" vs "+b.name+" — "+muRounds+" × "+muMins+":00, Ring "+muRing+". Locked on the card.");
   renderSparWed();
 }
 async function delMatchup(id){
