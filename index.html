@@ -492,7 +492,6 @@ function render(){
   if(view==="recovery")return renderRecovery();
   if(view==="timetable")return renderTimetable();
   if(view==="classes")return renderClasses();
-  if(view==="pt")return renderPT();
   if(view==="social")return renderSocial();
   if(view==="ama")return renderAMA();
   if(view==="staff")return renderStaff();
@@ -510,7 +509,6 @@ const HOME_CARDS=[
   {id:"podcast",kicker:"Stories From The Club",title:"Local Blokes Podcast",sub:"The podcast — real talk from the crew.",img:"podcast"},
   {id:"cardio",kicker:"Climb, Run & Compete",title:"Cardio & Member Challenges",sub:"StairMaster missions, iconic runs & the club record board.",img:"stairs"},
   {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:null},
-  {id:"pt",kicker:"1-On-1 Coaching",title:"Book A PT",sub:"Train one-on-one with the Legacy coaches.",img:"boxing"},
   {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"functional"},
   {id:"shop",kicker:"Official Store",title:"Shop Apparel",sub:"Hoodies, tees & gear straight from our store — spend your credit here.",img:"shopmerch"},
   {id:"nutrition",kicker:"Fuel The Work",title:"Nutritionist",sub:"Meal guidance from our nutritionist — coming soon.",img:"food"}
@@ -3765,11 +3763,11 @@ const AMA_KB=[
 {k:"beginner start new program never trained",a:"Start with Foundations Four in the Weights tab — three simple machine sessions a week for four weeks. If you've been off for a while, Comeback Season is the gentler on-ramp."},
 {k:"wod crossfit workout functional metcon",a:"Functional Fitness has the real CrossFit workouts — the Girls, the Heroes, the Opens and the classics, sorted into For Time, AMRAP, EMOM and Tabata. Tap any workout and the timer is already set to its format."},
 {k:"timer amrap emom tabata interval",a:"Every WOD and S&C session opens with a timer matched to its format — AMRAPs count down, EMOMs beep every minute, Tabatas run 20 on 10 off. Just hit Start."},
-{k:"pt personal training book trainer one session",a:"Hit Book A PT on the home screen. Pick your trainer — Jake, Sarsha, Joe or Alison — choose a session length and your preferred times, and they'll get back to you to lock it in."},
-{k:"jake coach who head trainer",a:"Jake's the Head Coach — former amateur and pro boxer who won his final pro bout at 35. Over ten years coaching with Australian, NSW and Australasian champions plus pro title holders on his record. Book him through Book A PT."},
-{k:"sarsha coach who trainer female pro",a:"Sarsha is a current professional boxer — world ranked, with WBC Asian Gold and WBO Asia Pacific titles. Coaching since 18 with two Australian champions developed by 23. Book her through Book A PT."},
-{k:"joe coach who trainer williams",a:"Joe's one of the Head Coaches — former amateur boxer with 10+ years coaching and multiple Australian amateur champions developed. Famous for keeping boxing simple and enjoyable. Book him through Book A PT."},
-{k:"alison allison coach who trainer ali",a:"Alison is a former state-level amateur boxer, key coach and the engine room of gym operations. She works with everyone from beginners to pros. Book her through Book A PT."},
+{k:"pt personal training book trainer one session",a:"PT bookings are off the app for now — grab Jake, Sarsha, Joe or Alison at the gym or ask at reception and they'll sort a session with you."},
+{k:"jake coach who head trainer",a:"Jake's the Head Coach — former amateur and pro boxer who won his final pro bout at 35. Over ten years coaching with Australian, NSW and Australasian champions plus pro title holders on his record. Grab him at the gym to sort a session."},
+{k:"sarsha coach who trainer female pro",a:"Sarsha is a current professional boxer — world ranked, with WBC Asian Gold and WBO Asia Pacific titles. Coaching since 18 with two Australian champions developed by 23. Grab her at the gym to sort a session."},
+{k:"joe coach who trainer williams",a:"Joe's one of the Head Coaches — former amateur boxer with 10+ years coaching and multiple Australian amateur champions developed. Famous for keeping boxing simple and enjoyable. Grab him at the gym to sort a session."},
+{k:"alison allison coach who trainer ali",a:"Alison is a former state-level amateur boxer, key coach and the engine room of gym operations. She works with everyone from beginners to pros. Grab her at the gym to sort a session."},
 {k:"membership price cost much week pay fees",a:"Gym memberships are $24.99/wk on 12 months or $29.99/wk on 6 months. Boxing: Fitness Club $55/wk, Sparring Club $65/wk. Recovery runs $25–$45/wk depending on the tier. Chat to reception for the right fit."},
 {k:"recovery membership cost price gold silver",a:"Recovery: Gold (private + communal saunas + water therapy) $45/wk, Silver (communal sauna + water) $38/wk, Water Therapy only $25/wk — all unlimited weekly use."},
 {k:"contact phone number call reception speak",a:"Call or text 0401 587 508, or catch reception in person 4–7pm Monday to Thursday."},
