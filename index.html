@@ -220,7 +220,7 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .wodRow b{font-family:'Oswald',sans-serif;font-size:15.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
 .wodRow small{display:block;color:var(--muted);font-size:11.5px;margin-top:3px}
 .wodRow .go{color:var(--gold);font-size:20px}
-.backBtn{background:transparent;border:none;color:var(--gold);font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:2px 0 14px;display:block}
+.backBtn{background:transparent;border:none;color:var(--gold);font-weight:800;font-size:14px;letter-spacing:1px;text-transform:uppercase;padding:8px 0 14px;display:block;cursor:pointer}
 .timerCard{background:linear-gradient(160deg,#17171a 0%,#0b0b0e 75%);border:1px solid var(--line);border-radius:14px;padding:24px 20px;text-align:center;margin-bottom:14px}
 .timerPhase{font-size:13px;font-weight:800;letter-spacing:5px;text-transform:uppercase;color:var(--muted)}
 .timerPhase.gold{color:var(--gold)}
@@ -485,7 +485,6 @@ function render(){
   if(view==="board")return renderLeaderboard();
   if(view==="blokes")return renderBlokes();
   if(view==="setup")return renderSetup();
-  if(view==="podcast")return renderPodcast();
   if(view==="nutrition")return renderNutrition();
   if(view==="shop")return renderShop();
   if(view==="recovery")return renderRecovery();
@@ -505,7 +504,6 @@ const HOME_CARDS=[
   {id:"weights",kicker:"The Gym Floor",title:"Weights & Functional Fitness",sub:"Ten training programs plus real CrossFit workouts, timers built in.",img:"weights"},
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
   {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true},
-  {id:"podcast",kicker:"Stories From The Club",title:"Local Blokes Podcast",sub:"The podcast — real talk from the crew.",img:"podcast"},
   {id:"cardio",kicker:"Climb, Run & Compete",title:"Cardio & Member Challenges",sub:"StairMaster missions, iconic runs & the club record board.",img:"stairs"},
   {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:null},
   {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"functional"},
@@ -666,6 +664,7 @@ function upcomingClasses48(){
 async function renderClasses(){
   if(!tierHasClasses()){
     $("main").innerHTML=`
+      <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
       <div style="background:#0d0d0b;border:1px solid #2a2417;border-radius:16px;padding:40px 22px;text-align:center;margin-top:8px">
         <div style="font-weight:900;letter-spacing:4px;color:#9e9e9e;font-size:11px">CLASS MEMBERS ONLY</div>
         <h2 style="font-size:22px;margin-top:8px;color:#f5f5f5;letter-spacing:1px;line-height:1.3">BOOK IN FOR CLASSES</h2>
@@ -678,6 +677,7 @@ async function renderClasses(){
     return;
   }
   $("main").innerHTML=`
+    <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
     <div class="hero" style="${bgStyle('boxing',.55)}">
       <div class="heroKicker">This Week's Timetable</div>
       <div class="heroTitle">Book In For Classes</div>
@@ -1209,6 +1209,7 @@ let chRun=null;
 function chElapsed(){return chRun?Math.floor((Date.now()-chRun.start)/1000):0;}
 async function renderCardio(){
   $("main").innerHTML=`
+    <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
     <div class="hero" style="${bgStyle('stairs',.5)}">
       <div class="heroKicker">Climb, Run & Compete</div>
       <div class="heroTitle">Cardio & Member Challenges</div>
@@ -1468,7 +1469,7 @@ function renderPointsRules(){
       <div class="hwKicker">Legacy Points</div>
       <div class="hwTitle">How The<br>Points Work.</div>
     </div>
-    <button class="btnLink" style="margin-bottom:12px" onclick="render()">‹ Back To The Leaderboard</button>
+    <button class="backBtn" onclick="render()">‹ Back To The Leaderboard</button>
     <div class="card">
       <h3>What It’s All About</h3>
       <p style="margin-top:8px;line-height:1.7">Every member of Legacy Gym earns Legacy Points for putting in the work. Your points stack up, push you through eleven ranks — Prospect all the way to Legacy Legend — and put your name on the Members Leaderboard for the whole gym to see.</p>
@@ -1506,6 +1507,7 @@ async function renderLeaderboard(){
   $("main").innerHTML=`
     <img class="chatBgLogo" src="${LOGO}" alt="">
     <div style="position:relative;z-index:1">
+      <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
       <div class="homeWelcome" style="margin-top:4px">
         <div class="hwKicker">The Ladder</div>
         <div class="hwTitle">Members<br>Leaderboard.</div>
@@ -1602,7 +1604,7 @@ function renderBlokes(){
       </div>
     </div>`;
   if(lbSub==="home"){
-    $("main").innerHTML=header+LB_TILES.map(t=>`
+    $("main").innerHTML=`<button class="backBtn" onclick="go('home')">‹ Back To Home</button>`+header+LB_TILES.map(t=>`
       <button class="homeCard" style="${t.logo?`background:linear-gradient(90deg,rgba(13,13,13,.5) 0%,rgba(13,13,13,.95) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:`background:linear-gradient(180deg,rgba(13,13,11,.5),rgba(13,13,11,.92)),url('${t.img}') center/cover no-repeat #0d0d0d;border-color:#2a2417`}" onclick="lbSub='${t.id}';lbTimerDay=null;renderBlokes()">
         <div class="hcKicker" style="color:#c9994d">${t.k}</div>
         <div class="hcTitle">${t.t}</div>
@@ -1619,6 +1621,7 @@ function renderBlokes(){
   else if(lbSub==="calc")lbCalc();
   else if(lbSub==="yarn")lbYarn();
   else if(lbSub==="golf")lbGolf();
+  else if(lbSub==="podcast")lbPodcast();
   else lbLadder();
 }
 const LB_TILES=[
@@ -1628,6 +1631,7 @@ const LB_TILES=[
   {id:"calc",k:"Lose, Hold Or Gain",t:"Calorie Calculator",s:"Answer a few honest questions — get your numbers and the Fuel Plan that fits.",img:"https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1000&q=70"},
   {id:"golf",k:"The Local Blokes Classic",t:"Golf Days",s:"Two Sundays at Mangrove Mountain — get your name down.",img:"https://images.unsplash.com/photo-1606443192517-919653213206?auto=format&fit=crop&w=1000&q=70"},
   {id:"yarn",k:"Group Chat + Coach Corner",t:"The Yarn",s:"The banter lives here. What's said here stays here.",img:"https://heavyweight-app.vercel.app/images/members.jpg"},
+  {id:"podcast",k:"Stories From The Club",t:"Local Blokes Podcast",s:"Real talk from the crew — training, life & everything in between.",img:IMGS.podcast},
   {id:"ladder",k:"Blokes Only",t:"The Ladder",s:"Same points, our own comp — Fresh Meat to Heavyweight Champion.",logo:true}];
 async function lbProgram(){
   await loadBlokes();await loadWorld();if(!wLogsLoaded)await loadWLogs();
@@ -2310,18 +2314,19 @@ async function lbLadder(){
 const PODCAST_EPS=[
   {n:2,title:"Comparison Is The Thief Of Joy",id:"3vdd0whdeRkfcUKYLKuY3e"},
   {n:1,title:"How Local Blokes Started (And Why It Became More Than Fitness)",id:"3sayMbQ65TvCxBpdz1C9Aq"}];
-function renderPodcast(){
-  $("main").innerHTML=`
+function lbPodcast(){
+  if(view!=="blokes"||lbSub!=="podcast")return;const box=$("lbContent");if(!box)return;
+  box.innerHTML=`
     <div class="hero" style="background:linear-gradient(180deg,rgba(8,8,10,.45),rgba(8,8,10,.9)),url('${IMGS.podcast}') center 30%/cover no-repeat #0a0b0e">
-      <div class="heroKicker">Stories From The Club</div>
+      <div class="heroKicker" style="color:#c9994d">Stories From The Club</div>
       <div class="heroTitle">Local Blokes Podcast</div>
       <div class="heroText">Real conversations from the Local Blokes crew — training, life, and everything in between.</div>
     </div>
     ${PODCAST_EPS.map(e=>`<div class="card">
-      <span class="pill" style="border-color:var(--gold-dim);color:var(--gold)">EPISODE ${e.n}</span>
+      <span class="pill" style="border-color:#3a2f1b;color:#c9994d">EPISODE ${e.n}</span>
       <h3 style="margin:10px 0 12px;font-size:16px">${esc(e.title)}</h3>
       <iframe style="border-radius:12px;border:0" src="https://open.spotify.com/embed/episode/${e.id}" width="100%" height="152" title="${esc(e.title)}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-      <p style="margin-top:10px"><a href="https://open.spotify.com/episode/${e.id}" target="_blank" rel="noreferrer" style="color:var(--gold);font-size:12.5px">Open in Spotify ›</a></p>
+      <p style="margin-top:10px"><a href="https://open.spotify.com/episode/${e.id}" target="_blank" rel="noreferrer" style="color:#c9994d;font-size:12.5px">Open in Spotify ›</a></p>
     </div>`).join("")}`;
 }
 
@@ -3812,6 +3817,7 @@ async function renderSocial(){
     </div>`;
   };
   $("main").innerHTML=`
+    <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
     <div class="hero" style="${bgStyle('functional',.6)}">
       <div class="heroKicker">Get Amongst It</div>
       <div class="heroTitle">Social Events</div>
@@ -3948,6 +3954,7 @@ async function renderAMA(){
   if(view!=="ama")return;
   if(!amaMsgs.length)amaMsgs.push({who:"ama",txt:"G'day"+((profile&&profile.first_name)?" "+profile.first_name:"")+" — ask me about any gym-related information. Class times, booking a sauna, training programs, the coaches, prices — type it in and I'll sort you out."});
   $("main").innerHTML=`
+    <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
     <div class="hero" style="background:linear-gradient(160deg,#17171a 0%,#0b0b0e 75%);padding:22px">
       <div class="heroKicker">AI Information Assistant</div>
       <div class="heroTitle">Ask Me Anything</div>
@@ -4316,6 +4323,7 @@ async function renderStaff(){
   if(view!=="staff")return;
   const tabs=[{id:"chat",label:"Team Chat"},{id:"members",label:"Members"},...staffData.staff.map(s=>({id:s.id,label:s.first_name||s.email.split("@")[0]}))];
   $("main").innerHTML=`
+    <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
     <div class="hero" style="background:linear-gradient(160deg,#17171a 0%,#0b0b0e 75%);padding:24px 22px">
       <div class="heroKicker">Staff Eyes Only</div>
       <div class="heroTitle">Staff Room</div>
@@ -4587,6 +4595,7 @@ function updateBadges(){
 function renderProfile(){
   const p=profile||{};
   $("main").innerHTML=`
+    <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
     <div class="hero"><div class="heroKicker">Member Profile</div><div class="heroTitle">${esc((p.first_name||"")+" "+(p.last_name||""))}</div>
     <div class="heroText">Your Legacy Gym member profile.</div></div>
     <div class="card">
