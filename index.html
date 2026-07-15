@@ -512,7 +512,9 @@ const HOME_CARDS=[
 ];
 function renderHome(){
   const first=(profile&&profile.first_name)?profile.first_name:"";
+  if(!ptsData.loaded)loadWorld().then(()=>{checkMilestone();});else checkMilestone();
   $("main").innerHTML=`
+    ${installBannerHtml()}
     <div class="homeWelcome">
       <div class="hwKicker">${first?("G'day "+esc(first)):"Members Only"}</div>
       <div class="hwTitle">Culture<br>Without Chaos.</div>
@@ -1199,6 +1201,52 @@ function myPoints(){return ptsData.events.filter(e=>e.user_id===session.user.id)
 function pointsOf(uid){return ptsData.events.filter(e=>e.user_id===uid).reduce((a,b)=>a+b.points,0);}
 function myMp(){return ptsData.mprofiles.find(m=>m.user_id===session.user.id)||myMpCache||null;}
 function myDisplayName(){const m=myMp();return (m&&m.full_name)||(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";}
+/* ---- Streaks & Milestones ---- */
+function weekKey(d){const dt=new Date(d);const day=(dt.getDay()+6)%7;dt.setDate(dt.getDate()-day);return isoDateLocal(dt);}
+function myStreakWeeks(){
+  if(!session)return 0;
+  const uid=session.user.id;
+  const weeks=new Set(ptsData.events.filter(e=>e.user_id===uid&&e.kind==="class").map(e=>weekKey(new Date(e.created_at))));
+  let cur=new Date();
+  const thisWk=weekKey(cur);
+  if(!weeks.has(thisWk))cur.setDate(cur.getDate()-7);
+  let streak=0;
+  while(weeks.has(weekKey(cur))){streak++;cur.setDate(cur.getDate()-7);}
+  return streak;
+}
+function myClassCount(){return session?ptsData.events.filter(e=>e.user_id===session.user.id&&e.kind==="class").length:0;}
+const MILESTONES=[10,25,50,100,150,200,300,500,750,1000];
+function milestoneReached(n){let m=0;for(const x of MILESTONES){if(n>=x)m=x;}return m;}
+function checkMilestone(){
+  if(!session)return;
+  const n=myClassCount();
+  const m=milestoneReached(n);
+  const seen=Number(localStorage.getItem("lg_milestone")||0);
+  if(m>0&&m>seen){
+    localStorage.setItem("lg_milestone",String(m));
+    const s=myStreakWeeks();
+    boomBanner(m+" Classes Banked","Milestone smashed — keep stacking them.","🔥 "+s+" WEEK"+(s===1?"":"S")+" STREAK");
+  }
+}
+/* ---- Add To Home Screen walkthrough ---- */
+function installBannerHtml(){
+  if(localStorage.getItem("lg_install_dismissed"))return"";
+  if(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)return"";
+  if(window.navigator.standalone)return"";
+  const ua=navigator.userAgent||"";
+  const isIOS=/iPhone|iPad|iPod/.test(ua);
+  const isAndroid=/Android/.test(ua);
+  if(!isIOS&&!isAndroid)return"";
+  const steps=isIOS
+    ?"Tap the <b>Share</b> icon in Safari — the square with an arrow next to the address bar (on newer iPhones it's tucked under the <b>•••</b> menu). Scroll down, tap <b>Add to Home Screen</b>, then tap <b>Add</b>."
+    :"Tap the <b>⋮</b> menu in Chrome, tap <b>Add to Home screen</b> (or <b>Install app</b>), then tap <b>Add</b> or <b>Install</b>.";
+  return `<div class="notice" style="margin-bottom:14px;position:relative;padding-right:34px">
+    <button onclick="dismissInstallBanner()" style="position:absolute;top:8px;right:10px;background:none;border:none;color:var(--muted);font-size:16px;padding:4px">✕</button>
+    <b>Get This On Your Home Screen</b>
+    <p style="margin-top:6px;font-size:12.5px;line-height:1.6">${steps}</p>
+  </div>`;
+}
+function dismissInstallBanner(){localStorage.setItem("lg_install_dismissed","1");renderHome();}
 async function awardPoints(kind,ref,pts){
   const {error}=await sb.from("points_events").upsert({user_id:session.user.id,kind,ref,points:pts},{onConflict:"user_id,kind,ref",ignoreDuplicates:true});
   if(!error)ptsData.loaded=false;
@@ -1537,6 +1585,10 @@ async function renderLeaderboard(){
           <button class="btnLink" style="width:auto;margin:0;padding:8px 14px" onclick="mpEditing=true;mpPrepForm();render()">Edit</button>
         </div>
         <div style="margin-top:14px">${lvlCardHtml(pts,true)}</div>
+        <div class="statGrid" style="margin-top:12px">
+          <div class="statBox"><div class="sv">🔥 ${myStreakWeeks()}</div><div class="sl">Week Streak</div></div>
+          <div class="statBox"><div class="sv">${myClassCount()}</div><div class="sl">Classes Banked</div></div>
+        </div>
         <details style="margin-top:12px"><summary style="font-size:12px;color:var(--gold);font-weight:800;cursor:pointer">My Points History — tap to view or undo</summary>
           <p style="font-size:10.5px;color:var(--muted);margin-top:6px">Submitted something by mistake? Hit × and it's gone off your tally.</p>
           ${ptsData.events.filter(e=>e.user_id===session.user.id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(e=>`
@@ -4321,7 +4373,7 @@ async function renderStaff(){
   $("main").innerHTML=`<div class="loadingDots">Opening the staff room…</div>`;
   await loadStaffData();
   if(view!=="staff")return;
-  const tabs=[{id:"chat",label:"Team Chat"},{id:"members",label:"Members"},...staffData.staff.map(s=>({id:s.id,label:s.first_name||s.email.split("@")[0]}))];
+  const tabs=[{id:"chat",label:"Team Chat"},{id:"members",label:"Members"},{id:"insights",label:"Insights"},...staffData.staff.map(s=>({id:s.id,label:s.first_name||s.email.split("@")[0]}))];
   $("main").innerHTML=`
     <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
     <div class="hero" style="background:linear-gradient(160deg,#17171a 0%,#0b0b0e 75%);padding:24px 22px">
@@ -4333,7 +4385,33 @@ async function renderStaff(){
     <div id="staffContent"></div>`;
   if(staffSub==="chat")renderStaffChat();
   else if(staffSub==="members")renderStaffMembersTab();
+  else if(staffSub==="insights")renderStaffInsights();
   else renderStaffMember(staffSub);
+}
+async function renderStaffInsights(){
+  await loadWorld();
+  if(view!=="staff"||staffSub!=="insights")return;const box=$("staffContent");if(!box)return;
+  const now=Date.now();
+  const lastSeen={};
+  ptsData.events.filter(e=>e.kind==="class").forEach(e=>{
+    const t=new Date(e.created_at).getTime();
+    if(!lastSeen[e.user_id]||t>lastSeen[e.user_id])lastSeen[e.user_id]=t;
+  });
+  const nameOf=uid=>{const m=ptsData.mprofiles.find(x=>x.user_id===uid);return (m&&m.full_name)||"Unnamed Member";};
+  const quiet=Object.entries(lastSeen).map(([uid,t])=>({uid,name:nameOf(uid),days:Math.floor((now-t)/86400000)}))
+    .filter(x=>x.days>=14).sort((a,b)=>b.days-a.days).slice(0,25);
+  const weeks=[];
+  for(let i=5;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i*7);weeks.push(weekKey(d));}
+  const counts=weeks.map(wk=>({wk,n:ptsData.events.filter(e=>e.kind==="class"&&weekKey(new Date(e.created_at))===wk).length}));
+  const totals={};ptsData.events.forEach(e=>totals[e.user_id]=(totals[e.user_id]||0)+e.points);
+  const topWeek=Object.entries(totals).map(([uid,p])=>({uid,name:nameOf(uid),p})).sort((a,b)=>b.p-a.p).slice(0,5);
+  box.innerHTML=`
+    <div class="secTitle">Weekly Attendance (Class Check-Ins)</div>
+    <div class="card">${counts.map(c=>`<div class="weekRow"><span style="color:var(--muted)">Week of ${fmtDateAU(c.wk)}</span><span>${c.n}</span></div>`).join("")}</div>
+    <div class="secTitle">Top Points This Ladder</div>
+    <div class="card">${topWeek.length?topWeek.map(t=>`<div class="weekRow"><span>${esc(t.name)}</span><span style="color:var(--gold)">${t.p} pts</span></div>`).join(""):'<div class="emptyMsg">No points banked yet.</div>'}</div>
+    <div class="secTitle">Gone Quiet — 14+ Days No Class</div>
+    ${quiet.length?quiet.map(q=>`<div class="card"><b>${esc(q.name)}</b><div class="sub" style="margin-top:2px">Last class ${q.days} days ago</div></div>`).join(""):'<div class="card"><p>Nobody’s drifted — everyone’s been in within two weeks.</p></div>'}`;
 }
 function staffMsgHtml(m){
   const mine=session&&m.user_id===session.user.id;
