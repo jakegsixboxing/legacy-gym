@@ -500,7 +500,7 @@ function render(){
 
 /* ---- Home ---- */
 const HOME_CARDS=[
-  {id:"classes",kicker:"This Week",title:"Book In For Classes",sub:"The full week opens every Sunday 7 AM — tap in, you're booked.",img:"boxing"},
+  {id:"classes",kicker:"Term 3 Timetable Starts Next Week",title:"Book In For Classes",sub:"The full week opens every Sunday 7 AM — tap in, you're booked.",img:"boxing"},
   {id:"boxing",kicker:"Legacy Boxing Series",title:"Boxing",sub:"The Sparring Club hub, session builder & Legacy Elite.",img:"boxing"},
   {id:"weights",kicker:"The Gym Floor",title:"Weights & Functional Fitness",sub:"Ten training programs plus real CrossFit workouts, timers built in.",img:"weights"},
   {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
@@ -681,6 +681,7 @@ async function renderClasses(){
     <div class="hero" style="${bgStyle('boxing',.55)}">
       <div class="heroKicker">This Week's Timetable</div>
       <div class="heroTitle">Book In For Classes</div>
+      <div style="display:inline-block;background:var(--gold);color:#161307;font-weight:900;font-size:11px;letter-spacing:2px;padding:5px 12px;border-radius:20px;margin-top:10px">TERM 3 TIMETABLE STARTS NEXT WEEK</div>
       <div class="heroText">The full week's timetable opens every Sunday at 7 AM. Tap a class and you're booked — the coaches see exactly who's coming. Sparring bookings carry your fight profile straight onto the list.</div>
     </div>
     <div id="classList"><div class="loadingDots">Loading upcoming classes…</div></div>`;
