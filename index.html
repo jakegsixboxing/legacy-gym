@@ -1616,6 +1616,7 @@ function renderBlokes(){
   if(lbSub==="program")lbProgram();
   else if(lbSub==="boxing")lbBoxing();
   else if(lbSub==="fuel")lbFuel();
+  else if(lbSub==="calc")lbCalc();
   else if(lbSub==="yarn")lbYarn();
   else if(lbSub==="golf")lbGolf();
   else lbLadder();
@@ -1624,6 +1625,7 @@ const LB_TILES=[
   {id:"program",k:"The 10-Week Block",t:"Strength Program",s:"Monday push, Wednesday legs & pull — bank every set.",img:"https://heavyweight-app.vercel.app/images/strength.jpg"},
   {id:"boxing",k:"Monday & Wednesday Nights",t:"Boxing",s:"The club sessions, full round timer built in.",img:"https://heavyweight-app.vercel.app/images/boxing.jpg"},
   {id:"fuel",k:"Fuel Plans A–D",t:"Meal Plan",s:"Named meals, recipes & your one-tap weekly shop.",img:"https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=1000&q=70"},
+  {id:"calc",k:"Lose, Hold Or Gain",t:"Calorie Calculator",s:"Answer a few honest questions — get your numbers and the Fuel Plan that fits.",img:"https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1000&q=70"},
   {id:"golf",k:"The Local Blokes Classic",t:"Golf Days",s:"Two Sundays at Mangrove Mountain — get your name down.",img:"https://images.unsplash.com/photo-1606443192517-919653213206?auto=format&fit=crop&w=1000&q=70"},
   {id:"yarn",k:"Group Chat + Coach Corner",t:"The Yarn",s:"The banter lives here. What's said here stays here.",img:"https://heavyweight-app.vercel.app/images/members.jpg"},
   {id:"ladder",k:"Blokes Only",t:"The Ladder",s:"Same points, our own comp — Fresh Meat to Heavyweight Champion.",logo:true}];
@@ -1913,6 +1915,117 @@ function lbMd(md){
     out+='<p style="font-size:13.5px;line-height:1.75;color:#e8e8e8;margin:8px 0">'+inline(L)+"</p>";i++;
   }
   return out;
+}
+/* ---- Local Blokes Calorie Calculator ---- */
+let lbcJob=0,lbcExtra=-1;
+const LBC_PLANS=[["A",3000],["B",2700],["C",2400],["D",2100]];
+function lbCalc(){
+  const box=$("lbContent");if(!box)return;
+  box.innerHTML=`
+    <div class="card" style="border-color:#3a2f1b;background:#131110">
+      <div style="font-weight:900;letter-spacing:3px;color:#c9994d;font-size:10.5px">FIND YOUR FUEL PLAN</div>
+      <h3 style="font-size:18px;margin-top:6px">Calorie Calculator</h3>
+      <p style="font-size:12.5px;color:#9e9e9e;margin-top:6px;line-height:1.6">Answer honest, get honest numbers. This works out what you burn in a normal week, then points you at the Fuel Plan that matches where you want your weight to go — down, steady, or up.</p>
+      <div class="row2" style="margin-top:14px">
+        <div class="field"><label>Age</label><input id="lbcAge" type="number" inputmode="numeric" placeholder="e.g. 38"></div>
+        <div class="field"><label>Height (cm)</label><input id="lbcH" type="number" inputmode="numeric" placeholder="e.g. 180"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Current Weight (kg)</label><input id="lbcW" type="number" step="0.1" inputmode="decimal" placeholder="e.g. 104"></div>
+        <div class="field"><label>Goal Weight (kg)</label><input id="lbcGw" type="number" step="0.1" inputmode="decimal" placeholder="blank = hold"></div>
+      </div>
+      <label class="byoLbl" style="margin-top:6px">Your Day Job</label>
+      <div class="pillBtns" id="lbcJobRow" style="flex-wrap:wrap">
+        <button style="flex:1 1 100%;text-align:left;padding:12px 14px" onclick="lbcSel(this,'job',1.25)"><b>Mostly Sitting</b><br><small style="font-weight:600;color:inherit">Desk, driving, behind a screen or a counter most of the day</small></button>
+        <button style="flex:1 1 100%;text-align:left;padding:12px 14px" onclick="lbcSel(this,'job',1.42)"><b>On Your Feet</b><br><small style="font-weight:600;color:inherit">Moving around all day — retail, warehouse, teaching, light duties</small></button>
+        <button style="flex:1 1 100%;text-align:left;padding:12px 14px" onclick="lbcSel(this,'job',1.6)"><b>Hard Yakka</b><br><small style="font-weight:600;color:inherit">Tradie, labourer, farm — physical graft most of the day</small></button>
+      </div>
+      <label class="byoLbl">Training — Extra Sessions A Week</label>
+      <p style="font-size:11.5px;color:#9e9e9e;margin:0 0 8px;line-height:1.6">Your two strength days plus Monday &amp; Wednesday boxing are already counted — that's 4 sessions banked. How many MORE do you do on top? Classes, runs, extra gym — the lot.</p>
+      <div class="pillBtns" id="lbcExtraRow" style="flex-wrap:wrap">${[0,1,2,3,4,5].map(n=>`<button style="min-width:48px" onclick="lbcSel(this,'extra',${n})">${n===5?"5+":n}</button>`).join("")}</div>
+      <button class="btnGold" style="margin-top:14px;background:#c9994d" onclick="lbcRun()">Crunch The Numbers</button>
+    </div>
+    <div id="lbcOut"></div>`;
+}
+function lbcSel(btn,kind,val){
+  if(kind==="job")lbcJob=val;else lbcExtra=val;
+  [...btn.parentElement.children].forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+}
+function lbcEstLabel(diff){
+  const kg=diff*7/7700;
+  if(Math.abs(kg)<0.12)return {txt:"hold steady",kg:0};
+  return {txt:"~"+Math.abs(kg).toFixed(1)+" kg/week "+(kg>0?"down":"up"),kg};
+}
+function lbcRun(){
+  const age=+$("lbcAge").value,h=+$("lbcH").value,w=+$("lbcW").value,gwRaw=$("lbcGw").value.trim(),gw=gwRaw?+gwRaw:null;
+  if(!(age>=16&&age<=90)){toast("Punch in a real age, champion.");return;}
+  if(!(h>=140&&h<=220)){toast("Height in centimetres — e.g. 180.");return;}
+  if(!(w>=50&&w<=250)){toast("Current weight in kilos — e.g. 104.");return;}
+  if(gw!==null&&!(gw>=50&&gw<=250)){toast("Goal weight looks off — kilos, or leave it blank to hold.");return;}
+  if(!lbcJob){toast("Pick your day job — sitting, on your feet, or hard yakka.");return;}
+  if(lbcExtra<0){toast("How many extra sessions a week? 0 is a fair answer.");return;}
+  const bmr=Math.round(10*w+6.25*h-5*age+5);
+  const sessions=4+lbcExtra;
+  const trainAdd=Math.round(sessions*4.5*w/7);
+  const tdee=Math.round((bmr*lbcJob+trainAdd)/10)*10;
+  const mode=(gw===null||Math.abs(gw-w)<=1)?"hold":(gw<w?"cut":"gain");
+  let target=tdee;
+  if(mode==="cut")target=tdee-500;
+  if(mode==="gain")target=tdee+350;
+  let floored=false;
+  if(target<bmr){target=bmr;floored=true;}
+  target=Math.round(target/10)*10;
+  let best=null;
+  LBC_PLANS.forEach(p=>{
+    if(!best){best=p;return;}
+    const d=Math.abs(p[1]-target),db=Math.abs(best[1]-target);
+    if(d<db)best=p;
+    else if(d===db&&(mode==="gain"?p[1]>best[1]:p[1]<best[1]))best=p;
+  });
+  const bi=LBC_PLANS.findIndex(p=>p[0]===best[0]);
+  if(mode==="cut"&&(tdee-best[1])*7/7700<0.15&&bi<LBC_PLANS.length-1)best=LBC_PLANS[bi+1];
+  if(mode==="gain"&&(tdee-best[1])*7/7700>-0.15&&bi>0)best=LBC_PLANS[bi-1];
+  const plan=best[0],planKcal=best[1];
+  const planDiff=tdee-planKcal;
+  const est=lbcEstLabel(planDiff);
+  let goalLine="";
+  if(mode==="cut"&&est.kg>0.1){
+    const weeks=Math.round((w-gw)/est.kg);
+    goalLine=`At that pace you're looking at roughly <b style="color:#c9994d">${weeks} weeks</b> to get from ${w} kg to ${gw} kg. Slow is fine — slow sticks.`;
+  }else if(mode==="gain"&&est.kg<-0.1){
+    const weeks=Math.round((gw-w)/(-est.kg));
+    goalLine=`At that pace it's roughly <b style="color:#c9994d">${weeks} weeks</b> to build from ${w} kg to ${gw} kg. Quality kilos take time.`;
+  }
+  const modeTxt=mode==="hold"?"holding where you are":(mode==="cut"?"getting down to "+gw+" kg":"building up to "+gw+" kg");
+  const bigCut=mode==="cut"&&(tdee-2100)>1000&&plan==="D";
+  const cutShort=mode==="cut"&&est.kg<0.15;
+  const gainShort=mode==="gain"&&est.kg>-0.15;
+  $("lbcOut").innerHTML=`
+    <div class="statGrid" style="margin-top:14px">
+      <div class="statBox"><div class="sv">${tdee}</div><div class="sl">Maintenance kcal</div></div>
+      <div class="statBox"><div class="sv" style="color:#c9994d">${target}</div><div class="sl">Your Target kcal</div></div>
+      <div class="statBox"><div class="sv">${sessions}</div><div class="sl">Sessions / Week</div></div>
+    </div>
+    <div class="card" style="border-color:#c9994d;background:#161310;margin-top:12px">
+      <div style="font-weight:900;letter-spacing:3px;color:#c9994d;font-size:10.5px">YOUR PLAN — ${modeTxt.toUpperCase()}</div>
+      <h3 style="font-size:20px;margin-top:6px">Fuel Plan ${plan} — ~${planKcal} kcal</h3>
+      <p style="font-size:12px;color:#9e9e9e;margin-top:4px">${esc(LB_DATA.plans[plan].macros)}</p>
+      <p style="font-size:13px;margin-top:10px;line-height:1.7">Against your maintenance of ~${tdee} kcal, Plan ${plan} has you <b style="color:#c9994d">${est.txt==="hold steady"?"holding steady":est.txt.replace("~","around ")}</b>.${goalLine?" "+goalLine:""}</p>
+      ${floored?`<p style="font-size:12px;color:#e0a852;margin-top:8px;line-height:1.6">We've kept you at the safe floor — going lower than this isn't the move. Have a word with the coaches before tightening further.</p>`:""}
+      ${bigCut?`<p style="font-size:12px;color:#e0a852;margin-top:8px;line-height:1.6">Plan D is already a big drop for a bloke your size — expect quick movement early. Don't go under Plan D.</p>`:""}
+      ${cutShort?`<p style="font-size:12px;color:#e0a852;margin-top:8px;line-height:1.6">Straight up: Plan D is our lowest plan and it sits about level with what you burn, so the scales will move slowly on food alone. Best play — run Plan D, skip the dessert serves, and add an extra session or two a week. Worth a yarn with the coaches too.</p>`:""}
+      ${gainShort?`<p style="font-size:12px;color:#e0a852;margin-top:8px;line-height:1.6">You burn big numbers — Plan A on its own is only just ahead of it. Run Plan A and add an extra serve or snack from the plan each day to push the scales up. If they're not moving in a few weeks, add another.</p>`:""}
+      <button class="btnGold" style="margin-top:12px;background:#c9994d" onclick="lbPlan='${plan}';lbSub='fuel';lbFuelTab='plan';renderBlokes();window.scrollTo(0,0)">Open Fuel Plan ${plan}</button>
+    </div>
+    <div class="secTitle">What Each Plan Does For You</div>
+    <div class="card">
+      ${LBC_PLANS.map(p=>{const e=lbcEstLabel(tdee-p[1]);return `<div class="weekRow" ${p[0]===plan?'style="background:rgba(201,153,77,.1);border-radius:8px;padding-left:8px;padding-right:8px"':''}>
+        <span><b>Plan ${p[0]}</b> <small style="color:var(--muted)">~${p[1]} kcal</small>${p[0]===plan?' <small style="color:#c9994d;font-weight:900">← YOUR PLAN</small>':''}</span>
+        <span style="color:${e.kg>0.12?'var(--ok)':(e.kg<-0.12?'#6ea8fe':'#9e9e9e')};font-weight:800;font-size:12.5px">${e.txt}</span></div>`;}).join("")}
+      <p style="font-size:11px;color:#9e9e9e;margin-top:10px;line-height:1.6">Estimates, not gospel — every body runs a bit different. Weigh in once a week, same day, same time, before brekky. If the scales haven't moved the way you want after 2–3 weeks, shift one plan in the right direction and chat to the coaches.</p>
+    </div>`;
+  window.scrollTo({top:document.getElementById("lbcOut").offsetTop-80,behavior:"smooth"});
 }
 function lbFuel(){
   const box=$("lbContent");if(!box)return;
