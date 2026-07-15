@@ -513,7 +513,9 @@ const HOME_CARDS=[
 function renderHome(){
   const first=(profile&&profile.first_name)?profile.first_name:"";
   if(!ptsData.loaded)loadWorld().then(()=>{checkMilestone();});else checkMilestone();
+  if(ANN===undefined)loadAnnouncement().then(()=>{if(view==="home")renderHome();});
   $("main").innerHTML=`
+    ${announcementBannerHtml()}
     ${installBannerHtml()}
     <div class="homeWelcome">
       <div class="hwKicker">${first?("G'day "+esc(first)):"Members Only"}</div>
@@ -692,14 +694,15 @@ async function renderClasses(){
   const now=new Date();
   const d0=isoDateLocal(now),dY=isoDateLocal(new Date(Date.now()-86400000));
   const nowHM=pad(now.getHours())+":"+pad(now.getMinutes());
-  let regs=[],doneRegs=[],claimedRefs=new Set();
+  let regs=[],doneRegs=[],claimedRefs=new Set(),myWait=[];
   const q=[sb.from("class_regs").select("*").eq("user_id",session.user.id).in("class_date",[dY,d0]),
            sb.from("points_events").select("ref").eq("user_id",session.user.id).eq("kind","class")];
-  if(dates.length)q.push(sb.from("class_regs").select("*").in("class_date",dates));
+  if(dates.length){q.push(sb.from("class_regs").select("*").in("class_date",dates));q.push(sb.from("class_waitlist").select("*").eq("user_id",session.user.id).in("class_date",dates));}
   const res=await Promise.all(q);
   doneRegs=(res[0].data||[]).filter(r=>r.class_date<d0||(r.class_date===d0&&r.class_time<=nowHM));
   claimedRefs=new Set((res[1].data||[]).map(r=>r.ref));
   regs=res[2]?(res[2].data||[]):[];
+  myWait=res[3]?(res[3].data||[]):[];
   if(view!=="classes")return;
   const c2=$("classList");if(!c2)return;
   let html="";
@@ -726,15 +729,19 @@ async function renderClasses(){
     }
     const these=regs.filter(r=>r.class_date===c.date&&r.class_time===c.t);
     const mine=these.find(r=>r.user_id===session.user.id);
+    const myWaitRow=myWait.find(w=>w.class_date===c.date&&w.class_time===c.t);
+    const full=these.length>=CLASS_CAPACITY;
     const isAM=parseInt(c.t.split(":")[0])<12;
     html+=`<div class="card" style="${isAM?"background:#0a0a0b;border-color:#2f2f34;color:#ffffff":"background:#f4f4f2;border-color:#d8d8d4;color:#131313"}">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
         <h3 style="font-size:17px;color:inherit">${esc(c.n)}</h3>
         <span style="color:inherit;font-weight:800;font-size:14px;flex-shrink:0">${fmtClassTime(c.t)}</span>
       </div>
-      <p style="margin-top:6px;color:inherit"><b style="color:inherit">${these.length} attending</b>${these.length?": "+these.map(r=>esc(r.name)).join(", "):""}</p>
+      <p style="margin-top:6px;color:inherit"><b style="color:inherit">${these.length} attending</b>${full?" · FULL":""}${these.length?": "+these.map(r=>esc(r.name)).join(", "):""}</p>
       ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="unattendClass('${c.date}','${c.t}','${esc(c.n)}')">BOOKED IN ✓</button>
       <p style="margin-top:8px;font-size:11px;color:inherit;opacity:.75;text-align:center">Can no longer attend? Please tap above to remove yourself so the coaches know.</p>`
+      :full?(myWaitRow?`<button class="btnLink" style="border-color:var(--gold);color:var(--gold);margin-top:12px" onclick="leaveWaitlist('${c.date}','${c.t}')">ON THE WAITLIST — TAP TO LEAVE</button>`
+        :`<button class="btnGold" style="margin-top:12px" onclick="joinWaitlist('${c.date}','${c.t}','${esc(c.n)}')">Class Full — Join Waitlist</button>`)
             :`<button class="btnGold" style="margin-top:12px" onclick="attendClass('${c.date}','${c.t}','${esc(c.n)}')">Book Me In</button>`}
     </div>`;
   });
@@ -1228,6 +1235,26 @@ function checkMilestone(){
     boomBanner(m+" Classes Banked","Milestone smashed — keep stacking them.","🔥 "+s+" WEEK"+(s===1?"":"S")+" STREAK");
   }
 }
+/* ---- Staff Announcement Bar ---- */
+let ANN;
+async function loadAnnouncement(){
+  const {data}=await sb.from("gym_announcements").select("*").eq("active",true).order("created_at",{ascending:false}).limit(1);
+  ANN=(data&&data[0])||null;
+}
+function announcementBannerHtml(){
+  if(!ANN)return"";
+  return `<div class="notice" style="margin-bottom:14px;border-color:#c9994d"><b>📣 ${esc(ANN.body)}</b></div>`;
+}
+async function postAnnouncement(){
+  const el=$("annInput");if(!el)return;const body=el.value.trim();if(!body)return;
+  await sb.from("gym_announcements").update({active:false}).eq("active",true);
+  await sb.from("gym_announcements").insert({body,active:true,created_by:session.user.id});
+  ANN=undefined;await loadAnnouncement();renderStaffChat();
+}
+async function takeDownAnnouncement(id){
+  await sb.from("gym_announcements").update({active:false}).eq("id",id);
+  ANN=undefined;await loadAnnouncement();renderStaffChat();
+}
 /* ---- Add To Home Screen walkthrough ---- */
 function installBannerHtml(){
   if(localStorage.getItem("lg_install_dismissed"))return"";
@@ -1674,6 +1701,7 @@ function renderBlokes(){
   else if(lbSub==="yarn")lbYarn();
   else if(lbSub==="golf")lbGolf();
   else if(lbSub==="podcast")lbPodcast();
+  else if(lbSub==="photos")lbProgressPhotos();
   else lbLadder();
 }
 const LB_TILES=[
@@ -1684,6 +1712,7 @@ const LB_TILES=[
   {id:"golf",k:"The Local Blokes Classic",t:"Golf Days",s:"Two Sundays at Mangrove Mountain — get your name down.",img:"https://images.unsplash.com/photo-1606443192517-919653213206?auto=format&fit=crop&w=1000&q=70"},
   {id:"yarn",k:"Group Chat + Coach Corner",t:"The Yarn",s:"The banter lives here. What's said here stays here.",img:"https://heavyweight-app.vercel.app/images/members.jpg"},
   {id:"podcast",k:"Stories From The Club",t:"Local Blokes Podcast",s:"Real talk from the crew — training, life & everything in between.",img:IMGS.podcast},
+  {id:"photos",k:"Just For You",t:"Weekly Progress Photos",s:"Private to you — not even staff or coaches can see these.",img:IMGS.crossfit},
   {id:"ladder",k:"Blokes Only",t:"The Ladder",s:"Same points, our own comp — Fresh Meat to Heavyweight Champion.",logo:true}];
 async function lbProgram(){
   await loadBlokes();await loadWorld();if(!wLogsLoaded)await loadWLogs();
@@ -1974,10 +2003,65 @@ function lbMd(md){
 }
 /* ---- Local Blokes Calorie Calculator ---- */
 let lbcJob=0,lbcExtra=-1,lbcType=0;
+let lbWeighinData=null;
 const LBC_PLANS=[["A",3000],["B",2700],["C",2400],["D",2100]];
+async function loadLbWeighins(){
+  const {data}=await sb.from("blokes_weighins").select("*").eq("user_id",session.user.id).order("week_of",{ascending:false}).limit(12);
+  lbWeighinData=data||[];
+}
+function weighinSectionHtml(){
+  if(!lbWeighinData)return `<div class="card" style="margin-top:10px"><div class="loadingDots">Loading your weigh-ins…</div></div>`;
+  const rows=lbWeighinData;
+  const trend=rows.map((r,i)=>{
+    const prev=rows[i+1];
+    const diff=prev?(+r.weight_kg-+prev.weight_kg):null;
+    return {...r,diff};
+  });
+  let flag="";
+  if(trend.length>=3){
+    const recent=trend.slice(0,3).map(r=>r.diff).filter(d=>d!==null);
+    if(recent.length>=2&&recent.every(d=>d>0))flag=`<p style="font-size:12px;color:#e0a852;margin-top:8px;line-height:1.6">Trending up the last couple of weeks — if that's not the goal, tighten up on plan compliance or chat to the coaches.</p>`;
+    else if(recent.length>=2&&recent.every(d=>d<0)&&recent.reduce((a,b)=>a+b,0)<-1.5)flag=`<p style="font-size:12px;color:#e0a852;margin-top:8px;line-height:1.6">Dropping fast — make sure that's the plan and not just a big week. Have a word with the coaches if it keeps sliding.</p>`;
+  }
+  return `<div class="secTitle">Weekly Weigh-In</div>
+  <div class="card">
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Same day, same time, before brekky — consistency beats precision.</p>
+    <div class="row2">
+      <div class="field"><label>Week Of</label><input id="wiWeek" type="date" value="${weekKey(new Date())}"></div>
+      <div class="field"><label>Weight (kg)</label><input id="wiWeight" type="number" step="0.1" inputmode="decimal" placeholder="e.g. 102.4"></div>
+    </div>
+    <div class="field"><label>Note (optional)</label><input id="wiNote" placeholder="How'd the week go?"></div>
+    <button class="btnGold" style="background:#c9994d" onclick="logWeighin()">Log This Week</button>
+    ${flag}
+  </div>
+  ${trend.length?`<div class="card" style="margin-top:10px">
+    ${trend.map(r=>`<div class="weekRow">
+      <span>${fmtDateAU(r.week_of)}${r.note?` <small style="color:var(--muted)">— ${esc(r.note)}</small>`:""}</span>
+      <span style="font-weight:800">${(+r.weight_kg).toFixed(1)}kg ${r.diff!==null?`<small style="color:${r.diff<0?'var(--ok)':(r.diff>0?'#e0a852':'#9e9e9e')}">${r.diff>0?"▲":r.diff<0?"▼":"→"} ${Math.abs(r.diff).toFixed(1)}</small>`:""}</span>
+      <button class="xBtn" onclick="delWeighin('${r.id}')">×</button>
+    </div>`).join("")}
+  </div>`:""}`;
+}
+function renderWeighinSection(){const el=$("wiSection");if(el)el.innerHTML=weighinSectionHtml();}
+async function logWeighin(){
+  const wk=$("wiWeek").value,w=+$("wiWeight").value,note=$("wiNote")?$("wiNote").value.trim():"";
+  if(!wk){toast("Pick the week.");return;}
+  if(!(w>=30&&w<=300)){toast("Weight in kilos — e.g. 102.4.");return;}
+  const {error}=await sb.from("blokes_weighins").upsert({user_id:session.user.id,week_of:wk,weight_kg:w,note},{onConflict:"user_id,week_of"});
+  if(error){toast(error.message);return;}
+  toast("Logged — nice work staying honest with it.");
+  lbWeighinData=null;await loadLbWeighins();renderWeighinSection();
+}
+async function delWeighin(id){
+  const {error}=await sb.from("blokes_weighins").delete().eq("id",id).eq("user_id",session.user.id);
+  toast(error?error.message:"Removed.");
+  lbWeighinData=null;await loadLbWeighins();renderWeighinSection();
+}
 function lbCalc(){
   const box=$("lbContent");if(!box)return;
   lbcJob=0;lbcExtra=-1;lbcType=0;
+  lbWeighinData=null;
+  loadLbWeighins().then(()=>{if(view==="blokes"&&lbSub==="calc")renderWeighinSection();});
   box.innerHTML=`
     <div class="card" style="border-color:#3a2f1b;background:#131110">
       <div style="font-weight:900;letter-spacing:3px;color:#c9994d;font-size:10.5px">FIND YOUR FUEL PLAN</div>
@@ -2008,7 +2092,8 @@ function lbCalc(){
       </div>
       <button class="btnGold" style="margin-top:14px;background:#c9994d" onclick="lbcRun()">Crunch The Numbers</button>
     </div>
-    <div id="lbcOut"></div>`;
+    <div id="lbcOut"></div>
+    <div id="wiSection">${weighinSectionHtml()}</div>`;
 }
 function lbcSel(btn,kind,val){
   if(kind==="job")lbcJob=val;else if(kind==="type")lbcType=val;else lbcExtra=val;
@@ -2380,6 +2465,65 @@ function lbPodcast(){
       <iframe style="border-radius:12px;border:0" src="https://open.spotify.com/embed/episode/${e.id}" width="100%" height="152" title="${esc(e.title)}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
       <p style="margin-top:10px"><a href="https://open.spotify.com/episode/${e.id}" target="_blank" rel="noreferrer" style="color:#c9994d;font-size:12.5px">Open in Spotify ›</a></p>
     </div>`).join("")}`;
+}
+
+/* ---- Weekly Progress Photos (private — owner only) ---- */
+let lbPhotoData=null;
+async function loadLbPhotos(){
+  const {data}=await sb.from("blokes_progress_photos").select("*").eq("user_id",session.user.id).order("week_of",{ascending:false});
+  lbPhotoData=data||[];
+}
+async function lbProgressPhotos(){
+  if(view!=="blokes"||lbSub!=="photos")return;const box=$("lbContent");if(!box)return;
+  if(!lbPhotoData)await loadLbPhotos();
+  if(view!=="blokes"||lbSub!=="photos")return;
+  const withUrls=await Promise.all(lbPhotoData.map(async p=>{
+    const {data}=await sb.storage.from("blokes-progress-photos").createSignedUrl(p.photo_url,3600);
+    return {...p,signedUrl:(data&&data.signedUrl)||""};
+  }));
+  if(view!=="blokes"||lbSub!=="photos")return;
+  box.innerHTML=`
+    <div class="hero" style="background:linear-gradient(180deg,rgba(8,8,10,.45),rgba(8,8,10,.92)),url('${IMGS.crossfit}') center/cover no-repeat #0a0b0e">
+      <div class="heroKicker" style="color:#c9994d">Just For You</div>
+      <div class="heroTitle">Weekly Progress Photos</div>
+      <div class="heroText">Private to you — not even staff or coaches can see these. Snap one a week and watch the changes stack up.</div>
+    </div>
+    <div class="card">
+      <div class="field"><label>Week Of</label><input id="lbpWeek" type="date" value="${weekKey(new Date())}"></div>
+      <div class="field"><label>Note (optional)</label><input id="lbpNote" placeholder="How's it going?" maxlength="200"></div>
+      <input type="file" id="lbpFile" accept="image/*" style="display:none" onchange="uploadLbPhoto(event)">
+      <button class="btnGold" onclick="$('lbpFile').click()">Add This Week's Photo</button>
+    </div>
+    ${withUrls.length?`<div class="secTitle">Your Photos — Private</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      ${withUrls.map(p=>`
+        <div class="card" style="padding:8px">
+          ${p.signedUrl?`<img src="${esc(p.signedUrl)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px" alt="">`:""}
+          <div class="sub" style="margin-top:6px;font-size:11px">${fmtDateAU(p.week_of)}</div>
+          ${p.note?`<p style="font-size:11.5px;margin-top:2px">${esc(p.note)}</p>`:""}
+          <button class="btnLink" style="margin-top:6px;font-size:11px;border-color:var(--danger);color:var(--danger)" onclick="delLbPhoto('${p.id}')">Delete</button>
+        </div>`).join("")}
+    </div>`:`<div class="emptyMsg">No photos yet — get your first one in this week.</div>`}`;
+}
+async function uploadLbPhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const ext=(f.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+  const path=session.user.id+"/"+Date.now()+"."+ext;
+  toast("Uploading — this one's private, just for you…");
+  const {error}=await sb.storage.from("blokes-progress-photos").upload(path,f);
+  if(error){toast(error.message);return;}
+  const wk=$("lbpWeek")?$("lbpWeek").value:weekKey(new Date());
+  const note=$("lbpNote")?$("lbpNote").value.trim():"";
+  const ins=await sb.from("blokes_progress_photos").insert({user_id:session.user.id,photo_url:path,week_of:wk,note});
+  if(ins.error){toast(ins.error.message);return;}
+  toast("Photo saved — just for you.");
+  lbPhotoData=null;await loadLbPhotos();lbProgressPhotos();
+}
+async function delLbPhoto(id){
+  const {error}=await sb.from("blokes_progress_photos").delete().eq("id",id).eq("user_id",session.user.id);
+  if(error){toast(error.message);return;}
+  toast("Photo deleted.");
+  lbPhotoData=null;await loadLbPhotos();lbProgressPhotos();
 }
 
 /* ---- Sparring Club hub ---- */
@@ -3770,6 +3914,7 @@ function renderNutrition(){
 
 /* ---- Timetable + class registration ---- */
 /* Current school-holiday timetable. Junior Boxing & Pro-Am are not registrable. */
+const CLASS_CAPACITY=16;
 const CLASS_SCHEDULE=[
   {d:1,t:"05:15",n:"Boxing"},{d:1,t:"18:00",n:"Boxing"},
   {d:2,t:"05:15",n:"Strength & Conditioning"},{d:2,t:"18:00",n:"Strength & Conditioning"},
@@ -3827,12 +3972,24 @@ async function attendClass(date,time,name){
     if(se&&!/duplicate|unique/i.test(se.message))toast("Class is booked, but you didn't land on the sparring matchup list — open Boxing → Sparring → Sparring tab and tap Attending, or see a coach.");
     else toast("Booked in for Sparring at "+Number(bp.current_weight)+"kg — you're on the matchup list.");
   }else toast("You're booked in — "+name+" at "+fmtClassTime(time)+". See you there.");
+  await sb.from("class_waitlist").delete().eq("user_id",session.user.id).eq("class_date",date).eq("class_time",time);
   refreshClassReg();
 }
 async function unattendClass(date,time,name){
   const {error}=await sb.from("class_regs").delete().eq("user_id",session.user.id).eq("class_date",date).eq("class_time",time);
   if(name&&/sparring/i.test(name))await sb.from("spar_signups").delete().eq("user_id",session.user.id).eq("week_date",date);
   toast(error?error.message:"You've been removed from "+(name||"the class")+" — spot freed up.");
+  refreshClassReg();
+}
+async function joinWaitlist(date,time,name){
+  const me=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";
+  const {error}=await sb.from("class_waitlist").insert({user_id:session.user.id,name:me,class_name:name,class_date:date,class_time:time});
+  toast(error?(/duplicate|unique/i.test(error.message)?"You're already on the waitlist for that one.":error.message):"You're on the waitlist — grab a spot the moment one opens up.");
+  refreshClassReg();
+}
+async function leaveWaitlist(date,time){
+  const {error}=await sb.from("class_waitlist").delete().eq("user_id",session.user.id).eq("class_date",date).eq("class_time",time);
+  toast(error?error.message:"Off the waitlist.");
   refreshClassReg();
 }
 
@@ -4419,7 +4576,14 @@ function staffMsgHtml(m){
 }
 function renderStaffChat(){
   const mgr=profile.is_manager;
+  if(ANN===undefined){loadAnnouncement().then(()=>{if(view==="staff"&&staffSub==="chat")renderStaffChat();});}
   $("staffContent").innerHTML=`
+    <div class="card" style="border-color:#c9994d">
+      <div class="secTitle" style="margin-bottom:8px">📣 Home Screen Announcement</div>
+      ${ANN?`<p style="font-size:13px;margin-bottom:10px">${esc(ANN.body)}</p><button class="btnLink" onclick="takeDownAnnouncement('${ANN.id}')">Take It Down</button>`
+        :`<textarea id="annInput" placeholder="What should members see on the home screen?" maxlength="300" style="width:100%;min-height:60px;background:#0d0d0d;border:1px solid #2a2417;border-radius:10px;color:#fff;padding:10px;font-size:13px"></textarea>
+        <button class="btnLink" style="margin-top:8px" onclick="postAnnouncement()">Post Announcement</button>`}
+    </div>
     <div class="card">
       <div id="stMsgs" style="max-height:45vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:6px">
         ${staffData.msgs.length?staffData.msgs.map(staffMsgHtml).join(""):'<div class="emptyMsg">No messages yet — kick it off.</div>'}
