@@ -14,3 +14,27 @@ self.addEventListener("fetch", e => {
       .catch(() => caches.match(e.request))
   );
 });
+
+self.addEventListener("push", e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { title: "Legacy Gym", body: e.data ? e.data.text() : "" }; }
+  const title = d.title || "Legacy Gym";
+  const opts = {
+    body: d.body || "",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    data: { url: d.url || "/" }
+  };
+  e.waitUntil(self.registration.showNotification(title, opts));
+});
+
+self.addEventListener("notificationclick", e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || "/";
+  e.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+      for (const c of list) { if ("focus" in c) return c.focus(); }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});

@@ -1247,13 +1247,71 @@ function announcementBannerHtml(){
 }
 async function postAnnouncement(){
   const el=$("annInput");if(!el)return;const body=el.value.trim();if(!body)return;
+  const wantPush=$("annPush")?$("annPush").checked:false;
   await sb.from("gym_announcements").update({active:false}).eq("active",true);
   await sb.from("gym_announcements").insert({body,active:true,created_by:session.user.id});
   ANN=undefined;await loadAnnouncement();renderStaffChat();
+  if(wantPush){
+    fetch("/api/send-push",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token:session.access_token,title:"Legacy Gym",body,url:"/"})}).catch(()=>{});
+  }
 }
 async function takeDownAnnouncement(id){
   await sb.from("gym_announcements").update({active:false}).eq("id",id);
   ANN=undefined;await loadAnnouncement();renderStaffChat();
+}
+/* ---- Push Notifications ---- */
+const VAPID_PUBLIC_KEY="BIwXhngRHbQmn8Gz6dBWAmjLfCUS3K_AHVA39HWHVEtnkvB2QyYeGJ-elh1ozeN5jIyyY3-aFkW3Jng0uUXVeqQ";
+function urlB64ToUint8Array(base64String){
+  const padding="=".repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
+  const raw=atob(base64);const arr=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+async function getPushSub(){
+  if(!("serviceWorker" in navigator)||!("PushManager" in window))return null;
+  const reg=await navigator.serviceWorker.ready;
+  return reg.pushManager.getSubscription();
+}
+async function isPushSubscribed(){
+  const sub=await getPushSub();
+  return !!sub;
+}
+async function subscribePush(){
+  if(!("serviceWorker" in navigator)||!("PushManager" in window)){toast("Push notifications aren't supported on this device.");return;}
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){toast("Notifications blocked — enable them in your browser settings to turn this on.");return;}
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToUint8Array(VAPID_PUBLIC_KEY)});
+    const j=sub.toJSON();
+    await sb.from("push_subscriptions").upsert({user_id:session.user.id,endpoint:j.endpoint,p256dh:j.keys.p256dh,auth_key:j.keys.auth},{onConflict:"endpoint"});
+    toast("Notifications on — nice one.");
+  }catch(e){toast("Couldn't turn on notifications: "+(e.message||e));}
+  refreshPushToggleBtn();
+}
+async function unsubscribePush(){
+  try{
+    const sub=await getPushSub();
+    if(sub){
+      await sb.from("push_subscriptions").delete().eq("endpoint",sub.endpoint);
+      await sub.unsubscribe();
+    }
+    toast("Notifications off.");
+  }catch(e){toast("Couldn't turn off notifications: "+(e.message||e));}
+  refreshPushToggleBtn();
+}
+async function togglePush(){
+  const on=await isPushSubscribed();
+  if(on)await unsubscribePush();else await subscribePush();
+}
+async function refreshPushToggleBtn(){
+  const btn=$("pushToggleBtn");if(!btn)return;
+  if(!("serviceWorker" in navigator)||!("PushManager" in window)){btn.textContent="🔕 Notifications not supported on this device";btn.disabled=true;return;}
+  const on=await isPushSubscribed();
+  const btn2=$("pushToggleBtn");if(!btn2)return;
+  btn2.textContent=on?"🔕 Turn Off Notifications":"🔔 Enable Notifications";
 }
 /* ---- Add To Home Screen walkthrough ---- */
 function installBannerHtml(){
@@ -4582,6 +4640,7 @@ function renderStaffChat(){
       <div class="secTitle" style="margin-bottom:8px">📣 Home Screen Announcement</div>
       ${ANN?`<p style="font-size:13px;margin-bottom:10px">${esc(ANN.body)}</p><button class="btnLink" onclick="takeDownAnnouncement('${ANN.id}')">Take It Down</button>`
         :`<textarea id="annInput" placeholder="What should members see on the home screen?" maxlength="300" style="width:100%;min-height:60px;background:#0d0d0d;border:1px solid #2a2417;border-radius:10px;color:#fff;padding:10px;font-size:13px"></textarea>
+        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12.5px;color:#9e9e9e"><input type="checkbox" id="annPush" checked style="width:auto">Also send as a push notification</label>
         <button class="btnLink" style="margin-top:8px" onclick="postAnnouncement()">Post Announcement</button>`}
     </div>
     <div class="card">
@@ -4852,8 +4911,10 @@ function renderProfile(){
         <div class="field"><label>Date of Birth</label><input id="pfDob" type="date" value="${p.dob||""}" required></div>
         <button class="btnGold" type="submit">Save Profile</button>
       </form>
+      <button class="btnLink" id="pushToggleBtn" style="margin-top:14px" onclick="togglePush()">🔔 Notifications</button>
       <button class="btnSignout" onclick="signOut()">Sign Out</button>
     </div>`;
+  refreshPushToggleBtn();
 }
 async function saveProfile(e){
   e.preventDefault();
