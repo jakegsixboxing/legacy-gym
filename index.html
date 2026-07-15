@@ -471,7 +471,7 @@ function renderNav(){
 }
 function go(v){
   if(needsSetup&&session&&v!=="setup"){toast("Finish your Legacy Profile first — photo and all. No profile, no app.");v="setup";}
-  view=v;wpSel=null;wsSel=null;fnSel=null;renderNav();render();window.scrollTo(0,0);if(v==="chat")markRead();
+  view=v;wpSel=null;wsSel=null;fnSel=null;if(v==="blokes")lbSub="home";if(v==="recovery")recSub="home";renderNav();render();window.scrollTo(0,0);if(v==="chat")markRead();
 }
 
 /* ======== RENDER ======== */
@@ -1398,11 +1398,13 @@ async function saveMemberProfile(){
   if(error){toast(error.message);return;}
   myMpCache=rec;needsSetup=false;
   if(mpMembership===TIER_LB){
-    await sb.from("profiles").update({is_blokes:true,is_fighter:true}).eq("id",session.user.id);
-    profile.is_blokes=true;profile.is_fighter=true;
+    const {error:fe}=await sb.from("profiles").update({is_blokes:true,is_fighter:true}).eq("id",session.user.id);
+    if(fe){toast("Profile saved, but VIP access didn't stick — see the front desk and we'll flick it on.");}
+    else{profile.is_blokes=true;profile.is_fighter=true;}
   }else if(mpMembership===TIER_FIGHT){
-    await sb.from("profiles").update({is_fighter:true}).eq("id",session.user.id);
-    profile.is_fighter=true;
+    const {error:fe}=await sb.from("profiles").update({is_fighter:true}).eq("id",session.user.id);
+    if(fe){toast("Profile saved, but fighter access didn't stick — see the front desk and we'll flick it on.");}
+    else{profile.is_fighter=true;}
   }
   mpEditing=false;mpPhotoUrl=null;
   toast("Legacy Profile saved. Welcome aboard.");
@@ -1631,7 +1633,7 @@ async function lbProgram(){
   await loadBlokes();await loadWorld();if(!wLogsLoaded)await loadWLogs();
   if(view!=="blokes"||lbSub!=="program")return;const box=$("lbContent");if(!box)return;
   const wk=LB_DATA.weeks[lbWeek],st=LB_DATA.strength[lbDay];
-  const d0=new Date().toISOString().slice(0,10);
+  const d0=isoDateLocal();
   const claimed=ptsData.events.some(e=>e.user_id===session.user.id&&e.kind==="class"&&e.ref==="lb:"+d0);
   const bestOf=ex=>lbData.lifts.filter(l=>l.user_id===session.user.id&&l.exercise===ex).reduce((m,l)=>Math.max(m,+l.weight_kg),0);
   const todayOf=ex=>lbData.lifts.filter(l=>l.user_id===session.user.id&&l.exercise===ex&&l.session_date===d0);
@@ -1691,7 +1693,7 @@ async function lbLogSets(ex,i,sets){
   const rows=[];
   for(let j=0;j<sets;j++){
     const kg=parseFloat($("lbKg-"+i+"-"+j).value),rp=parseInt($("lbRp-"+i+"-"+j).textContent)||0;
-    if(kg&&rp)rows.push({user_id:session.user.id,week:lbWeek,day:lbDay,exercise:ex,weight_kg:kg,reps:rp});
+    if(kg&&rp)rows.push({user_id:session.user.id,week:lbWeek,day:lbDay,exercise:ex,weight_kg:kg,reps:rp,session_date:isoDateLocal()});
   }
   if(!rows.length){toast("Fill in at least one set — kilos and reps.");return;}
   const {error}=await sb.from("blokes_lifts").insert(rows);
@@ -1700,7 +1702,7 @@ async function lbLogSets(ex,i,sets){
   await loadBlokes(true);renderBlokes();
 }
 async function lbSubmitSession(){
-  const d0=new Date().toISOString().slice(0,10);
+  const d0=isoDateLocal();
   const ok=await awardPoints("class","lb:"+d0,1);
   toast(ok?"Session locked in — 1 point on your tally.":"Couldn't submit — try again.");
   await loadWorld(true);renderBlokes();
@@ -1919,6 +1921,7 @@ let lbcJob=0,lbcExtra=-1,lbcType=0;
 const LBC_PLANS=[["A",3000],["B",2700],["C",2400],["D",2100]];
 function lbCalc(){
   const box=$("lbContent");if(!box)return;
+  lbcJob=0;lbcExtra=-1;lbcType=0;
   box.innerHTML=`
     <div class="card" style="border-color:#3a2f1b;background:#131110">
       <div style="font-weight:900;letter-spacing:3px;color:#c9994d;font-size:10.5px">FIND YOUR FUEL PLAN</div>
@@ -2984,7 +2987,7 @@ async function saveBoxerProfile(){
 async function logSparring(){
   const rounds=parseInt($("ssRounds").value);
   if(!rounds||rounds<1){toast("How many rounds?");return;}
-  const rec={user_id:session.user.id,rounds,minutes_per_round:parseFloat($("ssMins").value),partner:$("ssPartner").value.trim(),note:$("ssNote").value.trim()};
+  const rec={user_id:session.user.id,rounds,minutes_per_round:parseFloat($("ssMins").value)||3,partner:$("ssPartner").value.trim(),note:$("ssNote").value.trim()};
   const sd=$("ssDate")&&$("ssDate").value;if(sd)rec.session_date=sd;
   const {error}=await sb.from("sparring_sessions").insert(rec);
   if(error){toast(error.message);return;}
@@ -3737,7 +3740,7 @@ function fmtClassTime(t){const [h,m]=t.split(":").map(Number);const ap=h>=12?"PM
 async function renderTimetable(){
   $("main").innerHTML=`
     <div class="notice"><b>Camp 3 commences Monday July 20.</b> We're currently on the school-holiday timetable.</div>
-    <button class="btnGold" style="margin-bottom:14px" onclick="boxSub='register';go('boxing')">Register For A Class — Next 2 Days</button>
+    <button class="btnGold" style="margin-bottom:14px" onclick="go('classes')">Register For A Class — Next 2 Days</button>
     <div class="secTitle">This Week's Timetable</div>
     <a href="${TIMETABLE_IMG}" target="_blank"><img src="${TIMETABLE_IMG}" alt="Legacy Timetable" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block"></a>
     <p style="color:var(--muted);font-size:12px;margin-top:8px;text-align:center">Tap the timetable to open it full size.</p>
@@ -3763,8 +3766,9 @@ async function attendClass(date,time,name){
   const {error}=await sb.from("class_regs").insert({user_id:session.user.id,name:isSpar?bp.name:me,class_name:name,class_date:date,class_time:time});
   if(error){toast(/duplicate|unique/i.test(error.message)?"You're already booked in for that one.":error.message);refreshClassReg();return;}
   if(isSpar){
-    await sb.from("spar_signups").insert({user_id:session.user.id,name:bp.name,weight:bp.current_weight,division:bp.division||"Sparring Club",week_date:date});
-    toast("Booked in for Sparring at "+Number(bp.current_weight)+"kg — you're on the matchup list.");
+    const {error:se}=await sb.from("spar_signups").insert({user_id:session.user.id,name:bp.name,weight:bp.current_weight,division:bp.division||"Sparring Club",week_date:date});
+    if(se&&!/duplicate|unique/i.test(se.message))toast("Class is booked, but you didn't land on the sparring matchup list — open Boxing → Sparring → Sparring tab and tap Attending, or see a coach.");
+    else toast("Booked in for Sparring at "+Number(bp.current_weight)+"kg — you're on the matchup list.");
   }else toast("You're booked in — "+name+" at "+fmtClassTime(time)+". See you there.");
   refreshClassReg();
 }
@@ -3942,7 +3946,7 @@ async function renderAMA(){
     amaLoaded=true;
   }
   if(view!=="ama")return;
-  if(!amaMsgs.length)amaMsgs.push({who:"ama",txt:"G'day"+((profile&&profile.first_name)?" "+profile.first_name:"")+" — ask me about any gym-related information. Class times, booking a sauna, training programs, PTs, prices — type it in and I'll sort you out."});
+  if(!amaMsgs.length)amaMsgs.push({who:"ama",txt:"G'day"+((profile&&profile.first_name)?" "+profile.first_name:"")+" — ask me about any gym-related information. Class times, booking a sauna, training programs, the coaches, prices — type it in and I'll sort you out."});
   $("main").innerHTML=`
     <div class="hero" style="background:linear-gradient(160deg,#17171a 0%,#0b0b0e 75%);padding:22px">
       <div class="heroKicker">AI Information Assistant</div>
@@ -4260,8 +4264,11 @@ async function shopLoadCredit(){
   const hist=[...evs.map(e=>({d:e.created_at,t:e.note||"Credit",a:Number(e.amount)})),...rds.filter(r=>r.status!=="cancelled").map(r=>({d:r.created_at,t:"Checkout code "+r.code+(r.status==="used"?" (spent)":""),a:-Number(r.amount)}))].sort((a,b)=>new Date(b.d)-new Date(a.d));
   if(hh&&hist.length)hh.innerHTML=`<details style="margin-top:12px"><summary style="font-size:12px;color:var(--gold);font-weight:800;cursor:pointer">Credit History</summary>${hist.map(e=>`<div class="weekRow"><span style="font-size:12px;text-align:left">${esc(e.t)}<br><small style="color:var(--muted)">${fmtWhen(e.d)}</small></span><b style="color:${e.a<0?"#e05252":"var(--gold)"}">${e.a<0?"−$"+Math.abs(e.a):"+$"+e.a}</b></div>`).join("")}</details>`;
 }
+let redeemBusy=false;
 async function shopRedeem(amt){
+  if(redeemBusy){toast("Hang on — still creating your last code.");return;}
   if(!confirm("Turn $"+amt+" of your store credit into a one-off checkout code?"))return;
+  redeemBusy=true;
   toast("Creating your checkout code…");
   try{
     const r=await fetch("/api/redeem",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token:session.access_token,amount:amt})});
@@ -4271,6 +4278,7 @@ async function shopRedeem(amt){
     if(j.error==="insufficient_credit"){toast("Not enough credit for that amount.");return;}
     toast("Couldn't create the code — nothing was taken off your balance. Try again.");
   }catch(e){toast("Couldn't reach the store — no credit taken. Try again in a minute.");}
+  finally{redeemBusy=false;}
 }
 async function rdSet(id,st){
   const {error}=await sb.from("credit_redemptions").update({status:st}).eq("id",id);
