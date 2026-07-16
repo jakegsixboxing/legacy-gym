@@ -125,6 +125,7 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .dvSC{color:#ff9d9d;border:1px solid rgba(224,82,82,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(224,82,82,.4);text-shadow:0 0 10px rgba(224,82,82,.7)}
 .dvFIT{color:#a8d4ec;border:1px solid rgba(143,184,216,.65);box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 16px rgba(143,184,216,.4);text-shadow:0 0 10px rgba(143,184,216,.7)}
 .dvCOACH{color:#f5dc96;border:1px solid rgba(230,193,92,.85);background:linear-gradient(135deg,rgba(163,126,44,.5),rgba(20,20,22,.7));box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 20px rgba(230,193,92,.55);text-shadow:0 0 10px rgba(230,193,92,.85)}
+.dvLB{color:#f5dc96;border:1px solid rgba(201,153,77,.75);background:linear-gradient(135deg,rgba(201,153,77,.45),rgba(20,20,22,.7));box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 18px rgba(201,153,77,.5);text-shadow:0 0 10px rgba(201,153,77,.8)}
 .fcAcc{margin-top:16px;position:relative}
 .accT{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
 .accList{display:flex;flex-wrap:wrap;gap:7px}
@@ -1704,6 +1705,7 @@ const LB={logo:"https://heavyweight-app.vercel.app/icons/icon-192.png",gold:"#c9
 const LB_LEVELS=[[0,"Fresh Meat","bronze",0],[5,"Cannon Fodder","bronze",1],[12,"Scrapper","silver",0],[20,"Hard Bastard","silver",1],[30,"The Enforcer","gold",0],[45,"Silverback","gold",1],[60,"Wrecking Ball","platinum",0],[80,"Savage","platinum",1],[105,"Stone Cold","platinum",2],[135,"Apex Predator","platinum",3],[170,"Heavyweight Champion","champion",3]];
 function lbLevelOf(p){let i=0;LB_LEVELS.forEach((l,n)=>{if(p>=l[0])i=n;});const L=LB_LEVELS[i];return {pts:L[0],name:L[1],tier:L[2],stars:L[3],n:i+1,next:LB_LEVELS[i+1]||null};}
 let lbSub="home",lbWeek=1,lbDay="mon",lbFuelTab=(localStorage.getItem("lg_fuel_seen")?"plan":"guides"),lbPlan="A",lbTimerDay=null,lbGuide=null;
+let lbExtraData=null,lbGoalEditing=false,lbCoachRoster=null,lbCoachSel=null,lbCoachDetail=null;
 let lbData={loaded:false,lifts:[],msgs:[],events:[],rsvps:[],members:null};
 async function loadBlokes(force){
   if(lbData.loaded&&!force)return;
@@ -1741,8 +1743,9 @@ function renderBlokes(){
       </div>
     </div>`;
   if(lbSub==="home"){
-    $("main").innerHTML=`<button class="backBtn" onclick="go('home')">‹ Back To Home</button>`+header+LB_TILES.map(t=>`
-      <button class="homeCard" style="${t.logo?`background:linear-gradient(90deg,rgba(13,13,13,.5) 0%,rgba(13,13,13,.95) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:`background:linear-gradient(180deg,rgba(13,13,11,.5),rgba(13,13,11,.92)),url('${t.img}') center/cover no-repeat #0d0d0d;border-color:#2a2417`}" onclick="lbSub='${t.id}';lbTimerDay=null;renderBlokes()">
+    const tiles=LB_TILES.concat(profile&&profile.is_lb_coach?[LB_COACH_TILE]:[]);
+    $("main").innerHTML=`<button class="backBtn" onclick="go('home')">‹ Back To Home</button>`+header+tiles.map(t=>`
+      <button class="homeCard" style="${t.logo?`background:linear-gradient(90deg,rgba(13,13,13,.5) 0%,rgba(13,13,13,.95) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:`background:linear-gradient(180deg,rgba(13,13,11,.5),rgba(13,13,11,.92)),url('${t.img}') center/cover no-repeat #0d0d0d;border-color:#2a2417`}" onclick="lbSub='${t.id}';lbTimerDay=null;lbCoachSel=null;lbGoalEditing=false;renderBlokes()">
         <div class="hcKicker" style="color:#c9994d">${t.k}</div>
         <div class="hcTitle">${t.t}</div>
         <div class="hcSub">${t.s}</div>
@@ -1750,7 +1753,7 @@ function renderBlokes(){
     return;
   }
   $("main").innerHTML=`
-    <button class="backBtn" style="color:#c9994d" onclick="lbSub='home';lbTimerDay=null;renderBlokes();window.scrollTo(0,0)">‹ Local Blokes</button>
+    <button class="backBtn" style="color:#c9994d" onclick="lbSub='home';lbTimerDay=null;lbCoachSel=null;renderBlokes();window.scrollTo(0,0)">‹ Local Blokes</button>
     <div id="lbContent"><div class="loadingDots">Loading…</div></div>`;
   if(lbSub==="program")lbProgram();
   else if(lbSub==="boxing")lbBoxing();
@@ -1760,9 +1763,12 @@ function renderBlokes(){
   else if(lbSub==="golf")lbGolf();
   else if(lbSub==="podcast")lbPodcast();
   else if(lbSub==="photos")lbProgressPhotos();
+  else if(lbSub==="myprofile")lbMyProfile();
+  else if(lbSub==="coachview")lbCoachView();
   else lbLadder();
 }
 const LB_TILES=[
+  {id:"myprofile",k:"Your Details",t:"My Profile",s:"Your photo, your goal, your weekly weigh-ins & progress photos.",img:"https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1000&q=70"},
   {id:"program",k:"The 10-Week Block",t:"Strength Program",s:"Monday push, Wednesday legs & pull — bank every set.",img:"https://heavyweight-app.vercel.app/images/strength.jpg"},
   {id:"boxing",k:"Monday & Wednesday Nights",t:"Boxing",s:"The club sessions, full round timer built in.",img:"https://heavyweight-app.vercel.app/images/boxing.jpg"},
   {id:"fuel",k:"Fuel Plans A–D",t:"Meal Plan",s:"Named meals, recipes & your one-tap weekly shop.",img:"https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=1000&q=70"},
@@ -1770,8 +1776,9 @@ const LB_TILES=[
   {id:"golf",k:"The Local Blokes Classic",t:"Golf Days",s:"Two Sundays at Mangrove Mountain — get your name down.",img:"https://images.unsplash.com/photo-1606443192517-919653213206?auto=format&fit=crop&w=1000&q=70"},
   {id:"yarn",k:"Group Chat + Coach Corner",t:"The Yarn",s:"The banter lives here. What's said here stays here.",img:"https://heavyweight-app.vercel.app/images/members.jpg"},
   {id:"podcast",k:"Stories From The Club",t:"Local Blokes Podcast",s:"Real talk from the crew — training, life & everything in between.",img:IMGS.podcast},
-  {id:"photos",k:"Just For You",t:"Weekly Progress Photos",s:"Private to you — not even staff or coaches can see these.",img:IMGS.crossfit},
+  {id:"photos",k:"Just For You",t:"Weekly Progress Photos",s:"Private to you and your coaches — no other member ever sees these.",img:IMGS.crossfit},
   {id:"ladder",k:"Blokes Only",t:"The Ladder",s:"Same points, our own comp — Fresh Meat to Heavyweight Champion.",logo:true}];
+const LB_COACH_TILE={id:"coachview",k:"Staff Only — Jake, Alison & Joe",t:"Coach View",s:"Every Local Blokes member's profile, weigh-ins & progress photos in one place.",img:"https://images.unsplash.com/photo-1517963879433-6ad2b056d712?auto=format&fit=crop&w=1000&q=70"};
 async function lbProgram(){
   await loadBlokes();await loadWorld();if(!wLogsLoaded)await loadWLogs();
   if(view!=="blokes"||lbSub!=="program")return;const box=$("lbContent");if(!box)return;
@@ -3176,7 +3183,7 @@ async function lbProgressPhotos(){
     <div class="hero" style="background:linear-gradient(180deg,rgba(8,8,10,.45),rgba(8,8,10,.92)),url('${IMGS.crossfit}') center/cover no-repeat #0a0b0e">
       <div class="heroKicker" style="color:#c9994d">Just For You</div>
       <div class="heroTitle">Weekly Progress Photos</div>
-      <div class="heroText">Private to you — not even staff or coaches can see these. Snap one a week and watch the changes stack up.</div>
+      <div class="heroText">Private to you and your coaches — no other Local Bloke ever sees these. Snap one a week and watch the changes stack up.</div>
     </div>
     <div class="card">
       <div class="field"><label>Week Of</label><input id="lbpWeek" type="date" value="${weekKey(new Date())}"></div>
@@ -3214,6 +3221,133 @@ async function delLbPhoto(id){
   if(error){toast(error.message);return;}
   toast("Photo deleted.");
   lbPhotoData=null;await loadLbPhotos();lbProgressPhotos();
+}
+
+async function loadLbExtra(force){
+  if(lbExtraData&&!force)return;
+  const {data}=await sb.from("lb_member_extra").select("*").eq("user_id",session.user.id).maybeSingle();
+  lbExtraData=data||{goal:""};
+}
+async function saveLbGoal(){
+  const goal=$("mpGoalInput")?$("mpGoalInput").value.trim():"";
+  const {error}=await sb.from("lb_member_extra").upsert({user_id:session.user.id,goal,updated_at:new Date().toISOString()});
+  if(error){toast(error.message);return;}
+  lbExtraData={...(lbExtraData||{}),goal};lbGoalEditing=false;
+  toast("Goal updated.");
+  lbMyProfile();
+}
+async function lbMyProfile(){
+  await loadWorld();await loadLbExtra();await loadLbWeighins();if(!lbPhotoData)await loadLbPhotos();
+  if(view!=="blokes"||lbSub!=="myprofile")return;const box=$("lbContent");if(!box)return;
+  const mp=myMp()||{};
+  const photoCount=(lbPhotoData||[]).length;
+  box.innerHTML=`
+    <div class="card" style="text-align:center">
+      <div class="fcPhotoWrap" style="display:inline-block;margin:0 auto 10px">
+        ${mp.photo_url?`<img class="fcPhoto" src="${esc(mp.photo_url)}" style="width:96px;height:96px" alt="">`:`<div class="fcPhoto fcPhotoEmpty" style="width:96px;height:96px">${esc((mp.full_name||"?").trim()[0]||"?")}</div>`}
+        <span class="dvBadge dvLB">LOCAL BLOKE</span>
+      </div>
+      <h2 style="font-size:19px">${esc(mp.full_name||"")}</h2>
+      <div class="sub" style="font-size:12px;margin-top:2px">${[mp.age?mp.age+" yrs":"",mp.membership].filter(Boolean).join(" · ")}</div>
+    </div>
+    <div class="secTitle">Your Goal</div>
+    <div class="card">
+      ${lbGoalEditing?`
+        <textarea id="mpGoalInput" maxlength="200" rows="3" style="width:100%;resize:vertical;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:10px;font-family:inherit" placeholder="e.g. Drop 10kg before summer, get my first strict pull-up…">${esc((lbExtraData&&lbExtraData.goal)||"")}</textarea>
+        <button class="btnGold" style="margin-top:10px" onclick="saveLbGoal()">Save Goal</button>
+        <button class="btnLink" style="margin-top:8px" onclick="lbGoalEditing=false;lbMyProfile()">Cancel</button>
+      `:`
+        <p style="font-size:13px;line-height:1.6">${lbExtraData&&lbExtraData.goal?esc(lbExtraData.goal):`<span style="color:var(--muted)">No goal set yet — add one so the coaches know what you're chasing.</span>`}</p>
+        <button class="btnLink" style="margin-top:10px" onclick="lbGoalEditing=true;lbMyProfile()">${lbExtraData&&lbExtraData.goal?"Edit Goal":"Add Your Goal"}</button>
+      `}
+      <p style="font-size:10.5px;color:var(--muted);margin-top:10px">Visible to you and your coaches only — no other member sees this.</p>
+    </div>
+    <div id="wiSection">${weighinSectionHtml()}</div>
+    <div class="secTitle">Weekly Progress Photos</div>
+    <div class="card">
+      <p style="font-size:12px;color:var(--muted)">Private to you and your coaches — ${photoCount} photo${photoCount===1?"":"s"} logged${photoCount?", most recent "+fmtDateAU(lbPhotoData[0].week_of):""}.</p>
+      <button class="btnGold" style="margin-top:12px" onclick="lbSub='photos';renderBlokes()">Manage Progress Photos</button>
+    </div>`;
+}
+
+/* ---- Coach View (Jake, Alison & Joe only — every Local Blokes member's profile) ---- */
+async function loadLbCoachRoster(force){
+  if(lbCoachRoster&&!force)return;
+  const {data:mem}=await sb.rpc("blokes_members");
+  const ids=(mem||[]).map(m=>m.user_id);
+  const [mpr,exr]=await Promise.all([
+    ids.length?sb.from("member_profiles").select("*").in("user_id",ids):Promise.resolve({data:[]}),
+    ids.length?sb.from("lb_member_extra").select("*").in("user_id",ids):Promise.resolve({data:[]})]);
+  const mp=mpr.data||[],ex=exr.data||[];
+  lbCoachRoster=(mem||[]).map(m=>{
+    const p=mp.find(x=>x.user_id===m.user_id)||{};
+    const e=ex.find(x=>x.user_id===m.user_id)||{};
+    return {user_id:m.user_id,full_name:p.full_name||m.full_name||"Member",age:p.age,photo_url:p.photo_url,membership:p.membership,goal:e.goal||""};
+  }).sort((a,b)=>a.full_name.localeCompare(b.full_name));
+}
+async function loadLbCoachDetail(uid,force){
+  if(lbCoachDetail&&lbCoachDetail.user_id===uid&&!force)return;
+  const [wi,ph]=await Promise.all([
+    sb.from("blokes_weighins").select("*").eq("user_id",uid).order("week_of",{ascending:false}).limit(20),
+    sb.from("blokes_progress_photos").select("*").eq("user_id",uid).order("week_of",{ascending:false})]);
+  const withUrls=await Promise.all((ph.data||[]).map(async p=>{
+    const {data}=await sb.storage.from("blokes-progress-photos").createSignedUrl(p.photo_url,3600);
+    return {...p,signedUrl:(data&&data.signedUrl)||""};
+  }));
+  lbCoachDetail={user_id:uid,weighins:wi.data||[],photos:withUrls};
+}
+function lbCoachCardHtml(m){
+  return `<button class="homeCard" style="background:linear-gradient(180deg,rgba(13,13,11,.55),rgba(13,13,11,.95));border-color:#2a2417;text-align:left;padding:14px" onclick="lbCoachSel='${m.user_id}';renderBlokes()">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="fcPhotoWrap">${m.photo_url?`<img class="fcPhoto" src="${esc(m.photo_url)}" style="width:52px;height:52px" alt="">`:`<div class="fcPhoto fcPhotoEmpty" style="width:52px;height:52px;font-size:18px">${esc((m.full_name||"?").trim()[0]||"?")}</div>`}
+        <span class="dvBadge dvLB" style="font-size:6.5px;padding:3px 5px;bottom:-6px">LOCAL BLOKE</span></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:14.5px">${esc(m.full_name)}</div>
+        <div class="sub" style="font-size:11px">${[m.age?m.age+" yrs":"",m.membership].filter(Boolean).join(" · ")}</div>
+        ${m.goal?`<div style="font-size:11px;color:#c9994d;margin-top:3px">🎯 ${esc(m.goal)}</div>`:""}
+      </div>
+    </div>
+  </button>`;
+}
+async function lbCoachView(){
+  if(!profile||!profile.is_lb_coach){const box=$("lbContent");if(box)box.innerHTML=`<div class="card"><p>Staff only.</p></div>`;return;}
+  await loadLbCoachRoster();
+  if(view!=="blokes"||lbSub!=="coachview")return;const box=$("lbContent");if(!box)return;
+  if(lbCoachSel){
+    await loadLbCoachDetail(lbCoachSel);
+    if(view!=="blokes"||lbSub!=="coachview"||lbCoachSel!==(lbCoachDetail&&lbCoachDetail.user_id))return;
+    const m=(lbCoachRoster||[]).find(x=>x.user_id===lbCoachSel)||{};
+    const d=lbCoachDetail;
+    box.innerHTML=`
+      <button class="backBtn" style="color:#c9994d" onclick="lbCoachSel=null;renderBlokes()">‹ Coach View</button>
+      <div class="card" style="text-align:center">
+        <div class="fcPhotoWrap" style="display:inline-block;margin:0 auto 10px">
+          ${m.photo_url?`<img class="fcPhoto" src="${esc(m.photo_url)}" style="width:88px;height:88px" alt="">`:`<div class="fcPhoto fcPhotoEmpty" style="width:88px;height:88px">${esc((m.full_name||"?").trim()[0]||"?")}</div>`}
+          <span class="dvBadge dvLB">LOCAL BLOKE</span>
+        </div>
+        <h2 style="font-size:18px">${esc(m.full_name)}</h2>
+        <div class="sub" style="font-size:12px">${[m.age?m.age+" yrs":"",m.membership].filter(Boolean).join(" · ")}</div>
+        ${m.goal?`<p style="font-size:12.5px;color:#c9994d;margin-top:8px">🎯 ${esc(m.goal)}</p>`:`<p style="font-size:12px;color:var(--muted);margin-top:8px">No goal set yet.</p>`}
+      </div>
+      <div class="secTitle">Weigh-In History</div>
+      <div class="card">
+        ${d.weighins.length?d.weighins.map((r,i)=>{
+          const prev=d.weighins[i+1];const diff=prev?(+r.weight_kg-+prev.weight_kg):null;
+          return `<div class="weekRow"><span>${fmtDateAU(r.week_of)}${r.note?` <small style="color:var(--muted)">— ${esc(r.note)}</small>`:""}</span><span style="font-weight:800">${(+r.weight_kg).toFixed(1)}kg ${diff!==null?`<small style="color:${diff<0?'var(--ok)':(diff>0?'#e0a852':'#9e9e9e')}">${diff>0?"▲":diff<0?"▼":"→"} ${Math.abs(diff).toFixed(1)}</small>`:""}</span></div>`;
+        }).join(""):`<p style="font-size:12.5px;color:var(--muted)">No weigh-ins logged yet.</p>`}
+      </div>
+      <div class="secTitle">Progress Photo Timeline</div>
+      ${d.photos.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${d.photos.map(p=>`
+        <div class="card" style="padding:8px">
+          ${p.signedUrl?`<img src="${esc(p.signedUrl)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px" alt="">`:""}
+          <div class="sub" style="margin-top:6px;font-size:11px">${fmtDateAU(p.week_of)}</div>
+          ${p.note?`<p style="font-size:11.5px;margin-top:2px">${esc(p.note)}</p>`:""}
+        </div>`).join("")}</div>`:`<div class="emptyMsg">No progress photos logged yet.</div>`}`;
+    return;
+  }
+  box.innerHTML=`<div class="secTitle">Coach View — Local Blokes Roster (${(lbCoachRoster||[]).length})</div>`+
+    `<p style="font-size:11.5px;color:var(--muted);margin:-6px 2px 10px">Only visible to Jake, Alison & Joe. Tap a member for their weigh-ins & progress photos.</p>`+
+    (lbCoachRoster&&lbCoachRoster.length?lbCoachRoster.map(lbCoachCardHtml).join(""):`<div class="emptyMsg">No Local Blokes members yet.</div>`);
 }
 
 /* ---- Sparring Club hub ---- */
