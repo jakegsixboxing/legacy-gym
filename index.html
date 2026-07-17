@@ -657,7 +657,7 @@ function upcomingClasses48(){
     const day=new Date(now);day.setDate(day.getDate()+off);
     if(day>horizon&&off>0)break;
     const dow=day.getDay();
-    CLASS_SCHEDULE.filter(c=>c.d===dow).forEach(c=>{
+    scheduleForDate(day).filter(c=>c.d===dow).forEach(c=>{
       const [h,m]=c.t.split(":").map(Number);
       const start=new Date(day);start.setHours(h,m,0,0);
       if(start>now&&start<=horizon)out.push({...c,start,date:isoDateLocal(day),off});
@@ -4759,9 +4759,13 @@ function renderNutrition(){
 }
 
 /* ---- Timetable + class registration ---- */
-/* Current school-holiday timetable. Junior Boxing & Pro-Am are not registrable. */
+/* Term 3 timetable live from Monday 20 July 2026 — sourced from legacygym.net.
+   Junior Boxing/Strength & Con and Local Blokes are shown for reference only
+   and are not registrable through class_regs (Junior bookings run through the
+   front desk; Local Blokes has its own booking flow in the Local Blokes tab). */
 const CLASS_CAPACITY=16;
-const CLASS_SCHEDULE=[
+const CAMP3_START="2026-07-20";
+const CLASS_SCHEDULE_OLD=[
   {d:1,t:"05:15",n:"Boxing"},{d:1,t:"18:00",n:"Boxing"},
   {d:2,t:"05:15",n:"Strength & Conditioning"},{d:2,t:"18:00",n:"Strength & Conditioning"},
   {d:3,t:"05:15",n:"Boxing"},{d:3,t:"18:00",n:"Boxing"},{d:3,t:"19:00",n:"Sparring"},
@@ -4769,13 +4773,23 @@ const CLASS_SCHEDULE=[
   {d:5,t:"05:15",n:"Boxing"},{d:5,t:"18:00",n:"Boxing"},
   {d:6,t:"08:00",n:"Boxing"},{d:6,t:"09:00",n:"Strength & Conditioning"}
 ];
+const TIMETABLE_NEW=[
+  {d:1,t:"05:15",n:"Boxing",cat:"box"},{d:1,t:"06:15",n:"Boxing",cat:"box"},{d:1,t:"16:30",n:"Junior Boxing",cat:"jnr"},{d:1,t:"17:00",n:"‘GRUNT’ S&C",cat:"snc"},{d:1,t:"18:00",n:"Boxing",cat:"box"},{d:1,t:"18:45",n:"Sparring & Drills",cat:"spar"},{d:1,t:"19:45",n:"Local Blokes",cat:"blokes"},
+  {d:2,t:"05:15",n:"‘GRUNT’ S&C",cat:"snc"},{d:2,t:"06:15",n:"‘GRUNT’ S&C",cat:"snc"},{d:2,t:"16:30",n:"Juniors Strength & Con",cat:"jnr"},{d:2,t:"17:00",n:"Boxing",cat:"box"},{d:2,t:"18:00",n:"‘GRUNT’ S&C",cat:"snc"},
+  {d:3,t:"05:15",n:"Boxing",cat:"box"},{d:3,t:"06:15",n:"Boxing",cat:"box"},{d:3,t:"16:30",n:"Junior Boxing",cat:"jnr"},{d:3,t:"17:00",n:"‘GRUNT’ S&C",cat:"snc"},{d:3,t:"18:00",n:"Boxing",cat:"box"},{d:3,t:"18:45",n:"Sparring & Drills",cat:"spar"},{d:3,t:"19:45",n:"Local Blokes",cat:"blokes"},
+  {d:4,t:"05:15",n:"‘GRUNT’ S&C",cat:"snc"},{d:4,t:"06:15",n:"‘GRUNT’ S&C",cat:"snc"},{d:4,t:"16:30",n:"Juniors Strength & Con",cat:"jnr"},{d:4,t:"17:00",n:"Boxing",cat:"box"},{d:4,t:"18:00",n:"‘GRUNT’ S&C",cat:"snc"},
+  {d:5,t:"05:15",n:"Boxing",cat:"box"},{d:5,t:"16:30",n:"Junior Boxing & Con",cat:"jnr"},{d:5,t:"18:00",n:"Boxing",cat:"box"},
+  {d:6,t:"07:30",n:"Boxing",cat:"box"},{d:6,t:"08:30",n:"‘GRUNT’ S&C",cat:"snc"}
+];
+const CLASS_SCHEDULE_NEW=TIMETABLE_NEW.filter(c=>c.cat!=="jnr"&&c.cat!=="blokes").map(c=>({d:c.d,t:c.t,n:c.n}));
+function scheduleForDate(day){return isoDateLocal(day)>=CAMP3_START?CLASS_SCHEDULE_NEW:CLASS_SCHEDULE_OLD;}
 const REG_WINDOW_H=24;
 function upcomingClasses(){
   const now=new Date(),out=[];
   for(let off=0;off<=1;off++){
     const day=new Date(now);day.setDate(day.getDate()+off);
     const dow=day.getDay();
-    CLASS_SCHEDULE.filter(c=>c.d===dow).forEach(c=>{
+    scheduleForDate(day).filter(c=>c.d===dow).forEach(c=>{
       const [h,m]=c.t.split(":").map(Number);
       const start=new Date(day);start.setHours(h,m,0,0);
       const diff=(start-now)/36e5;
@@ -4785,13 +4799,26 @@ function upcomingClasses(){
   return out.sort((a,b)=>a.start-b.start);
 }
 function fmtClassTime(t){const [h,m]=t.split(":").map(Number);const ap=h>=12?"PM":"AM";let hh=h%12;if(hh===0)hh=12;return hh+":"+pad(m)+" "+ap;}
+const DOW_NAMES=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function timetableGridHtml(){
+  const catColor={box:"#e0a458",snc:"var(--gold)",jnr:"#5aa7c9",spar:"#d9704a",blokes:"#4fae7a"};
+  return [1,2,3,4,5,6].map(d=>{
+    const rows=TIMETABLE_NEW.filter(c=>c.d===d).slice().sort((a,b)=>a.t.localeCompare(b.t));
+    if(!rows.length)return"";
+    return `<div class="secTitle">${DOW_NAMES[d]}</div><div class="card" style="padding:4px 14px">`+
+      rows.map(c=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)">
+        <span style="font-weight:800;font-size:13px;color:${catColor[c.cat]||"inherit"}">${esc(c.n)}</span>
+        <span style="font-size:13px;color:var(--muted)">${fmtClassTime(c.t)}</span>
+      </div>`).join("")+`</div>`;
+  }).join("");
+}
 async function renderTimetable(){
   $("main").innerHTML=`
-    <div class="notice"><b>Camp 3 commences Monday July 20.</b> We're currently on the school-holiday timetable.</div>
+    <div class="notice"><b>Term 3 timetable is live from Monday 20 July.</b> Anything already booked in for this week runs on the current schedule as normal.</div>
     <button class="btnGold" style="margin-bottom:14px" onclick="go('classes')">Register For A Class — Next 2 Days</button>
-    <div class="secTitle">This Week's Timetable</div>
-    <a href="${TIMETABLE_IMG}" target="_blank"><img src="${TIMETABLE_IMG}" alt="Legacy Timetable" style="width:100%;border-radius:12px;border:1px solid var(--line);display:block"></a>
-    <p style="color:var(--muted);font-size:12px;margin-top:8px;text-align:center">Tap the timetable to open it full size.</p>
+    <div class="secTitle">Timetable — From Monday 20 July</div>
+    ${timetableGridHtml()}
+    <p style="color:var(--muted);font-size:11.5px;margin-top:2px;line-height:1.5">Junior sessions (ages 8–14) run through the front desk, not this app. Local Blokes has its own booking flow in the Local Blokes tab.</p>
     <div class="card"><h3>Gym Floor Staffed Hours</h3><ul style="margin-top:8px"><li>Mon – Thu: 5:15am – 7:45am</li><li>Mon – Fri: 4:00pm – 7:00pm</li><li>Saturday: 8:00am – 11:00am</li></ul></div>`;
 }
 function refreshClassReg(){
