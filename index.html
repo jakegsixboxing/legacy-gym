@@ -458,7 +458,6 @@ const NAV=[
   {id:"home",label:"Home",icon:'<path d="M3 11l9-8 9 8"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>'},
   {id:"boxing",label:"Boxing",icon:'<path d="M7 10V6a5 5 0 0 1 10 0v4"/><rect x="5" y="10" width="14" height="8" rx="4"/><path d="M9 18v3M15 18v3"/>'},
   {id:"weights",label:"Weights",icon:'<path d="M2 12h3M19 12h3M8 12h8"/><rect x="5" y="7" width="3" height="10" rx="1"/><rect x="16" y="7" width="3" height="10" rx="1"/>'},
-  {id:"functional",label:"Functional",icon:'<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/>'},
   {id:"recovery",label:"Recovery",icon:'<path d="M4 13c2-2 4-2 6 0s4 2 6 0 4-2 4 0"/><path d="M4 18c2-2 4-2 6 0s4 2 6 0 4-2 4 0"/><path d="M12 3v5M9 5l3 3 3-3"/>'},
   {id:"timetable",label:"Times",icon:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/>'},
   {id:"nutrition",label:"Nutrition",icon:'<path d="M12 20c-4 0-7-3-7-7 0-3 2-5 4-5 1.5 0 2.5.6 3 1.2.5-.6 1.5-1.2 3-1.2 2 0 4 2 4 5 0 4-3 7-7 7z"/><path d="M12 8c0-2 1-4 3-5"/>'},
@@ -1027,7 +1026,13 @@ function sToggle(){
   if(S.run){horn(.45);S.int=setInterval(sTick,1000);}
   updS();
 }
-function sReset(){clearInterval(S.int);S.idx=0;S.remain=S.phases.length?S.phases[0].s:0;S.run=false;updS();}
+function sReset(){clearInterval(S.int);S.idx=0;S.remain=S.phases.length?S.phases[0].s:0;S.run=false;S.logged=false;updS();}
+async function logByoComplete(){
+  const rounds=S.total||byo.list.length;if(!rounds)return;
+  const note=rounds+" round"+(rounds===1?"":"s")+" · "+fmtSec(byo.len)+" rounds, "+fmtSec(byo.rest)+" rest";
+  const {error}=await sb.from("training_logs").insert({user_id:session.user.id,program:"Boxing — Build Your Own",session:rounds+" rounds",note,session_date:isoDateLocal()});
+  if(!error)historyData=null;
+}
 function sNextRoundStart(from){
   let j=from;
   while(j<S.phases.length&&!S.phases[j].end)j++;
@@ -1085,7 +1090,9 @@ function updS(){
     const vD=$("sVid");if(vD)vD.style.display="none";
     ph.textContent="DONE";ph.className="timerPhase gold";tm.textContent="0:00";
     sub.innerHTML=`Session complete · <span style="color:var(--gold);font-weight:800;cursor:pointer" onclick="sOneMore()">+ One More Round</span> · <span style="color:var(--gold);font-weight:800;cursor:pointer" onclick="byoSaveSession()">💾 Save Session</span>`;
-    nx.textContent=(S.total||byo.list.length)+" rounds in the bank. Well earned.";go.textContent="Go Again";return;
+    nx.textContent=(S.total||byo.list.length)+" rounds in the bank. Well earned.";go.textContent="Go Again";
+    if(!S.logged){S.logged=true;logByoComplete();}
+    return;
   }
   const p=S.phases[S.idx];
   const vd=$("sVid");
@@ -1339,7 +1346,7 @@ function installBannerHtml(){
 function dismissInstallBanner(){localStorage.setItem("lg_install_dismissed","1");renderHome();}
 async function awardPoints(kind,ref,pts){
   const {error}=await sb.from("points_events").upsert({user_id:session.user.id,kind,ref,points:pts},{onConflict:"user_id,kind,ref",ignoreDuplicates:true});
-  if(!error)ptsData.loaded=false;
+  if(!error){ptsData.loaded=false;historyData=null;}
   return !error;
 }
 /* Cardio Challenges */
@@ -1853,6 +1860,7 @@ async function lbLogSets(ex,i,sets){
   const {error}=await sb.from("blokes_lifts").insert(rows);
   if(error){toast(error.message);return;}
   toast(ex+" — "+rows.length+" set"+(rows.length>1?"s":"")+" banked.");
+  historyData=null;
   await loadBlokes(true);renderBlokes();
 }
 async function lbSubmitSession(){
@@ -2754,6 +2762,7 @@ async function logWeighin(){
   if(!(w>=30&&w<=300)){toast("Weight in kilos — e.g. 102.4.");return;}
   const {error}=await sb.from("blokes_weighins").upsert({user_id:session.user.id,week_of:wk,weight_kg:w,note},{onConflict:"user_id,week_of"});
   if(error){toast(error.message);return;}
+  historyData=null;
   toast("Logged — nice work staying honest with it.");
   lbWeighinData=null;await loadLbWeighins();renderWeighinSection();
 }
@@ -4020,7 +4029,7 @@ async function logSparring(){
   const sd=$("ssDate")&&$("ssDate").value;if(sd)rec.session_date=sd;
   const {error}=await sb.from("sparring_sessions").insert(rec);
   if(error){toast(error.message);return;}
-  toast(rounds+" rounds banked. Good work.");renderSparringClub();
+  toast(rounds+" rounds banked. Good work.");historyData=null;renderSparringClub();
 }
 async function delSparring(id){
   const {error}=await sb.from("sparring_sessions").delete().eq("id",id).eq("user_id",session.user.id);
@@ -4311,6 +4320,7 @@ async function logTraining(program,sessionName){
   const {error}=await sb.from("training_logs").insert({user_id:session.user.id,program,session:sessionName,note,session_date:isoDateLocal()});
   if(error){toast(error.message);return;}
   toast("Banked \u2014 "+program+".");
+  historyData=null;
   await loadWLogs();
   if(wpSel)renderWProgram(wpSel);else if(wsSel)renderWSingle(wsSel);else renderWeights();
 }
@@ -4464,8 +4474,16 @@ function renderWorkout(i){
       <p>${esc(w.d)}</p>
     </div>
     ${timerCardHtml(w.f)}
+    <div class="card"><button class="btnGold" onclick="logWod(${i})">Mark Workout Complete</button></div>
     <div class="notice">The timer matches the workout format \u2014 it beeps you into every round, changeover and rest. Scale loads and movements to your level.</div>`;
   loadWorkoutTimer(w.t);
+}
+async function logWod(i){
+  const w=WODS[i];if(!w)return;
+  const {error}=await sb.from("training_logs").insert({user_id:session.user.id,program:"CrossFit WOD",session:w.n,note:w.f,session_date:isoDateLocal()});
+  if(error){toast(error.message);return;}
+  toast("Banked \u2014 "+w.n+" logged to your training history.");
+  historyData=null;
 }
 
 /* ---- Recovery ---- */
@@ -5723,9 +5741,65 @@ function renderProfile(){
       </form>
       <button class="btnLink" id="pushToggleBtn" style="margin-top:14px" onclick="togglePush()">🔔 Notifications</button>
       <button class="btnSignout" onclick="signOut()">Sign Out</button>
-    </div>`;
+    </div>
+    <div class="secTitle">Your Training History</div>
+    <div id="historySection">${historySectionHtml()}</div>`;
   refreshPushToggleBtn();
+  if(!historyData)loadHistory().then(()=>{if(view==="profile")renderHistorySection();});
 }
+let historyData=null;
+async function loadHistory(){
+  const uid=session.user.id;
+  const isBlokes=!!(profile&&profile.is_blokes);
+  const qs=[
+    sb.from("points_events").select("kind,ref,points,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(300),
+    sb.from("training_logs").select("program,session,note,session_date").eq("user_id",uid).order("session_date",{ascending:false}).limit(300),
+    sb.from("sparring_sessions").select("rounds,minutes_per_round,partner,session_date,created_at").eq("user_id",uid).order("session_date",{ascending:false}).limit(200)
+  ];
+  if(isBlokes){
+    qs.push(sb.from("blokes_lifts").select("session_date").eq("user_id",uid).order("session_date",{ascending:false}).limit(1000));
+    qs.push(sb.from("blokes_weighins").select("week_of,weight_kg").eq("user_id",uid).order("week_of",{ascending:false}).limit(100));
+  }
+  const res=await Promise.all(qs.map(q=>q.then(r=>r).catch(()=>({data:[]}))));
+  const [pe,tl,ss,...rest]=res;
+  const items=[];
+  (pe.data||[]).forEach(e=>{
+    const d=isoDateLocal(new Date(e.created_at));
+    if(e.kind==="class")items.push({date:d,title:ptsLabel(e),sub:"Class attendance"});
+    else if(e.kind==="challenge")items.push({date:d,title:ptsLabel(e),sub:"Cardio & Member Challenge"});
+    else if(e.kind==="record")items.push({date:d,title:ptsLabel(e),sub:"Club record"});
+  });
+  (tl.data||[]).forEach(l=>{
+    items.push({date:l.session_date,title:(l.program||"Training")+(l.session?" — "+l.session:""),sub:l.note||"Logged session"});
+  });
+  (ss.data||[]).forEach(s=>{
+    items.push({date:s.session_date||isoDateLocal(new Date(s.created_at)),title:"Sparring — "+s.rounds+" round"+(s.rounds===1?"":"s"),sub:s.partner?"With "+s.partner:"Sparring Club"});
+  });
+  if(isBlokes){
+    const [bl,bw]=rest;
+    const byDay={};
+    (bl.data||[]).forEach(r=>{(byDay[r.session_date]=byDay[r.session_date]||0);byDay[r.session_date]++;});
+    Object.entries(byDay).forEach(([d,n])=>{
+      items.push({date:d,title:"Local Blokes strength session",sub:n+" set"+(n===1?"":"s")+" logged"});
+    });
+    (bw.data||[]).forEach(w=>{
+      items.push({date:w.week_of,title:"Weigh-in logged",sub:w.weight_kg+" kg"});
+    });
+  }
+  items.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  historyData=items;
+}
+function historySectionHtml(){
+  if(!historyData)return `<div class="card"><div class="loadingDots">Loading your training history…</div></div>`;
+  if(!historyData.length)return `<div class="card"><p class="emptyMsg">Nothing logged yet — every class, session and challenge you complete will show up here.</p></div>`;
+  const byDate={};
+  historyData.forEach(h=>{(byDate[h.date]=byDate[h.date]||[]).push(h);});
+  const dates=Object.keys(byDate).sort().reverse().slice(0,60);
+  return dates.map(d=>`<div class="secTitle" style="font-size:11.5px;margin-top:14px">${fmtDateAU(d)}</div>`+
+    byDate[d].map(h=>`<div class="sessItem"><div><b>${esc(h.title)}</b><small>${esc(h.sub)}</small></div></div>`).join("")
+  ).join("");
+}
+function renderHistorySection(){const el=$("historySection");if(el)el.innerHTML=historySectionHtml();}
 async function saveProfile(e){
   e.preventDefault();
   const upd={first_name:$("pfFirst").value.trim(),last_name:$("pfLast").value.trim(),phone:$("pfPhone").value.trim(),dob:$("pfDob").value};
