@@ -58,7 +58,14 @@ input,select,textarea{font-family:inherit}
 .topBrand img{height:30px;width:auto}
 .topBrand .tbText{font-family:'Oswald',sans-serif;font-weight:600;font-size:17px;letter-spacing:4px;color:#fff;text-transform:uppercase}
 .topBrand .tbText small{display:block;font-size:8.5px;letter-spacing:3px;color:var(--gold);font-weight:600}
-.profileBtn{width:38px;height:38px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);color:var(--gold);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center}
+.profileBtn{width:38px;height:38px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);color:var(--gold);font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;background-size:cover;background-position:center}
+.profileWrap{display:flex;flex-direction:column;align-items:center;gap:3px}
+.profileWrap span{font-size:8.5px;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;font-weight:700}
+.avatarBig{width:96px;height:96px;border-radius:50%;margin:0 auto 12px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:28px;color:var(--gold);background-size:cover;background-position:center;background-color:var(--panel2)}
+.editRow{background:#0e0e10;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:8px}
+.editRow .field{margin-bottom:10px}
+.editRowBtns{display:flex;gap:8px}
+.editRowBtns button{flex:1;padding:11px;border-radius:8px;font-weight:800;font-size:12px;letter-spacing:1.5px;text-transform:uppercase}
 main{max-width:520px;margin:0 auto;padding:20px 18px}
 
 /* hero */
@@ -352,7 +359,10 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(13,13,14,.
     <div class="topBrand">
       <img src="icon-192.png" alt="Legacy Gym" style="height:42px;width:42px;border-radius:10px">
     </div>
-    <button class="profileBtn" id="profileBtn" onclick="go('profile')">–</button>
+    <div class="profileWrap">
+      <button class="profileBtn" id="profileBtn" onclick="go('profile')">–</button>
+      <span>Profile</span>
+    </div>
   </div>
   <main id="main"></main>
   <nav id="nav"></nav>
@@ -385,6 +395,8 @@ function bgStyle(id,strength){const a=strength??.45;return `background:linear-gr
 
 let session=null, profile=null, view="home", authMode="login";
 let msgs=[], chatChannel=null, lastRead=Number(localStorage.getItem("lg_read")||0);
+let pendingAvatarData=null, editingLogId=null;
+let weighData=null, editingWeighId=null;
 
 /* ======== HELPERS ======== */
 const $=id=>document.getElementById(id);
@@ -436,11 +448,24 @@ async function ensureProfile(){
     data=ins;
   }
   profile=data;
-  $("profileBtn").textContent=((profile.first_name||"?")[0]+(profile.last_name||"?")[0]).toUpperCase();
+  updateProfileBtn();
+}
+function updateProfileBtn(){
+  const btn=$("profileBtn");if(!btn||!profile)return;
+  const initials=((profile.first_name||"?")[0]+(profile.last_name||"?")[0]).toUpperCase();
+  if(profile.avatar_url){
+    btn.style.backgroundImage=`url('${profile.avatar_url}')`;
+    btn.textContent="";
+  }else{
+    btn.style.backgroundImage="";
+    btn.textContent=initials;
+  }
 }
 async function signOut(){
   if(chatChannel){sb.removeChannel(chatChannel);chatChannel=null;}
   if(staffChannel){sb.removeChannel(staffChannel);staffChannel=null;}
+  historyData=null;weighData=null;editingLogId=null;editingWeighId=null;pendingAvatarData=null;
+  wLogs=[];wLogsLoaded=false;
   await sb.auth.signOut();session=null;profile=null;showAuth();
 }
 function showAuth(){$("appScreen").classList.add("hidden");$("authScreen").classList.remove("hidden");}
@@ -5754,6 +5779,10 @@ function renderProfile(){
     <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
     <div class="hero"><div class="heroKicker">Member Profile</div><div class="heroTitle">${esc((p.first_name||"")+" "+(p.last_name||""))}</div>
     <div class="heroText">Your Legacy Gym member profile.</div></div>
+    <div class="card" style="text-align:center">
+      <div class="avatarBig" id="pfAvatarPreview" style="background-image:${p.avatar_url?`url('${esc(p.avatar_url)}')`:"none"}">${p.avatar_url?"":esc(((p.first_name||"?")[0]+(p.last_name||"?")[0]).toUpperCase())}</div>
+      <label class="btnLink" style="cursor:pointer;display:inline-block">Change Photo<input type="file" accept="image/*" id="pfAvatarInput" style="display:none" onchange="handleAvatarPick(event)"></label>
+    </div>
     <div class="card">
       <div id="pfMsg"></div>
       <form onsubmit="return saveProfile(event)">
@@ -5769,10 +5798,14 @@ function renderProfile(){
       <button class="btnLink" id="pushToggleBtn" style="margin-top:14px" onclick="togglePush()">🔔 Notifications</button>
       <button class="btnSignout" onclick="signOut()">Sign Out</button>
     </div>
+    <div class="secTitle">Your Weight</div>
+    <div id="weighSection">${weighinsSectionHtml()}</div>
     <div class="secTitle">Your Training History</div>
+    <p style="font-size:11.5px;color:var(--muted);margin:0 2px 8px;line-height:1.6">Logged a session wrong? Tap Edit to fix it, or × to remove it.</p>
     <div id="historySection">${historySectionHtml()}</div>`;
   refreshPushToggleBtn();
   if(!historyData)loadHistory().then(()=>{if(view==="profile")renderHistorySection();});
+  if(!weighData)loadWeighins().then(()=>{if(view==="profile")renderWeighSection();});
 }
 let historyData=null;
 async function loadHistory(){
@@ -5780,7 +5813,7 @@ async function loadHistory(){
   const isBlokes=!!(profile&&profile.is_blokes);
   const qs=[
     sb.from("points_events").select("kind,ref,points,created_at").eq("user_id",uid).order("created_at",{ascending:false}).limit(300),
-    sb.from("training_logs").select("program,session,note,session_date").eq("user_id",uid).order("session_date",{ascending:false}).limit(300),
+    sb.from("training_logs").select("id,program,session,note,session_date").eq("user_id",uid).order("session_date",{ascending:false}).limit(300),
     sb.from("sparring_sessions").select("rounds,minutes_per_round,partner,session_date,created_at").eq("user_id",uid).order("session_date",{ascending:false}).limit(200)
   ];
   if(isBlokes){
@@ -5797,7 +5830,7 @@ async function loadHistory(){
     else if(e.kind==="record")items.push({date:d,title:ptsLabel(e),sub:"Club record"});
   });
   (tl.data||[]).forEach(l=>{
-    items.push({date:l.session_date,title:(l.program||"Training")+(l.session?" — "+l.session:""),sub:l.note||"Logged session"});
+    items.push({date:l.session_date,title:(l.program||"Training")+(l.session?" — "+l.session:""),sub:l.note||"Logged session",kind:"training_log",id:l.id,program:l.program,session:l.session,note:l.note});
   });
   (ss.data||[]).forEach(s=>{
     items.push({date:s.session_date||isoDateLocal(new Date(s.created_at)),title:"Sparring — "+s.rounds+" round"+(s.rounds===1?"":"s"),sub:s.partner?"With "+s.partner:"Sparring Club"});
@@ -5816,6 +5849,21 @@ async function loadHistory(){
   items.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
   historyData=items;
 }
+function historyItemHtml(h){
+  if(h.kind==="training_log"&&editingLogId===h.id){
+    return `<div class="editRow">
+      <div class="field"><label>Date</label><input type="date" id="elDate_${h.id}" value="${h.date}"></div>
+      <div class="field"><label>Session</label><input id="elSession_${h.id}" value="${esc(h.session||"")}"></div>
+      <div class="field"><label>Note</label><input id="elNote_${h.id}" value="${esc(h.note||"")}"></div>
+      <div class="editRowBtns">
+        <button class="btnGold" onclick="saveEditLog('${h.id}')">Save</button>
+        <button class="btnLink" onclick="cancelEditLog()">Cancel</button>
+      </div>
+    </div>`;
+  }
+  const actions=h.kind==="training_log"?`<div style="display:flex;gap:6px;flex-shrink:0"><button class="btnLink" style="padding:4px 8px" onclick="startEditLog('${h.id}')">Edit</button><button class="xBtn" onclick="delWLog('${h.id}')">×</button></div>`:"";
+  return `<div class="sessItem"><div style="min-width:0"><b>${esc(h.title)}</b><small>${esc(h.sub)}</small></div>${actions}</div>`;
+}
 function historySectionHtml(){
   if(!historyData)return `<div class="card"><div class="loadingDots">Loading your training history…</div></div>`;
   if(!historyData.length)return `<div class="card"><p class="emptyMsg">Nothing logged yet — every class, session and challenge you complete will show up here.</p></div>`;
@@ -5823,16 +5871,126 @@ function historySectionHtml(){
   historyData.forEach(h=>{(byDate[h.date]=byDate[h.date]||[]).push(h);});
   const dates=Object.keys(byDate).sort().reverse().slice(0,60);
   return dates.map(d=>`<div class="secTitle" style="font-size:11.5px;margin-top:14px">${fmtDateAU(d)}</div>`+
-    byDate[d].map(h=>`<div class="sessItem"><div><b>${esc(h.title)}</b><small>${esc(h.sub)}</small></div></div>`).join("")
+    byDate[d].map(historyItemHtml).join("")
   ).join("");
 }
 function renderHistorySection(){const el=$("historySection");if(el)el.innerHTML=historySectionHtml();}
+function startEditLog(id){editingLogId=id;renderHistorySection();}
+function cancelEditLog(){editingLogId=null;renderHistorySection();}
+async function saveEditLog(id){
+  const dateEl=$("elDate_"+id),sessionEl=$("elSession_"+id),noteEl=$("elNote_"+id);
+  if(!dateEl||!dateEl.value){toast("Pick a date.");return;}
+  const upd={session_date:dateEl.value,session:sessionEl.value.trim(),note:noteEl.value.trim()};
+  const {error}=await sb.from("training_logs").update(upd).eq("id",id).eq("user_id",session.user.id);
+  if(error){toast(error.message);return;}
+  editingLogId=null;wLogsLoaded=false;historyData=null;
+  await loadHistory();
+  renderHistorySection();
+  toast("Session updated.");
+}
+async function delWLog(id){
+  const {error}=await sb.from("training_logs").delete().eq("id",id).eq("user_id",session.user.id);
+  if(error){toast(error.message);return;}
+  wLogsLoaded=false;historyData=null;
+  if(view==="profile"){await loadHistory();renderHistorySection();}
+  else{await loadWLogs();renderWeights();}
+}
+async function loadWeighins(){
+  const {data}=await sb.from("member_weighins").select("*").eq("user_id",session.user.id).order("logged_at",{ascending:false}).limit(200);
+  weighData=data||[];
+}
+function weighinRowHtml(w){
+  if(editingWeighId===w.id){
+    return `<div class="editRow">
+      <div class="row2">
+        <div class="field"><label>Weight (kg)</label><input type="number" step="0.1" min="0" id="ewKg_${w.id}" value="${w.weight_kg}"></div>
+        <div class="field"><label>Date</label><input type="date" id="ewDate_${w.id}" value="${w.logged_at}"></div>
+      </div>
+      <div class="editRowBtns">
+        <button class="btnGold" onclick="saveEditWeighin('${w.id}')">Save</button>
+        <button class="btnLink" onclick="cancelEditWeighin()">Cancel</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="sessItem"><div><b>${esc(String(w.weight_kg))} kg</b><small>${fmtDateAU(w.logged_at)}</small></div><div style="display:flex;gap:6px;flex-shrink:0"><button class="btnLink" style="padding:4px 8px" onclick="startEditWeighin('${w.id}')">Edit</button><button class="xBtn" onclick="delWeighin('${w.id}')">×</button></div></div>`;
+}
+function weighinsSectionHtml(){
+  if(!weighData)return `<div class="card"><div class="loadingDots">Loading your weigh-ins…</div></div>`;
+  const latest=weighData[0];
+  const latestHtml=latest?`<div class="pillRow" style="margin-bottom:10px"><span class="pill" style="border-color:var(--gold);color:var(--gold)">Latest: ${esc(String(latest.weight_kg))} kg · ${fmtDateAU(latest.logged_at)}</span></div>`:"";
+  const list=weighData.length?weighData.map(weighinRowHtml).join(""):`<p class="emptyMsg">No weigh-ins logged yet.</p>`;
+  return `<div class="card">
+    ${latestHtml}
+    <div class="row2">
+      <div class="field"><label>Weight (kg)</label><input type="number" step="0.1" min="0" id="wKgInput"></div>
+      <div class="field"><label>Date</label><input type="date" id="wDateInput" value="${isoDateLocal()}"></div>
+    </div>
+    <button class="btnGold" onclick="logWeighin()">Log Weight</button>
+    <div style="margin-top:14px">${list}</div>
+  </div>`;
+}
+function renderWeighSection(){const el=$("weighSection");if(el)el.innerHTML=weighinsSectionHtml();}
+async function logWeighin(){
+  const kgEl=$("wKgInput"),dateEl=$("wDateInput");
+  const kg=parseFloat(kgEl.value);
+  const d=dateEl.value||isoDateLocal();
+  if(!kg||kg<=0){toast("Enter a valid weight.");return;}
+  const {error}=await sb.from("member_weighins").insert({user_id:session.user.id,weight_kg:kg,logged_at:d});
+  if(error){toast(error.message);return;}
+  kgEl.value="";
+  await loadWeighins();
+  renderWeighSection();
+  toast("Weight logged.");
+}
+async function delWeighin(id){
+  const {error}=await sb.from("member_weighins").delete().eq("id",id).eq("user_id",session.user.id);
+  if(error){toast(error.message);return;}
+  await loadWeighins();
+  renderWeighSection();
+}
+function startEditWeighin(id){editingWeighId=id;renderWeighSection();}
+function cancelEditWeighin(){editingWeighId=null;renderWeighSection();}
+async function saveEditWeighin(id){
+  const kgEl=$("ewKg_"+id),dateEl=$("ewDate_"+id);
+  const kg=parseFloat(kgEl.value);
+  const d=dateEl.value;
+  if(!kg||kg<=0||!d){toast("Enter a valid weight and date.");return;}
+  const {error}=await sb.from("member_weighins").update({weight_kg:kg,logged_at:d}).eq("id",id).eq("user_id",session.user.id);
+  if(error){toast(error.message);return;}
+  editingWeighId=null;
+  await loadWeighins();
+  renderWeighSection();
+  toast("Weigh-in updated.");
+}
+function handleAvatarPick(e){
+  const file=e.target.files&&e.target.files[0];if(!file)return;
+  if(!file.type.startsWith("image/")){toast("Please choose an image file.");return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const size=320;
+      const canvas=document.createElement("canvas");canvas.width=size;canvas.height=size;
+      const ctx=canvas.getContext("2d");
+      const s=Math.min(img.width,img.height);
+      const sx=(img.width-s)/2,sy=(img.height-s)/2;
+      ctx.drawImage(img,sx,sy,s,s,0,0,size,size);
+      pendingAvatarData=canvas.toDataURL("image/jpeg",0.82);
+      const prev=$("pfAvatarPreview");
+      if(prev){prev.style.backgroundImage=`url('${pendingAvatarData}')`;prev.textContent="";}
+      toast("Photo ready — hit Save Profile to keep it.");
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
 async function saveProfile(e){
   e.preventDefault();
   const upd={first_name:$("pfFirst").value.trim(),last_name:$("pfLast").value.trim(),phone:$("pfPhone").value.trim(),dob:$("pfDob").value};
+  if(pendingAvatarData)upd.avatar_url=pendingAvatarData;
   const {error}=await sb.from("profiles").update(upd).eq("id",session.user.id);
   if(error)$("pfMsg").innerHTML=`<div class="denyBox">${esc(error.message)}</div>`;
-  else{profile={...profile,...upd};$("profileBtn").textContent=(upd.first_name[0]+upd.last_name[0]).toUpperCase();$("pfMsg").innerHTML=`<div class="okBox">Profile saved.</div>`;}
+  else{profile={...profile,...upd};pendingAvatarData=null;updateProfileBtn();$("pfMsg").innerHTML=`<div class="okBox">Profile saved.</div>`;}
   return false;
 }
 
