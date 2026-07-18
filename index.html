@@ -5451,20 +5451,22 @@ async function rdSet(id,st){
   renderStaffMembersTab();
 }
 let staffSub="chat";
-let staffData={loaded:false,staff:[],tasks:[],comms:[],msgs:[]};
+let staffProfileTab="tasks";
+let staffData={loaded:false,staff:[],tasks:[],comms:[],msgs:[],hours:[]};
 let staffChannel=null;
 let amaPending=[];
 function isoDateLocal(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
 function staffName(s){return ((s.first_name||"")+" "+(s.last_name||"")).trim()||s.email;}
 async function loadStaffData(){
-  const [st,tk,cm,ms,pr]=await Promise.all([
+  const [st,tk,cm,ms,pr,hr]=await Promise.all([
     sb.from("profiles").select("id,first_name,last_name,email,is_staff,is_manager").eq("is_staff",true),
     sb.from("staff_tasks").select("*").order("created_at",{ascending:false}).limit(300),
     sb.from("pt_commissions").select("*").order("session_date",{ascending:false}).order("created_at",{ascending:false}).limit(300),
     sb.from("staff_messages").select("*").order("created_at",{ascending:true}).limit(200),
-    sb.from("pt_requests").select("*").order("created_at",{ascending:false}).limit(100)
+    sb.from("pt_requests").select("*").order("created_at",{ascending:false}).limit(100),
+    sb.from("staff_hours").select("*").order("day_of_week",{ascending:true}).order("time",{ascending:true}).limit(500)
   ]);
-  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[],ptreqs:pr.data||[]};
+  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[],ptreqs:pr.data||[],hours:hr.data||[]};
   if(!staffChannel){
     staffChannel=sb.channel("staff-chat")
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"staff_messages"},pl=>{
@@ -5487,7 +5489,7 @@ async function renderStaff(){
       <div class="heroTitle">Staff Room</div>
       <div class="heroText">Members can't see or access anything in here.</div>
     </div>
-    <div class="subTabs">${tabs.map(t=>`<button class="${staffSub===t.id?'active':''}" onclick="staffSub='${t.id}';renderStaff()">${esc(t.label)}</button>`).join("")}</div>
+    <div class="subTabs">${tabs.map(t=>`<button class="${staffSub===t.id?'active':''}" onclick="staffSub='${t.id}';staffProfileTab='tasks';renderStaff()">${esc(t.label)}</button>`).join("")}</div>
     <div id="staffContent"></div>`;
   if(staffSub==="chat")renderStaffChat();
   else if(staffSub==="members")renderStaffMembersTab();
@@ -5615,6 +5617,7 @@ function renderStaffMember(uid){
   const s=staffData.staff.find(x=>x.id===uid);
   if(!s){staffSub="chat";return renderStaff();}
   const me=session.user.id===uid,mgr=profile.is_manager;
+  if(!(me||mgr)&&staffProfileTab!=="tasks")staffProfileTab="tasks";
   const tasks=staffData.tasks.filter(t=>t.assignee_id===uid);
   const open=tasks.filter(t=>t.status==="open");
   const noTime=tasks.filter(t=>t.status==="no_time");
@@ -5636,7 +5639,19 @@ function renderStaffMember(uid){
       </div>
       ${(mgr||me)?`<button class="xBtn" onclick="delTask('${t.id}')">×</button>`:""}
     </div>`;
-  let comms="";
+  const tasksHtml=`
+    ${noTime.length?`<div class="secTitle" style="color:var(--danger)">Marked Incomplete — Needs Redirecting</div>
+    <div class="card" style="border-color:var(--danger)">${noTime.map(t=>taskRow(t,"no_time")).join("")}</div>`:""}
+    <div class="secTitle">Daily Tasks</div>
+    <div class="card">
+      ${open.length?open.map(t=>taskRow(t,"open")).join(""):'<div class="emptyMsg">Nothing open. Clean slate.</div>'}
+      ${(me||mgr)?`<div class="chatInput" style="margin-top:6px">
+        <input id="tkNew" placeholder="Add a task for ${esc(s.first_name||'them')}…" maxlength="300" onkeydown="if(event.key==='Enter')addTask('${uid}')">
+        <button onclick="addTask('${uid}')">＋</button>
+      </div>`:""}
+    </div>
+    ${doneToday.length?`<div class="secTitle">Done Today</div><div class="card">${doneToday.map(t=>taskRow(t,"done")).join("")}</div>`:""}`;
+  let ptHtml="";
   if(me||mgr){
     const mine=staffData.comms.filter(c=>c.trainer_id===uid);
     const wk=weekStartOf(new Date()).getTime();
@@ -5644,7 +5659,7 @@ function renderStaffMember(uid){
     const wkTot=mine.filter(c=>new Date(c.session_date+"T12:00:00")>=wk).reduce((a,c)=>a+Number(c.commission),0);
     const wkN=mine.filter(c=>new Date(c.session_date+"T12:00:00")>=wk).length;
     const moTot=mine.filter(c=>new Date(c.session_date+"T12:00:00")>=mo).reduce((a,c)=>a+Number(c.commission),0);
-    comms=`<div class="secTitle">PT Session Log</div>
+    ptHtml=`<div class="secTitle">PT Session Log</div>
     <div class="statGrid">
       <div class="statBox"><div class="sv">$${wkTot.toFixed(0)}</div><div class="sl">Collected This Wk</div></div>
       <div class="statBox"><div class="sv">${wkN}</div><div class="sl">Sessions This Wk</div></div>
@@ -5666,6 +5681,44 @@ function renderStaffMember(uid){
       </div>`).join(""):'<div class="emptyMsg">No PT sessions logged yet.</div>'}
     </div>`;
   }
+  let hoursHtml="";
+  if(me||mgr){
+    const hrsAll=(staffData.hours||[]).filter(h=>h.staff_id===uid);
+    const classRows=hrsAll.filter(h=>h.kind==="class").sort((a,b)=>a.day_of_week-b.day_of_week||String(a.time).localeCompare(String(b.time)));
+    const extraRows=hrsAll.filter(h=>h.kind==="extra").sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+    const dayRow=h=>`<div class="ckTask">
+      <div class="ckBoxes">${me?`<span class="ckBox ${h.completed?'on':''}" onclick="toggleHourDone('${h.id}',${h.completed?'true':'false'})">✓</span>`:""}</div>
+      <div style="min-width:0;flex:1"><b style="${h.completed?'text-decoration:line-through;color:var(--muted)':''}">${esc(h.label)}</b>
+        <small>${DOW_NAMES[h.day_of_week]} · ${fmtClassTime(h.time)}</small>
+      </div>
+      ${mgr?`<button class="xBtn" onclick="delHourRow('${h.id}')">×</button>`:""}
+    </div>`;
+    hoursHtml=`<div class="secTitle">Weekly Shifts</div>
+    <div class="card" style="max-height:420px;overflow-y:auto">
+      ${classRows.length?classRows.map(dayRow).join(""):'<div class="emptyMsg">No shifts set for this week yet.</div>'}
+    </div>
+    ${mgr?`<div class="card">
+      <div class="field"><label>Day</label><select id="hrDay">${[1,2,3,4,5,6].map(d=>`<option value="${d}">${DOW_NAMES[d]}</option>`).join("")}</select></div>
+      <div class="field"><label>Time</label><input id="hrTime" type="time" value="06:00"></div>
+      <div class="field"><label>Class Name</label><input id="hrLabel" placeholder="e.g. Boxing" maxlength="60"></div>
+      <button class="btnGold" onclick="addHourShift('${uid}')">Add Shift</button>
+    </div>`:""}
+    <div class="secTitle">Additional Hours</div>
+    <div class="card">
+      ${extraRows.length?extraRows.map(h=>`<div class="sessItem">
+        <div><b>${esc(h.label)}</b><small>${Number(h.hours).toFixed(1)} hrs</small></div>
+        ${mgr?`<button class="xBtn" onclick="delHourRow('${h.id}')">×</button>`:""}
+      </div>`).join(""):'<div class="emptyMsg">No additional hours logged.</div>'}
+      ${mgr?`<div class="chatInput" style="margin-top:6px;flex-wrap:wrap">
+        <input id="hrExtraDesc" placeholder="e.g. Reception cover" maxlength="120" style="flex:2 1 160px">
+        <input id="hrExtraHrs" type="number" step="0.5" min="0" placeholder="Hours" style="flex:1 1 70px">
+        <button onclick="addExtraHours('${uid}')">＋</button>
+      </div>`:""}
+    </div>`;
+  }
+  const profileTabs=[{id:"tasks",label:"Daily Cleaning Tasks"}];
+  if(me||mgr)profileTabs.push({id:"hours",label:"Staff Hours"});
+  if(me||mgr)profileTabs.push({id:"pt",label:"PT Commission Log"});
   $("staffContent").innerHTML=`
     <div class="card">
       <div style="display:flex;align-items:center;gap:12px">
@@ -5674,18 +5727,32 @@ function renderStaffMember(uid){
         <div class="pillRow">${s.is_manager?'<span class="pill" style="border-color:var(--gold);color:var(--gold)">Manager</span>':'<span class="pill">Staff</span>'}</div></div>
       </div>
     </div>
-    ${noTime.length?`<div class="secTitle" style="color:var(--danger)">Marked Incomplete — Needs Redirecting</div>
-    <div class="card" style="border-color:var(--danger)">${noTime.map(t=>taskRow(t,"no_time")).join("")}</div>`:""}
-    <div class="secTitle">Daily Tasks</div>
-    <div class="card">
-      ${open.length?open.map(t=>taskRow(t,"open")).join(""):'<div class="emptyMsg">Nothing open. Clean slate.</div>'}
-      ${(me||mgr)?`<div class="chatInput" style="margin-top:6px">
-        <input id="tkNew" placeholder="Add a task for ${esc(s.first_name||'them')}…" maxlength="300" onkeydown="if(event.key==='Enter')addTask('${uid}')">
-        <button onclick="addTask('${uid}')">＋</button>
-      </div>`:""}
-    </div>
-    ${doneToday.length?`<div class="secTitle">Done Today</div><div class="card">${doneToday.map(t=>taskRow(t,"done")).join("")}</div>`:""}
-    ${comms}`;
+    <div class="subTabs">${profileTabs.map(t=>`<button class="${staffProfileTab===t.id?'active':''}" onclick="staffProfileTab='${t.id}';renderStaffMember('${uid}')">${esc(t.label)}</button>`).join("")}</div>
+    ${staffProfileTab==="hours"?hoursHtml:staffProfileTab==="pt"?ptHtml:tasksHtml}`;
+}
+async function addHourShift(uid){
+  const day=Number($("hrDay").value),time=$("hrTime").value,label=$("hrLabel").value.trim();
+  if(!label){toast("What's the class called?");return;}
+  const {error}=await sb.from("staff_hours").insert({staff_id:uid,kind:"class",day_of_week:day,time,label,created_by:session.user.id});
+  if(error){toast(error.message);return;}
+  renderStaff();
+}
+async function toggleHourDone(id,cur){
+  const {error}=await sb.from("staff_hours").update({completed:!cur}).eq("id",id);
+  if(error){toast(error.message);return;}
+  renderStaff();
+}
+async function addExtraHours(uid){
+  const desc=$("hrExtraDesc").value.trim(),hrs=Number($("hrExtraHrs").value);
+  if(!desc||!hrs){toast("Add a description and hours.");return;}
+  const {error}=await sb.from("staff_hours").insert({staff_id:uid,kind:"extra",label:desc,hours:hrs,created_by:session.user.id});
+  if(error){toast(error.message);return;}
+  renderStaff();
+}
+async function delHourRow(id){
+  const {error}=await sb.from("staff_hours").delete().eq("id",id);
+  if(error){toast(error.message);return;}
+  renderStaff();
 }
 async function addTask(uid){
   const el=$("tkNew"),v=el.value.trim();if(!v)return;
