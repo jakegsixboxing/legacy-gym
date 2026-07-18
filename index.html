@@ -1298,6 +1298,14 @@ function pingStaff(title,body){
   if(!session)return;
   fetch("/api/notify-staff",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token:session.access_token,title,body,url:"/"})}).catch(()=>{});
 }
+function pingBlokes(title,body){
+  if(!session)return;
+  fetch("/api/notify-blokes",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token:session.access_token,title,body,url:"/"})}).catch(()=>{});
+}
+function pingFighters(title,body){
+  if(!session)return;
+  fetch("/api/notify-fighters",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token:session.access_token,title,body,url:"/"})}).catch(()=>{});
+}
 function urlB64ToUint8Array(base64String){
   const padding="=".repeat((4-base64String.length%4)%4);
   const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
@@ -3065,8 +3073,10 @@ async function lbYarn(){
 }
 async function lbSend(){
   const el=$("lbMsgIn"),v=el.value.trim();if(!v)return;el.value="";
-  const {error}=await sb.from("blokes_messages").insert({user_id:session.user.id,name:myDisplayName(),body:v});
+  const name=myDisplayName();
+  const {error}=await sb.from("blokes_messages").insert({user_id:session.user.id,name,body:v});
   if(error){toast(error.message);el.value=v;return;}
+  pingBlokes("The Yarn — "+name,v);
   await loadBlokes(true);renderBlokes();
 }
 async function lbDmSend(){
@@ -3509,8 +3519,10 @@ async function renderSparChat(){
 }
 async function scSend(){
   const el=$("scMsgIn"),v=el.value.trim();if(!v)return;el.value="";
-  const {error}=await sb.from("spar_messages").insert({user_id:session.user.id,name:myDisplayName(),body:v});
+  const name=myDisplayName();
+  const {error}=await sb.from("spar_messages").insert({user_id:session.user.id,name,body:v});
   if(error){toast(error.message);el.value=v;return;}
+  pingFighters("Fighters' Chat — "+name,v);
   renderSparChat();
 }
 let sparTab="profile";
