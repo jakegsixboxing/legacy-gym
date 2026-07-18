@@ -380,9 +380,9 @@ const LOGO = "icon-512.png";
 const TIMETABLE_IMG = "https://cdn.shopify.com/s/files/1/0016/0966/2576/files/TIMETABLE_-_FROM_28th_April.png?v=1776828044";
 const IMGS = {
   shopmerch:"https://cdn.shopify.com/s/files/1/0016/0966/2576/files/F5A81FC4-BB8B-48FD-96C5-0B9AFCDFC052.jpg?v=1779876356&width=900",
-  boxing:  "https://heavyweight-app.vercel.app/images/boxing.jpg",
-  weights: "https://heavyweight-app.vercel.app/images/strength.jpg",
-  recovery:"https://heavyweight-app.vercel.app/images/recovery.jpg",
+  boxing:  "icon-512.png",
+  weights: "icon-512.png",
+  recovery:"icon-512.png",
   functional:"https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=1000&q=70&auto=format&fit=crop",
   stairs:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1000&q=70",
   race:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",
@@ -1745,7 +1745,7 @@ async function renderLeaderboard(){
 }
 
 /* ---- Local Blokes — Heavyweight Club (VIP, invitation only) ---- */
-const LB={logo:"https://heavyweight-app.vercel.app/icons/icon-192.png",gold:"#c9994d",bg:"#0d0d0d",surf:"#1a1a1a",surf2:"#262626",dim:"#9e9e9e"};
+const LB={logo:"icon-192.png",gold:"#c9994d",bg:"#0d0d0d",surf:"#1a1a1a",surf2:"#262626",dim:"#9e9e9e"};
 const LB_LEVELS=[[0,"Fresh Meat","bronze",0],[5,"Cannon Fodder","bronze",1],[12,"Scrapper","silver",0],[20,"Hard Bastard","silver",1],[30,"The Enforcer","gold",0],[45,"Silverback","gold",1],[60,"Wrecking Ball","platinum",0],[80,"Savage","platinum",1],[105,"Stone Cold","platinum",2],[135,"Apex Predator","platinum",3],[170,"Heavyweight Champion","champion",3]];
 function lbLevelOf(p){let i=0;LB_LEVELS.forEach((l,n)=>{if(p>=l[0])i=n;});const L=LB_LEVELS[i];return {pts:L[0],name:L[1],tier:L[2],stars:L[3],n:i+1,next:LB_LEVELS[i+1]||null};}
 let lbSub="home",lbWeek=1,lbDay="mon",lbFuelTab=(localStorage.getItem("lg_fuel_seen")?"plan":"guides"),lbPlan="A",lbTimerDay=null,lbGuide=null;
@@ -1813,12 +1813,12 @@ function renderBlokes(){
 }
 const LB_TILES=[
   {id:"myprofile",k:"Your Details",t:"My Profile",s:"Your photo, your goal, your weekly weigh-ins & progress photos.",img:"https://images.unsplash.com/photo-1637430308606-86576d8fef3c?auto=format&fit=crop&w=1000&q=70"},
-  {id:"program",k:"The 10-Week Block",t:"Strength Program",s:"Monday push, Wednesday legs & pull — bank every set.",img:"https://heavyweight-app.vercel.app/images/strength.jpg"},
-  {id:"boxing",k:"Monday & Wednesday Nights",t:"Boxing",s:"The club sessions, full round timer built in.",img:"https://heavyweight-app.vercel.app/images/boxing.jpg"},
+  {id:"program",k:"The 10-Week Block",t:"Strength Program",s:"Monday push, Wednesday legs & pull — bank every set.",img:"icon-512.png"},
+  {id:"boxing",k:"Monday & Wednesday Nights",t:"Boxing",s:"The club sessions, full round timer built in.",img:"icon-512.png"},
   {id:"fuel",k:"Fuel Plans A–D",t:"Meal Plan",s:"Named meals, recipes & your one-tap weekly shop.",img:"https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=1000&q=70"},
   {id:"calc",k:"Lose, Hold Or Gain",t:"Calorie Calculator",s:"Answer a few honest questions — get your numbers and the Fuel Plan that fits.",img:"https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1000&q=70"},
   {id:"golf",k:"The Local Blokes Classic",t:"Golf Days",s:"Two Sundays at Mangrove Mountain — get your name down.",img:"https://images.unsplash.com/photo-1606443192517-919653213206?auto=format&fit=crop&w=1000&q=70"},
-  {id:"yarn",k:"Group Chat + Coach Corner",t:"The Yarn",s:"The banter lives here. What's said here stays here.",img:"https://heavyweight-app.vercel.app/images/members.jpg"},
+  {id:"yarn",k:"Group Chat + Coach Corner",t:"The Yarn",s:"The banter lives here. What's said here stays here.",img:"icon-512.png"},
   {id:"podcast",k:"Stories From The Club",t:"Local Blokes Podcast",s:"Real talk from the crew — training, life & everything in between.",img:IMGS.podcast},
   {id:"photos",k:"Just For You",t:"Weekly Progress Photos",s:"Private to you and your coaches — no other member ever sees these.",img:"https://images.unsplash.com/photo-1691718538353-45a7d2ad0f18?auto=format&fit=crop&w=1000&q=70"},
   {id:"ladder",k:"Blokes Only",t:"The Ladder",s:"Same points, our own comp — Fresh Meat to Heavyweight Champion.",logo:true}];
