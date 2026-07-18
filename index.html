@@ -1745,7 +1745,7 @@ async function renderLeaderboard(){
 }
 
 /* ---- Local Blokes — Heavyweight Club (VIP, invitation only) ---- */
-const LB={logo:"icon-192.png",gold:"#c9994d",bg:"#0d0d0d",surf:"#1a1a1a",surf2:"#262626",dim:"#9e9e9e"};
+const LB={logo:"lb-icon.svg",gold:"#c9994d",bg:"#0d0d0d",surf:"#1a1a1a",surf2:"#262626",dim:"#9e9e9e"};
 const LB_LEVELS=[[0,"Fresh Meat","bronze",0],[5,"Cannon Fodder","bronze",1],[12,"Scrapper","silver",0],[20,"Hard Bastard","silver",1],[30,"The Enforcer","gold",0],[45,"Silverback","gold",1],[60,"Wrecking Ball","platinum",0],[80,"Savage","platinum",1],[105,"Stone Cold","platinum",2],[135,"Apex Predator","platinum",3],[170,"Heavyweight Champion","champion",3]];
 function lbLevelOf(p){let i=0;LB_LEVELS.forEach((l,n)=>{if(p>=l[0])i=n;});const L=LB_LEVELS[i];return {pts:L[0],name:L[1],tier:L[2],stars:L[3],n:i+1,next:LB_LEVELS[i+1]||null};}
 let lbSub="home",lbWeek=1,lbDay="mon",lbFuelTab=(localStorage.getItem("lg_fuel_seen")?"plan":"guides"),lbPlan="A",lbTimerDay=null,lbGuide=null;
