@@ -205,6 +205,7 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .amaMicBig.live{background:var(--danger);border-color:var(--danger);color:#fff;animation:amaPulse 1s infinite}
 @keyframes amaPulse{0%,100%{opacity:1}50%{opacity:.55}}
 .field select{width:100%;padding:13px 14px;border-radius:8px;border:1px solid var(--line);background:#0e0e10;color:var(--text);font-size:16px}
+.field textarea{width:100%;padding:13px 14px;border-radius:8px;border:1px solid var(--line);background:#0e0e10;color:var(--text);font-size:16px;font-family:inherit;resize:vertical}
 .bpPhoto{width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex-shrink:0}
 .bpPhotoEmpty{display:flex;align-items:center;justify-content:center;background:var(--panel2);color:var(--gold);font-size:30px;font-weight:800}
 .statGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
@@ -3440,28 +3441,17 @@ async function renderSparringClub(){
       <p style="margin-top:6px">Set up your profile — photo, weights, record — then bank your sparring rounds week by week.</p>
       <button class="btnGold" style="margin-top:14px" onclick="startBpEdit()">Build My Profile</button></div>`;
   else{
+    if(sparTab!=="profile"&&sparTab!=="match")sparTab="profile";
     html+=`<div class="pillBtns" style="margin-bottom:14px;flex-wrap:wrap">
-      <button class="${sparTab==='profile'?'on':''}" onclick="sparTab='profile';renderSparringClub()">Profile</button>
-      <button class="${sparTab==='log'?'on':''}" onclick="sparTab='log';renderSparringClub()">Log Rounds</button>
-      <button class="${sparTab==='tape'?'on':''}" onclick="sparTab='tape';renderSparringClub()">Fight Tape</button>
-      <button class="${sparTab==='match'?'on':''}" onclick="sparTab='match';renderSparringClub()">Sparring</button>
-      <button class="${sparTab==='chat'?'on':''}" onclick="sparTab='chat';renderSparringClub()">Chat</button>
-      ${profile&&profile.is_coach?`<button class="${sparTab==='coach'?'on':''}" onclick="sparTab='coach';renderSparringClub()">Coach</button>`:""}
+      <button class="${sparTab==='profile'?'on':''}" onclick="sparTab='profile';renderSparringClub()">Fighter Profile</button>
+      <button class="${sparTab==='match'?'on':''}" onclick="sparTab='match';renderSparringClub()">Sparring Matchmaking</button>
     </div>`;
     if(sparTab==="match"){
-      c.innerHTML=html+`<div id="sparWed"><div class="loadingDots">Loading the list…</div></div>`;
+      c.innerHTML=html+`<div id="sparWed"><div class="loadingDots">Loading the list…</div></div>`+(profile&&profile.is_coach?coachHtml():"");
       renderSparWed();
       return;
     }
-    if(sparTab==="chat"){
-      c.innerHTML=html+`<div id="sparChatWrap"><div class="loadingDots">Loading the chat…</div></div>`;
-      renderSparChat();
-      return;
-    }
-    if(sparTab==="log")html+=logFormHtml()+historyHtml();
-    else if(sparTab==="tape")html+=fightTapeHtml()+notesHtml();
-    else if(sparTab==="coach"&&profile&&profile.is_coach)html+=coachHtml();
-    else html+=boxerCardHtml(bp)+(profile&&profile.is_coach?'<div id="coachRoster"><div class="loadingDots">Pulling up the fighters…</div></div>':"")+sparringStatsHtml();
+    html+=boxerCardHtml(bp)+(profile&&profile.is_coach?'<div id="coachRoster"><div class="loadingDots">Pulling up the fighters…</div></div>':"")+sparringStatsHtml()+logFormHtml()+historyHtml()+fightTapeHtml()+notesHtml();
   }
   c.innerHTML=html;
   if(!bpEditing&&bp&&sparTab==="profile"&&profile&&profile.is_coach)coachRosterLoad();
@@ -3966,13 +3956,13 @@ function logFormHtml(){
   <div class="card">
     <div class="row2">
       <div class="field"><label>Rounds</label><input id="ssRounds" type="number" inputmode="numeric" min="1" value="3"></div>
-      <div class="field"><label>Minutes Per Round</label><select id="ssMins"><option value="1.5">1.5 min</option><option value="2">2 min</option><option value="3" selected>3 min</option><option value="4">4 min</option></select></div>
+      <div class="field"><label>Round Length</label><select id="ssMins"><option value="2">2 min</option><option value="3" selected>3 min</option></select></div>
     </div>
-    <div class="field"><label>Who You Sparred</label><input id="ssPartner" placeholder="Partner's name"></div>
     <div class="row2">
+      <div class="field"><label>Who You Sparred</label><input id="ssPartner" placeholder="Partner's name"></div>
       <div class="field"><label>When</label><input id="ssDate" type="date" value="${new Date().getFullYear()+"-"+pad(new Date().getMonth()+1)+"-"+pad(new Date().getDate())}"></div>
-      <div class="field"><label>Notes (optional)</label><input id="ssNote" placeholder="How'd it go?"></div>
     </div>
+    <div class="field"><label>Sparring Notes</label><textarea id="ssNote" rows="3" placeholder="How'd the sparring go? What did you work on?"></textarea></div>
     <button class="btnGold" onclick="logSparring()">Bank The Rounds</button>
   </div>`;
 }
@@ -4062,7 +4052,9 @@ async function saveBoxerProfile(){
 async function logSparring(){
   const rounds=parseInt($("ssRounds").value);
   if(!rounds||rounds<1){toast("How many rounds?");return;}
-  const rec={user_id:session.user.id,rounds,minutes_per_round:parseFloat($("ssMins").value)||3,partner:$("ssPartner").value.trim(),note:$("ssNote").value.trim()};
+  const note=$("ssNote").value.trim();
+  if(!note){toast("Add a note on how the sparring went.");return;}
+  const rec={user_id:session.user.id,rounds,minutes_per_round:parseFloat($("ssMins").value)||3,partner:$("ssPartner").value.trim(),note};
   const sd=$("ssDate")&&$("ssDate").value;if(sd)rec.session_date=sd;
   const {error}=await sb.from("sparring_sessions").insert(rec);
   if(error){toast(error.message);return;}
