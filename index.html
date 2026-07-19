@@ -196,14 +196,6 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .rankFill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:99px}
 .rankLbl{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-top:6px;text-align:right;font-weight:700}
 
-/* ask me anything */
-.amaTile{display:flex;align-items:center;gap:14px;width:100%;background:linear-gradient(135deg,rgba(201,164,76,.16),rgba(201,164,76,.05) 60%),var(--panel);border:1.5px solid var(--gold);border-radius:14px;padding:18px;margin-bottom:14px;color:var(--text)}
-.amaMicIcon{width:46px;height:46px;border-radius:50%;background:var(--gold);color:#161307;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.amaMicIcon svg{width:24px;height:24px}
-.amaMicBig{width:50px;height:50px;border-radius:12px;background:transparent;border:1.5px solid var(--gold);color:var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.amaMicBig svg{width:24px;height:24px}
-.amaMicBig.live{background:var(--danger);border-color:var(--danger);color:#fff;animation:amaPulse 1s infinite}
-@keyframes amaPulse{0%,100%{opacity:1}50%{opacity:.55}}
 .field select{width:100%;padding:13px 14px;border-radius:8px;border:1px solid var(--line);background:#0e0e10;color:var(--text);font-size:16px}
 .field textarea{width:100%;padding:13px 14px;border-radius:8px;border:1px solid var(--line);background:#0e0e10;color:var(--text);font-size:16px;font-family:inherit;resize:vertical}
 .bpPhoto{width:84px;height:84px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex-shrink:0}
@@ -562,7 +554,6 @@ function render(){
   if(view==="timetable")return renderTimetable();
   if(view==="classes")return renderClasses();
   if(view==="social")return renderSocial();
-  if(view==="ama")return renderAMA();
   if(view==="staff")return renderStaff();
   if(view==="chat")return renderChat();
   if(view==="profile")return renderProfile();
@@ -593,15 +584,6 @@ function renderHome(){
       <div class="hwKicker">${first?("G'day "+esc(first)):"Members Only"}</div>
       <div class="hwTitle">Culture<br>Without Chaos.</div>
     </div>
-    <button class="amaTile" onclick="go('ama')">
-      <span class="amaMicIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z"/><path d="M9 11h6M9 14h3"/></svg></span>
-      <span style="text-align:left;flex:1">
-        <span class="hcKicker" style="display:block">AI Information Assistant</span>
-        <span class="hcTitle" style="display:block;font-size:21px">Ask Me Anything</span>
-        <span class="hcSub" style="display:block;padding-right:0">Ask me about any gym-related information.</span>
-      </span>
-      <span style="color:var(--gold);font-size:28px">›</span>
-    </button>
     ${HOME_CARDS.map(c=>`<button class="homeCard" style="${c.lb?`background:linear-gradient(90deg,rgba(13,13,13,.55) 0%,rgba(13,13,13,.96) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
       
       <div class="hcKicker">${c.kicker}</div>
@@ -5052,159 +5034,7 @@ async function delSocial(id){
   renderSocial();
 }
 
-/* ---- Ask Me Anything (voice in, typed answers) ---- */
-const AMA_KB=[
-{k:"points legacy points how earn score tally leaderboard rank level",a:"Legacy Points: 1 point every time you attend a class and hit Submit afterwards, 1–10 points for cardio challenges depending on how big the mission is, and a 5-point bonus for taking a club record off someone in Member vs Member. Points climb you through the ranks — Prospect all the way to Legacy Legend. Check the Members Leaderboard on the home screen — and tap How The Points Work in there for the full rules plus the weekly, monthly and end-of-term prizes."},
-{k:"cardio challenge stairmaster treadmill climb steps run stairs",a:"Cardio Challenges are on the home screen — famous stair climbs on the StairMaster (Big Ben up to the Great Wall Gauntlet) and iconic runs on the treadmill (Bondi to Bronte up to City2Surf). Hit start, do the work, claim between 1 and 10 points — the bigger the mission, the bigger the reward. The Niesen Stairway and the full Marathon are the 10-pointers."},
-{k:"member versus member record crown heaviest deadlift squat bench fastest",a:"Member vs Member is the club record board — heaviest deadlift, squat, overhead press and bench, plus fastest times on the assault bike, rower, ski erg, StairMaster and runs from 1K to 10K. Post your result; take the crown off someone and you bank a 5-point bonus. You will find it inside the Cardio & Member Challenges tile on the home screen."},
-{k:"local blokes heavyweight club vip private program what is behind door",a:"The Local Blokes Heavyweight Club is an invitation-only program for a small crew of men — training, fuel plans and more, all behind a locked door. If you're in it, you know. If you're not, have a word with the coaches about how spots open up."},
-{k:"legacy profile photo member type build profile",a:"Your Legacy Profile lives under the Members Leaderboard on the home screen — photo, name and membership, and you're on the board."},
-{k:"staffed hours reception open desk staff front",a:"The gym floor is staffed Mon–Thu 5:15–7:45am, Mon–Fri 4–7pm, and Saturday 8–11am. Outside those times it's swipe access."},
-{k:"gym open hours access swipe time",a:"Members have swipe access to the gym floor. Staffed hours are Mon–Thu 5:15–7:45am, Mon–Fri 4–7pm and Sat 8–11am. Recovery access runs 4:30am–9pm weekdays and 4:30am–5:30pm weekends."},
-{k:"recovery hours sauna open ice bath spa time",a:"Recovery access is 4:30am–9pm on weekdays and 4:30am–5:30pm on weekends. Private saunas are booked through the Recovery app — the button's in the Recovery tab."},
-{k:"book sauna private recovery booking",a:"Private infrared saunas (Sauna One and Two) are booked through the Recovery app — open the Recovery tab and hit 'Open The Recovery App'. Sessions are 45 minutes."},
-{k:"ice bath cold plunge water therapy contrast hot",a:"Ice baths and the hot spa are in the recovery centre. The Recovery app has guided protocols and a contrast timer that runs your whole session — plunges, soaks and changeovers."},
-{k:"timetable class times week schedule when classes",a:"Check the Timetable tab — it's got this week's full timetable, and you can register for any class starting in the next 24 hours right there."},
-{k:"register class attend spot book sign",a:"Go to the Timetable tab — classes starting in the next 24 hours show an 'I'm Attending' button. Tap it to claim your spot, tap again to pull out."},
-{k:"boxing class today tonight session time",a:"Boxing runs Mon, Wed and Fri at 5:15am and 6pm, plus Saturday 8am. Check the Timetable tab to register for the next one."},
-{k:"strength conditioning class grunt time when",a:"Strength & Conditioning runs Tue and Thu at 5:15am and 6pm, plus Saturday 9am. Register in the Timetable tab."},
-{k:"sparring when session wednesday spar",a:"Sparring is Wednesday at 6:45pm. If you're in Sparring Club, log your rounds afterwards in Boxing → Sparring Club so they're banked."},
-{k:"camp start when begins fight club three",a:"Camp 3 commences Monday July 20. We're on the school-holiday timetable until then."},
-{k:"junior boxing kids age children young",a:"Junior Boxing is for ages 10–15, all levels — Mon, Wed and Fri at 4:30pm. Multiple coaches every session, juniors grouped by ability."},
-{k:"sparring club boxer profile rounds bank log",a:"Head to Boxing → Sparring Club. Build your boxer profile — photo, weights, record — then log every spar: rounds, minutes, who you sparred. It all banks up week by week."},
-{k:"wednesday night sparring matchup attending register spar who list card",a:"Book into Sparring through Book In For Classes on the home screen — it puts you on the matchup list at your current weight automatically — the list groups everyone within 10kg so you can see exactly who you might be sparring, and the coaches set the card for the night."},
-{k:"coach notes question ask review feedback",a:"In Boxing → Sparring Club there's a Sparring Notes section — post your notes or questions and the coaches reply right there in your thread."},
-{k:"build own session rounds boxing bag workout create",a:"Boxing → Build Your Own. Pick 2 or 3 minute rounds, 30 or 60 second rests, then stack rounds from skipping, shadow, bag work and dumbbell work. The timer runs the whole session and auto-switches the special rounds."},
-{k:"max effort round ten seconds timer",a:"The Max Effort rounds in Build Your Own run themselves — 10, 15 or 20 seconds flat out with matching rest, beeping you in and out until the round's done."},
-{k:"weights program training plan gym floor follow",a:"The Weights tab has ten programs — from Foundations Four for beginners to The Big Three for barbell strength. Each one has the full sessions and how to progress week to week."},
-{k:"beginner start new program never trained",a:"Start with Foundations Four in the Weights tab — three simple machine sessions a week for four weeks. If you've been off for a while, Comeback Season is the gentler on-ramp."},
-{k:"wod crossfit workout functional metcon",a:"Functional Fitness has the real CrossFit workouts — the Girls, the Heroes, the Opens and the classics, sorted into For Time, AMRAP, EMOM and Tabata. Tap any workout and the timer is already set to its format."},
-{k:"timer amrap emom tabata interval",a:"Every WOD and S&C session opens with a timer matched to its format — AMRAPs count down, EMOMs beep every minute, Tabatas run 20 on 10 off. Just hit Start."},
-{k:"pt personal training book trainer one session",a:"PT bookings are off the app for now — grab Jake, Sarsha, Joe or Alison at the gym or ask at reception and they'll sort a session with you."},
-{k:"jake coach who head trainer",a:"Jake's the Head Coach — former amateur and pro boxer who won his final pro bout at 35. Over ten years coaching with Australian, NSW and Australasian champions plus pro title holders on his record. Grab him at the gym to sort a session."},
-{k:"sarsha coach who trainer female pro",a:"Sarsha is a current professional boxer — world ranked, with WBC Asian Gold and WBO Asia Pacific titles. Coaching since 18 with two Australian champions developed by 23. Grab her at the gym to sort a session."},
-{k:"joe coach who trainer williams",a:"Joe's one of the Head Coaches — former amateur boxer with 10+ years coaching and multiple Australian amateur champions developed. Famous for keeping boxing simple and enjoyable. Grab him at the gym to sort a session."},
-{k:"alison allison coach who trainer ali",a:"Alison is a former state-level amateur boxer, key coach and the engine room of gym operations. She works with everyone from beginners to pros. Grab her at the gym to sort a session."},
-{k:"membership price cost much week pay fees",a:"Gym memberships are $24.99/wk on 12 months or $29.99/wk on 6 months. Boxing: Fitness Club $55/wk, Sparring Club $65/wk. Recovery runs $25–$45/wk depending on the tier. Chat to reception for the right fit."},
-{k:"recovery membership cost price gold silver",a:"Recovery: Gold (private + communal saunas + water therapy) $45/wk, Silver (communal sauna + water) $38/wk, Water Therapy only $25/wk — all unlimited weekly use."},
-{k:"contact phone number call reception speak",a:"Call or text 0401 587 508, or catch reception in person 4–7pm Monday to Thursday."},
-{k:"where address located gym find kincumber",a:"We're at 12 Bilinga Road, Kincumber, on the Central Coast."},
-{k:"instagram social media follow facebook",a:"Find us on Instagram @legacy_centralcoast and on Facebook at Legacy Gym Central Coast."},
-{k:"website site online shop gear gloves apparel",a:"legacygym.net — the shop's there too for apparel, gloves and gear."},
-{k:"friend bring guest mate visitor",a:"Guests for the recovery centre can be registered through the Recovery app's Bring A Friend section — guests must be 18+."},
-{k:"nutritionist nutrition meal plan food diet",a:"The Nutritionist section is on the home screen — meal guidance from our nutritionist is coming soon. Watch that space."},
-{k:"install app home screen phone add download",a:"Open legacygym-app.vercel.app in Safari or Chrome, hit Share, then 'Add to Home Screen' — the gold Legacy icon lands like a normal app."},
-{k:"password forgot login cant sign reset",a:"If you've forgotten your password, grab the team at reception or message 0401 587 508 and we'll get you sorted."},
-{k:"fitness club what non contact",a:"Fitness Club is our non-contact boxing stream — structured 10-week blocks focused on fitness and skill, no sparring. All the technique, none of the punches coming back."},
-{k:"fight club what camp seventy",a:"Fight Club is the 10-week immersive camp — skill, strength and mindset, building to a sanctioned bout under the lights. Strict capacity and pre-registration. Camp 3 starts July 20."},
-{k:"tripod filming video record",a:"No tripods on the gym floor — keep filming low-key and courteous to other members."},
-{k:"age minimum old join sixteen eighteen",a:"The main gym floor is 18+. Juniors 10–15 have their own boxing sessions Mon, Wed and Fri at 4:30pm."},
-{k:"dumbbell round boxing shadow weights hands",a:"The dumbbell rounds in Build Your Own run with 1, 2 or 3kg dumbbells — pick your weight in the session settings. The timer switches you every 30 seconds."},
-{k:"parking park car",a:"There's parking on-site and along Bilinga Road — mornings are quiet, weeknight peak fills up, so give yourself a few extra minutes around 6pm."},
-{k:"local blokes program men what block",a:"Local Blokes is our 10-week program for everyday men — training, nutrition and community. Two group sessions a week (Mon & Wed 7:45pm — 45 min strength plus 30 min boxing), optional programmed weights sessions, unlimited gym access and classes, a nutrition advisor, plus two golf days. Next block runs Monday 20 July to Friday 25 September."},
-{k:"local blokes cost price registration much",a:"Local Blokes is $74.99/week plus a $50 registration fee that secures your spot and includes your training tee. Limited spaces — register through legacygym.net."},
-{k:"local blokes start when next date",a:"The next Local Blokes block starts Monday 20 July and finishes Friday 25 September. There are four 10-week blocks a year with a short de-load between blocks over the school holidays."},
-{k:"bring sauna towel swimwear what need recovery session",a:"For recovery sessions bring swimwear, a towel and a water bottle. Session time includes the change rooms and rinse shower."},
-{k:"sauna benefits why infrared good help",a:"Infrared saunas and hot & cold plunges are backed by solid research — faster recovery from training, better circulation, reduced inflammation and swelling, better sleep, immune support and improved wellbeing. Train hard, then step into restoration."},
-{k:"intro session recovery first before extended",a:"Your first recovery visit is an intro session — do it between 2–7pm Monday–Thursday or 8–11am Saturday, and after that you've got the full extended access hours."},
-{k:"free trial class try visit first",a:"First-timers can jump into a free trial class — just drop in during staffed hours or message 0401 587 508 and we'll set it up."},
-{k:"machines equipment hammer strength plate what gear floor",a:"The floor's stacked — Hammer Strength and old-school plate-loaded machines, pin-loaded machines, free weights, a full cardio line and a fully equipped boxing gym, all under one roof."},
-{k:"phone answered when call text hours manned",a:"The phone (0401 587 508) is manned 4–7pm Monday to Thursday. Calls and texts outside those hours get a reply during the next manned window. Admin's at the gym 3–7pm Mon–Thu."},
-{k:"fitness passport accepted use work",a:"Fitness Passport works for gym memberships, but it can't be used for the Local Blokes program — that one's a direct registration."},
-{k:"owned who owns local runs gym about",a:"Legacy Gym is locally owned and run on the Central Coast — built by locals, for locals. More than just boxing: lift, box, do cardio and recover, all under one roof."},
-{k:"mindbody online booking recovery system",a:"Recovery bookings run through MindBody — or easier still, use the Recovery app button in the Recovery tab right here."},
-{k:"tickets fight night watch buy red blue",a:"Fight night tickets go up in the shop at legacygym.net — check the Fight Night Tickets collection when an event's on."},
-{k:"gloves wraps gear buy shop where",a:"Boxing gear, gloves, wraps and Legacy apparel are all in the shop at legacygym.net. Need help sizing gloves? Ask any coach."},
-{k:"nutrition food eat diet advisor plan",a:"Structured nutrition support runs through the Local Blokes program — a dedicated nutrition advisor and a 10-week real-food plan. Outside the program, grab any coach for pointers."},
-{k:"social event golf day calendar whats coming",a:"Check the Social Events tab on the home screen — golf days, fight nights and gym socials all land there. Tap 'I'm In' to put your name down."}
-];
-let amaExtra=[],amaLoaded=false,amaMsgs=[],amaRec=null;
 function amaNorm(s){return s.toLowerCase().replace(/[^a-z0-9\s]/g," ").replace(/\s+/g," ").trim();}
-function amaMatch(q){
-  const words=amaNorm(q).split(" ").filter(w=>w.length>2);
-  if(!words.length)return null;
-  let best=null,bs=0;
-  AMA_KB.concat(amaExtra).forEach(e=>{
-    const keys=amaNorm(e.k).split(" ").filter(Boolean);
-    let s=0;
-    keys.forEach(k=>{if(words.some(w=>w===k||(w.length>3&&k.startsWith(w))||(k.length>3&&w.startsWith(k))))s++;});
-    if(s>bs){bs=s;best=e;}
-  });
-  if(bs>=2)return best;
-  if(bs===1&&words.length<=3)return best;
-  return null;
-}
-async function renderAMA(){
-  if(!amaLoaded){
-    const {data}=await sb.from("ama_kb").select("*");
-    amaExtra=(data||[]).map(r=>({k:r.keywords,a:r.answer}));
-    amaLoaded=true;
-  }
-  if(view!=="ama")return;
-  if(!amaMsgs.length)amaMsgs.push({who:"ama",txt:"G'day"+((profile&&profile.first_name)?" "+profile.first_name:"")+" — ask me about any gym-related information. Class times, booking a sauna, training programs, the coaches, prices — type it in and I'll sort you out."});
-  $("main").innerHTML=`
-    <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
-    <div class="hero" style="background:linear-gradient(160deg,#17171a 0%,#0b0b0e 75%);padding:22px">
-      <div class="heroKicker">AI Information Assistant</div>
-      <div class="heroTitle">Ask Me Anything</div>
-      <div class="heroText">Ask me about any gym-related information.</div>
-    </div>
-    <div class="chatWrap" style="height:calc(100vh - 330px)">
-      <div id="amaMsgs" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:4px 2px 12px">
-        ${amaMsgs.map(m=>amaMsgHtml(m)).join("")}
-      </div>
-      <div class="chatInput">
-        <input id="amaInput" placeholder="Type your question…" maxlength="300" onkeydown="if(event.key==='Enter')amaAsk()">
-        <button onclick="amaAsk()">➤</button>
-      </div>
-    </div>`;
-  const box=$("amaMsgs");box.scrollTop=box.scrollHeight;
-}
-function amaMsgHtml(m){
-  return `<div class="msg${m.who==="me"?" mine":""}"><div class="who">${m.who==="me"?"You":"Legacy"}</div><div class="txt">${esc(m.txt)}</div></div>`;
-}
-function amaPush(m){
-  amaMsgs.push(m);
-  const box=$("amaMsgs");
-  if(box){box.insertAdjacentHTML("beforeend",amaMsgHtml(m));box.scrollTop=box.scrollHeight;}
-}
-let amaAwait=null;
-async function amaAsk(){
-  const el=$("amaInput"),q=el.value.trim();
-  if(!q)return;
-  el.value="";
-  amaPush({who:"me",txt:q});
-  const me=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"A member";
-  if(amaAwait==="follow"){
-    amaAwait=null;
-    sb.from("ama_misses").insert({user_id:session.user.id,question:"FOLLOW-IN: "+me+" is coming in today on the swipe pass of "+q+"."}).then(()=>{});
-    pingStaff("Swipe Pass — Follow-In",me+" is following "+q+" in today.");
-    setTimeout(()=>amaPush({who:"ama",txt:"Logged — the team knows you're following "+q+" in today. All good, see you in there."}),350);
-    return;
-  }
-  const nq=amaNorm(q);
-  const passWord=/(swipe|pass|fob)/.test(nq);
-  if(passWord&&/(forgot|someone|mate|friend|partner|follow|their|else|wife|husband|brother|sister)/.test(nq)){
-    amaAwait="follow";
-    setTimeout(()=>amaPush({who:"ama",txt:"No dramas — what's the full name of the member whose pass you're following in on? I'll log it with the team so everyone's square."}),350);
-    return;
-  }
-  if(passWord&&/(lost|broke|broken|new|replace|replacement|missing|stopped|work|doesnt|damaged|need)/.test(nq)){
-    sb.from("ama_misses").insert({user_id:session.user.id,question:"SWIPE PASS: "+me+" needs a new swipe pass — please have one ready for collection at the front desk."}).then(()=>{});
-    pingStaff("Swipe Pass Needed",me+" needs a new swipe pass at the front desk.");
-    setTimeout(()=>amaPush({who:"ama",txt:"I've notified our admin team — your new swipe pass will be waiting for you at the front desk. Collect it during the staffed afternoon hours, Mon–Fri 4–7pm, or the morning coached hours, Mon–Thu 5:15–7:45am and Saturday 8–11am."}),350);
-    return;
-  }
-  const hit=amaMatch(q);
-  setTimeout(()=>{
-    if(hit)amaPush({who:"ama",txt:hit.a});
-    else{
-      amaPush({who:"ama",txt:"Good question — I don't have that one yet, but I've passed it to the team so they can teach me the answer. In the meantime, catch reception 4–7pm Mon–Thu (0401 587 508)."});
-      sb.from("ama_misses").insert({user_id:session.user.id,question:q}).then(()=>{});
-      pingStaff("AI Assistant — New Question",me+" asked: "+q);
-    }
-  },350);
-}
 
 /* ---- Book A PT ---- */
 const PT_TRAINERS=[
@@ -5274,11 +5104,10 @@ async function cancelPtRequest(id){
 let crPend={},crModeD={},mdUid=null,mdTitle="";
 async function renderStaffMembersTab(){
   $("staffContent").innerHTML='<div class="loadingDots">Loading every member…</div>';
-  const [mp,ce,rd,pm]=await Promise.all([
+  const [mp,ce,rd]=await Promise.all([
     sb.from("member_profiles").select("*").order("full_name",{ascending:true}),
     sb.from("credit_events").select("member_id,amount"),
-    sb.from("credit_redemptions").select("*").order("created_at",{ascending:false}),
-    sb.from("ama_misses").select("*").eq("resolved",false).order("created_at",{ascending:true})]);
+    sb.from("credit_redemptions").select("*").order("created_at",{ascending:false})]);
   if(view!=="staff"||staffSub!=="members")return;
   const box=$("staffContent");if(!box)return;
   const bal={};(ce.data||[]).forEach(e=>bal[e.member_id]=(bal[e.member_id]||0)+Number(e.amount));
@@ -5286,27 +5115,8 @@ async function renderStaffMembersTab(){
   reds.filter(r=>r.status!=="cancelled").forEach(r=>bal[r.member_id]=(bal[r.member_id]||0)-Number(r.amount));
   const mgr=profile&&profile.is_manager;
   const rows=mp.data||[];
-  amaPending=(pm.data||[]).filter(m=>!/^(FOLLOW-IN|SWIPE PASS):/.test(m.question)).map(m=>{
-    const mem=rows.find(r=>r.user_id===m.user_id)||{};
-    return {...m,name:mem.full_name||"Unknown Member",photo:mem.photo_url};
-  });
   const openReds=reds.filter(r=>r.status==="pending"||r.status==="active");
-  box.innerHTML=(mgr&&amaPending.length?`<div class="card" style="border-color:#c9994d">
-    <h3>🤖 Unanswered AI Questions (${amaPending.length})</h3>
-    ${amaPending.map(m=>`<div style="border-top:1px solid var(--line);padding:12px 0;margin-top:10px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-        ${m.photo?`<img src="${esc(m.photo)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover" alt="">`:`<div class="lbAv" style="width:36px;height:36px">${esc((m.name||"?")[0])}</div>`}
-        <b style="font-size:13.5px">${esc(m.name)}</b>
-        <span style="font-size:10.5px;color:var(--muted);margin-left:auto">${fmtWhen(m.created_at)}</span>
-      </div>
-      <p style="font-size:13px;background:#0d0d0d;border:1px solid #2a2417;border-radius:8px;padding:8px 10px;margin-bottom:8px">${esc(m.question)}</p>
-      <textarea id="amr_${m.id}" placeholder="Type the answer…" maxlength="500" style="width:100%;min-height:54px;background:#0d0d0d;border:1px solid #2a2417;border-radius:8px;color:#fff;padding:8px;font-size:12.5px"></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btnGold" style="margin:0;flex:1;padding:9px" onclick="resolveAmaMiss('${m.id}')">Send Reply &amp; Teach AI</button>
-        <button class="btnLink" style="margin:0;padding:9px 12px;border-color:#e05252;color:#e05252" onclick="dismissAmaMiss('${m.id}')">Dismiss</button>
-      </div>
-    </div>`).join("")}
-  </div>`:"")+(mgr&&openReds.length?`<div class="card" style="border-color:var(--gold-dim)">
+  box.innerHTML=(mgr&&openReds.length?`<div class="card" style="border-color:var(--gold-dim)">
       <h3>🎟 Credit Checkout Codes</h3>
       <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6">Codes are created in Shopify automatically the moment a member redeems — nothing for you to do here. Mark one Spent to tidy the list, or Cancel &amp; Refund to void it (if you cancel, also delete the code in Shopify Admin → Discounts so it can’t be used).</p>
       ${openReds.map(r=>`<div style="border-top:1px solid var(--line);padding:10px 0;margin-top:10px">
@@ -5347,21 +5157,6 @@ async function renderStaffMembersTab(){
           <p style="font-size:10.5px;color:var(--muted);margin-top:6px">Tap the dollar buttons to build the amount — e.g. $1 four times = $4. Flip the mode to DEDUCT to take credit back off.</p>
         </details>`:""}
       </div>`;}).join(""):'<div class="emptyMsg">No member profiles yet.</div>');
-}
-async function resolveAmaMiss(missId){
-  const m=amaPending.find(x=>x.id===missId);if(!m)return;
-  const el=$("amr_"+missId);const ans=el?el.value.trim():"";
-  if(!ans){toast("Type an answer first.");return;}
-  const {error:e1}=await sb.from("member_dms").insert({member_id:m.user_id,sender_id:session.user.id,name:"Front Desk — "+((profile.first_name||"").trim()||"Legacy"),body:ans});
-  if(e1){toast(e1.message);return;}
-  await sb.from("ama_kb").insert({keywords:m.question,answer:ans});
-  await sb.from("ama_misses").update({resolved:true,resolved_at:new Date().toISOString(),resolved_by:session.user.id}).eq("id",missId);
-  toast("Sent to "+m.name+" and taught to the AI assistant.");
-  renderStaffMembersTab();
-}
-async function dismissAmaMiss(missId){
-  await sb.from("ama_misses").update({resolved:true,resolved_at:new Date().toISOString(),resolved_by:session.user.id}).eq("id",missId);
-  renderStaffMembersTab();
 }
 function crBump(u,a){crPend[u]=(crPend[u]||0)+a;const e=$("crp_"+u);if(e)e.textContent="$"+crPend[u];}
 function crClear(u){crPend[u]=0;const e=$("crp_"+u);if(e)e.textContent="$0";}
@@ -5524,7 +5319,6 @@ let staffSub="chat";
 let staffProfileTab="tasks";
 let staffData={loaded:false,staff:[],tasks:[],comms:[],msgs:[],hours:[]};
 let staffChannel=null;
-let amaPending=[];
 function isoDateLocal(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
 function staffName(s){return ((s.first_name||"")+" "+(s.last_name||"")).trim()||s.email;}
 async function loadStaffData(){
