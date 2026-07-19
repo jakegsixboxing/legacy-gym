@@ -4605,7 +4605,19 @@ function krIso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDa
 function krTime(mins){let h=Math.floor(mins/60),m=mins%60;const ap=h>=12?"PM":"AM";let hh=h%12;if(hh===0)hh=12;return hh+":"+pad(m)+" "+ap;}
 function krDates(){const out=[];for(let i=0;i<=KR_AHEAD;i++){const d=new Date();d.setDate(d.getDate()+i);out.push(krIso(d));}return out;}
 function krSlots(iso){const d=new Date(iso+"T12:00:00");const wd=d.getDay();const close=(wd===0||wd===6)?KR_CLOSE_WE*60:KR_CLOSE_WD*60;const out=[];for(let t=KR_OPEN*60;t+KR_SLOT<=close;t+=KR_SLOT)out.push(t);return out;}
+/* TEMP LOCK: set RECOVERY_LOCKED to false (or delete this line + the block below) to reopen Recovery bookings */
+let RECOVERY_LOCKED=true;
 function renderRecovery(){
+    if(RECOVERY_LOCKED){
+        $("main").innerHTML=`<button class="backBtn" onclick="go('home')">‹ Back To Home</button>
+        <div style="background:linear-gradient(160deg,${KR.dark},#050608);border:1px solid #1b2b34;border-radius:16px;padding:32px 22px;text-align:center;margin-top:14px">
+        <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:20px;letter-spacing:3px;color:${KR.blue}">RECOVERY</div>
+        <div style="margin-top:16px;font-size:18px;color:#fff;font-weight:600">Something New Is Brewing</div>
+        <div style="margin-top:10px;color:#aab4bb;line-height:1.6;max-width:420px;margin-left:auto;margin-right:auto">We're putting together some fresh new offers for our members in this space. Recovery bookings will be back very soon — thanks for your patience!</div>
+        </div>`;
+        return;
+    }
+
   const header=`
     <div style="background:linear-gradient(160deg,#0c1319,#050608);border:1px solid #1b2b34;border-radius:16px;padding:20px;margin-bottom:14px">
       <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:24px;letter-spacing:4px;color:#fff">KINCUMBER<span style="font-family:'Mr Dafoe',cursive;font-weight:400;color:${KR.blue};font-size:30px;letter-spacing:1px;text-transform:none;margin-left:10px">Recovery</span></div>
