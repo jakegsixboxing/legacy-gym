@@ -562,7 +562,7 @@ function render(){
 /* ---- Home ---- */
 const HOME_CARDS=[
  {id:"classes",kicker:"Term 3 Timetable Starts Next Week",title:"Book In For Classes",sub:"The full week opens every Sunday 7 AM — tap in, you're booked.",img:null},
- {id:"boxing",kicker:"Legacy Boxing Series",title:"Boxing",sub:"The Sparring Club hub, session builder & Legacy Elite.",img:null},
+ {id:"boxing",kicker:"Legacy Boxing Series",title:"Boxing",sub:"The Sparring Club hub, session builder & Built By Jake.",img:null},
  {id:"weights",kicker:"The Gym Floor",title:"Weights & Functional Fitness",sub:"Ten training programs plus real CrossFit workouts, timers built in.",img:null},
  {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
  {id:"cardio",kicker:"Climb, Run & Compete",title:"Cardio & Member Challenges",sub:"StairMaster missions, iconic runs & the club record board.",img:null},
@@ -640,7 +640,7 @@ function renderBoxing(){
     <div class="subTabs">
       <button class="${boxSub==='sparring'?'active':''}" onclick="setBoxSub('sparring')">Sparring Club</button>
       <button class="${boxSub==='byo'?'active':''}" onclick="setBoxSub('byo')">Build Your Own</button>
-      <button class="${boxSub==='elite'?'active':''}" style="${boxSub==='elite'?'':'border-color:var(--gold-dim);color:var(--gold)'}" onclick="setBoxSub('elite')">★ Train With Jake</button>
+      <button class="${boxSub==='jake'?'active':''}" style="${boxSub==='jake'?'':'border-color:var(--gold-dim);color:var(--gold)'}" onclick="setBoxSub('jake')">★ Built By Jake</button>
     </div>
     <div id="boxContent"></div>`;
   renderBoxSub();
@@ -648,62 +648,137 @@ function renderBoxing(){
 function setBoxSub(s){boxSub=s;bpEditing=false;if(typeof S!=="undefined")clearInterval(S.int);byoActive=false;renderBoxing();}
 function renderBoxSub(){
   if(boxSub==="byo")renderBoxBYO();
-  else if(boxSub==="elite")renderBoxElite();
+  else if(boxSub==="jake")renderBoxJake();
   else renderSparringClub();
 }
 
-/* ---- Legacy Elite (premium, $9.99/wk) ---- */
-const ELITE_SESSIONS=[
-{id:"champ12",name:"The Championship 12",rounds:["shOpen","bgStraight","bgLead","bgBack","bgCombo","bgMax15","bgUnders","bgInside","bgMid","bgCounter","bgPower","bgMax10"],len:180,rest:60,
- desc:"Twelve championship rounds, 3:00 with a minute in the corner. Opens easy, builds through every range, finishes on max effort. The full fight distance."},
-{id:"engine8",name:"Engine Builder 8",rounds:["skip5","shOpen","bgStraight","bgMax10","bgUnders","bgMax15","bgPower","bgMax20"],len:120,rest:30,
- desc:"Five minutes of skipping into seven two-minute rounds with short 30-second turnarounds. Built for one thing: a bigger tank."},
-{id:"switch6",name:"The Switch Hitter",rounds:["shSwitch","bgSwitch","bgFirstThird","bgTwoPhase","bgCombo","bgMax15"],len:180,rest:60,
- desc:"Six rounds living in both stances — switch shadow, switch punching on the bag, firsts and thirds, and two-phase attacks. Uncomfortable on purpose."},
-{id:"defence8",name:"Defence Masterclass",rounds:["shDef","bgUnders","bgCounter","bgFrame","dbUnders","bgInside","bgUnders","bgMax10"],len:120,rest:30,
- desc:"Eight rounds where the defence does the scoring — slips, rolls, counters, framing, and dumbbell unders to burn the movement in."},
-{id:"grinder10",name:"The Grinder",rounds:["skip10","bgPower","bgClinch","bgInside","bgMid","bgLong","bgMax20","bgUnders","bgPower","bgMax10"],len:180,rest:60,
- desc:"Ten heavy rounds after a ten-minute skip. Power punching, clinch work, every range. This is the session that builds the fighters."},
-{id:"speed6",name:"Speed Week Special",rounds:["shOpen","bgStraight","bgMax10","bgFirstThird","bgMax15","dbShadow"],len:120,rest:30,
- desc:"Six fast two-minute rounds — lead hand speed, straight punching, max-effort bursts and light dumbbells to finish. Sharp, not slow."}
+/* ---- Built By Jake — pre-built sessions, coach programmed ---- */
+const JAKE_SESSIONS=[
+{id:"fury",name:"FURY",
+ desc:"Warm-up skip, four shadow rounds, eight bag rounds finishing on max effort, then a bike-and-core finisher. About 53 minutes, every round timed for you.",
+ blocks:[
+  {type:"rounds",groupLabel:"Warm-Up",secs:600,rest:30,rounds:[
+    {label:"10 MINUTE SKIP",vid:"https://videos.pexels.com/video-files/9943343/9943343-sd_360_640_24fps.mp4"}
+  ]},
+  {type:"rest",label:"REST",sub:"Shadow Boxing starts next — 4 rounds.",secs:30},
+  {type:"rounds",groupLabel:"Shadow",secs:120,rest:30,rounds:[
+    {label:"OPEN SHADOW",vid:"https://videos.pexels.com/video-files/7187405/7187405-sd_640_360_24fps.mp4"},
+    {label:"OPEN SHADOW",vid:"https://videos.pexels.com/video-files/7187405/7187405-sd_640_360_24fps.mp4"},
+    {label:"OPEN SHADOW",vid:"https://videos.pexels.com/video-files/7187405/7187405-sd_640_360_24fps.mp4"},
+    {label:"OPEN SHADOW",vid:"https://videos.pexels.com/video-files/7187405/7187405-sd_640_360_24fps.mp4"}
+  ]},
+  {type:"rest",label:"PUT YOUR GLOVES ON",sub:"Bag Work starts next — 8 rounds.",secs:90},
+  {type:"rounds",groupLabel:"Bag",secs:120,rest:30,rounds:[
+    {label:"LEAD-HAND ATTACKS"},
+    {label:"BACKHAND START"},
+    {label:"SWITCH ATTACKS"},
+    {label:"INSIDE WORK"},
+    {label:"OPEN WORK"},
+    {label:"OPEN WORK"},
+    {label:"MAX EFFORT",tag:"10s On / 10s Off",seg:{work:10,rest:10}},
+    {label:"MAX EFFORT",tag:"15s On / 15s Off",seg:{work:15,rest:15}}
+  ]},
+  {type:"rest",label:"GET ON THE BIKE",sub:"Finisher starts next.",secs:90},
+  {type:"rounds",groupLabel:"Finisher",secs:120,rest:60,rounds:[
+    {label:"ASSAULT BIKE OR MO RUN"},
+    {label:"SIT-UPS"},
+    {label:"ASSAULT BIKE OR MO RUN"},
+    {label:"PLANK"}
+  ]}
+ ]}
 ];
-let elitePreview=false;
-function renderBoxElite(){
-  if(profile&&profile.is_staff&&(profile.email||"").toLowerCase()!=="jakegsixboxing@gmail.com"){
-    $("boxContent").innerHTML=`<div class="card" style="text-align:center;padding:30px 20px">
-      <div style="font-weight:900;letter-spacing:3px;color:var(--muted);font-size:11px">STAFF ACCOUNT</div>
-      <h3 style="margin-top:8px">Train With Jake</h3>
-      <p style="margin-top:8px;color:var(--muted);font-size:12.5px;line-height:1.6">This is the members' door to Jake's paid one-on-one programming — not part of staff access. Want something programmed? Tap Jake on the shoulder.</p>
-    </div>`;
-    return;
-  }
+let jakeActive=false,jakeMeta=null;
+function jakeRoundLabel(blk,i,n){
+  if(n<=1)return blk.groupLabel||"";
+  return (blk.groupLabel?blk.groupLabel+" Round "+(i+1)+" of "+n:"Round "+(i+1)+" of "+n);
+}
+function jakeBuildPhases(sess){
+  const p=[];
+  sess.blocks.forEach(blk=>{
+    if(blk.type==="rest"){
+      p.push({b:blk.label,sm:blk.sub||"",s:blk.secs,k:"rest",br:true});
+      return;
+    }
+    const n=blk.rounds.length;
+    blk.rounds.forEach((r,i)=>{
+      const startIdx=p.length;
+      const rn=jakeRoundLabel(blk,i,n)+(r.tag?" — "+r.tag:"");
+      if(r.seg){
+        let t=0,on=true;
+        while(t<blk.secs){const d=Math.min(on?r.seg.work:r.seg.rest,blk.secs-t);p.push({b:on?r.label:"REST",sm:rn,s:d,k:on?"work":"rest",fl:on?"g":"r"});t+=d;on=!on;}
+      }else{
+        p.push({b:r.label,sm:rn,s:blk.secs,k:"work"});
+      }
+      p[p.length-1].end=true;
+      if(r.vid)for(let q=startIdx;q<p.length;q++)p[q].vid=r.vid;
+      if(i<n-1){
+        const nxt=blk.rounds[i+1];
+        const nn=jakeRoundLabel(blk,i+1,n);
+        p.push({b:"REST",sm:"Next: "+(nn?nn+" — ":"")+nxt.label,s:blk.rest,k:"rest",br:true});
+      }
+    });
+  });
+  return p;
+}
+function jakeRoundSummary(sess){
+  const rows=[];
+  sess.blocks.forEach(blk=>{
+    if(blk.type==="rest")return;
+    blk.rounds.forEach((r,i)=>{
+      rows.push({label:(blk.groupLabel?blk.groupLabel+" ":"")+"R"+(i+1)+" — "+r.label+(r.tag?" ("+r.tag+")":""),secs:blk.secs});
+    });
+  });
+  return rows;
+}
+function jakeStart(id){
+  const sess=JAKE_SESSIONS.find(x=>x.id===id);if(!sess)return;
+  S={phases:jakeBuildPhases(sess),idx:0,remain:0,run:false,int:null};
+  S.remain=S.phases[0].s;
+  jakeActive=true;jakeMeta=sess;renderBoxJake();window.scrollTo(0,0);
+}
+function jakeExit(){clearInterval(S.int);jakeActive=false;jakeMeta=null;renderBoxJake();}
+function renderBoxJake(){
+  if(jakeActive)return renderJakeTimer();
   $("boxContent").innerHTML=`
-    <div class="eliteCard">
-      <div class="eliteStar">★</div>
-      <div style="font-weight:900;letter-spacing:5px;color:var(--gold);font-size:12px;margin-top:4px">COMING SOON</div>
-      <h3 class="fcName" style="font-size:26px;margin-top:6px">Train With Jake</h3>
-      <div class="sub" style="margin:6px 0 14px">Custom Boxing Programming · Written By Head Coach Jake Williamson</div>
-      <p style="text-align:left;color:var(--text);font-size:13.5px;line-height:1.7;margin-top:6px">One-on-one boxing programming, built for you personally by the head coach — your goals, your schedule, your level. The doors aren’t open yet, but when they swing open, spots will be strictly limited.</p>
-      <div id="twjWrap">
-        <button class="btnGold" style="margin-top:18px" onclick="twjSend()">Let Us Know You're Interested</button>
-        <p style="margin-top:10px;color:var(--muted);font-size:11.5px">Tap the button and Jake gets a note directly — you'll be the first to hear when the doors open.</p>
+    <div class="secTitle">Built By Jake</div>
+    <p style="font-size:12.5px;color:var(--muted);line-height:1.6;margin:0 2px 12px">Full sessions programmed by Head Coach Jake — pick one and follow it round by round. Every round, rest and finisher is timed for you.</p>
+    ${JAKE_SESSIONS.map(s=>`<div class="card">
+      <h3>${esc(s.name)}</h3>
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:6px">${esc(s.desc)}</p>
+      <button class="btnGold" style="margin-top:14px" onclick="jakeStart('${s.id}')">Start ${esc(s.name)}</button>
+    </div>`).join("")}`;
+}
+function renderJakeTimer(){
+  $("boxContent").innerHTML=`
+    <button class="backBtn" onclick="jakeExit()">‹ Back To Built By Jake</button>
+    <div class="timerCard" id="sCard" style="position:relative;overflow:hidden">
+      <video id="sVid" muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;display:none"></video>
+      <div style="position:relative">
+      <div class="timerSub" id="sSub"></div>
+      <div class="timerPhase gold" id="sPhase">READY</div>
+      <div class="timerTime" id="sTime">--:--</div>
+      <div class="timerSub" id="sNext"></div>
+      <div class="timerBtns"><button class="tReset" onclick="sReset()">Reset</button><button class="tStart" id="sGo" onclick="sToggle()">Start</button></div>
+      <div class="timerBtns" style="margin-top:8px">
+        <button class="tReset" onclick="sDropNext()">✕ Drop Next Round</button>
+        <button class="tReset" style="border-color:var(--gold-dim);color:var(--gold)" onclick="sSkipRound()">Skip Round ›</button>
       </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:15px">${esc(jakeMeta.name)}</h3>
+      <div style="margin-top:8px">${jakeRoundSummary(jakeMeta).map(r=>`<div class="weekRow"><span>${esc(r.label)}</span><span style="color:var(--muted)">${fmtSec(r.secs)}</span></div>`).join("")}</div>
     </div>`;
+  updS();
 }
-async function twjSend(){
-  const me=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";
-  const {error}=await sb.from("pt_requests").insert({user_id:session.user.id,member_name:me,trainer:"Jake Williamson",duration:"Train With Jake — customised programming",preferred:"",note:"This member is interested in having customised programming done through you."});
-  if(error){toast(/duplicate/i.test(error.message)?"You've already registered your interest — Jake's onto it.":error.message);return;}
-  const w=$("twjWrap");if(w)w.innerHTML='<p style="margin-top:18px;font-weight:900;letter-spacing:2px;color:var(--ok)">SENT ✓ — JAKE WILL BE IN TOUCH</p>';
-  toast("Done — Jake's been notified you're keen.");
+async function logJakeComplete(){
+  if(!jakeMeta)return;
+  const note=jakeMeta.name+" — full session completed, Built By Jake.";
+  const {error}=await sb.from("training_logs").insert({user_id:session.user.id,program:"Built By Jake",session:jakeMeta.name,note,session_date:isoDateLocal()});
+  const msgEl=$("jakeSubmitMsg");
+  if(msgEl)msgEl.textContent=error?"Couldn't save — check your connection.":"✓ Submitted To Your Profile";
+  if(!error)historyData=null;
 }
-function renderBoxFull(){
-  $("boxContent").innerHTML=`
-    <div class="card"><h3>Full Sessions</h3><div class="sub">Coming soon</div>
-      <p>Complete coach-built boxing sessions, ready to follow round by round. Being built out now — in the meantime, hit Build Your Own and put your own session together.</p>
-      <button class="btnGold" style="margin-top:14px" onclick="setBoxSub('byo')">Build Your Own Session</button></div>`;
-}
-
 function renderBoxClasses(){
   $("boxContent").innerHTML=`
     <div class="notice"><b>Camp 3 commences Monday July 20.</b> We're currently on the school-holiday timetable.</div>
@@ -1167,6 +1242,17 @@ function updS(){
   const ph=$("sPhase");if(!ph)return;
   const tm=$("sTime"),sub=$("sSub"),nx=$("sNext"),go=$("sGo"),card=$("sCard");
   if(S.idx>=S.phases.length){
+    if(jakeActive){
+      if(card)card.className="timerCard";
+      const vD=$("sVid");if(vD)vD.style.display="none";
+      tm.textContent="0:00";
+      ph.textContent="🎉 CONGRATULATIONS";ph.className="timerPhase gold";
+      sub.innerHTML=(jakeMeta?esc(jakeMeta.name)+" complete — nice work.":"Session complete — nice work.");
+      nx.innerHTML=`<span id="jakeSubmitMsg" style="color:var(--gold);font-weight:800">Submit Session To Profile</span>`;
+      go.textContent="Go Again";
+      if(!S.logged){S.logged=true;logJakeComplete();}
+      return;
+    }
     if(card)card.className="timerCard";
     const vD=$("sVid");if(vD)vD.style.display="none";
     ph.textContent="DONE";ph.className="timerPhase gold";tm.textContent="0:00";
