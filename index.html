@@ -2844,7 +2844,7 @@ async function logBlokesWeighin(){
   lbWeighinData=null;await loadLbWeighins();renderWeighinSection();
 }
 async function delBlokesWeighin(id){
-  const {error}=await sb.from("blokes_weighins")elete().eq("id",id).eq("user_id",session.user.id);
+  const {error}=await sb.from("blokes_weighins").delete().eq("id",id).eq("user_id",session.user.id);
   toast(error?error.message:"Removed.");
   lbWeighinData=null;await loadLbWeighins();renderWeighinSection();
 }
