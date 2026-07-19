@@ -5516,16 +5516,25 @@ let amaPending=[];
 function isoDateLocal(d){d=d||new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
 function staffName(s){return ((s.first_name||"")+" "+(s.last_name||"")).trim()||s.email;}
 async function loadStaffData(){
-  const [st,tk,cm,ms,pr,hr]=await Promise.all([
+  const [st,tk,cm,ms,pr,hr,cs]=await Promise.all([
     sb.from("profiles").select("id,first_name,last_name,email,is_staff,is_manager").eq("is_staff",true),
     sb.from("staff_tasks").select("*").order("created_at",{ascending:false}).limit(300),
     sb.from("pt_commissions").select("*").order("session_date",{ascending:false}).order("created_at",{ascending:false}).limit(300),
     sb.from("staff_messages").select("*").order("created_at",{ascending:true}).limit(200),
     sb.from("pt_requests").select("*").order("created_at",{ascending:false}).limit(100),
-    sb.from("staff_hours").select("*").order("day_of_week",{ascending:true}).order("time",{ascending:true}).limit(500)
+    sb.from("staff_hours").select("*").order("day_of_week",{ascending:true}).order("time",{ascending:true}).limit(500),
+    sb.from("commission_submissions").select("*").order("submitted_at",{ascending:false}).limit(300)
   ]);
-  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[],ptreqs:pr.data||[],hours:hr.data||[]};
-  if(!staffChannel){
+  staffData={loaded:true,staff:(st.data||[]).sort((a,b)=>staffName(a).localeCompare(staffName(b))),tasks:tk.data||[],comms:cm.data||[],msgs:ms.data||[],ptreqs:pr.data||[],hours:hr.data||[],subs:cs.data||[]};
+  const swept=await autoSubmitOverdue();
+    if(swept){
+        const [cm2,cs2]=await Promise.all([
+            sb.from("pt_commissions").select("*").order("session_date",{ascending:false}).order("created_at",{ascending:false}).limit(300),
+            sb.from("commission_submissions").select("*").order("submitted_at",{ascending:false}).limit(300)
+        ]);
+        staffData.comms=cm2.data||[];staffData.subs=cs2.data||[];
+    }
+    if(!staffChannel){
     staffChannel=sb.channel("staff-chat")
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"staff_messages"},pl=>{
         staffData.msgs.push(pl.new);
@@ -5533,6 +5542,40 @@ async function loadStaffData(){
         if(box){box.insertAdjacentHTML("beforeend",staffMsgHtml(pl.new));box.scrollTop=box.scrollHeight;}
       }).subscribe();
   }
+}
+function lastSaturday5pm(){
+    const now=new Date();
+    const cutoff=new Date(now);
+    const diff=(cutoff.getDay()+1)%7;
+    cutoff.setDate(cutoff.getDate()-diff);
+    cutoff.setHours(17,0,0,0);
+    if(cutoff.getTime()>now.getTime())cutoff.setDate(cutoff.getDate()-7);
+    return cutoff;
+}
+async function autoSubmitOverdue(){
+    const cutoff=lastSaturday5pm();
+    const earliest={};
+    (staffData.comms||[]).forEach(c=>{
+        if(c.submission_id)return;
+        const t=c.trainer_id,created=new Date(c.created_at);
+        if(!earliest[t]||created<earliest[t])earliest[t]=created;
+    });
+    const uid=session.user.id,canSweepAll=profile&&profile.is_manager;
+    let swept=false;
+    for(const t of Object.keys(earliest)){
+        if(earliest[t]<cutoff&&(t===uid||canSweepAll)){
+            const {error}=await sb.rpc("submit_pt_commissions",{p_trainer_id:t,p_auto:true});
+            if(!error)swept=true;
+        }
+    }
+    return swept;
+}
+async function submitMyWeek(uid){
+    const {error}=await sb.rpc("submit_pt_commissions",{p_trainer_id:uid,p_auto:false});
+    if(error){toast(error.message);return;}
+    toast("Weekly PT sessions submitted — nice work.");
+    await loadStaffData();
+    renderStaff();
 }
 async function renderStaff(){
   if(!profile||!profile.is_staff){go("home");return;}
@@ -5604,20 +5647,30 @@ function renderStaffChat(){
       </div>
     </div>
     ${profile.email==="jakegsixboxing@gmail.com"?(()=>{
-      const wk=weekStartOf(new Date());
-      const rows=(staffData.comms||[]).filter(c=>new Date(c.session_date+"T12:00:00")>=wk);
-      const tot=rows.reduce((a,c)=>a+Number(c.commission),0);
-      const byT={};rows.forEach(c=>{byT[c.trainer_id]=(byT[c.trainer_id]||0)+Number(c.commission);});
-      const names=staffData.staff.reduce((a,s)=>{a[s.id]=s.first_name||s.email;return a;},{});
-      return `<div class="secTitle">Owner Only — Combined Weekly Commission</div>
-      <div class="card" style="border-color:var(--gold)">
-        <div class="statGrid" style="margin-bottom:0">
-          <div class="statBox"><div class="sv">$${tot.toFixed(0)}</div><div class="sl">All Trainers This Wk</div></div>
-          <div class="statBox"><div class="sv">${rows.length}</div><div class="sl">Sessions</div></div>
-          <div class="statBox"><div class="sv">${Object.keys(byT).length}</div><div class="sl">Trainers Logging</div></div>
-        </div>
-        ${Object.keys(byT).length?`<div style="margin-top:12px">${Object.entries(byT).map(([id,amt])=>`<div class="weekRow"><span>${esc(names[id]||"Trainer")}</span><span style="color:var(--gold);font-weight:700">$${amt.toFixed(0)}</span></div>`).join("")}</div>`:""}
-      </div>`;})():""}
+    const unsubRows=(staffData.comms||[]).filter(c=>!c.submission_id);
+    const pendTot=unsubRows.reduce((a,c)=>a+Number(c.commission),0);
+    const byPend={};unsubRows.forEach(c=>{byPend[c.trainer_id]=(byPend[c.trainer_id]||0)+Number(c.commission);});
+    const names=staffData.staff.reduce((a,s)=>{a[s.id]=s.first_name||s.email;return a;},{});
+    const mo=new Date();mo.setDate(1);mo.setHours(0,0,0,0);
+    const subs=(staffData.subs||[]).slice().sort((a,b)=>new Date(b.submitted_at)-new Date(a.submitted_at));
+    const moTot=subs.filter(x=>new Date(x.submitted_at)>=mo).reduce((a,x)=>a+Number(x.total_commission),0);
+    return `<div class="secTitle">Owner Only — Commission Dashboard</div>
+    <div class="card" style="border-color:var(--gold)">
+    <div class="statGrid" style="margin-bottom:0">
+    <div class="statBox"><div class="sv">$${pendTot.toFixed(0)}</div><div class="sl">Pending — Not Submitted</div></div>
+    <div class="statBox"><div class="sv">$${moTot.toFixed(0)}</div><div class="sl">Submitted This Month</div></div>
+    <div class="statBox"><div class="sv">${Object.keys(byPend).length}</div><div class="sl">Trainers With Pending</div></div>
+    </div>
+    ${Object.keys(byPend).length?`<div style="margin-top:12px">${Object.entries(byPend).map(([id,amt])=>`<div class="weekRow"><span>${esc(names[id]||"Trainer")}</span><span style="color:var(--gold);font-weight:700">$${amt.toFixed(0)}</span></div>`).join("")}</div>`:""}
+    </div>
+    <div class="secTitle">Submitted Weekly Totals — Who To Pay</div>
+    <div class="card">
+    ${subs.length?subs.slice(0,15).map(x=>`<div class="sessItem">
+    <div style="min-width:0"><b>${esc(names[x.trainer_id]||"Trainer")}</b><small>${esc(x.client_names)||"—"} · ${x.session_count} session${x.session_count===1?"":"s"} · ${fmtWhen(x.submitted_at)}${x.auto_submitted?" · auto-submitted":""}</small></div>
+    <span style="color:var(--gold);font-weight:700">$${Number(x.total_commission).toFixed(0)}</span>
+    </div>`).join(""):'<div class="emptyMsg">No submissions yet.</div>'}
+    </div>`;
+})():""}
     ${(staffData.ptreqs||[]).length?`<div class="secTitle">Incoming PT Requests</div>
     <div class="card">${staffData.ptreqs.map(r=>`<div class="sessItem">
       <div style="min-width:0"><b>${esc(r.member_name)} → ${esc(r.trainer)}</b>
@@ -5712,10 +5765,10 @@ function renderStaffMember(uid){
   let ptHtml="";
   if(me||mgr){
     const mine=staffData.comms.filter(c=>c.trainer_id===uid);
-    const wk=weekStartOf(new Date()).getTime();
+    const unsub=mine.filter(c=>!c.submission_id);
     const mo=new Date();mo.setDate(1);mo.setHours(0,0,0,0);
-    const wkTot=mine.filter(c=>new Date(c.session_date+"T12:00:00")>=wk).reduce((a,c)=>a+Number(c.commission),0);
-    const wkN=mine.filter(c=>new Date(c.session_date+"T12:00:00")>=wk).length;
+    const wkTot=unsub.reduce((a,c)=>a+Number(c.commission),0);
+    const wkN=unsub.length;
     const moTot=mine.filter(c=>new Date(c.session_date+"T12:00:00")>=mo).reduce((a,c)=>a+Number(c.commission),0);
     ptHtml=`<div class="secTitle">PT Session Log</div>
     <div class="statGrid">
@@ -5723,6 +5776,7 @@ function renderStaffMember(uid){
       <div class="statBox"><div class="sv">${wkN}</div><div class="sl">Sessions This Wk</div></div>
       <div class="statBox"><div class="sv">$${moTot.toFixed(0)}</div><div class="sl">Collected This Month</div></div>
     </div>
+    ${me&&unsub.length?`<button class="btnGold" style="margin-bottom:14px" onclick="submitMyWeek('${uid}')">Submit This Week — $${wkTot.toFixed(0)} · ${wkN} session${wkN===1?"":"s"}</button>`:""}
     ${me?`<div class="card">
       <div class="field"><label>Client Full Name</label><input id="pcClient" placeholder="e.g. Joe Smith"></div>
       <div class="field"><label>Session</label><select id="pcType">
