@@ -2834,7 +2834,7 @@ function weighinSectionHtml(){
 }
 function renderWeighinSection(){const el=$("wiSection");if(el)el.innerHTML=weighinSectionHtml();}
 async function logBlokesWeighin(){
-  const wk=$("wiWeek")value,w=+$("wiWeight").value,note=$("wiNote")?$("wiNote").value.trim():"";
+  const wk=$("wiWeek").value,w=+$("wiWeight").value,note=$("wiNote")?$("wiNote").value.trim():"";
   if(!wk){toast("Pick the week.");return;}
   if(!(w>=30&&w<=300)){toast("Weight in kilos — e.g. 102.4.");return;}
   const {error}=await sb.from("blokes_weighins").upsert({user_id:session.user.id,week_of:wk,weight_kg:w,note},{onConflict:"user_id,week_of"});
