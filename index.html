@@ -5627,12 +5627,8 @@ async function renderStaffInsights(){
   const totals={};ptsData.events.forEach(e=>totals[e.user_id]=(totals[e.user_id]||0)+e.points);
   const topWeek=Object.entries(totals).map(([uid,p])=>({uid,name:nameOf(uid),p})).sort((a,b)=>b.p-a.p).slice(0,5);
   box.innerHTML=`
-    <div class="secTitle">Weekly Attendance (Class Check-Ins)</div>
-    <div class="card">${counts.map(c=>`<div class="weekRow"><span style="color:var(--muted)">Week of ${fmtDateAU(c.wk)}</span><span>${c.n}</span></div>`).join("")}</div>
-    <div class="secTitle">Top Points This Ladder</div>
-    <div class="card">${topWeek.length?topWeek.map(t=>`<div class="weekRow"><span>${esc(t.name)}</span><span style="color:var(--gold)">${t.p} pts</span></div>`).join(""):'<div class="emptyMsg">No points banked yet.</div>'}</div>
-    <div class="secTitle">Gone Quiet — 14+ Days No Class</div>
-    ${quiet.length?quiet.map(q=>`<div class="card"><b>${esc(q.name)}</b><div class="sub" style="margin-top:2px">Last class ${q.days} days ago</div></div>`).join(""):'<div class="card"><p>Nobody’s drifted — everyone’s been in within two weeks.</p></div>'}`;
+ <div class="secTitle">Top Points This Ladder</div>
+    <div class="card">${topWeek.length?topWeek.map(t=>`<div class="weekRow"><span>${esc(t.name)}</span><span style="color:var(--gold)">${t.p} pts</span></div>`).join(""):'<div class="emptyMsg">No points banked yet.</div>'}</div>`;
 }
 function staffMsgHtml(m){
   const mine=session&&m.user_id===session.user.id;
