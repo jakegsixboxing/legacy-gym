@@ -291,7 +291,7 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .yMsg .who{font-size:12px;font-weight:900;letter-spacing:.6px;background:linear-gradient(110deg,#8a6d1f,#d4af37 30%,#fff3b0 50%,#d4af37 70%,#8a6d1f);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;display:inline-block}
 .yMsg .txt{color:#fff;font-size:14.5px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;margin-top:1px}
 .yMsg .time{font-size:9.5px;color:#6e6e6e;margin-top:2px}
-#lbMsgIn,#lbDmIn{color:#f5f5f5;background:#1a1712;border:1px solid #2a2417;border-radius:20px;padding:10px 16px;font-size:14px;outline:none}
+#lbMsgIn,#lbDmIn{color:#f5f5f5;background:#1a1712;border:1px solid #2a2417;border-radius:20px;padding:10px 16px;font-size:14px;outline:none;resize:none;overflow-y:auto;line-height:1.3;min-height:40px;max-height:116px;font-family:inherit;white-space:pre-wrap;word-wrap:break-word}
 #lbMsgIn::placeholder,#lbDmIn::placeholder{color:#6e6e6e}
 #lbMsgs{display:flex;flex-direction:column}
 .yRow{display:flex;align-items:flex-end;gap:8px;margin-top:10px}
@@ -1928,7 +1928,7 @@ function lbSubscribeRealtime(){
         if(!lbData.msgs)lbData.msgs=[];
         if(lbData.msgs.some(m=>m.id===payload.new.id))return;
         lbData.msgs.push(payload.new);
-        if(view==="blokes"&&lbSub==="yarn"&&yarnMode==="group"){lbMarkSeen();renderBlokes();}
+        if(view==="blokes"&&lbSub==="yarn"&&yarnMode==="group"){lbMarkSeen();const _d=document.getElementById("lbMsgIn");const _dv=_d?_d.value:"";renderBlokes();if(_dv){const _n=document.getElementById("lbMsgIn");if(_n){_n.value=_dv;_n.style.height="auto";_n.style.height=Math.min(_n.scrollHeight,116)+"px";}}}
         else if(session&&payload.new.user_id!==session.user.id){lbUnread++;if(view==="home"&&typeof renderHome==="function")renderHome();}
       })
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"blokes_dms"},payload=>{
@@ -3245,7 +3245,7 @@ function yRenderMsgs(msgs){if(!msgs.length)return '<div class="emptyMsg">Dead qu
     ${grp?`
     ${(typeof Notification!=="undefined"&&Notification.permission!=="granted")?`<div class="yNotifBanner"><span>Turn on notifications so you never miss The Yarn</span><button onclick="window.subscribePush&&window.subscribePush()">Enable</button></div>`:""}<div id="lbMsgs" style="flex:1;overflow-y:auto;padding:12px 16px">${yRenderMsgs(lbData.msgs)}</div>${(()=>{setTimeout(()=>{const b=document.getElementById("lbMsgs");if(b)b.scrollTop=b.scrollHeight;},30);return "";})()}
     <div style="display:flex;gap:8px;padding:10px 12px calc(10px + 2px);border-top:1px solid #2a2417;background:#111009;flex-shrink:0">
-      <input id="lbMsgIn" placeholder="Talk to the blokes…" maxlength="1000" style="flex:1" onkeydown="if(event.key==='Enter')lbSend()">
+      <textarea id="lbMsgIn" placeholder="Talk to the blokes…" maxlength="1000" rows="1" style="flex:1" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,116)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();lbSend();}"></textarea>
       <button class="btnGold" style="width:auto;margin:0;padding:12px 16px;background:#c9994d" onclick="lbSend()">➤</button>
     </div>`
     :`
@@ -3258,7 +3258,7 @@ function yRenderMsgs(msgs){if(!msgs.length)return '<div class="emptyMsg">Dead qu
     <div id="lbDms" style="flex:1;overflow-y:auto;padding:12px 16px">${myDms.map(yMsgH).join("")||'<div class="emptyMsg">No messages yet.</div>'}</div>
     ${(!isC||dmSel)?`
     <div style="display:flex;gap:8px;padding:10px 12px;border-top:1px solid #2a2417;background:#111009;flex-shrink:0">
-      <input id="lbDmIn" placeholder="${isC?"Message them privately…":"Message Coach Jake…"}" maxlength="1000" style="flex:1" onkeydown="if(event.key==='Enter')lbDmSend()">
+      <textarea id="lbDmIn" placeholder="${isC?"Message them privately…":"Message Coach Jake…"}" maxlength="1000" rows="1" style="flex:1" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,116)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();lbDmSend();}"></textarea>
       <button class="btnGold" style="width:auto;margin:0;padding:12px 16px;background:#c9994d" onclick="lbDmSend()">➤</button>
     </div>`:""}
     `}
