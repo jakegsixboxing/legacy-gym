@@ -1978,9 +1978,9 @@ function renderBlokes(){
     </div>`;
   if(lbSub==="home"){
     const tiles=LB_TILES.concat(profile&&profile.is_lb_coach?[LB_COACH_TILE]:[]);
-    $("main").innerHTML=`<button class="backBtn" onclick="go('home')">‹ Back To Home</button>`+header+tiles.map(t=>`
+    $("main").innerHTML=`<button class="backBtn" onclick="go('home')">‹ Back To Home</button>`+header+(typeof Notification!=="undefined"&&Notification.permission!=="granted"?'<div class="yNotifBanner" style="margin:0 16px 12px;border-radius:12px"><span>Turn on notifications for The Yarn</span><button onclick="window.subscribePush&&window.subscribePush()">Enable</button></div>':"")+tiles.map(t=>`
       <button class="homeCard" style="${t.logo?`background:linear-gradient(90deg,rgba(13,13,13,.5) 0%,rgba(13,13,13,.95) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:`background:linear-gradient(180deg,rgba(13,13,11,.5),rgba(13,13,11,.92)),url('${t.img}') center/cover no-repeat #0d0d0d;border-color:#2a2417`}" onclick="lbSub='${t.id}';lbTimerDay=null;lbCoachSel=null;lbGoalEditing=false;renderBlokes()">
-        <div class="hcKicker" style="color:#c9994d">${t.k}</div>
+        <div class="hcKicker" style="color:#c9994d">${t.k}${t.id==="yarn"&&lbUnread>0?`<span class="hcBadge">${lbUnread>9?"9+":lbUnread}</span>`:""}</div>
         <div class="hcTitle">${t.t}</div>
         <div class="hcSub">${t.s}</div>
       </button>`).join("");
