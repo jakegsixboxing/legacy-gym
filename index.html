@@ -5097,6 +5097,7 @@ async function leaveWaitlist(date,time){
 }
 
 /* ---- Social Events ---- */
+let sePhotoUrl=null;
 async function renderSocial(){
   $("main").innerHTML=`<div class="loadingDots">Loading the social calendar…</div>`;
   const [ev,rs]=await Promise.all([
@@ -5113,7 +5114,7 @@ async function renderSocial(){
     const these=rsvps.filter(r=>r.event_id===e.id);
     const mine=these.find(r=>r.user_id===session.user.id);
     const gone=e.event_date&&e.event_date<today;
-    return `<div class="card">
+    return `<div class="card" style="padding:0;overflow:hidden">${e.photo_url?`<div style="position:relative"><img src="${e.photo_url}" loading="lazy" style="width:100%;height:190px;object-fit:cover;display:block"><div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.72) 100%)"></div>${these.length?`<div style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);color:var(--gold);font-size:11px;font-weight:800;letter-spacing:1px;padding:5px 10px;border-radius:20px">${these.length} IN</div>`:""}</div>`:""}<div style="padding:18px">
       <div style="display:flex;gap:14px;align-items:flex-start">
         <div class="evDate"><span>${e.event_date?new Date(e.event_date+"T12:00:00").getDate():"?"}</span><small>${e.event_date?["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][new Date(e.event_date+"T12:00:00").getMonth()]:"TBC"}</small></div>
         <div style="flex:1;min-width:0">
@@ -5126,6 +5127,7 @@ async function renderSocial(){
       ${gone?"":mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="socialOut('${e.id}')">You're In ✓ — Tap To Pull Out</button>`
         :`<button class="btnGold" style="margin-top:12px" onclick="socialIn('${e.id}')">I'm In</button>`}
       ${isStaff?`<button class="btnLink" style="border-color:var(--danger);color:var(--danger);margin-top:10px" onclick="delSocial('${e.id}')">Remove Event</button>`:""}
+    </div>
     </div>`;
   };
   $("main").innerHTML=`
@@ -5147,7 +5149,7 @@ async function renderSocial(){
       </div>
       <div class="field"><label>Location (optional)</label><input id="seLoc" placeholder="Venue"></div>
       <div class="field"><label>Details (optional)</label><input id="seDetails" placeholder="What to know, what to bring…"></div>
-      <button class="btnGold" onclick="addSocial()">List The Event</button>
+      <div class="field"><label>Event Photo (optional)</label><input type="file" accept="image/*" id="sePhotoInput" onchange="uploadSocialPhoto(event)"><div id="sePhotoPreview" style="margin-top:10px;display:none"><img id="sePhotoPreviewImg" style="width:100%;border-radius:8px;display:block"></div></div><button class="btnGold" onclick="addSocial()">List The Event</button>
     </div>`:""}`;
 }
 async function socialIn(id){
@@ -5162,11 +5164,41 @@ async function socialOut(id){
   toast(error?error.message:"Pulled out — no hard feelings.");
   renderSocial();
 }
+function uploadSocialPhoto(e){
+const file=e.target.files&&e.target.files[0];if(!file)return;
+if(!file.type.startsWith("image/")){toast("Please choose an image file.");return;}
+toast("Uploading photo…");
+const reader=new FileReader();
+reader.onload=()=>{
+const img=new Image();
+img.onload=()=>{
+const maxW=1600;
+const scale=Math.min(1,maxW/img.width);
+const w=Math.round(img.width*scale),h=Math.round(img.height*scale);
+const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+const ctx=canvas.getContext("2d");
+ctx.drawImage(img,0,0,w,h);
+canvas.toBlob(async blob=>{
+const path=session.user.id+"/event-"+Date.now()+".jpg";
+const {error}=await sb.storage.from("member-photos").upload(path,blob,{contentType:"image/jpeg"});
+if(error){toast(error.message);return;}
+const {data}=sb.storage.from("member-photos").getPublicUrl(path);
+sePhotoUrl=data.publicUrl;
+const prev=$("sePhotoPreview"),pv=$("sePhotoPreviewImg");
+if(prev&&pv){pv.src=sePhotoUrl;prev.style.display="block";}
+toast("Photo's in — looking good.");
+},"image/jpeg",0.88);
+};
+img.src=reader.result;
+};
+reader.readAsDataURL(file);
+}
 async function addSocial(){
   const t=$("seTitle").value.trim();if(!t){toast("Give the event a title.");return;}
-  const {error}=await sb.from("social_events").insert({title:t,event_date:$("seDate").value||null,event_time:$("seTime").value.trim(),location:$("seLoc").value.trim(),details:$("seDetails").value.trim(),created_by:session.user.id});
+  const {error}=await sb.from("social_events").insert({title:t,event_date:$("seDate").value||null,event_time:$("seTime").value.trim(),location:$("seLoc").value.trim(),details:$("seDetails").value.trim(),photo_url:sePhotoUrl||null,created_by:session.user.id});
   if(error){toast(error.message);return;}
   toast("Event's up. Watch the names roll in.");
+  sePhotoUrl=null;
   renderSocial();
 }
 async function delSocial(id){
