@@ -2013,9 +2013,12 @@ const LB_TILES=[
  {id:"ladder",k:"Blokes Only",t:"The Ladder",s:"Same points, our own comp — Fresh Meat to Heavyweight Champion.",logo:true},
  {id:"podcast",k:"Stories From The Club",t:"Local Blokes Podcast",s:"Real talk from the crew — training, life & everything in between.",img:IMGS.podcast}];
 const LB_COACH_TILE={id:"coachview",k:"Staff Only — Jake, Alison & Joe",t:"Coach View",s:"Every Local Blokes member's profile, weigh-ins & progress photos in one place.",img:"https://images.unsplash.com/photo-1517963879433-6ad2b056d712?auto=format&fit=crop&w=1000&q=70"};
+let lbProgView='train';
 async function lbProgram(){
   await loadBlokes();await loadWorld();if(!wLogsLoaded)await loadWLogs();
   if(view!=="blokes"||lbSub!=="program")return;const box=$("lbContent");if(!box)return;
+  const progToggle=`<div class="pillBtns" style="margin-bottom:8px"><button class="${lbProgView==='train'?'on':''}" onclick="lbProgView='train';renderBlokes()">Training</button><button class="${lbProgView==='results'?'on':''}" onclick="lbProgView='results';renderBlokes()">Results</button></div>`;
+  if(lbProgView==="results")return lbRenderResults(progToggle);
   const wk=LB_DATA.weeks[lbWeek],st=LB_DATA.strength[lbDay];
   const d0=isoDateLocal();
   const claimed=ptsData.events.some(e=>e.user_id===session.user.id&&e.kind==="class"&&e.ref==="lb:"+d0);
@@ -2041,6 +2044,7 @@ async function lbProgram(){
     </div>`;};
   let n=0,otN=500;
   box.innerHTML=`
+    ${progToggle}
     <div class="pillBtns" style="flex-wrap:wrap">${[1,2,3,4,5,6,7,8,9,10].map(w=>`<button class="${lbWeek===w?'on':''}" style="min-width:52px" onclick="lbWeek=${w};renderBlokes()">Wk ${w}</button>`).join("")}</div>
     <div class="pillBtns" style="margin-top:8px">
       <button class="${lbDay==='mon'?'on':''}" onclick="lbDay='mon';renderBlokes()">Monday — Push</button>
@@ -2071,6 +2075,40 @@ async function lbProgram(){
     </div>
     <div class="secTitle">My Recent Lifts</div>
     <div class="card">${lbData.lifts.filter(l=>l.user_id===session.user.id).slice(0,12).map(l=>`<div class="weekRow"><span>${esc(l.exercise)} <small style="color:var(--muted)">wk${l.week}</small></span><span style="color:var(--gold)">${l.weight_kg} kg × ${l.reps}</span></div>`).join("")||'<div class="emptyMsg">Nothing logged yet. Get after it.</div>'}</div>`;
+}
+async function lbRenderResults(progToggle){
+await loadLbWeighins();
+const {data:myLifts}=await sb.from("blokes_lifts").select("*").eq("user_id",session.user.id).order("week",{ascending:false}).order("created_at",{ascending:false});
+if(view!=="blokes"||lbSub!=="program"||lbProgView!=="results")return;
+const box=$("lbContent");if(!box)return;
+const rows=myLifts||[];
+const groups={};
+rows.forEach(r=>{
+const key=r.week+"|"+r.day+"|"+(r.session_date||"");
+if(!groups[key])groups[key]={week:r.week,day:r.day,date:r.session_date,items:{}};
+if(!groups[key].items[r.exercise])groups[key].items[r.exercise]=[];
+groups[key].items[r.exercise].push(r);
+});
+const sessions=Object.values(groups).sort((a,b)=>(b.week-a.week)||((b.date||"").localeCompare(a.date||"")));
+const dayLabel=d=>d==="mon"?"Monday — Push":d==="wed"?"Wednesday — Legs & Pull":d;
+box.innerHTML=`
+${progToggle}
+<div class="card" style="text-align:center;margin-bottom:12px">
+<div style="font-weight:900;letter-spacing:2px;color:#c9994d;font-size:11px">YOUR RESULTS</div>
+<h2 style="font-size:19px;margin-top:4px">${esc(myDisplayName())}</h2>
+<p style="font-size:11px;color:var(--muted);margin-top:6px">Private to you — no other member can see this tab.</p>
+</div>
+<div id="wiSection">${weighinSectionHtml()}</div>
+<div class="secTitle">Strength Training Progress</div>
+${sessions.length?sessions.map(s=>`<div class="card" style="margin-bottom:10px">
+<div style="font-weight:900;font-size:13px;color:#c9994d">Week ${s.week} — ${dayLabel(s.day)}</div>
+${s.date?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${fmtDateAU(s.date)}</div>`:""}
+${Object.entries(s.items).map(([ex,sets])=>`<div style="margin-top:8px">
+<b style="font-size:12.5px">${esc(ex)}</b>
+<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">${sets.map(t=>`<span style="display:inline-flex;align-items:center;gap:3px;background:#132018;border:1px solid var(--ok);border-radius:5px;padding:1px 6px;font-size:11.5px">${t.weight_kg}kg×${t.reps}</span>`).join("")}</div>
+</div>`).join("")}
+</div>`).join(""):'<div class="card"><p>Nothing logged yet — get in and bank your first session.</p></div>'}
+`;
 }
 function lbRep(i,j,d){const el=$("lbRp-"+i+"-"+j);if(!el)return;el.textContent=Math.max(0,(parseInt(el.textContent)||0)+d);}
 async function lbLogSets(ex,i,sets){
