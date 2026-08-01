@@ -708,29 +708,80 @@ const JAKE_SESSIONS=[
     {label:"ASSAULT BIKE OR MO RUN"},
     {label:"PLANK"}
   ]}
+ ]},
+{id:"ironmike",name:"IRON MIKE",
+ desc:"2km treadmill run to open, a 5 minute skip, 4 rounds of open shadow, 3 rounds of ladder footwork, 8 rounds on the bag working mid to short range, 4 rounds of gut work, then a 1km run to finish. Pick 2:00 or 3:00 rounds before you start — every round, rest and finisher timed for you.",
+ pickLen:true,
+ blocks:[
+  {type:"rounds",groupLabel:"Warm-Up Run",secs:720,rest:0,rounds:[
+    {label:"2KM TREADMILL RUN"}
+  ]},
+  {type:"rest",label:"GET YOUR ROPE",sub:"5 Minute Skip starts next.",secs:30},
+  {type:"rounds",groupLabel:"Warm-Up Skip",secs:300,rest:0,rounds:[
+    {label:"5 MINUTE SKIP",vid:"https://videos.pexels.com/video-files/9943343/9943343-sd_360_640_24fps.mp4"}
+  ]},
+  {type:"rest",label:"REST",sub:"Shadow Boxing starts next — 4 rounds.",secs:30},
+  {type:"rounds",groupLabel:"Shadow",secs:"VAR",rest:30,rounds:[
+    {label:"OPEN SHADOW",vid:"https://videos.pexels.com/video-files/7187405/7187405-sd_640_360_24fps.mp4"},
+    {label:"OPEN SHADOW",vid:"https://videos.pexels.com/video-files/7187405/7187405-sd_640_360_24fps.mp4"},
+    {label:"OPEN SHADOW",vid:"https://videos.pexels.com/video-files/7187405/7187405-sd_640_360_24fps.mp4"},
+    {label:"OPEN SHADOW",vid:"https://videos.pexels.com/video-files/7187405/7187405-sd_640_360_24fps.mp4"}
+  ]},
+  {type:"rest",label:"LADDER OUT",sub:"Footwork starts next — 3 rounds.",secs:30},
+  {type:"rounds",groupLabel:"Footwork",secs:"VAR",rest:30,rounds:[
+    {label:"LADDER FOOTWORK"},
+    {label:"LADDER FOOTWORK"},
+    {label:"LADDER FOOTWORK"}
+  ]},
+  {type:"rest",label:"PUT YOUR GLOVES ON",sub:"Bag Work starts next — 8 rounds.",secs:90},
+  {type:"rounds",groupLabel:"Bag",secs:"VAR",rest:30,rounds:[
+    {label:"MID-RANGE WORK"},
+    {label:"MID-RANGE WORK"},
+    {label:"MID-RANGE WORK"},
+    {label:"MID-RANGE WORK"},
+    {label:"SHORT-RANGE WORK"},
+    {label:"SHORT-RANGE WORK"},
+    {label:"SHORT-RANGE WORK"},
+    {label:"SHORT-RANGE WORK"}
+  ]},
+  {type:"rest",label:"ON THE FLOOR",sub:"Gut Work starts next — 4 rounds.",secs:60},
+  {type:"rounds",groupLabel:"Gut Work",secs:"VAR",rest:20,rounds:[
+    {label:"SIT-UPS",vid:"https://videos.pexels.com/video-files/4367634/4367634-sd_640_360_30fps.mp4"},
+    {label:"LEG RAISES",vid:"https://videos.pexels.com/video-files/4367634/4367634-sd_640_360_30fps.mp4"},
+    {label:"CRUNCHES",vid:"https://videos.pexels.com/video-files/4367634/4367634-sd_640_360_30fps.mp4"},
+    {label:"PLANK",vid:"https://videos.pexels.com/video-files/31540631/13442527_640_360_30fps.mp4"}
+  ]},
+  {type:"rest",label:"BACK ON THE TREADMILL",sub:"Final run to finish.",secs:60},
+  {type:"rounds",groupLabel:"Finisher",secs:360,rest:0,rounds:[
+    {label:"1KM RUN — FINISH"}
+  ]}
  ]}
 ];
-let jakeActive=false,jakeMeta=null;
+let jakeActive=false,jakeMeta=null,jakeLenSel={},jakeMetaLen=120;
+function jakeSetLen(id,len){jakeLenSel[id]=len;renderBoxJake();}
+function jakeBlkSecs(blk,len){return blk.secs==="VAR"?len:blk.secs;}
 function jakeRoundLabel(blk,i,n){
   if(n<=1)return blk.groupLabel||"";
   return (blk.groupLabel?blk.groupLabel+" Round "+(i+1)+" of "+n:"Round "+(i+1)+" of "+n);
 }
-function jakeBuildPhases(sess){
+function jakeBuildPhases(sess,len){
+  len=len||120;
   const p=[];
   sess.blocks.forEach(blk=>{
     if(blk.type==="rest"){
       p.push({b:blk.label,sm:blk.sub||"",s:blk.secs,k:"rest",br:true});
       return;
     }
+    const bs=jakeBlkSecs(blk,len);
     const n=blk.rounds.length;
     blk.rounds.forEach((r,i)=>{
       const startIdx=p.length;
       const rn=jakeRoundLabel(blk,i,n)+(r.tag?" — "+r.tag:"");
       if(r.seg){
         let t=0,on=true;
-        while(t<blk.secs){const d=Math.min(on?r.seg.work:r.seg.rest,blk.secs-t);p.push({b:on?r.label:"REST",sm:rn,s:d,k:on?"work":"rest",fl:on?"g":"r"});t+=d;on=!on;}
+        while(t<bs){const d=Math.min(on?r.seg.work:r.seg.rest,bs-t);p.push({b:on?r.label:"REST",sm:rn,s:d,k:on?"work":"rest",fl:on?"g":"r"});t+=d;on=!on;}
       }else{
-        p.push({b:r.label,sm:rn,s:blk.secs,k:"work"});
+        p.push({b:r.label,sm:rn,s:bs,k:"work"});
       }
       p[p.length-1].end=true;
       if(r.vid)for(let q=startIdx;q<p.length;q++)p[q].vid=r.vid;
@@ -743,21 +794,23 @@ function jakeBuildPhases(sess){
   });
   return p;
 }
-function jakeRoundSummary(sess){
+function jakeRoundSummary(sess,len){
+  len=len||120;
   const rows=[];
   sess.blocks.forEach(blk=>{
     if(blk.type==="rest")return;
     blk.rounds.forEach((r,i)=>{
-      rows.push({label:(blk.groupLabel?blk.groupLabel+" ":"")+"R"+(i+1)+" — "+r.label+(r.tag?" ("+r.tag+")":""),secs:blk.secs});
+      rows.push({label:(blk.groupLabel?blk.groupLabel+" ":"")+"R"+(i+1)+" — "+r.label+(r.tag?" ("+r.tag+")":""),secs:jakeBlkSecs(blk,len)});
     });
   });
   return rows;
 }
 function jakeStart(id){
   const sess=JAKE_SESSIONS.find(x=>x.id===id);if(!sess)return;
-  S={phases:jakeBuildPhases(sess),idx:0,remain:0,run:false,int:null};
+  const len=jakeLenSel[id]||120;
+  S={phases:jakeBuildPhases(sess,len),idx:0,remain:0,run:false,int:null};
   S.remain=S.phases[0].s;
-  jakeActive=true;jakeMeta=sess;renderBoxJake();window.scrollTo(0,0);
+  jakeActive=true;jakeMeta=sess;jakeMetaLen=len;renderBoxJake();window.scrollTo(0,0);
 }
 function jakeExit(){clearInterval(S.int);jakeActive=false;jakeMeta=null;renderBoxJake();}
 function renderBoxJake(){
@@ -768,6 +821,11 @@ function renderBoxJake(){
     ${JAKE_SESSIONS.map(s=>`<div class="card">
       <h3>${esc(s.name)}</h3>
       <p style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:6px">${esc(s.desc)}</p>
+      ${s.pickLen?`<label class="byoLbl" style="margin-top:12px;display:block">Round Length</label>
+      <div class="pillBtns">
+        <button class="${(jakeLenSel[s.id]||120)===120?'on':''}" onclick="jakeSetLen('${s.id}',120)">2:00 Rounds</button>
+        <button class="${(jakeLenSel[s.id]||120)===180?'on':''}" onclick="jakeSetLen('${s.id}',180)">3:00 Rounds</button>
+      </div>`:""}
       <button class="btnGold" style="margin-top:14px" onclick="jakeStart('${s.id}')">Start ${esc(s.name)}</button>
     </div>`).join("")}`;
 }
@@ -790,7 +848,7 @@ function renderJakeTimer(){
     </div>
     <div class="card">
       <h3 style="font-size:15px">${esc(jakeMeta.name)}</h3>
-      <div style="margin-top:8px">${jakeRoundSummary(jakeMeta).map(r=>`<div class="weekRow"><span>${esc(r.label)}</span><span style="color:var(--muted)">${fmtSec(r.secs)}</span></div>`).join("")}</div>
+      <div style="margin-top:8px">${jakeRoundSummary(jakeMeta,jakeMetaLen).map(r=>`<div class="weekRow"><span>${esc(r.label)}</span><span style="color:var(--muted)">${fmtSec(r.secs)}</span></div>`).join("")}</div>
     </div>`;
   updS();
 }
