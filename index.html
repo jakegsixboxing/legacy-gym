@@ -3403,7 +3403,7 @@ async function lbDmSend(){
   if(error){toast(error.message);el.value=v;return;}
   await loadBlokes(true);renderBlokes();
 }
-const GOLF_DAYS=[{flag:"day_aug23",label:"Round One — Sunday 23 August 2026"},{flag:"day_sep27",label:"Round Two — Sunday 27 September 2026"}];
+const GOLF_DAYS=[{flag:"day_aug23",label:"Round One — Sunday 23 August 2026",closed:true},{flag:"day_sep27",label:"Round Two — Sunday 27 September 2026"}];
 const GOLF_SKILLS=["Never swung a club","Weekend hacker","Social golfer","Plays off a handicap"];
 async function lbGolf(){
   await loadBlokes();
@@ -3431,7 +3431,7 @@ async function lbGolf(){
       <div class="field"><label>Nickname (for the team sheet)</label><input id="gfNick" value="${esc(mine.nickname||"")}" maxlength="30" placeholder="Optional"></div>
       <div class="field"><label>Where's Your Golf At?</label><select id="gfSkill">${GOLF_SKILLS.map(s=>`<option ${mine.skill===s?"selected":""}>${s}</option>`).join("")}</select></div>
       <label class="byoLbl">Which Days Are You In? Pick one or both</label>
-      <div id="gfDays">${GOLF_DAYS.map(d=>`<button type="button" class="rankBtn${mine[d.flag]?" on":""}" data-f="${d.flag}" onclick="this.classList.toggle('on')">${mine[d.flag]?'<span class="rankNum">✓</span>':""}${d.label}</button>`).join("")}</div>
+      <div id="gfDays">${GOLF_DAYS.map(d=>d.closed?`<button type="button" class="rankBtn${mine[d.flag]?" on":""}" data-f="${d.flag}" disabled style="opacity:.5;cursor:not-allowed;border-color:var(--danger)">${mine[d.flag]?'<span class="rankNum">✓</span>':""}${d.label} — <span style="color:var(--danger);font-weight:900">POSTPONED</span></button>`:`<button type="button" class="rankBtn${mine[d.flag]?" on":""}" data-f="${d.flag}" onclick="this.classList.toggle('on')">${mine[d.flag]?'<span class="rankNum">✓</span>':""}${d.label}</button>`).join("")}</div>
       <button class="btnGold" style="margin-top:14px;background:#c9994d" onclick="golfSave()">${mine.user_id?"Update My Registration":"Lock Me In"}</button>
     </div>
     ${GOLF_DAYS.map(d=>{
@@ -3440,12 +3440,16 @@ async function lbGolf(){
       const teamed=new Set(dayTeams.flatMap(t=>[t.player1,t.player2]));
       const free=dayRegs.filter(r=>!teamed.has(r.user_id));
       return `<div class="secTitle">${d.label} — ${dayRegs.length} In</div>
-      <div class="card">
+      <div class="card" style="position:relative;overflow:hidden">
+        ${d.closed?`<div style="background:rgba(224,82,82,.14);border:1.5px solid var(--danger);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center">
+          <div style="color:var(--danger);font-weight:900;letter-spacing:1.5px;font-size:14px">POSTPONED DUE TO NO INTEREST</div>
+          <div style="color:var(--muted);font-size:11px;margin-top:4px">Registrations for this day are closed.</div>
+        </div>`:""}
         ${dayRegs.length?dayRegs.map(r=>`<div class="weekRow"><span><b>${esc(regName(r)||"Bloke")}</b></span><span style="color:var(--muted);font-size:11px">${esc(r.skill||"")}</span></div>`).join(""):'<div class="emptyMsg">No one registered yet — be the first name on the sheet.</div>'}
         ${dayTeams.length?`<p style="font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:#8fce7a;margin-top:12px">TEAMS</p>${dayTeams.map(t=>{
           const p1=regs.find(r=>r.user_id===t.player1),p2=regs.find(r=>r.user_id===t.player2);
           return `<div class="weekRow"><span>${esc(p1?regName(p1):"?")} & ${esc(p2?regName(p2):"?")}</span>${isC?`<button class="xBtn" onclick="golfDelTeam('${t.id}')">×</button>`:""}</div>`;}).join("")}`:""}
-        ${isC&&free.length>1?`<p style="font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:var(--muted);margin-top:12px">COACH — LOCK IN A TEAM</p>
+        ${isC&&free.length>1&&!d.closed?`<p style="font-size:10.5px;font-weight:900;letter-spacing:1.5px;color:var(--muted);margin-top:12px">COACH — LOCK IN A TEAM</p>
         <div class="row2" style="margin-top:8px">
           <div class="field"><select id="gtA-${d.flag}">${free.map(r=>`<option value="${r.user_id}">${esc(regName(r))}</option>`).join("")}</select></div>
           <div class="field"><select id="gtB-${d.flag}">${free.map(r=>`<option value="${r.user_id}">${esc(regName(r))}</option>`).join("")}</select></div>
