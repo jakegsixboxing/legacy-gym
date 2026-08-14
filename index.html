@@ -584,7 +584,7 @@ function render(){
 
 /* ---- Home ---- */
 const HOME_CARDS=[
- {id:"classes",kicker:"Term 3 Timetable Starts Next Week",title:"Book In For Classes",sub:"The full week opens every Sunday 7 AM — tap in, you're booked.",img:"classes"},
+ {id:"classes",kicker:"This Week's Timetable",title:"Book In For Classes",sub:"The full week opens every Sunday 7 AM — tap in, you're booked.",img:"classes"},
  {id:"boxing",kicker:"Legacy Boxing Series",title:"Boxing",sub:"The Sparring Club hub, session builder & Built By Jake.",img:"boxing"},
  {id:"weights",kicker:"The Gym Floor",title:"Weights & Functional Fitness",sub:"Ten training programs plus real CrossFit workouts, timers built in.",img:"weights"},
  {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
@@ -886,7 +886,6 @@ async function logJakeComplete(){
 }
 function renderBoxClasses(){
   $("boxContent").innerHTML=`
-    <div class="notice"><b>Camp 3 commences Monday July 20.</b> We're currently on the school-holiday timetable.</div>
     <div class="secTitle">Your Classes</div>
     <div class="card"><h3>Fitness Club</h3><div class="sub">Non-contact · 10-week blocks</div>
       <p>Structured boxing sessions focused on fitness and skill development — without contact.</p></div>
@@ -5168,7 +5167,7 @@ function timetableGridHtml(){
 }
 async function renderTimetable(){
   $("main").innerHTML=`
-    <div class="notice"><b>Term 3 timetable is live from Monday 20 July.</b> Anything already booked in for this week runs on the current schedule as normal.</div>
+    <div class="notice"><b>This is the current timetable.</b> Anything already booked in for this week runs on the current schedule as normal.</div>
     <button class="btnGold" style="margin-bottom:14px" onclick="go('classes')">Register For A Class — Next 2 Days</button>
     <div class="secTitle">Timetable — From Monday 20 July</div>
     ${timetableGridHtml()}
