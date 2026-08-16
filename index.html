@@ -658,20 +658,30 @@ function startTimetableCountdown(){
 let boxSub="sparring";
 let boxData={loaded:false,profile:null,sessions:[],notes:[],fights:[],noms:[],allNotes:[]};
 let bpEditing=false,bpPhotoUrl=null;
-/* ---- Mia's Training tab (custom, additive, gated to Mia + Jake only) ---- */
-const MIA_TRAINING_UID="154f7fe0-401c-4076-8074-ad1c9a7502e3";
+/* ---- Custom Training tab (per-fighter, additive, gated to that fighter + Jake only) ---- */
 const JAKE_UID="15a011b9-e222-45f0-8eb9-d5338da935d1";
+const TRAINING_TAB_FIGHTERS=[
+  {uid:"154f7fe0-401c-4076-8074-ad1c9a7502e3",firstName:"Mia",backdrop:true},
+  {uid:"0cd15bbb-eb19-4127-bebf-e42c54ae616a",firstName:"Brent",backdrop:false},
+  {uid:"2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139",firstName:"Sarsha",backdrop:false},
+  {uid:"43126c8e-efe2-484e-bd52-d05c55548b6d",firstName:"Sonnie",backdrop:false},
+  {uid:"40ee586b-3970-4961-9858-7c8ed91a8c76",firstName:"Arian",backdrop:false},
+  {uid:"e4d86ca0-b371-4e3d-a343-8603175b1034",firstName:"Ayrton",backdrop:false}
+];
+function trainingFighterFor(uid){return TRAINING_TAB_FIGHTERS.find(f=>f.uid===uid)||null;}
 let coachViewId=null;
 let miaTrainCat="Footwork";
 const MIA_TRAIN_CATS=["Footwork","Shadow Work","Bag Work","Drills Work","Sparring","Conditioning"];
 function canSeeMiaTraining(uid){
-  return !!(profile&&(profile.id===MIA_TRAINING_UID||profile.id===JAKE_UID)&&uid===MIA_TRAINING_UID);
+  const f=trainingFighterFor(uid);
+  return !!(f&&profile&&(profile.id===f.uid||profile.id===JAKE_UID));
 }
-function miaTrainingHtml(){
+function miaTrainingHtml(uid){
+  const f=trainingFighterFor(uid)||{firstName:""};
   const wkStart=weekStartOf(new Date()).getTime();
   const sessThisWeek=(boxData.sessions||[]).filter(s=>weekStartOf(s.session_date+"T12:00:00").getTime()===wkStart).length;
-  return `<div class="secTitle">Mia's Training</div>
-  <div class="notice"><b>Custom workload</b> — built by Jake for Mia.</div>
+  return `<div class="secTitle">${esc(f.firstName)}'s Training</div>
+  <div class="notice"><b>Custom workload</b> — built by Jake for ${esc(f.firstName)}.</div>
   <div class="statGrid" style="grid-template-columns:repeat(2,1fr)">
     <div class="statBox"><div class="sv">TBA</div><div class="sl">Next Fight</div></div>
     <div class="statBox"><div class="sv">${sessThisWeek}</div><div class="sl">Sessions This Week</div></div>
@@ -3787,7 +3797,9 @@ async function renderSparringClub(){
   if(view!=="boxing"||boxSub!=="sparring")return;
   const c=$("boxContent");if(!c)return;
   const bp=boxData.profile;
-  const showMiaTab=profile&&profile.id===MIA_TRAINING_UID;
+  const myTrainFighter=trainingFighterFor(profile&&profile.id);
+  const showMiaTab=!!myTrainFighter;
+  const showMiaBackdrop=showMiaTab&&myTrainFighter.backdrop;
   let html="";
   if(bpEditing)html+=bpFormHtml(bp||{});
   else if(!bp)html+=`<div class="card" style="text-align:center">
@@ -3799,22 +3811,23 @@ async function renderSparringClub(){
     html+=`<div class="pillBtns" style="margin-bottom:14px;flex-wrap:wrap">
       <button class="${sparTab==='profile'?'on':''}" onclick="sparTab='profile';renderSparringClub()">Fighter Profile</button>
       <button class="${sparTab==='match'?'on':''}" onclick="sparTab='match';renderSparringClub()">Sparring Matchmaking</button>
-      ${showMiaTab?`<button class="miaFlash" onclick="sparTab='training';renderSparringClub()">Mia's Training</button>`:""}
+      ${showMiaTab?`<button class="miaFlash" onclick="sparTab='training';renderSparringClub()">${esc(myTrainFighter.firstName)}'s Training</button>`:""}
     </div>`;
     if(sparTab==="match"){
       const mHtml=html+`<div id="sparWed"><div class="loadingDots">Loading the list…</div></div>`+(profile&&profile.is_coach?coachHtml():"");
-      c.innerHTML=showMiaTab?miaBackdropWrap(mHtml):mHtml;
+      c.innerHTML=showMiaBackdrop?miaBackdropWrap(mHtml):mHtml;
       renderSparWed();
       return;
     }
     if(sparTab==="training"&&showMiaTab){
-      c.innerHTML=miaBackdropWrap(html+miaTrainingHtml());
+      const trainHtml=html+miaTrainingHtml(myTrainFighter.uid);
+      c.innerHTML=showMiaBackdrop?miaBackdropWrap(trainHtml):trainHtml;
       renderMiaTrainTabs();
       return;
     }
     html+=boxerCardHtml(bp)+(profile&&profile.is_coach?'<div id="coachRoster"><div class="loadingDots">Pulling up the fighters…</div></div>':"")+sparringStatsHtml()+logFormHtml()+historyHtml()+fightTapeHtml()+notesHtml();
   }
-  c.innerHTML=showMiaTab?miaBackdropWrap(html):html;
+  c.innerHTML=showMiaBackdrop?miaBackdropWrap(html):html;
   if(!bpEditing&&bp&&sparTab==="profile"&&profile&&profile.is_coach)coachRosterLoad();
 }
 function rosterCardHtml(bp){
@@ -3865,8 +3878,9 @@ function renderCoachFighterView(){
   if(!bp){c.innerHTML=html+`<div class="card"><p>No profile found for this fighter.</p></div>`;return;}
   html+=rosterCardHtml(bp)+sparringStatsHtml();
   const showMia=canSeeMiaTraining(bp.user_id);
-  if(showMia)html+=miaTrainingHtml();
-  c.innerHTML=showMia?miaBackdropWrap(html):html;
+  const viewFighter=trainingFighterFor(bp.user_id);
+  if(showMia)html+=miaTrainingHtml(bp.user_id);
+  c.innerHTML=(showMia&&viewFighter&&viewFighter.backdrop)?miaBackdropWrap(html):html;
   if(showMia)renderMiaTrainTabs();
 }
 async function renderSparChat(){
