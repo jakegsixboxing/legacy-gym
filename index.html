@@ -116,6 +116,29 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .coachRosterCard{cursor:pointer}
 .miniSel{margin-top:8px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;display:block}
 
+/* ---- Spring Challenge attention banner (home screen, additive) ---- */
+.springBanner{position:relative;overflow:hidden;border-radius:18px;margin-bottom:16px;border:2.5px solid var(--gold);background:linear-gradient(180deg,rgba(8,8,10,.35) 0%,rgba(8,8,10,.82) 55%,rgba(8,8,10,.97) 100%),url('https://jyslqxepodrseyhoppce.supabase.co/storage/v1/object/public/member-photos/15a011b9-e222-45f0-8eb9-d5338da935d1/event-1784971699613.jpg') center 22%/cover no-repeat,#0d0d0d;animation:springFlash 1.15s ease-in-out infinite}
+@keyframes springFlash{0%,100%{box-shadow:0 0 0 0 rgba(255,221,128,.75),0 10px 30px rgba(0,0,0,.5);border-color:var(--gold)}50%{box-shadow:0 0 0 9px rgba(255,221,128,0),0 10px 30px rgba(0,0,0,.5);border-color:#ffe9a8}}
+.springDismiss{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;z-index:3;cursor:pointer}
+.springInner{position:relative;z-index:2;padding:18px 18px 20px}
+.springTagRow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.springTag{display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#161307;font-size:10.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:5px 10px;border-radius:999px}
+.springTag.prize{background:#fff;color:#a5760a;border:1.5px solid var(--gold);animation:prizeFlash 1.15s ease-in-out infinite}
+@keyframes prizeFlash{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.6)}50%{box-shadow:0 0 0 5px rgba(255,255,255,0)}}
+.springPrizeLine{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.35);border:1px solid rgba(201,164,76,.4);border-radius:10px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#f2e9d0;line-height:1.4;font-weight:600}
+.springPrizeLine b{color:var(--gold)}
+.springTitle{font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;line-height:1.15;text-transform:uppercase;letter-spacing:.5px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);margin-bottom:6px}
+.springMeta{font-size:12.5px;color:#e8e2d2;font-weight:600;margin-bottom:14px;letter-spacing:.3px}
+.springMeta b{color:var(--gold)}
+.springCountdownRow{display:flex;gap:8px;margin-bottom:14px}
+.springCd{flex:1;background:rgba(0,0,0,.4);border:1px solid rgba(201,164,76,.4);border-radius:10px;padding:8px 4px;text-align:center}
+.springCd .n{font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+.springCd .l{font-size:8px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.springFoot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.springRsvp{font-size:11.5px;color:#cfcac0;font-weight:600}
+.springRsvp b{color:var(--gold)}
+.springCta{background:var(--gold);color:#161307;font-weight:800;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:11px 18px;border-radius:10px;white-space:nowrap}
+
 /* legacy elite */
 .eliteCard{background:linear-gradient(150deg,#1d1a12 0%,#111013 55%,#0b0b0c 100%);border:1.5px solid var(--gold);border-radius:16px;padding:28px 22px;text-align:center}
 .eliteStar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#a37e2c,#e6c15c);color:#241c05;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 0 24px rgba(230,193,92,.35)}
@@ -605,7 +628,11 @@ function renderHome(){
   const first=(profile&&profile.first_name)?profile.first_name:"";
   if(!ptsData.loaded)loadWorld().then(()=>{checkMilestone();});else checkMilestone();
   if(ANN===undefined)loadAnnouncement().then(()=>{if(view==="home")renderHome();});
+  if(SPRING_RSVP_COUNT===null&&Date.now()<SPRING_EVENT_TARGET&&!localStorage.getItem(SPRING_DISMISS_KEY)){
+    loadSpringRsvpCount().then(()=>{if(view==="home")renderHome();});
+  }
   $("main").innerHTML=`
+    ${springBannerHtml()}
     ${announcementBannerHtml()}
     ${installBannerHtml()}
     ${timetableCountdownHtml()}
@@ -626,6 +653,7 @@ function renderHome(){
     </button>`:""}`;
   updateBadges();
 startTimetableCountdown();
+startSpringCountdown();
 }
 function timetableCountdownHtml(){
   var t=new Date(2026,6,20,5,15,0,0).getTime();
@@ -1559,6 +1587,57 @@ function checkMilestone(){
     const s=myStreakWeeks();
     boomBanner(m+" Classes Banked","Milestone smashed — keep stacking them.","🔥 "+s+" WEEK"+(s===1?"":"S")+" STREAK");
   }
+}
+/* ---- Spring Challenge attention banner (event: Welcome To Spring - Team Challenge, Sat 29 Aug 2026) ---- */
+const SPRING_EVENT_ID="4ee1ec77-8861-41bd-bd56-be552d2e3dec";
+const SPRING_EVENT_TARGET=new Date(2026,7,29,8,0,0,0).getTime();
+const SPRING_DISMISS_KEY="lg_dismiss_event_"+SPRING_EVENT_ID;
+let SPRING_RSVP_COUNT=null;
+async function loadSpringRsvpCount(){
+  const {count}=await sb.from("social_rsvps").select("id",{count:"exact",head:true}).eq("event_id",SPRING_EVENT_ID);
+  SPRING_RSVP_COUNT=count||0;
+}
+function dismissSpringBanner(){
+  localStorage.setItem(SPRING_DISMISS_KEY,"1");
+  const el=$("springBanner");if(el)el.remove();
+}
+function springBannerHtml(){
+  if(Date.now()>=SPRING_EVENT_TARGET)return"";
+  if(localStorage.getItem(SPRING_DISMISS_KEY))return"";
+  if(SPRING_RSVP_COUNT===null)return"";
+  return `<div class="springBanner" id="springBanner">
+    <div class="springDismiss" onclick="dismissSpringBanner()">✕</div>
+    <div class="springInner">
+      <div class="springTagRow">
+        <div class="springTag">🔥 New Event</div>
+        <div class="springTag prize">🏆 Prizes To Be Won</div>
+      </div>
+      <div class="springTitle">Welcome To Spring<br>Team Challenge</div>
+      <div class="springMeta">Sat 29 Aug · <b>8am</b> · Legacy Gym · Teams of 4</div>
+      <div class="springPrizeLine">🎖️ <span><b>+10 leaderboard points</b> just for showing up — plus prizes for the winning team.</span></div>
+      <div class="springCountdownRow" id="springCd"></div>
+      <div class="springFoot">
+        <div class="springRsvp"><b>${SPRING_RSVP_COUNT}</b> already in</div>
+        <button class="springCta" onclick="go('social')">I'm In →</button>
+      </div>
+    </div>
+  </div>`;
+}
+function renderSpringCountdownTick(){
+  const el=$("springCd");if(!el)return;
+  const diff=SPRING_EVENT_TARGET-Date.now();
+  if(diff<=0){el.innerHTML="";return;}
+  const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+  el.innerHTML=`<div class="springCd"><div class="n">${d}</div><div class="l">Days</div></div><div class="springCd"><div class="n">${pad(h)}</div><div class="l">Hrs</div></div><div class="springCd"><div class="n">${pad(m)}</div><div class="l">Min</div></div><div class="springCd"><div class="n">${pad(s)}</div><div class="l">Sec</div></div>`;
+}
+function startSpringCountdown(){
+  if(!$("springCd"))return;
+  if(window.__springInterval)clearInterval(window.__springInterval);
+  renderSpringCountdownTick();
+  window.__springInterval=setInterval(()=>{
+    if(!$("springCd")){clearInterval(window.__springInterval);return;}
+    renderSpringCountdownTick();
+  },1000);
 }
 /* ---- Staff Announcement Bar ---- */
 let ANN;
