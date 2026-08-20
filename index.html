@@ -113,6 +113,13 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
   0%,100%{box-shadow:0 0 0 0 rgba(255,79,196,.75);border-color:#ff4fc4}
   50%{box-shadow:0 0 0 7px rgba(255,79,196,0);border-color:#ffb3e6}
 }
+.subTabs button.hasNW{position:relative;overflow:visible}
+.nwBadge{position:absolute;top:-7px;right:-5px;background:#ff2fb9;color:#fff;font-size:7.5px;font-weight:800;letter-spacing:.6px;padding:3px 6px;border-radius:7px;line-height:1;text-transform:uppercase;pointer-events:none;box-shadow:0 0 10px rgba(255,47,185,.85);animation:nwGlow 1.4s ease-in-out infinite;z-index:3}
+.nwPip{position:absolute;top:-6px;right:-6px;background:#ff2fb9;color:#fff;font-size:8px;font-weight:800;letter-spacing:.5px;padding:3px 7px;border-radius:8px;line-height:1;text-transform:uppercase;pointer-events:none;box-shadow:0 0 12px rgba(255,47,185,.9);animation:nwGlow 1.4s ease-in-out infinite;z-index:3}
+@keyframes nwGlow{
+  0%,100%{box-shadow:0 0 4px rgba(255,47,185,.55)}
+  50%{box-shadow:0 0 14px rgba(255,47,185,1)}
+}
 .coachRosterCard{cursor:pointer}
 .miniSel{margin-top:8px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:8px 10px;font-size:12px;display:block}
 
@@ -721,9 +728,10 @@ function miaTrainingHtml(uid){
 }
 function renderMiaTrainTabs(){
   const box=$("miaTrainTabs");if(!box)return;
-  box.innerHTML=MIA_TRAIN_CATS.map(c=>
-    `<button class="${c===miaTrainCat?'active':''}" onclick="miaTimerStop();miaTrainCat='${c}';renderMiaTrainTabs()">${c}</button>`
-  ).join("");
+  box.innerHTML=MIA_TRAIN_CATS.map(c=>{
+    const hasWork=!!((TRAIN_PROGRAMS[miaTrainUid]||{})[c]);
+    return `<button class="${c===miaTrainCat?'active':''}${hasWork?' hasNW':''}" onclick="miaTimerStop();miaTrainCat='${c}';renderMiaTrainTabs()">${c}${hasWork?'<span class="nwBadge">New Work</span>':''}</button>`;
+  }).join("");
   renderMiaTrainPanel();
 }
 /* ---- per-fighter training programs (3-min rounds / 30-sec breaks) ---- */
@@ -4420,6 +4428,7 @@ function boxerCardHtml(bp){
       <div class="fcPhotoWrap">
         ${bp.photo_url?`<img class="fcPhoto" src="${esc(bp.photo_url)}" alt="">`:`<div class="fcPhoto fcPhotoEmpty">${esc((bp.name||"?").trim()[0]||"?")}</div>`}
         <span class="dvBadge ${cc?"dvCOACH":d.cls}">${cc?cc.title:d.label}</span>
+        ${(profile&&TRAIN_PROGRAMS[profile.id])?'<span class="nwPip">New Work</span>':''}
       </div>
       <div style="flex:1;min-width:0">
         <div class="fcRank">${rank.name}</div>
