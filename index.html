@@ -4035,7 +4035,8 @@ function rosterCardHtml(bp){
     <div class="fcBanner" style="border-bottom-color:${d.color}"><span class="fcDiv" style="color:${d.color}">${d.banner}</span></div>
     <div class="fcTop">
       <div class="fcPhotoWrap">${bp.photo_url?`<img class="fcPhoto" src="${esc(bp.photo_url)}" alt="">`:`<div class="fcPhoto fcPhotoEmpty">${esc((bp.name||"?").trim()[0]||"?")}</div>`}
-        <span class="dvBadge ${d.cls}">${d.label}</span></div>
+        <span class="dvBadge ${d.cls}">${d.label}</span>
+        ${TRAIN_PROGRAMS[bp.user_id]?'<span class="nwPip">New Work</span>':''}</div>
       <div style="flex:1;min-width:0">
         <h3 class="fcName">${esc(bp.name)}</h3>
         <div class="fcMeta">${[wc,bp.stance,bp.age?bp.age+" yrs":"",bp.current_weight?Number(bp.current_weight)+"kg now":""].filter(Boolean).join(" · ")}</div>
