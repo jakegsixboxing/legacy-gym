@@ -495,6 +495,8 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const LOGO = "icon-512.png";
+/* Official HYROX wordmark — sourced verbatim from hyrox.com/wp-content/uploads/2022/03/HYROX-Logo.svg (near-white fill, built for dark backgrounds) */
+const HYROX_LOGO = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjAiIHk9IjAiIHdpZHRoPSI1MjAiIGhlaWdodD0iNzIiIHZpZXdCb3g9IjAsIDAsIDUyMCwgNzIiPgogIDxnIGlkPSJCYWNrZ3JvdW5kIj4KICAgIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI1MjAiIGhlaWdodD0iNzIiIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMCIvPgogIDwvZz4KICA8ZGVmcz4KICAgIDxjbGlwUGF0aCBpZD0iQ2xpcF8xIj4KICAgICAgPHBhdGggZD0iTTAuMDYsMC4zMTEgTDUxOS41NjEsMC4zMTEgTDUxOS41NjEsNzEuOTQgTDAuMDYsNzEuOTQgeiIvPgogICAgPC9jbGlwUGF0aD4KICAgIDxjbGlwUGF0aCBpZD0iQ2xpcF8yIj4KICAgICAgPHBhdGggZD0iTTAuMDYsMC4zMTEgTDUxOS41NjEsMC4zMTEgTDUxOS41NjEsNzEuOTQgTDAuMDYsNzEuOTQgeiIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+CiAgPGcgaWQ9IkxheWVyXzEiPgogICAgPGcgY2xpcC1wYXRoPSJ1cmwoI0NsaXBfMSkiPgogICAgICA8cGF0aCBkPSJNMCwxLjc4NCBMMTEuNzg0LDEuNzg0IEwxMS43ODQsMzAuOTUxIEw0MC4yNjQsMzAuOTUxIEw0MC4yNjQsMS43ODQgTDUyLjA0OSwxLjc4NCBMNTIuMDQ5LDcwLjUyNyBMNDAuMjY0LDcwLjUyNyBMNDAuMjY0LDQxLjI2MiBMMTEuNzg0LDQxLjI2MiBMMTEuNzg0LDcwLjUyNyBMMCw3MC41MjcgTDAsMS43ODQiIGZpbGw9IiNGRkZGRkUiLz4KICAgIDwvZz4KICAgIDxwYXRoIGQ9Ik0xNDAuMzI0LDQzLjMyNSBMMTE3LjA1LDUuNzEyIEwxMTcuMDUsMS43ODQgTDEyOC42MzcsMS43ODQgTDE0Ni4zMTMsMzIuMjI3IEwxNjQuNTgsMS43ODQgTDE3NS4zODQsMS43ODQgTDE3NS4zODQsNS43MTIgTDE1Mi4xMDgsNDIuODMzIEwxNTIuMTA4LDcwLjUyNyBMMTQwLjMyNCw3MC41MjcgTDE0MC4zMjQsNDMuMzI1IiBmaWxsPSIjRkZGRkZFIi8+CiAgICA8ZyBjbGlwLXBhdGg9InVybCgjQ2xpcF8yKSI+CiAgICAgIDxwYXRoIGQ9Ik0yNjUuNjIzLDM0LjA5MyBDMjcyLjQ5OSwzNC4wOTMgMjc2LjUyNSwzMC43NTQgMjc2LjUyNSwyMy4wOTUgQzI3Ni41MjUsMTUuNDM0IDI3Mi40OTksMTIuMDk2IDI2NS42MjMsMTIuMDk2IEwyNTAuMDA5LDEyLjA5NiBMMjUwLjAwOSwzNC4wOTMgTDI2NS42MjMsMzQuMDkzIHogTTIzOC4yMjQsMS43ODQgTDI2Ny43ODQsMS43ODQgQzI4MS4zMzcsMS43ODQgMjg4LjUwNSw5LjczOSAyODguNTA1LDIyLjg5OCBDMjg4LjUwNSwzMS44MzQgMjg0LjU3NywzOS4yOTggMjc2LjQyNyw0Mi43MzYgTDI4OS4yOTEsNjYuNTk5IEwyODkuMjkxLDcwLjUyNyBMMjc3LjcwNCw3MC41MjcgTDI2My41NjEsNDQuMTEgTDI1MC4wMDksNDQuMTEgTDI1MC4wMDksNzAuNTI3IEwyMzguMjI0LDcwLjUyNyBMMjM4LjIyNCwxLjc4NCIgZmlsbD0iI0ZGRkZGRSIvPgogICAgICA8cGF0aCBkPSJNMzkyLjg4OCw0Ny44NDEgTDM5Mi44ODgsMjQuNDY5IEMzOTIuODg4LDE3LjEwNCAzODcuODc4LDExLjExMyAzNzcuNjY1LDExLjExMyBDMzY3LjQ1MSwxMS4xMTMgMzYyLjQ0MywxNy4xMDQgMzYyLjQ0MywyNC40NjkgTDM2Mi40NDMsNDcuODQxIEMzNjIuNDQzLDU1LjIwNyAzNjcuNDUxLDYxLjE5OCAzNzcuNjY1LDYxLjE5OCBDMzg3Ljg3OCw2MS4xOTggMzkyLjg4OCw1NS4yMDcgMzkyLjg4OCw0Ny44NDEgeiBNMzUwLjY1OCw0Ny4yNTMgTDM1MC42NTgsMjUuMDU4IEMzNTAuNjU4LDkuNDQ0IDM2MS4xNjYsMC4zMTEgMzc3LjY2NSwwLjMxMSBDMzk0LjE2MywwLjMxMSA0MDQuNjcyLDkuNDQ0IDQwNC42NzIsMjUuMDU4IEw0MDQuNjcyLDQ3LjI1MyBDNDA0LjY3Miw2Mi44NjggMzk0LjE2Myw3MiAzNzcuNjY1LDcyIEMzNjEuMTY2LDcyIDM1MC42NTgsNjIuODY4IDM1MC42NTgsNDcuMjUzIiBmaWxsPSIjRkZGRkZFIi8+CiAgICA8L2c+CiAgICA8cGF0aCBkPSJNNDYxLjgxNiw2Ni41OTkgTDQ4My4zMjMsMzQuOTc3IEw0NjMuNDg2LDUuNzEyIEw0NjMuNDg2LDEuNzg0IEw0NzUuNDY3LDEuNzg0IEw0OTAuNjg4LDI1Ljc0NiBMNTA2LjU5OCwxLjc4NCBMNTE3Ljg5MSwxLjc4NCBMNTE3Ljg5MSw1LjcxMiBMNDk3Ljg1OCwzNC44NzkgTDUxOS41Niw2Ni41OTkgTDUxOS41Niw3MC41MjcgTDUwNy41NzksNzAuNTI3IEw0OTAuMzk0LDQ0LjQwNiBMNDczLjEwOSw3MC41MjcgTDQ2MS44MTYsNzAuNTI3IEw0NjEuODE2LDY2LjU5OSIgZmlsbD0iI0ZGRkZGRSIvPgogIDwvZz4KPC9zdmc+Cg==";
 const TIMETABLE_IMG = "https://cdn.shopify.com/s/files/1/0016/0966/2576/files/TIMETABLE_-_FROM_28th_April.png?v=1776828044";
 const IMGS = {
   shopmerch:"https://cdn.shopify.com/s/files/1/0016/0966/2576/files/F5A81FC4-BB8B-48FD-96C5-0B9AFCDFC052.jpg?v=1779876356&width=900",
@@ -678,7 +680,7 @@ const HOME_CARDS=[
  {id:"weights",kicker:"The Gym Floor",title:"Weights & Functional Fitness",sub:"Ten training programs plus real CrossFit workouts, timers built in.",img:"weights"},
  {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
  {id:"cardio",kicker:"Climb, Run & Compete",title:"Cardio & Member Challenges",sub:"StairMaster missions, iconic runs & the club record board.",img:"cardio"},
- {id:"hyrox",kicker:"Race Yourself Fitter",title:"HYROX",sub:"Full sessions, every station, smart training built on real coaching — all trackable, all worth points."},
+ {id:"hyrox",kicker:"Race Yourself Fitter",title:"HYROX",sub:"Full sessions, every station, smart training built on real coaching — all trackable, all worth points.",hyroxLogo:true},
  {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:"leaderboard"},
  {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"social"},
  {id:"shop",kicker:"Official Store",title:"Shop Apparel",sub:"Hoodies, tees & gear straight from our store — spend your credit here.",img:"shopmerch"},
@@ -701,7 +703,7 @@ function renderHome(){
       <div class="hwKicker">${first?("G'day "+esc(first)):"Members Only"}</div>
       <div class="hwTitle">Culture<br>Without Chaos.</div>
     </div>
-    ${HOME_CARDS.map(c=>`<button class="homeCard" style="${c.lb?`background:linear-gradient(90deg,rgba(13,13,13,.55) 0%,rgba(13,13,13,.96) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
+    ${HOME_CARDS.map(c=>`<button class="homeCard" style="${c.lb?`background:linear-gradient(90deg,rgba(13,13,13,.55) 0%,rgba(13,13,13,.96) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:c.hyroxLogo?`background:linear-gradient(180deg,rgba(8,8,10,.35),rgba(8,8,10,.95)),url('${HYROX_LOGO}') center 30px/62% no-repeat #0a0b0e;border-color:#2a2a2a`:c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
       
       <div class="hcKicker">${c.kicker}${c.lb&&lbUnread>0?`<span class="hcBadge">${lbUnread>9?"9+":lbUnread}</span>`:""}</div>
       <div class="hcTitle">${c.title}</div>
@@ -2486,7 +2488,7 @@ async function renderHyrox(){
     <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
     <div class="hero" style="${bgStyle('cardio',.55)}">
       <div class="heroKicker">Race Yourself Fitter</div>
-      <div class="heroTitle">HYROX</div>
+      <img src="${HYROX_LOGO}" alt="HYROX" style="height:34px;margin-bottom:12px;display:block">
       <div class="heroText">Eight 1km runs. Eight functional stations. Same order, every gym, every division, worldwide. Train it whole or break it into pieces — every log banks points toward the club leaderboard.</div>
     </div>
     <div class="subTabs">
