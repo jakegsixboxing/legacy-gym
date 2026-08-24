@@ -369,6 +369,43 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(13,13,14,.
 /* toast */
 #toast{position:fixed;bottom:calc(100px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#1a1b1e;border:1px solid var(--gold-dim);color:var(--text);padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:60;max-width:86%;text-align:center;transition:opacity .3s;opacity:0;pointer-events:none}
 #toast.show{opacity:1}
+
+/* ---- HYROX (additive) ---- */
+.hyDivPills{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.hyDivPills button{flex:1;min-width:44%;padding:10px 4px;border-radius:8px;background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:11.5px}
+.hyDivPills button.on{background:var(--gold);border-color:var(--gold);color:#161307}
+.hyRaceCard{background:linear-gradient(150deg,#1d1a12 0%,#111013 55%,#0b0b0c 100%);border:1.5px solid var(--gold);border-radius:16px;padding:26px 22px;text-align:center;margin-bottom:16px}
+.hyRaceClock{font-family:'Oswald',sans-serif;font-size:46px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums;margin-top:6px}
+.hyRaceLeg{font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.hyRaceLegName{font-family:'Oswald',sans-serif;font-size:20px;text-transform:uppercase;margin-top:4px}
+.hyPtsPill{display:inline-block;background:linear-gradient(135deg,#6e5313,#d4af37 55%,#f5d76e);color:#221803;font-weight:900;font-size:11.5px;letter-spacing:1px;padding:7px 14px;border-radius:20px}
+.hyPrBadge{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--gold);font-weight:800;font-size:12px;letter-spacing:1px;margin-top:10px}
+.hySplitRow{display:flex;justify-content:space-between;padding:9px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.hySplitRow:last-child{border-bottom:none}
+.hySplitRow.total{font-weight:800;color:var(--gold)}
+.hySplitRow .nm{display:flex;align-items:center;gap:8px}
+.hyLegList{margin-top:14px}
+.hyLegRow{display:flex;justify-content:space-between;align-items:center;padding:9px 2px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.hyLegRow:last-child{border-bottom:none}
+.hyLegRow.done{color:var(--ok)}
+.hyLegRow.now{color:var(--gold);font-weight:800}
+.hyHistRow{display:flex;justify-content:space-between;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line);gap:10px}
+.hyHistRow:last-child{border-bottom:none}
+.hyHistRow .l .d{font-size:13px;font-weight:700}
+.hyHistRow .l .s{font-size:11px;color:var(--muted);margin-top:2px}
+.hyHistRow .r{font-family:'Oswald',sans-serif;font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;flex-shrink:0}
+.hyBadgeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.hyBadge{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 6px;text-align:center;opacity:.4}
+.hyBadge.on{opacity:1;border-color:var(--gold)}
+.hyBadge .bi{font-size:20px}
+.hyBadge .bn{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-top:6px}
+.hyBadge .bd{font-size:8.5px;color:var(--muted);margin-top:3px;line-height:1.3}
+.hyFoot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+.hyManual{display:flex;gap:8px;margin-top:10px}
+.hyManual input{flex:1}
+.hyEmpty{font-size:12.5px;color:var(--muted);padding:8px 2px}
+.hyFocusCard{border:1.5px solid var(--gold);background:rgba(201,164,76,.08)}
+.hyFocusCard .kick{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:800}
 </style>
 </head>
 <body>
@@ -604,6 +641,7 @@ function render(){
   if(view==="functional")return renderFunctional();
   if(view==="cardio")return renderCardio();
   if(view==="mvm")return renderMvM();
+  if(view==="hyrox")return renderHyrox();
   if(view==="board")return renderLeaderboard();
   if(view==="blokes")return renderBlokes();
   if(view==="setup")return renderSetup();
@@ -625,6 +663,7 @@ const HOME_CARDS=[
  {id:"weights",kicker:"The Gym Floor",title:"Weights & Functional Fitness",sub:"Ten training programs plus real CrossFit workouts, timers built in.",img:"weights"},
  {id:"recovery",kicker:"Recover Better",title:"Recovery",sub:"Saunas, ice baths & session bookings.",img:"recovery"},
  {id:"cardio",kicker:"Climb, Run & Compete",title:"Cardio & Member Challenges",sub:"StairMaster missions, iconic runs & the club record board.",img:"cardio"},
+ {id:"hyrox",kicker:"Race Yourself Fitter",title:"HYROX",sub:"Full sessions, every station, smart training built on real coaching — all trackable, all worth points."},
  {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:"leaderboard"},
  {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"social"},
  {id:"shop",kicker:"Official Store",title:"Shop Apparel",sub:"Hoodies, tees & gear straight from our store — spend your credit here.",img:"shopmerch"},
@@ -2039,6 +2078,551 @@ async function mvmSubmit(id){
   else toast("Result posted — keep chasing that crown.");
   mvmOpen=null;await loadWorld(true);mvmRefresh();
 }
+/* =========================================================================
+   HYROX — full-session + component tracking, smart training, points-linked
+   (additive — new view "hyrox", new table hyrox_logs, new points_events kind
+   "hyrox". Nothing here touches existing tabs/data.)
+   ========================================================================= */
+const HY_DIVISIONS = {
+  open_m:{label:"Open · Men",  short:"Open Men",  sledPush:"152kg", sledPull:"103kg", farmers:"2 × 24kg", lunge:"20kg", wallball:"6kg · 3.0m"},
+  open_w:{label:"Open · Women",short:"Open Women",sledPush:"102kg", sledPull:"78kg",  farmers:"2 × 16kg", lunge:"10kg", wallball:"4kg · 2.7m"},
+  pro_m:{ label:"Pro · Men",   short:"Pro Men",   sledPush:"202kg", sledPull:"153kg", farmers:"2 × 32kg", lunge:"30kg", wallball:"9kg · 3.0m"},
+  pro_w:{ label:"Pro · Women", short:"Pro Women", sledPush:"152kg", sledPull:"103kg", farmers:"2 × 24kg", lunge:"20kg", wallball:"6kg · 2.7m"},
+};
+const HY_STATIONS = [
+  {id:"ski",      name:"SkiErg",              dist:"1,000m",   weighted:false},
+  {id:"sledpush", name:"Sled Push",           dist:"50m",      weighted:true, wkey:"sledPush"},
+  {id:"sledpull", name:"Sled Pull",           dist:"50m",      weighted:true, wkey:"sledPull"},
+  {id:"burpee",   name:"Burpee Broad Jumps",  dist:"80m",      weighted:false},
+  {id:"row",      name:"Rowing",              dist:"1,000m",   weighted:false},
+  {id:"farmers",  name:"Farmers Carry",       dist:"200m",     weighted:true, wkey:"farmers"},
+  {id:"lunge",    name:"Sandbag Lunges",      dist:"100m",     weighted:true, wkey:"lunge"},
+  {id:"wallball", name:"Wall Balls",          dist:"100 reps", weighted:true, wkey:"wallball"},
+];
+const HY_RUN = {id:"run", name:"1km Run", dist:"1,000m"};
+const HY_ALL = [HY_RUN, ...HY_STATIONS];
+function hyRaceOrder(){
+  const legs=[];
+  HY_STATIONS.forEach((s,i)=>{ legs.push({...HY_RUN,legName:"Run "+(i+1)}); legs.push(s); });
+  return legs;
+}
+const HY_SESSION_PTS = 3;
+const HY_SESSIONS = [
+  {
+    id:"runladder",
+    group:"Compromised Running", tag:"Race Simulation", name:"Run-Into-Station Ladder",
+    sub:"45 min · train the legs you'll actually have on race day",
+    items:[
+      "6 × (400m run @ threshold pace + 15 wall balls)",
+      "Rest is the walk back to the line — no sitting down between rounds",
+      "Last round: run straight into 100 wall balls unbroken if you can hold form",
+    ],
+    credit:"Concept: <b>compromised running</b> — training the movement while already fatigued from running, rather than fresh. Popularised as a named methodology by Compromised Running and by Jade Skillen / Team Skillen Coaching (former UK HYROX Master Trainer)."
+  },
+  {
+    id:"sledconj",
+    group:"Sled Strength", tag:"Technique + Power", name:"Sled Conjugate Block",
+    sub:"40 min · push and pull technique, then load rotates weekly",
+    items:[
+      "10 min: stance, shin angle and drive mechanics — push and pull, empty sled",
+      "Heavy week: 5 × 15m push/pull at 20% over race weight",
+      "Speed week: 6 × 25m push/pull at race weight, for time, full recovery between",
+    ],
+    credit:"Concept: <b>conjugate periodization</b> — rotating max-effort and speed-effort loading week to week instead of one static number. Approach used by Ryan Gibney / Hyrox Strong, strength coach to elite HYROX athlete Michael Sandbach."
+  },
+  {
+    id:"engine",
+    group:"Aerobic Engine", tag:"Zone 2 Base", name:"Engine Builder",
+    sub:"35–50 min · the aerobic base everything else sits on",
+    items:[
+      "30–45 min continuous SkiErg/row/run at conversational pace (Zone 2)",
+      "5 × 500m alternating SkiErg / Row @ threshold, 2 min rest — hold splits within 3 seconds of each other",
+      "Finish: 1,000m row for time, aim to beat your logged best",
+    ],
+    credit:"Concept: building a large aerobic base before adding intensity — the emphasis behind Ciaran Parkinson / FIT4ROX (British Open world record holder) and Aaron Woodman / WDM Coaching's programming."
+  },
+  {
+    id:"emom",
+    group:"Race Capacity", tag:"EMOM", name:"Station Capacity EMOM",
+    sub:"30 min · builds the repeatability a race actually demands",
+    items:[
+      "EMOM 20: odd minutes 12 wall balls, even minutes 10 sandbag lunges (20m)",
+      "Scale reps down before you scale the clock — unbroken sets are the point",
+      "Add a minute of SkiErg every 5th round to simulate race fatigue",
+    ],
+    credit:"Concept: EMOM-based capacity work to build repeatable output under the clock — a core piece of Jake Dearden / The Hyrox Plan's programming (reigning Doubles World Champion, UK Master Coach)."
+  },
+  {
+    id:"roxzone",
+    group:"Race Skill", tag:"Roxzone", name:"Roxzone Transitions",
+    sub:"30 min · the seconds nobody trains but everyone loses",
+    items:[
+      "Practise the run-in → station-start and station-finish → run-out, not just the station itself",
+      "8 rounds: 200m run + 1 station, rotating through all 8 across the block",
+      "Coach calls time from the moment you cross the mat, not when you pick up the bar",
+    ],
+    credit:"Concept: transition efficiency as its own trainable skill, not an afterthought — a documented emphasis of Team Skillen Coaching's weekly programming."
+  },
+  {
+    id:"hillamrap",
+    group:"Finisher", tag:"Fatigued Power", name:"Hill AMRAP Finisher",
+    sub:"20 min · builds power output when your legs are already gone",
+    items:[
+      "Hill or ramp sprint 20–30m, walk down recovery, AMRAP rounds in 15 min",
+      "Every 5th round: 20 sandbag lunges before the next sprint",
+      "Score = total rounds — beat it next block, don't chase a single best sprint",
+    ],
+    credit:"Concept: hill AMRAPs for power output under fatigue — a signature session type from Marc Dean / MD Coaching (reigning Doubles World Champion alongside Jake Dearden)."
+  },
+];
+const HY_CREDIT_NOTE = "These sessions are built around principles those coaches have publicly described — not licensed programs from them.";
+
+/* ---- state (in-memory) ---- */
+let hyDiv="open_m";
+let hySub="full";
+let hyData={loaded:false, logs:[]};
+async function loadHyrox(force){
+  if(hyData.loaded && !force) return;
+  const {data,error}=await sb.from("hyrox_logs").select("id,log_type,item_id,item_name,duration_sec,splits,division,note,awarded_points,created_at").eq("user_id",session.user.id).order("created_at",{ascending:false}).limit(1000);
+  hyData={loaded:true, logs:data||[]};
+}
+function hyLogsOf(type,id){ return hyData.logs.filter(l=>l.log_type===type && (id==null||l.item_id===id)); }
+function hyBest(id){ const rows=hyLogsOf("station",id).filter(l=>l.duration_sec!=null); if(!rows.length)return null; return Math.min(...rows.map(l=>l.duration_sec)); }
+function hyStationCount(id){ return hyLogsOf("station",id).length; }
+function hySessionCount(id){ return hyLogsOf("session",id).length; }
+function hyLastDate(type,id){ const rows=hyLogsOf(type,id); return rows.length? hyFmtDate(rows[0].created_at) : null; }
+function hyTotalSessionLogs(){ return hyLogsOf("session").length; }
+function hyTargetFor(st){ if(!st.weighted) return st.dist; return st.dist+" · "+HY_DIVISIONS[hyDiv][st.wkey]; }
+function hyFmt(sec){ sec=Math.max(0,Math.round(sec)); const m=Math.floor(sec/60), s=sec%60; return m+":"+pad(s); }
+function hyFmtLong(sec){ sec=Math.max(0,Math.round(sec)); const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60; return h>0 ? h+":"+pad(m)+":"+pad(s) : m+":"+pad(s); }
+function hyFmtMin(sec){ return Math.round(sec/60)+" min"; }
+function hyParseMMSS(str){ const m=/^(\d{1,3}):([0-5]?\d)$/.exec((str||"").trim()); if(!m)return null; return (+m[1])*60+(+m[2]); }
+function hyFmtDate(iso){ const d=new Date(iso); return d.toLocaleDateString(undefined,{day:"numeric",month:"short"}); }
+
+const HY_BADGES=[
+  {id:"first", icon:"⭐", name:"First Steps",  desc:"Log any component",          test:()=> hyData.logs.length>=1},
+  {id:"full1", icon:"🏆", name:"Full Send",    desc:"Complete one full HYROX",    test:()=> hyLogsOf("full").length>=1},
+  {id:"full3", icon:"🔥", name:"Iron Will",    desc:"3 full HYROX logged",        test:()=> hyLogsOf("full").length>=3},
+  {id:"allrd", icon:"▦",  name:"All Rounder",  desc:"Every component logged",     test:()=> HY_ALL.every(c=>hyStationCount(c.id)>0)},
+  {id:"sess5", icon:"🔥", name:"Dialled In",   desc:"5 training sessions logged", test:()=> hyTotalSessionLogs()>=5},
+];
+function hyEarnedBadges(){ return HY_BADGES.filter(b=>b.test()); }
+
+function hyComputeFocus(){
+  const REF={ski:150,sledpush:55,sledpull:60,burpee:150,row:180,farmers:65,lunge:130,wallball:240,run:225};
+  let worst=null,worstRatio=0;
+  Object.keys(REF).forEach(id=>{
+    const b=hyBest(id); if(b==null)return;
+    const ratio=b/REF[id];
+    if(ratio>worstRatio){worstRatio=ratio;worst=id;}
+  });
+  return worst;
+}
+function hySessionForFocus(focusId){
+  if(focusId==="sledpush"||focusId==="sledpull") return HY_SESSIONS.find(s=>s.id==="sledconj");
+  if(focusId==="run") return HY_SESSIONS.find(s=>s.id==="runladder");
+  if(focusId==="wallball"||focusId==="lunge") return HY_SESSIONS.find(s=>s.id==="emom");
+  if(focusId==="ski"||focusId==="row") return HY_SESSIONS.find(s=>s.id==="engine");
+  return HY_SESSIONS.find(s=>s.id==="roxzone");
+}
+function hyJumpToSession(id){
+  hySub="training"; renderHyrox();
+  setTimeout(()=>{ const el=$("hySess_"+id); if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); },80);
+}
+
+async function hyInsertLog(entry){
+  const {error}=await sb.from("hyrox_logs").insert(entry);
+  if(error){toast("Couldn't save that — "+error.message);return false;}
+  return true;
+}
+
+/* ---- Stations ---- */
+let hyStTimers={};
+let hyStManualOpen={};
+function hyStStart(id){
+  if(hyStTimers[id])return;
+  hyStTimers[id]={start:performance.now()};
+  hyStTimers[id].handle=setInterval(()=>{ if(hySub==="stations") renderHySub(true); },250);
+  renderHySub();
+}
+function hyStCancel(id){
+  if(hyStTimers[id]){clearInterval(hyStTimers[id].handle); delete hyStTimers[id];}
+  renderHySub();
+}
+async function hyStFinish(id,name){
+  const t=hyStTimers[id]; if(!t)return;
+  clearInterval(t.handle); delete hyStTimers[id];
+  const secs=Math.round((performance.now()-t.start)/1000);
+  if(secs<3){toast("That looked too quick — log it manually if that's not right.");renderHySub();return;}
+  await hyLogStation(id,name,secs,true);
+}
+function hyStOpenManual(id){ hyStManualOpen[id]=true; renderHySub(); }
+function hyStCancelManual(id){ hyStManualOpen[id]=false; renderHySub(); }
+async function hyStSubmitManual(id,name){
+  const el=$("hyManIn-"+id); if(!el)return;
+  const secs=hyParseMMSS(el.value);
+  if(secs==null||secs<3){toast("Enter a time like 1:45.");return;}
+  hyStManualOpen[id]=false;
+  await hyLogStation(id,name,secs,true);
+}
+async function hyLogStation(id,name,secs,award){
+  const prevBest=hyBest(id);
+  const ok=await hyInsertLog({user_id:session.user.id,log_type:"station",item_id:id,item_name:name,duration_sec:secs,awarded_points:award});
+  if(!ok){renderHySub();return;}
+  if(award) await awardPoints("hyrox","station:"+id+":"+Date.now(),1);
+  await loadHyrox(true);
+  const isPr = prevBest==null || secs<prevBest;
+  toast((isPr?"New PR — ":"Logged — ")+name+" "+hyFmt(secs)+(award?" · +1 PT":""));
+  renderHySub();
+}
+
+/* ---- Full HYROX ---- */
+let hyRace={running:false, legIdx:0, legStart:0, splits:[], tickHandle:null, justFinished:null, prJustSet:false};
+let hyManualFullOpen=false;
+function hyStartRace(){
+  hyRace={running:true, legIdx:0, legStart:performance.now(), splits:[], tickHandle:null, justFinished:null, prJustSet:false};
+  hyRace.tickHandle=setInterval(()=>{ if(hySub==="full") renderHySub(true); },250);
+  renderHySub();
+}
+function hySplitLeg(){
+  const legs=hyRaceOrder(); const now=performance.now();
+  hyRace.splits.push((now-hyRace.legStart)/1000);
+  hyRace.legIdx++; hyRace.legStart=now;
+  if(hyRace.legIdx>=legs.length) hyFinishRace(); else renderHySub();
+}
+function hyAbandonRace(){
+  clearInterval(hyRace.tickHandle);
+  hyRace={running:false, legIdx:0, legStart:0, splits:[], tickHandle:null, justFinished:null, prJustSet:false};
+  toast("Run cleared"); renderHySub();
+}
+function hyFinishRace(){
+  clearInterval(hyRace.tickHandle);
+  const total=hyRace.splits.reduce((a,b)=>a+b,0);
+  hyRace.running=false;
+  if(total<300 && !confirm("That finished awfully fast for a full HYROX — did you actually complete every leg? Honesty system — the club's watching.")){
+    hyRace={running:false, legIdx:0, legStart:0, splits:[], tickHandle:null, justFinished:null, prJustSet:false};
+    toast("Run cleared");
+    renderHySub();
+    return;
+  }
+  hyLogFullResult(total, hyRace.splits, "");
+}
+function hyResetJustFinished(){ hyRace.justFinished=null; hyRace.legIdx=0; hyRace.splits=[]; renderHySub(); }
+function hyOpenManualFull(){ hyManualFullOpen=true; renderHySub(); }
+function hyCancelManualFull(){ hyManualFullOpen=false; renderHySub(); }
+async function hySubmitManualFull(){
+  const val=$("hyManualFullInput") ? $("hyManualFullInput").value : "";
+  const secs=hyParseMMSS(val);
+  if(secs==null||secs<300){toast("Enter a realistic total time, e.g. 78:40");return;}
+  const note=$("hyManualFullNote") ? $("hyManualFullNote").value.trim() : "";
+  hyManualFullOpen=false;
+  await hyLogFullResult(secs,null,note);
+}
+async function hyLogFullResult(total,splits,note){
+  const prevBests=hyLogsOf("full").filter(l=>l.duration_sec!=null).map(l=>l.duration_sec);
+  const isPr = prevBests.length===0 || total<Math.min(...prevBests);
+  const okFull=await hyInsertLog({user_id:session.user.id,log_type:"full",item_id:"full",item_name:"Full HYROX",duration_sec:Math.round(total),splits:splits&&splits.length?splits.map(s=>Math.round(s*10)/10):null,division:hyDiv,note:note||null,awarded_points:true});
+  if(!okFull){ hyRace.justFinished={total,splits:splits||[]}; renderHySub(); return; }
+  if(splits && splits.length){
+    const legs=hyRaceOrder();
+    const rows=legs.map((leg,i)=> splits[i]!=null ? {user_id:session.user.id,log_type:"station",item_id:leg.id,item_name:leg.id==="run"?leg.legName:leg.name,duration_sec:Math.round(splits[i]),awarded_points:false} : null).filter(Boolean);
+    if(rows.length) await sb.from("hyrox_logs").insert(rows);
+  }
+  await awardPoints("hyrox","full:"+hyDiv+":"+Date.now(),10);
+  await loadHyrox(true);
+  hyRace.justFinished={total,splits:splits||[]};
+  hyRace.prJustSet=isPr;
+  bell();
+  renderHySub();
+}
+
+/* ---- Smart Training sessions ---- */
+let hySessTimers={};
+let hySessManualOpen={};
+function hySessStart(id){
+  if(hySessTimers[id])return;
+  hySessTimers[id]={start:performance.now()};
+  hySessTimers[id].handle=setInterval(()=>{ if(hySub==="training") renderHySub(true); },250);
+  renderHySub();
+}
+function hySessCancel(id){
+  if(hySessTimers[id]){clearInterval(hySessTimers[id].handle); delete hySessTimers[id];}
+  renderHySub();
+}
+async function hySessComplete(id,name){
+  const t=hySessTimers[id]; if(!t)return;
+  clearInterval(t.handle); delete hySessTimers[id];
+  const secs=Math.round((performance.now()-t.start)/1000);
+  if(secs<60){toast("That looked too quick for a full session — log it manually if that's not right.");renderHySub();return;}
+  await hyLogSession(id,name,secs);
+}
+function hySessOpenManual(id){ hySessManualOpen[id]=true; renderHySub(); }
+function hySessCancelManual(id){ hySessManualOpen[id]=false; renderHySub(); }
+async function hySessSubmitManual(id,name){
+  const el=$("hySessManIn-"+id); if(!el)return;
+  const mins=parseFloat(el.value);
+  if(!mins||mins<=0||mins>240){toast("Enter minutes, e.g. 40");return;}
+  hySessManualOpen[id]=false;
+  await hyLogSession(id,name,Math.round(mins*60));
+}
+async function hyLogSession(id,name,durationSec){
+  const ok=await hyInsertLog({user_id:session.user.id,log_type:"session",item_id:id,item_name:name,duration_sec:durationSec,awarded_points:true});
+  if(!ok){renderHySub();return;}
+  await awardPoints("hyrox","session:"+id+":"+Date.now(),HY_SESSION_PTS);
+  await loadHyrox(true);
+  toast(name+" logged"+(durationSec?" — "+hyFmtMin(durationSec):"")+" — +"+HY_SESSION_PTS+" pts");
+  renderHySub();
+}
+
+/* ---- shell + subtabs ---- */
+function hyDivPillsHtml(){
+  return Object.keys(HY_DIVISIONS).map(k=>`<button class="${k===hyDiv?'on':''}" onclick="hyDiv='${k}';renderHySub()">${HY_DIVISIONS[k].short}</button>`).join("");
+}
+async function renderHyrox(){
+  $("main").innerHTML=`
+    <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
+    <div class="hero" style="${bgStyle('cardio',.55)}">
+      <div class="heroKicker">Race Yourself Fitter</div>
+      <div class="heroTitle">HYROX</div>
+      <div class="heroText">Eight 1km runs. Eight functional stations. Same order, every gym, every division, worldwide. Train it whole or break it into pieces — every log banks points toward the club leaderboard.</div>
+    </div>
+    <div class="subTabs">
+      <button class="${hySub==='full'?'active':''}" onclick="hySub='full';renderHyrox()">Full HYROX</button>
+      <button class="${hySub==='stations'?'active':''}" onclick="hySub='stations';renderHyrox()">Stations</button>
+      <button class="${hySub==='training'?'active':''}" onclick="hySub='training';renderHyrox()">Smart Training</button>
+      <button class="${hySub==='progress'?'active':''}" onclick="hySub='progress';renderHyrox()">My Progress</button>
+    </div>
+    ${(hySub==='full'||hySub==='stations')?`<div class="hyDivPills">${hyDivPillsHtml()}</div>`:""}
+    <div id="hyBody"><div class="loadingDots">Loading your HYROX log…</div></div>`;
+  await loadHyrox();
+  if(view!=="hyrox")return;
+  renderHySub();
+}
+function renderHySub(tickOnly){
+  if(hySub==="full") return hyRenderFull(tickOnly);
+  if(hySub==="stations") return hyRenderStations(tickOnly);
+  if(hySub==="training") return hyRenderTraining(tickOnly);
+  if(hySub==="progress") return hyRenderProgress();
+}
+
+/* ---- Full HYROX view ---- */
+function hyRenderFull(){
+  const box=$("hyBody"); if(!box)return;
+  const legs=hyRaceOrder();
+  let body="";
+
+  if(hyRace.justFinished){
+    const {total,splits}=hyRace.justFinished;
+    const rows=(splits&&splits.length) ? legs.map((l,i)=>`<div class="hySplitRow"><span class="nm">${l.id==="run"?l.legName:l.name}</span><span>${hyFmt(splits[i])}</span></div>`).join("") : `<div class="hySplitRow"><span class="nm">Logged as a total time only</span><span>—</span></div>`;
+    body=`
+      <div class="hyRaceCard">
+        <div class="hyRaceLeg">FINISHED — ${HY_DIVISIONS[hyDiv].label}</div>
+        <div class="hyRaceLegName">Full HYROX Complete</div>
+        <div class="hyRaceClock">${hyFmtLong(total)}</div>
+        <div class="hyRaceLeg" style="margin-top:2px">Total race time</div>
+        ${hyRace.prJustSet?`<div class="hyPrBadge">🏆 New Personal Best</div>`:""}
+        <div style="margin-top:14px"><span class="hyPtsPill">+10 PTS BANKED</span></div>
+      </div>
+      <div class="card" style="padding:4px 16px">${rows}<div class="hySplitRow total"><span class="nm">Total</span><span>${hyFmtLong(total)}</span></div></div>
+      <button class="btnGold" style="margin-top:16px" onclick="hyResetJustFinished()">Log Another</button>`;
+  } else if(hyRace.running){
+    const legs2=hyRaceOrder();
+    const cur=legs2[hyRace.legIdx];
+    const elapsed=(performance.now()-hyRace.legStart)/1000;
+    body=`
+      <div class="hyRaceCard">
+        <div class="hyRaceLeg">LEG ${hyRace.legIdx+1} OF ${legs2.length} — ${HY_DIVISIONS[hyDiv].label}</div>
+        <div class="hyRaceLegName">${cur.id==="run"?cur.legName:cur.name}</div>
+        <div class="hyRaceClock">${hyFmt(elapsed)}</div>
+        <div class="hyRaceLeg" style="margin-top:2px">${cur.id==="run"?"1,000m run":hyTargetFor(cur)}</div>
+      </div>
+      <button class="btnGold" onclick="hySplitLeg()">${hyRace.legIdx+1===legs2.length?"Finish — Last Leg Done":"Split — Next Leg"}</button>
+      <button class="btnLink" style="margin-top:8px;border-color:#f87171;color:#f87171" onclick="hyAbandonRace()">Abandon Run</button>
+      <div class="card hyLegList" style="padding:4px 16px;margin-top:16px">
+        ${legs2.map((l,i)=>`<div class="hyLegRow ${i<hyRace.legIdx?'done':i===hyRace.legIdx?'now':''}"><span>${l.id==="run"?l.legName:l.name}</span><span>${i<hyRace.legIdx?hyFmt(hyRace.splits[i]):i===hyRace.legIdx?"running…":"—"}</span></div>`).join("")}
+      </div>`;
+  } else if(hyManualFullOpen){
+    body=`
+      <div class="card">
+        <h3>Log A Full Result</h3>
+        <p>Already ran it — on your own, at another gym, whatever. Bank it here.</p>
+        <div style="margin-top:12px">
+          <input id="hyManualFullInput" placeholder="Total time — mm:ss e.g. 78:40" inputmode="numeric">
+          <input id="hyManualFullNote" placeholder="Note (optional) — e.g. where you did it" style="margin-top:8px">
+        </div>
+        <button class="btnGold" style="margin-top:12px" onclick="hySubmitManualFull()">Save Result — +10 PTS</button>
+        <button class="btnLink" style="margin-top:8px" onclick="hyCancelManualFull()">Cancel</button>
+      </div>`;
+  } else {
+    body=`
+      <div class="card">
+        <h3>Start Your Run</h3>
+        <p>16 legs — 8 × 1km runs alternating with the 8 stations, in official race order. The clock times every leg; hit Split as you cross each mat.</p>
+        <button class="btnGold" style="margin-top:12px" onclick="hyStartRace()">Start Full HYROX</button>
+        <button class="btnLink" style="margin-top:8px" onclick="hyOpenManualFull()">Log A Result Without The Timer</button>
+      </div>
+      <div class="secTitle">Race Order<span style="float:right;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:none;font-weight:600">16 legs · 8km run</span></div>
+      <div class="card hyLegList" style="padding:4px 16px">
+        ${legs.map(l=>`<div class="hyLegRow"><span>${l.id==="run"?l.legName:l.name}</span><span>${l.id==="run"?"1,000m":hyTargetFor(l)}</span></div>`).join("")}
+      </div>`;
+  }
+  box.innerHTML=body;
+}
+
+/* ---- Stations view ---- */
+function hyRenderStations(){
+  const box=$("hyBody"); if(!box)return;
+  box.innerHTML=`<div class="secTitle">Every Component<span style="float:right;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:none;font-weight:600">start the clock or log it after</span></div>` +
+    HY_ALL.map(st=>{
+      const best=hyBest(st.id);
+      const n=hyStationCount(st.id);
+      const running=!!hyStTimers[st.id];
+      const manual=!!hyStManualOpen[st.id];
+      let action;
+      if(running){
+        const elapsed=(performance.now()-hyStTimers[st.id].start)/1000;
+        action=`<div style="text-align:center;margin-top:12px">
+          <div style="font-size:34px;font-weight:900;font-variant-numeric:tabular-nums;font-family:'Oswald',sans-serif;color:var(--gold)">${hyFmt(elapsed)}</div>
+          <div style="font-size:10px;letter-spacing:2px;color:var(--ok);font-weight:900;margin-top:2px">RUNNING</div>
+        </div>
+        <button class="btnGold" style="margin-top:10px" onclick="hyStFinish('${st.id}','${esc(st.name)}')">Finish ${esc(st.name)}</button>
+        <button class="btnLink" style="margin-top:8px" onclick="hyStCancel('${st.id}')">Cancel</button>`;
+      } else if(manual){
+        action=`<div class="hyManual"><input id="hyManIn-${st.id}" placeholder="Time — mm:ss" inputmode="numeric"><button class="btnGold" style="width:auto;padding:12px 16px;margin:0" onclick="hyStSubmitManual('${st.id}','${esc(st.name)}')">Save</button></div>
+        <button class="btnLink" style="margin-top:8px" onclick="hyStCancelManual('${st.id}')">Cancel</button>`;
+      } else {
+        action=`<div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btnGold" style="margin:0" onclick="hyStStart('${st.id}')">Start</button>
+          <button class="btnLink" style="margin:0;flex:1" onclick="hyStOpenManual('${st.id}')">Log Time</button>
+        </div>`;
+      }
+      return `<div class="chCard" style="color:var(--text)">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+          <span class="chTarget" style="color:var(--gold)">${st.id==="run"?"1,000m":hyTargetFor(st)}</span>
+          <span class="chPts">+1 PT</span>
+        </div>
+        <h3 style="color:var(--text)">${esc(st.name)}</h3>
+        <p style="color:var(--muted)">Best: <b style="color:var(--gold)">${best==null?"—":hyFmt(best)}</b> · ${n} logged</p>
+        ${action}
+      </div>`;
+    }).join("");
+}
+
+/* ---- Smart Training view ---- */
+function hyRenderTraining(){
+  const box=$("hyBody"); if(!box)return;
+  const focusId=hyComputeFocus();
+  const focusSt=focusId?HY_ALL.find(c=>c.id===focusId):null;
+  const focusSess=focusId?hySessionForFocus(focusId):null;
+  const focusCard=focusSt?`
+    <div class="card hyFocusCard">
+      <div class="kick">Built From Your Bests, Not A Guess</div>
+      <h3 style="margin-top:6px">${esc(focusSt.name)}</h3>
+      <p>Relative to your other stations, ${esc(focusSt.name)} is where you're giving back the most time against a strong benchmark pace. This week's suggested session: <b style="color:var(--gold)">${esc(focusSess.name)}</b> (${esc(focusSess.tag)}).</p>
+      ${focusSess?`<button class="btnLink" style="margin-top:6px" onclick="hyJumpToSession('${focusSess.id}')">Jump to ${esc(focusSess.name)} ↓</button>`:""}
+    </div>` : `<div class="notice">Log a few stations first and we'll point you at the session that'll move the needle most.</div>`;
+
+  box.innerHTML=`
+    <div class="secTitle">Recommended Focus</div>
+    ${focusCard}
+    <div class="secTitle" style="margin-top:22px">Smart Training Sessions</div>
+    ${HY_SESSIONS.map(s=>{
+      const running=!!hySessTimers[s.id];
+      const manual=!!hySessManualOpen[s.id];
+      const n=hySessionCount(s.id);
+      const last=hyLastDate("session",s.id);
+      let timerRow;
+      if(running){
+        const elapsed=(performance.now()-hySessTimers[s.id].start)/1000;
+        timerRow=`<div style="text-align:center;margin-top:12px">
+          <div style="font-size:34px;font-weight:900;font-variant-numeric:tabular-nums;font-family:'Oswald',sans-serif;color:var(--gold)">${hyFmt(elapsed)}</div>
+          <div style="font-size:10px;letter-spacing:2px;color:var(--ok);font-weight:900;margin-top:2px">RUNNING</div>
+        </div>
+        <button class="btnGold" style="margin-top:10px" onclick="hySessComplete('${s.id}','${esc(s.name)}')">Complete Workout</button>
+        <button class="btnLink" style="margin-top:8px" onclick="hySessCancel('${s.id}')">Cancel</button>`;
+      } else if(manual){
+        timerRow=`<div class="hyManual"><input id="hySessManIn-${s.id}" placeholder="Minutes, e.g. 40" inputmode="numeric"><button class="btnGold" style="width:auto;padding:12px 16px;margin:0" onclick="hySessSubmitManual('${s.id}','${esc(s.name)}')">Save</button></div>
+        <button class="btnLink" style="margin-top:8px" onclick="hySessCancelManual('${s.id}')">Cancel</button>`;
+      } else {
+        timerRow=`<div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btnGold" style="margin:0" onclick="hySessStart('${s.id}')">Start Workout</button>
+          <button class="btnLink" style="margin:0;flex:1" onclick="hySessOpenManual('${s.id}')">Log Without Timer</button>
+        </div>`;
+      }
+      return `<div class="card" id="hySess_${s.id}">
+        <div class="sub">${esc(s.group)}</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+          <h3 style="margin-bottom:0">${esc(s.name)}</h3>
+          <span class="chPts" style="flex-shrink:0">+${HY_SESSION_PTS} PTS</span>
+        </div>
+        <p style="margin-top:4px">${esc(s.sub)}</p>
+        <ul>${s.items.map(it=>`<li>${esc(it)}</li>`).join("")}</ul>
+        <p style="font-size:11px;margin-top:10px;color:#8a8780">${s.credit}</p>
+        <div class="hyFoot"><span>${n?"Completed "+n+"× · last "+last:"Not logged yet"}</span></div>
+        ${timerRow}
+      </div>`;
+    }).join("")}
+    <p style="font-size:11px;color:var(--muted);line-height:1.6;margin-top:6px">${HY_CREDIT_NOTE}</p>`;
+}
+
+/* ---- My Progress view ---- */
+function hyRenderProgress(){
+  const box=$("hyBody"); if(!box)return;
+  const prCount=HY_ALL.filter(c=>hyBest(c.id)!=null).length;
+  const fullLogs=hyLogsOf("full");
+  const bestFull=fullLogs.length? Math.min(...fullLogs.filter(l=>l.duration_sec!=null).map(l=>l.duration_sec)) : null;
+  const sessTotal=hyTotalSessionLogs();
+  const earned=hyEarnedBadges();
+
+  box.innerHTML=`
+    <div class="statGrid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="statBox"><div class="sv">${prCount}/${HY_ALL.length}</div><div class="sl">PRs Set</div></div>
+      <div class="statBox"><div class="sv">${fullLogs.length}</div><div class="sl">Full HYROX</div></div>
+      <div class="statBox"><div class="sv">${sessTotal}</div><div class="sl">Sessions</div></div>
+      <div class="statBox"><div class="sv">${bestFull?hyFmtLong(bestFull):"—"}</div><div class="sl">Best Time</div></div>
+    </div>
+
+    <div class="secTitle">Badges<span style="float:right;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:none;font-weight:600">${earned.length}/${HY_BADGES.length}</span></div>
+    <div class="hyBadgeGrid">
+      ${HY_BADGES.map(b=>{
+        const on=b.test();
+        return `<div class="hyBadge ${on?'on':''}"><div class="bi">${b.icon}</div><div class="bn">${esc(b.name)}</div><div class="bd">${esc(b.desc)}</div></div>`;
+      }).join("")}
+    </div>
+
+    <div class="secTitle">Personal Bests<span style="float:right;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:none;font-weight:600">every component</span></div>
+    <div class="card" style="padding:4px 16px">
+      ${HY_ALL.map(c=>{
+        const best=hyBest(c.id);
+        return `<div class="hyHistRow"><div class="l"><div class="d">${esc(c.name)}</div><div class="s">${hyStationCount(c.id)} logged</div></div><div class="r">${best==null?"—":hyFmt(best)}</div></div>`;
+      }).join("")}
+    </div>
+
+    <div class="secTitle">Full HYROX History<span style="float:right;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:none;font-weight:600">${fullLogs.length}</span></div>
+    <div class="card" style="padding:4px 16px">
+      ${fullLogs.length? fullLogs.map(h=>`<div class="hyHistRow">
+        <div class="l"><div class="d">${hyFmtDate(h.created_at)}${h.note?" · "+esc(h.note):""}</div><div class="s">${h.division&&HY_DIVISIONS[h.division]?HY_DIVISIONS[h.division].label:""} · +10 pts</div></div>
+        <div class="r">${hyFmtLong(h.duration_sec)}</div>
+      </div>`).join("") : `<div class="hyEmpty">Nothing logged yet.</div>`}
+    </div>
+
+    <div class="secTitle">Smart Training Log<span style="float:right;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:none;font-weight:600">${sessTotal} logged</span></div>
+    <div class="card" style="padding:4px 16px">
+      ${HY_SESSIONS.map(s=>{
+        const n=hySessionCount(s.id);
+        const last=hyLastDate("session",s.id);
+        return `<div class="hyHistRow"><div class="l"><div class="d">${esc(s.name)}</div><div class="s">${last?"last "+last:"not started"}</div></div><div class="r">${n}×</div></div>`;
+      }).join("")}
+    </div>
+    <div class="card" style="padding:4px 16px;margin-top:8px">
+      ${hyLogsOf("session").length? hyLogsOf("session").map(h=>`<div class="hyHistRow">
+        <div class="l"><div class="d">${esc(h.item_name)}</div><div class="s">${hyFmtDate(h.created_at)} · +${HY_SESSION_PTS} pts</div></div>
+        <div class="r">${h.duration_sec?hyFmtMin(h.duration_sec):"—"}</div>
+      </div>`).join("") : `<div class="hyEmpty">No training sessions logged yet — head to Smart Training and hit Start Workout.</div>`}
+    </div>
+  `;
+}
+
 /* Legacy Profile + Leaderboard (inside Members) */
 async function uploadMemberPhoto(e){
   const f=e.target.files[0];if(!f)return;
@@ -2123,6 +2707,13 @@ function ptsLabel(e){
   if(e.kind==="class"){const p=e.ref.split(":");return e.ref.startsWith("class:lb")||e.ref.startsWith("lb:")?"Blokes training session":"Class — "+(p[1]?fmtDateAU(p[1]):"")+(p[2]?" "+fmtClassTime(p[2]):"");}
   if(e.kind==="challenge"){const p=e.ref.split(":");return "Cardio challenge — "+(p[1]||e.ref);}
   if(e.kind==="record"){const p=e.ref.split(":");const m=MVM.find(x=>x.id===p[1]);return "Record bonus — "+(m?m.n:p[1]);}
+  if(e.kind==="hyrox"){
+    const p=e.ref.split(":");
+    if(p[0]==="full")return "HYROX — full session"+(HY_DIVISIONS[p[1]]?" ("+HY_DIVISIONS[p[1]].short+")":"");
+    if(p[0]==="station"){const c=HY_ALL.find(x=>x.id===p[1]);return "HYROX station — "+(c?c.name:p[1]);}
+    if(p[0]==="session"){const s=HY_SESSIONS.find(x=>x.id===p[1]);return "HYROX training — "+(s?s.name:p[1]);}
+    return "HYROX";
+  }
   return e.ref;
 }
 async function delPointsEvent(id){
@@ -6402,6 +6993,7 @@ async function loadHistory(){
     if(e.kind==="class")items.push({date:d,title:ptsLabel(e),sub:"Class attendance"});
     else if(e.kind==="challenge")items.push({date:d,title:ptsLabel(e),sub:"Cardio & Member Challenge"});
     else if(e.kind==="record")items.push({date:d,title:ptsLabel(e),sub:"Club record"});
+    else if(e.kind==="hyrox")items.push({date:d,title:ptsLabel(e),sub:"HYROX"});
   });
   (tl.data||[]).forEach(l=>{
     items.push({date:l.session_date,title:(l.program||"Training")+(l.session?" — "+l.session:""),sub:l.note||"Logged session",kind:"training_log",id:l.id,program:l.program,session:l.session,note:l.note});
