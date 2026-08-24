@@ -2452,6 +2452,70 @@ async function hyLogFullResult(total,splits,note){
   } finally { hyUnlock(key); }
 }
 
+/* ---- Training phase (periodization) ----
+   Smart Training used to show the same weakest-station recommendation every
+   week regardless of where a member actually is relative to a real event.
+   This ties the session library to a countdown against whatever race the
+   member has opted into on Training To Compete, and shifts emphasis as the
+   race gets closer — general strength/aerobic work early, race-specific
+   work (compromised running, transitions) late, freshness in race week.
+   Falls back to the original weakest-station logic when no race is set. */
+const HY_PHASES = {
+  base:  {id:"base",  label:"Base Phase",     short:"Base",
+    blurb:"No race booked yet — training defaults to building the aerobic engine everything else sits on, with your weakest station getting the extra attention.",
+    priority:["engine"], color:"var(--gold)"},
+  build: {id:"build", label:"Build Phase",    short:"Build",
+    blurb:"Still weeks out — this is where sled strength and station capacity get built while the aerobic base holds. Good phase to chase a heavier sled or a faster wall ball set.",
+    priority:["sledconj","emom"], color:"var(--gold)"},
+  peak:  {id:"peak",  label:"Race Peak",      short:"Peak",
+    blurb:"Getting close now — training shifts toward race specificity. Compromised running and Roxzone transitions matter more from here than adding load.",
+    priority:["runladder","roxzone"], color:"#f0a020"},
+  taper: {id:"taper", label:"Taper Week",     short:"Taper",
+    blurb:"Race week. Volume drops, nothing new gets tried, intensity stays sharp in short bursts. The goal is walking in fresh, not fried.",
+    priority:["roxzone"], color:"#f87171"},
+};
+function hyMyRaceEvent(){
+  const mine=hyMyCompeteRow(); if(!mine) return null;
+  const ev=HY_EVENTS.find(e=>e.id===mine.event_key); if(!ev) return null;
+  const days=hyEventDaysAway(ev);
+  if(days<0) return null; // already run/passed — don't keep tapering forever
+  return {ev,mine,days};
+}
+function hyCurrentPhase(){
+  const r=hyMyRaceEvent();
+  if(!r) return {...HY_PHASES.base, ev:null, days:null};
+  const {ev,days}=r;
+  const key = days<=6 ? "taper" : days<=20 ? "peak" : days<=56 ? "build" : "base";
+  return {...HY_PHASES[key], ev, days};
+}
+function hySessionsForPhase(phase){
+  const pri=phase.priority||[];
+  return [...HY_SESSIONS].sort((a,b)=>{
+    const ap=pri.includes(a.id)?0:1, bp=pri.includes(b.id)?0:1;
+    return ap-bp;
+  });
+}
+function hyRecommendedSession(phase){
+  if(phase.id==="taper"||phase.id==="peak"){
+    return HY_SESSIONS.find(s=>s.id===phase.priority[0]) || HY_SESSIONS.find(s=>s.id==="roxzone");
+  }
+  const focusId=hyComputeFocus();
+  if(focusId) return hySessionForFocus(focusId);
+  return HY_SESSIONS.find(s=>phase.priority.includes(s.id)) || HY_SESSIONS[0];
+}
+function hyPhaseBannerHtml(phase){
+  if(phase.ev){
+    const cd=hyEventCountdown(phase.ev)||"Today";
+    return `<div class="card hyFocusCard" style="border-color:${phase.color}">
+      <div class="kick" style="color:${phase.color}">${esc(phase.label)} · ${esc(cd)}</div>
+      <h3 style="margin-top:6px">${esc(phase.ev.name)}</h3>
+      <p>${esc(phase.blurb)}</p>
+      <button class="btnLink" style="width:auto;margin:8px 0 0;padding:0;background:none;border:none;color:var(--muted);text-decoration:underline;font-size:11px;cursor:pointer" onclick="hySub='competing';renderHyrox()">Your race details ›</button>
+    </div>`;
+  }
+  return `<div class="notice">${esc(phase.blurb)} <span style="text-decoration:underline;cursor:pointer" onclick="hySub='events';renderHyrox()">Pick a race and I'm In ›</span></div>`;
+}
+
 /* ---- Smart Training sessions ---- */
 let hySessTimers={};
 let hySessManualOpen={};
@@ -2519,7 +2583,7 @@ async function renderHyrox(){
     ${(hySub==='full'||hySub==='stations')?`<div class="hyDivPills" id="hyDivPillsBox">${hyDivPillsHtml()}</div>`:""}
     <div id="hyBody"><div class="loadingDots">Loading your HYROX log…</div></div>`;
   await loadHyrox();
-  if(hySub==="competing"||hySub==="events"){ await loadWorld(); await loadHyCompete(); }
+  if(hySub==="competing"||hySub==="events"||hySub==="training"){ await loadWorld(); await loadHyCompete(); }
   if(view!=="hyrox")return;
   renderHySub();
 }
@@ -2639,26 +2703,44 @@ function hyRenderStations(){
 /* ---- Smart Training view ---- */
 function hyRenderTraining(){
   const box=$("hyBody"); if(!box)return;
+  const phase=hyCurrentPhase();
+  const raceSpecific=phase.id==="taper"||phase.id==="peak";
   const focusId=hyComputeFocus();
   const focusSt=focusId?HY_ALL.find(c=>c.id===focusId):null;
-  const focusSess=focusId?hySessionForFocus(focusId):null;
-  const focusCard=focusSt?`
+  const focusSess=raceSpecific ? hyRecommendedSession(phase) : (focusId?hySessionForFocus(focusId):null);
+  let focusCard;
+  if(raceSpecific && focusSess){
+    focusCard=`
+    <div class="card hyFocusCard">
+      <div class="kick">${phase.id==="taper"?"Race Week — Stay Sharp":"Getting Race-Specific"}</div>
+      <h3 style="margin-top:6px">${esc(focusSess.name)}</h3>
+      <p>This close to ${esc(phase.ev.name)}, specificity beats chasing a weak station — ${esc(phase.blurb)}</p>
+      <button class="btnLink" style="margin-top:6px" onclick="hyJumpToSession('${focusSess.id}')">Jump to ${esc(focusSess.name)} ↓</button>
+    </div>`;
+  } else if(focusSt && focusSess){
+    focusCard=`
     <div class="card hyFocusCard">
       <div class="kick">Built From Your Bests, Not A Guess</div>
       <h3 style="margin-top:6px">${esc(focusSt.name)}</h3>
       <p>Relative to your other stations, ${esc(focusSt.name)} is where you're giving back the most time against a strong benchmark pace. This week's suggested session: <b style="color:var(--gold)">${esc(focusSess.name)}</b> (${esc(focusSess.tag)}).</p>
-      ${focusSess?`<button class="btnLink" style="margin-top:6px" onclick="hyJumpToSession('${focusSess.id}')">Jump to ${esc(focusSess.name)} ↓</button>`:""}
-    </div>` : `<div class="notice">Log a few stations first and we'll point you at the session that'll move the needle most.</div>`;
+      <button class="btnLink" style="margin-top:6px" onclick="hyJumpToSession('${focusSess.id}')">Jump to ${esc(focusSess.name)} ↓</button>
+    </div>`;
+  } else {
+    focusCard=`<div class="notice">Log a few stations first and we'll point you at the session that'll move the needle most.</div>`;
+  }
 
   box.innerHTML=`
-    <div class="secTitle">Recommended Focus</div>
+    <div class="secTitle">${phase.ev?"Your Race Countdown":"Training Phase"}</div>
+    ${hyPhaseBannerHtml(phase)}
+    <div class="secTitle" style="margin-top:22px">Recommended Focus</div>
     ${focusCard}
-    <div class="secTitle" style="margin-top:22px">Smart Training Sessions</div>
-    ${HY_SESSIONS.map(s=>{
+    <div class="secTitle" style="margin-top:22px">Smart Training Sessions${phase.ev?`<span style="float:right;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:none;font-weight:600">sorted for ${esc(phase.short)} phase</span>`:""}</div>
+    ${hySessionsForPhase(phase).map(s=>{
       const running=!!hySessTimers[s.id];
       const manual=!!hySessManualOpen[s.id];
       const n=hySessionCount(s.id);
       const last=hyLastDate("session",s.id);
+      const isPriority=phase.ev && phase.priority && phase.priority.includes(s.id);
       let timerRow;
       if(running){
         const elapsed=(performance.now()-hySessTimers[s.id].start)/1000;
@@ -2681,7 +2763,7 @@ function hyRenderTraining(){
         <div class="sub">${esc(s.group)}</div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
           <h3 style="margin-bottom:0">${esc(s.name)}</h3>
-          <span class="chPts" style="flex-shrink:0">+${HY_SESSION_PTS} PTS</span>
+          <span style="display:flex;gap:6px;align-items:center;flex-shrink:0">${isPriority?`<span class="hyPtsPill" style="background:${phase.color};padding:5px 10px;font-size:10px">THIS PHASE</span>`:""}<span class="chPts">+${HY_SESSION_PTS} PTS</span></span>
         </div>
         <p style="margin-top:4px">${esc(s.sub)}</p>
         <ul>${s.items.map(it=>`<li>${esc(it)}</li>`).join("")}</ul>
