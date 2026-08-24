@@ -2236,6 +2236,13 @@ async function hyInsertLog(entry){
   return true;
 }
 
+/* Re-entrancy guard — stops a fast double-tap (Save, Finish, mashing Split
+   at the last leg) from writing the same completion twice and double-paying
+   points. Each logging path below is keyed and locked for its duration. */
+let hyBusy=new Set();
+function hyLock(key){ if(hyBusy.has(key)) return false; hyBusy.add(key); return true; }
+function hyUnlock(key){ hyBusy.delete(key); }
+
 /* ---- Stations ---- */
 let hyStTimers={};
 let hyStManualOpen={};
@@ -2266,14 +2273,18 @@ async function hyStSubmitManual(id,name){
   await hyLogStation(id,name,secs,true);
 }
 async function hyLogStation(id,name,secs,award){
-  const prevBest=hyBest(id);
-  const ok=await hyInsertLog({user_id:session.user.id,log_type:"station",item_id:id,item_name:name,duration_sec:secs,awarded_points:award});
-  if(!ok){renderHySub();return;}
-  if(award) await awardPoints("hyrox","station:"+id+":"+Date.now(),1);
-  await loadHyrox(true);
-  const isPr = prevBest==null || secs<prevBest;
-  toast((isPr?"New PR — ":"Logged — ")+name+" "+hyFmt(secs)+(award?" · +1 PT":""));
-  renderHySub();
+  const key="st:"+id;
+  if(!hyLock(key))return;
+  try{
+    const prevBest=hyBest(id);
+    const ok=await hyInsertLog({user_id:session.user.id,log_type:"station",item_id:id,item_name:name,duration_sec:secs,awarded_points:award});
+    if(!ok){renderHySub();return;}
+    if(award) await awardPoints("hyrox","station:"+id+":"+Date.now(),1);
+    await loadHyrox(true);
+    const isPr = prevBest==null || secs<prevBest;
+    toast((isPr?"New PR — ":"Logged — ")+name+" "+hyFmt(secs)+(award?" · +1 PT":""));
+    renderHySub();
+  } finally { hyUnlock(key); }
 }
 
 /* ---- Full HYROX ---- */
@@ -2285,6 +2296,7 @@ function hyStartRace(){
   renderHySub();
 }
 function hySplitLeg(){
+  if(!hyRace.running)return; // race already finishing/finished — ignore a stray extra tap
   const legs=hyRaceOrder(); const now=performance.now();
   hyRace.splits.push((now-hyRace.legStart)/1000);
   hyRace.legIdx++; hyRace.legStart=now;
@@ -2296,9 +2308,10 @@ function hyAbandonRace(){
   toast("Run cleared"); renderHySub();
 }
 function hyFinishRace(){
+  if(!hyRace.running)return; // guard against being called twice (mashing Split on the last leg)
+  hyRace.running=false;
   clearInterval(hyRace.tickHandle);
   const total=hyRace.splits.reduce((a,b)=>a+b,0);
-  hyRace.running=false;
   if(total<300 && !confirm("That finished awfully fast for a full HYROX — did you actually complete every leg? Honesty system — the club's watching.")){
     hyRace={running:false, legIdx:0, legStart:0, splits:[], tickHandle:null, justFinished:null, prJustSet:false};
     toast("Run cleared");
@@ -2319,21 +2332,25 @@ async function hySubmitManualFull(){
   await hyLogFullResult(secs,null,note);
 }
 async function hyLogFullResult(total,splits,note){
-  const prevBests=hyLogsOf("full").filter(l=>l.duration_sec!=null).map(l=>l.duration_sec);
-  const isPr = prevBests.length===0 || total<Math.min(...prevBests);
-  const okFull=await hyInsertLog({user_id:session.user.id,log_type:"full",item_id:"full",item_name:"Full HYROX",duration_sec:Math.round(total),splits:splits&&splits.length?splits.map(s=>Math.round(s*10)/10):null,division:hyDiv,note:note||null,awarded_points:true});
-  if(!okFull){ hyRace.justFinished={total,splits:splits||[]}; renderHySub(); return; }
-  if(splits && splits.length){
-    const legs=hyRaceOrder();
-    const rows=legs.map((leg,i)=> splits[i]!=null ? {user_id:session.user.id,log_type:"station",item_id:leg.id,item_name:leg.id==="run"?leg.legName:leg.name,duration_sec:Math.round(splits[i]),awarded_points:false} : null).filter(Boolean);
-    if(rows.length) await sb.from("hyrox_logs").insert(rows);
-  }
-  await awardPoints("hyrox","full:"+hyDiv+":"+Date.now(),10);
-  await loadHyrox(true);
-  hyRace.justFinished={total,splits:splits||[]};
-  hyRace.prJustSet=isPr;
-  bell();
-  renderHySub();
+  const key="full";
+  if(!hyLock(key))return;
+  try{
+    const prevBests=hyLogsOf("full").filter(l=>l.duration_sec!=null).map(l=>l.duration_sec);
+    const isPr = prevBests.length===0 || total<Math.min(...prevBests);
+    const okFull=await hyInsertLog({user_id:session.user.id,log_type:"full",item_id:"full",item_name:"Full HYROX",duration_sec:Math.round(total),splits:splits&&splits.length?splits.map(s=>Math.round(s*10)/10):null,division:hyDiv,note:note||null,awarded_points:true});
+    if(!okFull){ hyRace.justFinished={total,splits:splits||[]}; renderHySub(); return; }
+    if(splits && splits.length){
+      const legs=hyRaceOrder();
+      const rows=legs.map((leg,i)=> splits[i]!=null ? {user_id:session.user.id,log_type:"station",item_id:leg.id,item_name:leg.id==="run"?leg.legName:leg.name,duration_sec:Math.round(splits[i]),awarded_points:false} : null).filter(Boolean);
+      if(rows.length) await sb.from("hyrox_logs").insert(rows);
+    }
+    await awardPoints("hyrox","full:"+hyDiv+":"+Date.now(),10);
+    await loadHyrox(true);
+    hyRace.justFinished={total,splits:splits||[]};
+    hyRace.prJustSet=isPr;
+    bell();
+    renderHySub();
+  } finally { hyUnlock(key); }
 }
 
 /* ---- Smart Training sessions ---- */
@@ -2366,18 +2383,23 @@ async function hySessSubmitManual(id,name){
   await hyLogSession(id,name,Math.round(mins*60));
 }
 async function hyLogSession(id,name,durationSec){
-  const ok=await hyInsertLog({user_id:session.user.id,log_type:"session",item_id:id,item_name:name,duration_sec:durationSec,awarded_points:true});
-  if(!ok){renderHySub();return;}
-  await awardPoints("hyrox","session:"+id+":"+Date.now(),HY_SESSION_PTS);
-  await loadHyrox(true);
-  toast(name+" logged"+(durationSec?" — "+hyFmtMin(durationSec):"")+" — +"+HY_SESSION_PTS+" pts");
-  renderHySub();
+  const key="sess:"+id;
+  if(!hyLock(key))return;
+  try{
+    const ok=await hyInsertLog({user_id:session.user.id,log_type:"session",item_id:id,item_name:name,duration_sec:durationSec,awarded_points:true});
+    if(!ok){renderHySub();return;}
+    await awardPoints("hyrox","session:"+id+":"+Date.now(),HY_SESSION_PTS);
+    await loadHyrox(true);
+    toast(name+" logged"+(durationSec?" — "+hyFmtMin(durationSec):"")+" — +"+HY_SESSION_PTS+" pts");
+    renderHySub();
+  } finally { hyUnlock(key); }
 }
 
 /* ---- shell + subtabs ---- */
 function hyDivPillsHtml(){
-  return Object.keys(HY_DIVISIONS).map(k=>`<button class="${k===hyDiv?'on':''}" onclick="hyDiv='${k}';renderHySub()">${HY_DIVISIONS[k].short}</button>`).join("");
+  return Object.keys(HY_DIVISIONS).map(k=>`<button class="${k===hyDiv?'on':''}" onclick="hyDiv='${k}';hyRenderDivPills();renderHySub()">${HY_DIVISIONS[k].short}</button>`).join("");
 }
+function hyRenderDivPills(){ const el=$("hyDivPillsBox"); if(el) el.innerHTML=hyDivPillsHtml(); }
 async function renderHyrox(){
   $("main").innerHTML=`
     <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
@@ -2392,7 +2414,7 @@ async function renderHyrox(){
       <button class="${hySub==='training'?'active':''}" onclick="hySub='training';renderHyrox()">Smart Training</button>
       <button class="${hySub==='progress'?'active':''}" onclick="hySub='progress';renderHyrox()">My Progress</button>
     </div>
-    ${(hySub==='full'||hySub==='stations')?`<div class="hyDivPills">${hyDivPillsHtml()}</div>`:""}
+    ${(hySub==='full'||hySub==='stations')?`<div class="hyDivPills" id="hyDivPillsBox">${hyDivPillsHtml()}</div>`:""}
     <div id="hyBody"><div class="loadingDots">Loading your HYROX log…</div></div>`;
   await loadHyrox();
   if(view!=="hyrox")return;
