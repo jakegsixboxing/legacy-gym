@@ -146,6 +146,12 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .springRsvp b{color:var(--gold)}
 .springCta{background:var(--gold);color:#161307;font-weight:800;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:11px 18px;border-radius:10px;white-space:nowrap}
 
+/* ---- Local Blokes — Testing Night banner (program/training tab, additive) ---- */
+.lbTestBanner{position:relative;overflow:hidden;border-radius:16px;margin-bottom:14px;border:2.5px solid #c9994d;background:linear-gradient(180deg,rgba(32,23,4,.6) 0%,rgba(13,13,13,.94) 100%),#131110;padding:16px 18px;text-align:center;animation:lbTestFlash 1.15s ease-in-out infinite}
+@keyframes lbTestFlash{0%,100%{box-shadow:0 0 0 0 rgba(201,153,77,.75),0 8px 22px rgba(0,0,0,.5);border-color:#c9994d}50%{box-shadow:0 0 0 10px rgba(201,153,77,0),0 8px 22px rgba(0,0,0,.5);border-color:#ffe6ab}}
+.lbTestKicker{font-family:'Oswald',sans-serif;font-weight:700;font-size:23px;letter-spacing:2px;text-transform:uppercase;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.lbTestSub{font-size:12.5px;color:#f2e9d0;line-height:1.5;margin-top:8px;font-weight:600}
+
 /* legacy elite */
 .eliteCard{background:linear-gradient(150deg,#1d1a12 0%,#111013 55%,#0b0b0c 100%);border:1.5px solid var(--gold);border-radius:16px;padding:28px 22px;text-align:center}
 .eliteStar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#a37e2c,#e6c15c);color:#241c05;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 0 24px rgba(230,193,92,.35)}
@@ -3185,7 +3191,7 @@ async function renderLeaderboard(){
 const LB={logo:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8cGF0aCBpZD0idG9wQXJjIiBkPSJNIDc2LDI1NiBBIDE4MCwxODAgMCAwIDEgNDM2LDI1NiIgLz4KICAgIDxwYXRoIGlkPSJib3R0b21BcmMiIGQ9Ik0gNzYsMjU2IEEgMTgwLDE4MCAwIDAgMCA0MzYsMjU2IiAvPgogIDwvZGVmcz4KICA8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzBhMGEwYSIvPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjI4IiBmaWxsPSJub25lIiBzdHJva2U9IiNjOWE0NGMiIHN0cm9rZS13aWR0aD0iNCIvPgogIDxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMTY0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjOWE0NGMiIHN0cm9rZS13aWR0aD0iMyIvPgogIDxyZWN0IHg9IjY2IiB5PSIyNTQiIHdpZHRoPSIyMCIgaGVpZ2h0PSI0IiBmaWxsPSIjYzlhNDRjIi8+CiAgPHJlY3QgeD0iNDI2IiB5PSIyNTQiIHdpZHRoPSIyMCIgaGVpZ2h0PSI0IiBmaWxsPSIjYzlhNDRjIi8+CiAgPHRleHQgZmlsbD0iI2M5YTQ0YyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIgZm9udC1zaXplPSIzNCIgZm9udC13ZWlnaHQ9IjcwMCIgbGV0dGVyLXNwYWNpbmc9IjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPgogICAgPHRleHRQYXRoIGhyZWY9IiN0b3BBcmMiIHN0YXJ0T2Zmc2V0PSI1MCUiPkxPQ0FMIEJMT0tFUzwvdGV4dFBhdGg+CiAgPC90ZXh0PgogIDx0ZXh0IGZpbGw9IiNjOWE0NGMiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZvbnQtd2VpZ2h0PSI3MDAiIGxldHRlci1zcGFjaW5nPSI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4KICAgIDx0ZXh0UGF0aCBocmVmPSIjYm90dG9tQXJjIiBzdGFydE9mZnNldD0iNTAlIj5IRUFWWVdFSUdIVCBDTFVCPC90ZXh0UGF0aD4KICA8L3RleHQ+CiAgPHRleHQgeD0iMjY2IiB5PSIzMDAiIGZpbGw9IiNjOWE0NGMiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCAnVGltZXMgTmV3IFJvbWFuJywgc2VyaWYiIGZvbnQtc2l6ZT0iMTgwIiBmb250LXdlaWdodD0iNzAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iLTMwIj5MQjwvdGV4dD4KPC9zdmc+Cg==",gold:"#c9994d",bg:"#0d0d0d",surf:"#1a1a1a",surf2:"#262626",dim:"#9e9e9e"};
 const LB_LEVELS=[[0,"Fresh Meat","bronze",0],[5,"Cannon Fodder","bronze",1],[12,"Scrapper","silver",0],[20,"Hard Bastard","silver",1],[30,"The Enforcer","gold",0],[45,"Silverback","gold",1],[60,"Wrecking Ball","platinum",0],[80,"Savage","platinum",1],[105,"Stone Cold","platinum",2],[135,"Apex Predator","platinum",3],[170,"Heavyweight Champion","champion",3]];
 function lbLevelOf(p){let i=0;LB_LEVELS.forEach((l,n)=>{if(p>=l[0])i=n;});const L=LB_LEVELS[i];return {pts:L[0],name:L[1],tier:L[2],stars:L[3],n:i+1,next:LB_LEVELS[i+1]||null};}
-let lbSub="home",lbWeek=1,lbDay="mon",lbFuelTab=(localStorage.getItem("lg_fuel_seen")?"plan":"guides"),lbPlan="A",lbTimerDay=null,lbGuide=null;
+let lbSub="home",lbWeek=5,lbDay="mon",lbFuelTab=(localStorage.getItem("lg_fuel_seen")?"plan":"guides"),lbPlan="A",lbTimerDay=null,lbGuide=null;
 let lbExtraData=null,lbGoalEditing=false,lbCoachRoster=null,lbCoachSel=null,lbCoachDetail=null;
 let lbData={loaded:false,lifts:[],msgs:[],events:[],rsvps:[],members:null};
 let lbUnread=0,lbChannel=null;
@@ -3315,6 +3321,7 @@ async function lbProgram(){
   let n=0,otN=500;
   box.innerHTML=`
     ${progToggle}
+    ${wk.tag==="TEST NIGHT"?`<div class="lbTestBanner"><div class="lbTestKicker">🔥 Testing Night</div><div class="lbTestSub">Retest your lifts tonight — these numbers set your next block.</div></div>`:""}
     <div class="pillBtns" style="flex-wrap:wrap">${[1,2,3,4,5,6,7,8,9,10].map(w=>`<button class="${lbWeek===w?'on':''}" style="min-width:52px" onclick="lbWeek=${w};renderBlokes()">Wk ${w}</button>`).join("")}</div>
     <div class="pillBtns" style="margin-top:8px">
       <button class="${lbDay==='mon'?'on':''}" onclick="lbDay='mon';renderBlokes()">Monday — Push</button>
