@@ -406,6 +406,21 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(13,13,14,.
 .hyEmpty{font-size:12.5px;color:var(--muted);padding:8px 2px}
 .hyFocusCard{border:1.5px solid var(--gold);background:rgba(201,164,76,.08)}
 .hyFocusCard .kick{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:800}
+.hyEventCard{border:1px solid var(--line);border-radius:14px;padding:18px 16px;margin-bottom:14px;background:var(--panel)}
+.hyEventCard.next{border-color:var(--gold)}
+.hyEventKick{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hyEventName{font-family:'Oswald',sans-serif;font-size:21px;text-transform:uppercase;margin-top:5px;letter-spacing:.5px}
+.hyEventMeta{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:12px;color:var(--muted)}
+.hyEventMeta b{color:var(--text);font-weight:700}
+.hyEventBlurb{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+.hyEventCountdown{background:rgba(201,164,76,.14);color:var(--gold);font-weight:800;font-size:10.5px;letter-spacing:.5px;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.hyCompRow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.hyCompRow:last-child{border-bottom:none}
+.hyCompRow .n{flex:1;min-width:0}
+.hyCompRow .n b{font-size:13.5px}
+.hyCompRow .n .note{font-size:11px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hyCompForm{margin-top:12px}
+.hyCompForm select,.hyCompForm input{width:100%;margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -2177,10 +2192,42 @@ const HY_SESSIONS = [
 ];
 const HY_CREDIT_NOTE = "These sessions are built around principles those coaches have publicly described — not licensed programs from them.";
 
+/* Real HYROX Australia events — sourced from the official hyrox.com event
+   pages (Aug 2026). AirAsia HYROX Perth (21–23 Aug 2026) already ran, so it's
+   left off this list on purpose — only what's still ahead is shown here. */
+const HY_EVENTS=[
+  {
+    id:"melbourne2026", name:"BYD HYROX Melbourne",
+    dateLabel:"9–13 December 2026", dateStart:"2026-12-09",
+    location:"South Wharf, VIC", venue:"Melbourne Convention & Exhibition Centre, 1 Convention Centre Pl, South Wharf VIC 3006",
+    blurb:"Five race days at MCEC — Open, Pro, Doubles, Relay and Adaptive divisions all running. Individual start times land about 3 days out.",
+    url:"https://hyrox.com/event/hyrox-melbourne/"
+  },
+  {
+    id:"brisbane2027", name:"BYD HYROX Brisbane",
+    dateLabel:"31 March – 4 April 2027", dateStart:"2027-03-31",
+    location:"Brisbane, QLD", venue:"Venue to be confirmed on the official event page",
+    blurb:"Brisbane's back on the 2027 calendar. Registration windows and venue details weren't live yet as of this update — check the official page before booking travel.",
+    url:"https://hyrox.com/event/hyrox-brisbane/"
+  },
+];
+const HY_EVENTS_NOTE="Sydney and Perth are regular stops on the HYROX Australia circuit but neither had 2027 dates announced as of this update — check hyrox.com/find-my-race for the latest before locking anything in.";
+function hyEventDaysAway(ev){ const ms=new Date(ev.dateStart+"T00:00:00").getTime()-Date.now(); return Math.ceil(ms/86400000); }
+function hyEventCountdown(ev){
+  const d=hyEventDaysAway(ev);
+  if(d<0) return null;
+  if(d===0) return "Today";
+  if(d<14) return d+" day"+(d===1?"":"s")+" away";
+  const w=Math.round(d/7);
+  return w+" week"+(w===1?"":"s")+" away";
+}
+
 /* ---- state (in-memory) ---- */
 let hyDiv="open_m";
 let hySub="full";
 let hyData={loaded:false, logs:[]};
+let hyCompete={loaded:false, rows:[]};
+let hyCompeteEvent=HY_EVENTS[0].id;
 async function loadHyrox(force){
   if(hyData.loaded && !force) return;
   const {data,error}=await sb.from("hyrox_logs").select("id,log_type,item_id,item_name,duration_sec,splits,division,note,awarded_points,created_at").eq("user_id",session.user.id).order("created_at",{ascending:false}).limit(1000);
@@ -2242,6 +2289,40 @@ async function hyInsertLog(entry){
 let hyBusy=new Set();
 function hyLock(key){ if(hyBusy.has(key)) return false; hyBusy.add(key); return true; }
 function hyUnlock(key){ hyBusy.delete(key); }
+
+/* ---- Training to Compete (self opt-in — no one is listed without asking to be) ---- */
+async function loadHyCompete(force){
+  if(hyCompete.loaded && !force) return;
+  const {data,error}=await sb.from("hyrox_competing").select("user_id,event_key,division,note,created_at").order("created_at",{ascending:true});
+  hyCompete={loaded:true, rows:error?[]:(data||[])};
+}
+function hyMyCompeteRow(){ return hyCompete.rows.find(r=>r.user_id===session.user.id)||null; }
+function hyCompeteRowsFor(eventKey){ return hyCompete.rows.filter(r=>r.event_key===eventKey); }
+async function hySubmitCompeting(){
+  const key="compete";
+  if(!hyLock(key))return;
+  try{
+    const sel=$("hyCompEventSel"); const eventKey=sel?sel.value:hyCompeteEvent;
+    const noteEl=$("hyCompNote"); const note=noteEl?noteEl.value.trim().slice(0,120):"";
+    const {error}=await sb.from("hyrox_competing").upsert({user_id:session.user.id,event_key:eventKey,division:hyDiv,note:note||null,updated_at:new Date().toISOString()});
+    if(error){toast("Couldn't save that — "+error.message);return;}
+    hyCompeteEvent=eventKey;
+    await loadHyCompete(true);
+    toast("You're on the list — good luck out there.");
+    renderHySub();
+  } finally { hyUnlock(key); }
+}
+async function hyRemoveCompeting(){
+  const key="compete";
+  if(!hyLock(key))return;
+  try{
+    const {error}=await sb.from("hyrox_competing").delete().eq("user_id",session.user.id);
+    if(error){toast("Couldn't remove that — "+error.message);return;}
+    await loadHyCompete(true);
+    toast("Taken off the list.");
+    renderHySub();
+  } finally { hyUnlock(key); }
+}
 
 /* ---- Stations ---- */
 let hyStTimers={};
@@ -2413,10 +2494,14 @@ async function renderHyrox(){
       <button class="${hySub==='stations'?'active':''}" onclick="hySub='stations';renderHyrox()">Stations</button>
       <button class="${hySub==='training'?'active':''}" onclick="hySub='training';renderHyrox()">Smart Training</button>
       <button class="${hySub==='progress'?'active':''}" onclick="hySub='progress';renderHyrox()">My Progress</button>
+      <button class="${hySub==='events'?'active':''}" onclick="hySub='events';renderHyrox()">Upcoming Events</button>
+      <button class="${hySub==='competing'?'active':''}" onclick="hySub='competing';renderHyrox()">Training To Compete</button>
     </div>
     ${(hySub==='full'||hySub==='stations')?`<div class="hyDivPills" id="hyDivPillsBox">${hyDivPillsHtml()}</div>`:""}
     <div id="hyBody"><div class="loadingDots">Loading your HYROX log…</div></div>`;
   await loadHyrox();
+  if(hySub==="competing"){ await loadWorld(); await loadHyCompete(); }
+  else if(hySub==="events"){ await loadHyCompete(); }
   if(view!=="hyrox")return;
   renderHySub();
 }
@@ -2425,6 +2510,8 @@ function renderHySub(tickOnly){
   if(hySub==="stations") return hyRenderStations(tickOnly);
   if(hySub==="training") return hyRenderTraining(tickOnly);
   if(hySub==="progress") return hyRenderProgress();
+  if(hySub==="events") return hyRenderEvents();
+  if(hySub==="competing") return hyRenderCompeting();
 }
 
 /* ---- Full HYROX view ---- */
@@ -2643,6 +2730,89 @@ function hyRenderProgress(){
       </div>`).join("") : `<div class="hyEmpty">No training sessions logged yet — head to Smart Training and hit Start Workout.</div>`}
     </div>
   `;
+}
+
+/* ---- Upcoming HYROX In Australia ---- */
+function hyRenderEvents(){
+  const box=$("hyBody"); if(!box)return;
+  box.innerHTML=`
+    <p style="font-size:12px;color:var(--muted);margin-bottom:4px">The next official HYROX races on Australian soil — pulled from hyrox.com. Perth (21–23 Aug 2026) just wrapped, so it's not listed here.</p>
+    <div class="secTitle">Up Next</div>
+    ${HY_EVENTS.map((ev,i)=>{
+      const cd=hyEventCountdown(ev);
+      const n=hyCompeteRowsFor(ev.id).length;
+      return `<div class="hyEventCard${i===0?' next':''}">
+        <div class="hyEventKick"><span>${i===0?'Next Up':'Then'}</span>${cd?`<span class="hyEventCountdown">${cd}</span>`:''}</div>
+        <div class="hyEventName">${esc(ev.name)}</div>
+        <div class="hyEventMeta">
+          <span>📅 <b>${esc(ev.dateLabel)}</b></span>
+          <span>📍 <b>${esc(ev.location)}</b></span>
+        </div>
+        <div class="hyEventBlurb">${esc(ev.blurb)}</div>
+        <div class="hyEventBlurb" style="opacity:.8">${esc(ev.venue)}</div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <a class="btnLink" style="width:auto;margin:0;padding:9px 16px;display:inline-block;text-decoration:none" href="${esc(ev.url)}" target="_blank" rel="noopener">Official Event Page ›</a>
+          <button class="btnLink" style="width:auto;margin:0;padding:9px 16px;background:transparent;border:1px solid var(--line);color:var(--text)" onclick="hySub='competing';renderHyrox()">${hyCompeteLoadedCount(ev.id)} training for this ›</button>
+        </div>
+      </div>`;
+    }).join("")}
+    <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5">${esc(HY_EVENTS_NOTE)}</p>
+  `;
+}
+function hyCompeteLoadedCount(eventKey){ return hyCompete.loaded ? hyCompeteRowsFor(eventKey).length : "See who's"; }
+
+/* ---- Members Training To Compete (self opt-in) ---- */
+function hyRenderCompeting(){
+  const box=$("hyBody"); if(!box)return;
+  const mine=hyMyCompeteRow();
+  const mineEvent=mine ? HY_EVENTS.find(e=>e.id===mine.event_key) : null;
+  box.innerHTML=`
+    <p style="font-size:12px;color:var(--muted);margin-bottom:4px">Racing one of the events above? Put your hand up and the rest of the gym can see who's training alongside them — find a session partner, swap splits, cheer each other on.</p>
+    <div class="secTitle">Your Status</div>
+    <div class="card">
+      ${mine?`
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+          <div>
+            <div style="font-size:11px;color:var(--gold);font-weight:800;letter-spacing:1px;text-transform:uppercase">Training For</div>
+            <h3 style="font-size:16px;margin-top:2px">${esc(mineEvent?mineEvent.name:mine.event_key)}</h3>
+            ${mine.note?`<p style="font-size:12px;color:var(--muted);margin-top:4px">"${esc(mine.note)}"</p>`:''}
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+          <button class="btnLink" style="width:auto;margin:0;padding:9px 16px" onclick="hyCompeteEvent='${esc(mine.event_key)}';$('hyCompEditBox').style.display='block';this.style.display='none'">Change Details</button>
+          <button class="btnLink" style="width:auto;margin:0;padding:9px 16px;background:transparent;border:1px solid var(--line);color:var(--text)" onclick="hyRemoveCompeting()">Take Me Off The List</button>
+        </div>
+        <div id="hyCompEditBox" style="display:none">${hyCompeteFormHtml(mine)}</div>
+      `:`
+        <p style="font-size:13px;font-weight:700">Not on a list yet.</p>
+        ${hyCompeteFormHtml(null)}
+      `}
+    </div>
+    ${HY_EVENTS.map(ev=>{
+      const rows=hyCompeteRowsFor(ev.id);
+      return `<div class="secTitle">${esc(ev.name)}<span style="float:right;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:none;font-weight:600">${rows.length} training</span></div>
+      <div class="card">
+        ${rows.length?rows.map(r=>{
+          const prof=ptsData.mprofiles.find(m=>m.user_id===r.user_id);
+          const name=(prof&&prof.full_name)||"Member";
+          const photo=(prof&&prof.photo_url)||"";
+          return `<div class="hyCompRow">
+            ${photo?`<img class="lbAv" src="${esc(photo)}" alt="">`:`<div class="lbAv">${esc((name[0]||"?").toUpperCase())}</div>`}
+            <div class="n"><b>${esc(name)}${r.user_id===session.user.id?' (you)':''}</b>${r.note?`<div class="note">"${esc(r.note)}"</div>`:''}</div>
+          </div>`;
+        }).join(""):`<div class="hyEmpty">No one's signed up for this one yet — be the first.</div>`}
+      </div>`;
+    }).join("")}
+  `;
+}
+function hyCompeteFormHtml(existing){
+  const opts=HY_EVENTS.map(ev=>`<option value="${ev.id}" ${((existing?existing.event_key:hyCompeteEvent)===ev.id)?'selected':''}>${esc(ev.name)} — ${esc(ev.dateLabel)}</option>`).join("");
+  return `
+    <div class="hyCompForm">
+      <select id="hyCompEventSel">${opts}</select>
+      <input id="hyCompNote" type="text" maxlength="120" placeholder="Optional note — e.g. looking for a training partner" value="${existing&&existing.note?esc(existing.note):''}">
+      <button class="btnLink" style="width:auto;margin:0;padding:9px 16px" onclick="hySubmitCompeting()">${existing?'Save Changes':"Count Me In"}</button>
+    </div>`;
 }
 
 /* Legacy Profile + Leaderboard (inside Members) */
