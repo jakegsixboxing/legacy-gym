@@ -5038,17 +5038,18 @@ function atRender(){
       <div style="display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:2px;color:#6EC1E4;text-transform:uppercase;margin-bottom:8px">${atStarSvg(14,"#6EC1E4",true)} You're In The Blue &amp; White</div>
       <p style="font-size:13px;line-height:1.65;color:#e2ecf3">${mine.mode==="fight"
         ?'Nominated to <b style="color:#fff">fight at '+esc(mine.weight_division||"")+' for New South Wales</b>. Your stepping-stone program starts now — every session and every fight between here and Melbourne is a step toward Nationals. When NSW nominations open, the paperwork gets done together.'
+        :mine.mode==="coach"?'You’re attending as a <b style="color:#fff">coach</b> — corners, warm-ups and game plans all weekend in Melbourne. The squad travels with you in their corner.'
         :'You’re on the trip — <b style="color:#fff">sparring and support crew</b>. Melbourne sparring weekend, corners on fight days, and the loudest section in the building.'}</p>
       <button style="background:none;border:none;color:#8fa6b5;font-size:11px;letter-spacing:1px;text-decoration:underline;margin-top:10px;cursor:pointer;text-transform:uppercase;font-weight:700" onclick="atReset()">Change my nomination</button></div>`;
   }else{
-    const selF=atMode==="fight", selS=atMode==="spar";
+    const selF=atMode==="fight", selS=atMode==="spar"||atMode==="coach"||atMode==="trip";
     html+=`<div style="background:#0d1720;border:1px solid #1e3a4d;border-radius:12px;padding:16px;margin-bottom:12px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <button onclick="atPick('fight')" style="border-radius:12px;border:1.5px solid ${selF?'#6EC1E4':'#1e3a4d'};background:${selF?'rgba(110,193,228,.13)':'#122334'};padding:16px 10px 14px;text-align:center;color:#f2f0eb;cursor:pointer">
           <span style="display:flex;justify-content:center;margin-bottom:8px">${atStarSvg(24,"#6EC1E4",true)}</span>
           <span style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;display:block">I'm Fighting</span>
           <span style="font-size:10.5px;color:#8fa6b5;margin-top:4px;display:block;line-height:1.45">Nominate for a national title</span></button>
-        <button onclick="atPick('spar')" style="border-radius:12px;border:1.5px solid ${selS?'#6EC1E4':'#1e3a4d'};background:${selS?'rgba(110,193,228,.13)':'#122334'};padding:16px 10px 14px;text-align:center;color:#f2f0eb;cursor:pointer">
+        <button onclick="atPick('trip')" style="border-radius:12px;border:1.5px solid ${selS?'#6EC1E4':'#1e3a4d'};background:${selS?'rgba(110,193,228,.13)':'#122334'};padding:16px 10px 14px;text-align:center;color:#f2f0eb;cursor:pointer">
           <span style="display:flex;justify-content:center;margin-bottom:8px">${atStarSvg(24,"#6EC1E4",false)}</span>
           <span style="font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;display:block">I'm On The Trip</span>
           <span style="font-size:10.5px;color:#8fa6b5;margin-top:4px;display:block;line-height:1.45">Spar, corner and support the team</span></button>
@@ -5057,18 +5058,23 @@ function atRender(){
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px">
         ${AT_WEIGHTS.map((w,i)=>`<button onclick="atPickWt(${i})" style="background:${atWt===w?'#6EC1E4':'#122334'};border:1px solid ${atWt===w?'#6EC1E4':'#1e3a4d'};border-radius:8px;padding:9px 4px;text-align:center;font-size:12.5px;font-weight:700;color:${atWt===w?'#0a2233':'#f2f0eb'};cursor:pointer;font-family:'Montserrat',sans-serif">${w}<span style="display:block;font-size:9px;color:${atWt===w?'#2c5a74':'#8fa6b5'};font-weight:700;letter-spacing:1.5px;margin-top:2px">KG</span></button>`).join("")}
       </div>`:""}
-      <button ${(!atMode||(atMode==="fight"&&!atWt))?"disabled":""} onclick="atLock()" style="width:100%;padding:14px;border-radius:8px;background:#6EC1E4;color:#0a2233;font-weight:800;font-size:13px;letter-spacing:2.5px;text-transform:uppercase;border:none;margin-top:14px;cursor:pointer;opacity:${(!atMode||(atMode==="fight"&&!atWt))?".32":"1"}">${atMode==="fight"?(atWt?"Nominate — "+atWt+" kg":"Pick a weight first"):"Put My Nomination In"}</button>
+      ${selS?`<div style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#8fa6b5;margin:15px 0 8px">How are you coming?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+        <button onclick="atPick('spar')" style="background:${atMode==='spar'?'#6EC1E4':'#122334'};border:1px solid ${atMode==='spar'?'#6EC1E4':'#1e3a4d'};border-radius:8px;padding:11px 6px;text-align:center;font-size:12px;font-weight:700;color:${atMode==='spar'?'#0a2233':'#f2f0eb'};cursor:pointer;font-family:'Montserrat',sans-serif">Support / Spar<span style="display:block;font-size:9px;color:${atMode==='spar'?'#2c5a74':'#8fa6b5'};font-weight:700;margin-top:3px;letter-spacing:.5px;text-transform:none">Sparring weekend & cheer squad</span></button>
+        <button onclick="atPick('coach')" style="background:${atMode==='coach'?'#FFCD00':'#122334'};border:1px solid ${atMode==='coach'?'#FFCD00':'#1e3a4d'};border-radius:8px;padding:11px 6px;text-align:center;font-size:12px;font-weight:700;color:${atMode==='coach'?'#332900':'#f2f0eb'};cursor:pointer;font-family:'Montserrat',sans-serif">Coach<span style="display:block;font-size:9px;color:${atMode==='coach'?'#665300':'#8fa6b5'};font-weight:700;margin-top:3px;letter-spacing:.5px;text-transform:none">Attending as a coach</span></button>
+      </div>`:""}
+      <button ${(!atMode||atMode==="trip"||(atMode==="fight"&&!atWt))?"disabled":""} onclick="atLock()" style="width:100%;padding:14px;border-radius:8px;background:#6EC1E4;color:#0a2233;font-weight:800;font-size:13px;letter-spacing:2.5px;text-transform:uppercase;border:none;margin-top:14px;cursor:pointer;opacity:${(!atMode||atMode==="trip"||(atMode==="fight"&&!atWt))?".32":"1"}">${atMode==="fight"?(atWt?"Nominate — "+atWt+" kg":"Pick a weight first"):atMode==="coach"?"I'm Attending As A Coach":atMode==="spar"?"Put My Nomination In":"Choose How You're Coming"}</button>
     </div>`;
   }
-  const f=atData.filter(r=>r.mode==="fight"), s=atData.filter(r=>r.mode==="spar");
+  const f=atData.filter(r=>r.mode==="fight"), s=atData.filter(r=>r.mode==="spar"), cc=atData.filter(r=>r.mode==="coach");
   html+=`<div style="font-size:12px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#6EC1E4;margin:20px 0 10px">The NSW Squad So Far</div>
   <div style="display:flex;gap:8px;margin-bottom:12px">
-    ${[[f.length,"Fighting"],[s.length,"On The Trip"],[atDays(),"Days To Go"]].map(x=>`<div style="flex:1;background:#0d1720;border:1px solid #1e3a4d;border-radius:12px;padding:12px 8px;text-align:center">
+    ${[[f.length,"Fighting"],[s.length,"On The Trip"],[cc.length,"Coaches"],[atDays(),"Days To Go"]].map(x=>`<div style="flex:1;background:#0d1720;border:1px solid #1e3a4d;border-radius:12px;padding:12px 8px;text-align:center">
       <b style="font-family:'Oswald',sans-serif;font-size:24px;color:#6EC1E4;display:block;line-height:1">${x[0]}</b>
       <span style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#8fa6b5;display:block;margin-top:5px;line-height:1.5">${x[1]}</span></div>`).join("")}
   </div>
   <div style="background:#0d1720;border:1px solid #1e3a4d;border-radius:12px;padding:16px;margin-bottom:12px">`;
-  const rows=[...f,...s];
+  const rows=[...f,...s,...cc];
   if(!rows.length)html+='<p style="font-size:13px;color:#8fa6b5">No one’s put their hand up yet — be the first name on the list.</p>';
   else html+=rows.map((r,i)=>{
     const me=session&&r.user_id===session.user.id;
@@ -5076,7 +5082,7 @@ function atRender(){
       <div style="width:36px;height:36px;border-radius:50%;background:#122334;border:1px solid #38708c;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;color:#6EC1E4;flex-shrink:0">${esc((r.name||"?").split(" ").map(x=>x[0]).slice(0,2).join(""))}</div>
       <div style="font-weight:700;font-size:13.5px;flex:1">${esc(r.name)}${me?'<span style="display:block;font-weight:700;font-size:10px;color:#6EC1E4;margin-top:2px;letter-spacing:1px;text-transform:uppercase">That’s you</span>':""}</div>
       ${r.mode==="fight"?`<span style="font-size:11px;font-weight:800;color:#0a2233;background:#6EC1E4;border-radius:999px;padding:6px 12px;letter-spacing:.5px;white-space:nowrap">${esc((r.weight_division||"").toUpperCase())}</span>`
-        :'<span style="font-size:10px;font-weight:800;color:#9bd4ee;border:1px solid #38708c;border-radius:999px;padding:5px 11px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap">On The Trip</span>'}</div>`;
+        :r.mode==="coach"?'<span style="font-size:10px;font-weight:800;color:#FFCD00;border:1px solid #8a7000;border-radius:999px;padding:5px 11px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap">Coach</span>':'<span style="font-size:10px;font-weight:800;color:#9bd4ee;border:1px solid #38708c;border-radius:999px;padding:5px 11px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap">On The Trip</span>'}</div>`;
   }).join("");
   html+=`</div>
   <div style="background:rgba(110,193,228,.07);border:1px solid #38708c;border-radius:12px;padding:13px 16px;margin-bottom:4px;font-size:12.5px;line-height:1.6;color:#d8e7f0">Official NSW nominations through League Boxing haven't opened yet. This list is Legacy's own — it tells Jake who's in, so programs and the trip get planned early. When the NSW link drops, every nominated fighter gets walked through the paperwork.</div>`;
@@ -5085,14 +5091,14 @@ function atRender(){
 function atPick(m){atMode=m;if(m!=="fight")atWt=null;atRender();}
 function atPickWt(i){atWt=AT_WEIGHTS[i];atRender();}
 async function atLock(){
-  if(atBusy||!atMode||(atMode==="fight"&&!atWt))return;
+  if(atBusy||!atMode||atMode==="trip"||(atMode==="fight"&&!atWt))return;
   atBusy=true;
   const name=(boxData&&boxData.profile&&boxData.profile.name)||((((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim())||"Fighter";
   const row={user_id:session.user.id,name:name,mode:atMode,weight_division:atMode==="fight"?atWt+" kg":null,updated_at:new Date().toISOString()};
   const {error}=await sb.from("titles_nominations").upsert(row,{onConflict:"user_id"});
   atBusy=false;
   if(error){toast(error.message);return;}
-  toast(atMode==="fight"?"Nomination in — "+atWt+" kg. See you in the blue and white.":"You’re on the trip. See you in Melbourne.");
+  toast(atMode==="fight"?"Nomination in — "+atWt+" kg. See you in the blue and white.":atMode==="coach"?"Locked in — coach on the trip. The squad's in good hands.":"You’re on the trip. See you in Melbourne.");
   atMode=null;atWt=null;
   await atLoad();
 }
