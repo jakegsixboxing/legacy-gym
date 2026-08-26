@@ -1199,7 +1199,6 @@ async function renderClasses(){
     <div class="hero" style="${bgStyle('boxing',.55)}">
       <div class="heroKicker">This Week's Timetable</div>
       <div class="heroTitle">Book In For Classes</div>
-      <div style="display:inline-block;background:var(--gold);color:#161307;font-weight:900;font-size:11px;letter-spacing:2px;padding:5px 12px;border-radius:20px;margin-top:10px">TERM 3 TIMETABLE STARTS NEXT WEEK</div>
       <div class="heroText">The full week's timetable opens every Sunday at 7 AM. Tap a class and you're booked — the coaches see exactly who's coming. Sparring bookings carry your fight profile straight onto the list.</div>
     </div>
     <div id="classList"><div class="loadingDots">Loading upcoming classes…</div></div>`;
@@ -6436,12 +6435,12 @@ async function attendClass(date,time,name){
   setTimeout(saleSpotlight,1100);
 }
 /* ---- Sale spotlight: after a class booking, surface the best live deal ---- */
-const SALE_SEEN_KEY="lg_salespot";
 const SALE_SPOT_HANDLE="sparring-club-embroidered-hoodie";
-const SALE_COOLDOWN_MS=3*24*60*60*1000;
+/* Shows on EVERY class booking up to and including this date, then stops by itself. */
+const SALE_SPOT_UNTIL="2026-09-09";
 function saleSpotForced(){try{return /[?&]spot=1/.test(location.search);}catch(e){return false;}}
-function saleSpotDue(){if(saleSpotForced())return true;try{return Date.now()-Number(localStorage.getItem(SALE_SEEN_KEY)||0)>SALE_COOLDOWN_MS;}catch(e){return false;}}
-function saleSpotMark(){if(saleSpotForced())return;try{localStorage.setItem(SALE_SEEN_KEY,String(Date.now()));}catch(e){}}
+function saleSpotDue(){if(saleSpotForced())return true;try{return isoDateLocal(new Date())<=SALE_SPOT_UNTIL;}catch(e){return false;}}
+function saleSpotMark(){}
 function closeSaleSpot(){const w=$("saleSpotWrap");if(w)w.remove();}
 function saleSpotGo(handle){saleSpotMark();closeSaleSpot();window.open(SHOP_URL+"/products/"+handle,"_blank");}
 async function saleSpotlight(){
