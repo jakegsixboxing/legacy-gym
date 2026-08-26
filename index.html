@@ -1171,6 +1171,7 @@ function upcomingClasses48(){
     const day=new Date(now);day.setDate(day.getDate()+off);
     if(day>horizon&&off>0)break;
     const dow=day.getDay();
+    if(CLASS_TAKEOVER.date&&isoDateLocal(day)===CLASS_TAKEOVER.date)continue;
     scheduleForDate(day).filter(c=>c.d===dow).forEach(c=>{
       const [h,m]=c.t.split(":").map(Number);
       const start=new Date(day);start.setHours(h,m,0,0);
@@ -1216,9 +1217,34 @@ async function renderClasses(){
   claimedRefs=new Set((res[1].data||[]).map(r=>r.ref));
   regs=res[2]?(res[2].data||[]):[];
   myWait=res[3]?(res[3].data||[]):[];
+  let takeoverEv=null;
+  if(CLASS_TAKEOVER.date&&d0<=CLASS_TAKEOVER.date){
+    const tr=await sb.from("social_events").select("*").eq("id",CLASS_TAKEOVER.eventId).maybeSingle();
+    takeoverEv=(tr&&tr.data)||null;
+  }
   if(view!=="classes")return;
   const c2=$("classList");if(!c2)return;
   let html="";
+  let takeoverDone=false;
+  function takeoverHtml(){
+    if(!takeoverEv)return"";
+    const ph=takeoverEv.photo_url?`<img src="${takeoverEv.photo_url}${takeoverEv.photo_url.includes("?")?"&":"?"}width=800" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block" alt="">`:"";
+    return `<div class="secTitle">Saturday — ${fmtDateAU(CLASS_TAKEOVER.date)}</div>
+    <div class="card" style="padding:0;overflow:hidden;border-color:var(--gold)">
+      ${ph}
+      <div style="padding:16px 16px 18px">
+        <div style="font-size:10.5px;font-weight:900;letter-spacing:3px;color:var(--gold)">NO REGULAR CLASSES \u2014 EVENT DAY</div>
+        <h3 style="font-size:20px;margin-top:8px;line-height:1.25">${esc(takeoverEv.title||"Team Challenge")}</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+          <span class="pill" style="border-color:var(--gold);color:var(--gold)">${CLASS_TAKEOVER.start} \u2013 ${CLASS_TAKEOVER.finish}</span>
+          ${takeoverEv.location?`<span class="pill">${esc(takeoverEv.location)}</span>`:""}
+        </div>
+        ${takeoverEv.details?`<p style="margin-top:12px;line-height:1.6;color:var(--muted)">${esc(takeoverEv.details)}</p>`:""}
+        <p style="margin-top:12px;line-height:1.6;color:var(--muted)">Saturday\u2019s Boxing and \u2018GRUNT\u2019 S&amp;C are off this week \u2014 we\u2019re all in on this instead.</p>
+        <button class="btnGold" style="margin-top:14px" onclick="go('social')">See Details &amp; Put Your Name Down \u203a</button>
+      </div>
+    </div>`;
+  }
   if(doneRegs.length){
     html+=`<div class="secTitle">Claim Your Class Points</div>`;
     doneRegs.forEach(r=>{
@@ -1235,6 +1261,7 @@ async function renderClasses(){
   }
   let lastDate="";
   cls.forEach(c=>{
+    if(!takeoverDone&&CLASS_TAKEOVER.date&&c.date>CLASS_TAKEOVER.date){takeoverDone=true;html+=takeoverHtml();}
     if(c.date!==lastDate){
       lastDate=c.date;
       const lbl=c.off===0?"Today":c.off===1?"Tomorrow":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(c.date+"T12:00:00").getDay()];
@@ -1258,7 +1285,8 @@ async function renderClasses(){
             :`<button class="btnGold" style="margin-top:12px" onclick="attendClass('${c.date}','${c.t}','${esc(c.n)}')">Book Me In</button>`}
     </div>`;
   });
-  if(!cls.length)html+='<div class="card"><p>No classes in the next two days — check the full weekly timetable below.</p></div>';
+  if(!takeoverDone&&CLASS_TAKEOVER.date&&d0<=CLASS_TAKEOVER.date){takeoverDone=true;html+=takeoverHtml();}
+  if(!cls.length&&!takeoverDone)html+='<div class="card"><p>No classes in the next two days — check the full weekly timetable below.</p></div>';
   html+=`<button class="btnLink" style="margin-top:6px" onclick="go('timetable')">See The Full Weekly Timetable ›</button>`;
   c2.innerHTML=html;
 }
@@ -6350,6 +6378,9 @@ function renderNutrition(){
    front desk; Local Blokes has its own booking flow in the Local Blokes tab). */
 const CLASS_CAPACITY=9999; // no real capacity limit — booking system is attendance-tracking only, not a cap (see Jake, 2026-08-14)
 const CAMP3_START="2026-07-20";
+/* One-off: Sat 29 Aug 2026 classes are replaced by the Welcome To Spring Team
+   Challenge. Clear this object (or set date to "") once the day has passed. */
+const CLASS_TAKEOVER={date:"2026-08-29",eventId:"4ee1ec77-8861-41bd-bd56-be552d2e3dec",start:"8:00 AM",finish:"10:00 AM"};
 const CLASS_SCHEDULE_OLD=[
   {d:1,t:"05:15",n:"Boxing"},{d:1,t:"18:00",n:"Boxing"},
   {d:2,t:"05:15",n:"Strength & Conditioning"},{d:2,t:"18:00",n:"Strength & Conditioning"},
