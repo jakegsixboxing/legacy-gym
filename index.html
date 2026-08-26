@@ -680,6 +680,13 @@ function render(){
 }
 
 /* ---- Home ---- */
+/* HYROX stays sealed until this date, then opens on its own. */
+const HYROX_OPENS="2026-09-01";
+function hyroxLocked(){try{return isoDateLocal(new Date())<HYROX_OPENS;}catch(e){return false;}}
+function hyCardFor(c){
+  if(c.id!=="hyrox"||!hyroxLocked())return c;
+  return {...c,hyroxLogo:false,lockedSoon:true,kicker:"Opens 1 September",sub:"HYROX information opens 1 September."};
+}
 const HOME_CARDS=[
  {id:"classes",kicker:"This Week's Timetable",title:"Book In For Classes",sub:"The full week opens every Sunday 7 AM — tap in, you're booked.",img:"classes"},
  {id:"boxing",kicker:"Legacy Boxing Series",title:"Boxing",sub:"The Sparring Club hub, session builder & Built By Jake.",img:"boxing"},
@@ -709,12 +716,12 @@ function renderHome(){
       <div class="hwKicker">${first?("G'day "+esc(first)):"Members Only"}</div>
       <div class="hwTitle">Culture<br>Without Chaos.</div>
     </div>
-    ${HOME_CARDS.map(c=>`<button class="homeCard" style="${c.lb?`background:linear-gradient(90deg,rgba(13,13,13,.55) 0%,rgba(13,13,13,.96) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:c.hyroxLogo?`background:linear-gradient(180deg,rgba(8,8,10,.35),rgba(8,8,10,.95)),url('${HYROX_LOGO}') center 30px/62% no-repeat #0a0b0e;border-color:#2a2a2a`:c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
+    ${HOME_CARDS.map(c0=>{const c=hyCardFor(c0);return `<button class="homeCard" style="${c.lockedSoon?`background:linear-gradient(180deg,rgba(8,8,10,.72),rgba(8,8,10,.96)),url('${LOGO}') center/45% no-repeat #0a0b0e;border-color:#232323;opacity:.72`:c.lb?`background:linear-gradient(90deg,rgba(13,13,13,.55) 0%,rgba(13,13,13,.96) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:c.hyroxLogo?`background:linear-gradient(180deg,rgba(8,8,10,.35),rgba(8,8,10,.95)),url('${HYROX_LOGO}') center 30px/62% no-repeat #0a0b0e;border-color:#2a2a2a`:c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
       
       <div class="hcKicker">${c.kicker}${c.lb&&lbUnread>0?`<span class="hcBadge">${lbUnread>9?"9+":lbUnread}</span>`:""}</div>
       <div class="hcTitle">${c.title}</div>
       <div class="hcSub">${c.sub}</div>
-    </button>`).join("")}
+    </button>`;}).join("")}
     ${profile&&profile.is_staff?`<button class="homeCard" style="background:linear-gradient(180deg,rgba(8,8,10,.7),rgba(8,8,10,.94)),url('${LOGO}') center/45% no-repeat #0a0b0e;border-color:var(--gold-dim)" onclick="go('staff')">
       <div class="hcKicker">Staff Eyes Only</div>
       <div class="hcTitle">Staff Room</div>
@@ -2597,6 +2604,17 @@ function hyDivPillsHtml(){
 }
 function hyRenderDivPills(){ const el=$("hyDivPillsBox"); if(el) el.innerHTML=hyDivPillsHtml(); }
 async function renderHyrox(){
+  if(hyroxLocked()){
+    $("main").innerHTML=`
+    <button class="backBtn" onclick="go('home')">\u2039 Back To Home</button>
+    <div style="background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.94));border:1px solid #2a2a2a;border-radius:16px;padding:38px 22px;text-align:center;margin-top:14px">
+      <img src="${HYROX_LOGO}" alt="HYROX" style="height:26px;margin:0 auto 20px;display:block;opacity:.8">
+      <div style="margin:0 auto;width:54px;height:54px;border-radius:50%;border:2px solid #3a3a3a;display:flex;align-items:center;justify-content:center;font-size:20px">\ud83d\udd12</div>
+      <div style="margin-top:20px;font-size:18px;color:#fff;font-weight:700;line-height:1.35">HYROX information opens<br>1 September</div>
+      <div style="margin-top:12px;color:#9aa0a6;line-height:1.6;max-width:400px;margin-left:auto;margin-right:auto">It\u2019s all built and waiting \u2014 full races, every station, smart training and the Australian race calendar. Unlocks here Tuesday 1 September.</div>
+    </div>`;
+    return;
+  }
   $("main").innerHTML=`
     <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
     <div class="hero" style="${bgStyle('cardio',.55)}">
