@@ -6437,10 +6437,11 @@ async function attendClass(date,time,name){
 }
 /* ---- Sale spotlight: after a class booking, surface the best live deal ---- */
 const SALE_SEEN_KEY="lg_salespot";
-const SALE_ROT_KEY="lg_salerot";
+const SALE_SPOT_HANDLE="sparring-club-embroidered-hoodie";
 const SALE_COOLDOWN_MS=3*24*60*60*1000;
-function saleSpotDue(){try{return Date.now()-Number(localStorage.getItem(SALE_SEEN_KEY)||0)>SALE_COOLDOWN_MS;}catch(e){return false;}}
-function saleSpotMark(){try{localStorage.setItem(SALE_SEEN_KEY,String(Date.now()));}catch(e){}}
+function saleSpotForced(){try{return /[?&]spot=1/.test(location.search);}catch(e){return false;}}
+function saleSpotDue(){if(saleSpotForced())return true;try{return Date.now()-Number(localStorage.getItem(SALE_SEEN_KEY)||0)>SALE_COOLDOWN_MS;}catch(e){return false;}}
+function saleSpotMark(){if(saleSpotForced())return;try{localStorage.setItem(SALE_SEEN_KEY,String(Date.now()));}catch(e){}}
 function closeSaleSpot(){const w=$("saleSpotWrap");if(w)w.remove();}
 function saleSpotGo(handle){saleSpotMark();closeSaleSpot();window.open(SHOP_URL+"/products/"+handle,"_blank");}
 async function saleSpotlight(){
@@ -6452,11 +6453,9 @@ async function saleSpotlight(){
     const price=Number(v.price||0),cmp=Number(v.compare_at_price||0);
     return {p:p,price:price,cmp:cmp,avail:(p.variants||[]).some(x=>x.available!==false),
             off:cmp>price&&cmp>0?Math.round((1-price/cmp)*100):0};
-  }).filter(d=>d.avail&&d.off>0).sort((a,b)=>b.off-a.off);
+  }).filter(d=>d.avail&&d.off>0&&d.p.handle===SALE_SPOT_HANDLE);
   if(!deals.length)return;
-  let rot=0;try{rot=Number(localStorage.getItem(SALE_ROT_KEY)||0)||0;}catch(e){}
-  const d=deals[rot%deals.length],p=d.p;
-  try{localStorage.setItem(SALE_ROT_KEY,String((rot+1)%deals.length));}catch(e){}
+  const d=deals[0],p=d.p;
   const img=(p.images&&p.images[0]&&p.images[0].src)||"";
   saleSpotMark();
   closeSaleSpot();
