@@ -1808,8 +1808,8 @@ function checkMilestone(){
 }
 /* ---- Spring Challenge attention banner (event: Welcome To Spring - Team Challenge, Sat 29 Aug 2026) ---- */
 const SPRING_EVENT_ID="4ee1ec77-8861-41bd-bd56-be552d2e3dec";
-const SPRING_EVENT_TARGET=new Date(2026,7,29,8,0,0,0).getTime();
-const SPRING_DISMISS_KEY="lg_dismiss_event_"+SPRING_EVENT_ID;
+const SPRING_EVENT_TARGET=new Date(2026,7,31,0,0,0,0).getTime();
+const SPRING_DISMISS_KEY="lg_dismiss_event_v2_"+SPRING_EVENT_ID;
 let SPRING_RSVP_COUNT=null;
 async function loadSpringRsvpCount(){
   const {count}=await sb.from("social_rsvps").select("id",{count:"exact",head:true}).eq("event_id",SPRING_EVENT_ID);
@@ -1824,7 +1824,6 @@ function springBannerHtml(){
   if(localStorage.getItem(SPRING_DISMISS_KEY))return"";
   if(SPRING_RSVP_COUNT===null)return"";
   return `<div class="springBanner" id="springBanner">
-    <div class="springDismiss" onclick="dismissSpringBanner()">✕</div>
     <div class="springInner">
       <style>@keyframes scPulse{0%,100%{box-shadow:0 0 12px rgba(123,217,73,.45);border-color:#4f7d2a}50%{box-shadow:0 0 34px rgba(123,217,73,.95),0 0 60px rgba(123,217,73,.5);border-color:#a6f56e}}</style>
       <div style="border:2px solid #7bd949;border-radius:16px;padding:22px 18px;margin:2px 0;background:linear-gradient(160deg,rgba(18,26,8,.92),rgba(12,17,7,.96));animation:scPulse 1.15s ease-in-out infinite;text-align:center;">
