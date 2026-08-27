@@ -55,8 +55,11 @@ h1{font-family:'Osw';font-weight:700;font-size:76px;line-height:.95;text-transfo
 .fcard .t{font-family:'Osw';font-weight:700;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:#f4d97a;margin-bottom:4px}
 .fcard .d{font-size:11.5px;color:#d8d1c4;line-height:1.4}
 /* TIERS */
-.tiers{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:stretch;max-width:1200px;margin:0 auto}
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:stretch;max-width:1080px;margin:0 auto}
+.tiersB{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:stretch;max-width:940px;margin:22px auto 0}
 .tier{border:1px solid #2a2721;background:linear-gradient(180deg,#141310,#0d0c0a);border-radius:6px;padding:30px 18px 26px;display:flex;flex-direction:column;position:relative}
+.tier.prem{border:1px solid rgba(212,175,55,.55);background:linear-gradient(180deg,#181405,#0d0b06)}
+.tier.prem .spBtn{background:linear-gradient(135deg,#f1d582,#c99b35);border:none;color:#0a0a0a}
 .tier.feat{border:1px solid rgba(212,175,55,.8);background:linear-gradient(180deg,#1c1809,#0f0d07);box-shadow:0 0 60px rgba(212,175,55,.12)}
 .badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:#d4af37;color:#0a0a0a;font-family:'Osw';font-weight:700;font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;padding:6px 16px;border-radius:2px;white-space:nowrap}
 .tname{font-family:'Osw';font-weight:700;font-size:18px;letter-spacing:.12em;text-transform:uppercase;color:#e9dfc3;text-align:center;line-height:1.1}
@@ -117,9 +120,9 @@ h1{font-family:'Osw';font-weight:700;font-size:76px;line-height:.95;text-transfo
 .usa h2{font-family:'Osw';font-weight:700;font-size:42px;text-transform:uppercase;color:#fff;line-height:1.04;margin-bottom:16px;text-shadow:0 3px 18px rgba(0,0,0,.85)}
 .usa p{font-size:16.5px;line-height:1.75;color:#eee6d6;text-shadow:0 2px 12px rgba(0,0,0,.85)}
 .usa p b{color:#fff}
-@media(max-width:1080px){.tiers{grid-template-columns:repeat(2,1fr);max-width:640px}}
+@media(max-width:1080px){.tiers{grid-template-columns:repeat(2,1fr);max-width:640px}.tiersB{grid-template-columns:1fr;max-width:440px}}
 @media(max-width:820px){h1{font-size:50px}.story{grid-template-columns:1fr}.beltgrid{grid-template-columns:1fr}.fund{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.tiers{grid-template-columns:1fr;max-width:400px}}
+@media(max-width:560px){.tiers{grid-template-columns:1fr;max-width:400px}.tiersB{max-width:400px}}
 </style></head><body>
 
 <div class="hero">
@@ -196,7 +199,8 @@ h1{font-family:'Osw';font-weight:700;font-size:76px;line-height:.95;text-transfo
 
 <div class="sec" style="max-width:1240px;margin:0 auto">
 <div class="label" style="text-align:center">Sponsorship Packages</div>
-<div class="h2" style="text-align:center;margin-bottom:40px">Back Sarsha's Return</div>
+<div class="h2" style="text-align:center;margin-bottom:16px">Back Sarsha's Year</div>
+<p style="text-align:center;max-width:770px;margin:0 auto 42px;font-size:15.5px;line-height:1.75;color:#cfc8ba">Sarsha is now at a new level &mdash; and she's looking for <b style="color:#f2ede2">yearly sponsors</b>, not one-fight backing. With <b style="color:#f2ede2">two major regional titles</b> to her name, she needs the support to keep training, travelling and growing in the sport all year round. Every sponsorship helps build a fund Sarsha can draw on to <b style="color:#f2ede2">act on opportunities the moment they arise</b> &mdash; the camps, the fights and the openings that don't wait.</p>
 <div class="tiers">
 <div class="tier">
 <div class="tname">Teammate</div>
@@ -211,12 +215,12 @@ h1{font-family:'Osw';font-weight:700;font-size:76px;line-height:.95;text-transfo
 <div class="tier">
 <div class="tname">Bronze</div>
 <div class="price"><span>$</span>750</div>
-<div class="per">Preparation Sponsor</div>
+<div class="per">Yearly Sponsor</div>
 <ul>
-<li><b>Your logo on Sarsha's training shirt</b> worn throughout her preparation</li>
-<li><b>2&times; social media mentions</b> during her return to training</li>
-<li><b>Thank-you post</b> when preparation kicks off</li>
-<li>Training photos &amp; content available for your own channels</li>
+<li><b>Your logo on Sarsha's training shirts</b> worn through the year</li>
+<li><b>2&times; social media mentions</b></li>
+<li><b>Thank-you post</b> welcoming you to Team Sarsha</li>
+<li>Training photos &amp; content for your own channels</li>
 </ul>
 <button class="spBtn" onclick="openSponsor('Bronze','$750')">I Want To Sponsor</button>
 </div>
@@ -224,44 +228,67 @@ h1{font-family:'Osw';font-weight:700;font-size:76px;line-height:.95;text-transfo
 <div class="badge">Most Popular</div>
 <div class="tname">Silver</div>
 <div class="price"><span>$</span>1,500</div>
-<div class="per">Preparation Sponsor</div>
+<div class="per">Yearly Sponsor</div>
 <ul>
-<li><b>Featured logo</b> on Sarsha's training shirt</li>
-<li><b>Announcement post</b> introducing your business as a sponsor</li>
-<li><b>Monthly social media mentions</b> for the full preparation</li>
-<li>Tagged in <b>training posts and stories</b> along the way</li>
-<li>Training photos &amp; content available for your own channels</li>
+<li><b>Featured logo</b> on Sarsha's training shirts</li>
+<li><b>Announcement post</b> introducing your business</li>
+<li><b>Monthly social media mentions</b> all year</li>
+<li>Tagged in <b>training posts &amp; stories</b></li>
+<li>Training photos &amp; content for your own channels</li>
 </ul>
 <button class="spBtn" onclick="openSponsor('Silver','$1,500')">I Want To Sponsor</button>
 </div>
 <div class="tier">
 <div class="tname">Gold</div>
 <div class="price"><span>$</span>2,999</div>
-<div class="per">Preparation Sponsor</div>
+<div class="per">Yearly Sponsor</div>
 <ul>
-<li><b>Premium front placement</b> on Sarsha's training shirt</li>
-<li><b>Announcement post</b> + featured when preparation launches</li>
-<li><b>Weekly mentions</b> across the entire preparation</li>
+<li><b>Premium placement</b> on Sarsha's training shirts</li>
+<li><b>Announcement post</b> + featured across the year</li>
+<li><b>Weekly mentions</b> across her training and fights</li>
 <li>Tagged in <b>all training content</b> plus fight-week posts</li>
-<li><b>Signed, framed training shirt</b> at the end of preparation</li>
-<li>First option on <b>fight-night sponsorship</b></li>
+<li>Training photos &amp; content for your own channels</li>
 </ul>
 <button class="spBtn" onclick="openSponsor('Gold','$2,999')">I Want To Sponsor</button>
 </div>
-<div class="tier big">
-<div class="badge">Travel &amp; Train</div>
+</div>
+<div class="tiersB">
+<div class="tier prem">
 <div class="tname">Travel &amp;<br>Train</div>
 <div class="price"><span>$</span>5,000</div>
-<div class="per">Camp &amp; Travel Sponsor &mdash; Limited</div>
+<div class="per">Camp &amp; Fight Sponsor</div>
 <ul>
-<li><b>Everything in the Gold package</b>, plus:</li>
-<li><b>Headline camp &amp; travel sponsor</b> &mdash; the package that helps get Sarsha overseas for training camps</li>
-<li><b>Prime placement</b> on Sarsha's training and camp apparel</li>
-<li><b>Named as an Official Travel &amp; Training Partner</b> across her camp content</li>
-<li>Content and updates <b>from inside her overseas camps</b></li>
-<li>First option on <b>ring-walk &amp; fight-night sponsorship</b> when she returns</li>
+<li><b>Everything in Gold</b>, plus:</li>
+<li><b>Your logo on Sarsha's walkout shirts</b> for her fights throughout the year</li>
+<li><b>Your logo on the screens inside Legacy Gym</b> on her home fight shows</li>
+<li>Named an <b>Official Travel &amp; Training Partner</b> &mdash; content from inside her overseas camps</li>
 </ul>
 <button class="spBtn" onclick="openSponsor('Travel &amp; Train','$5,000')">I Want To Sponsor</button>
+</div>
+<div class="tier prem">
+<div class="tname">Champion</div>
+<div class="price"><span>$</span>7,500</div>
+<div class="per">Camp &amp; Fight Sponsor</div>
+<ul>
+<li><b>Everything in Travel &amp; Train</b>, plus:</li>
+<li><b>Tickets to Sarsha's home fights in NSW</b> for you and your guests</li>
+<li><b>A photo session with Sarsha</b> for your business</li>
+<li><b>A custom social media post &amp; video</b> for your brand</li>
+</ul>
+<button class="spBtn" onclick="openSponsor('Champion','$7,500')">I Want To Sponsor</button>
+</div>
+<div class="tier big">
+<div class="badge">Headline</div>
+<div class="tname">Legacy</div>
+<div class="price"><span>$</span>10,000</div>
+<div class="per">Headline Sponsor &mdash; Limited</div>
+<ul>
+<li><b>Everything in Champion</b>, plus:</li>
+<li><b>Top logo placement</b> on training shirts, walkout gear &amp; Legacy screens</li>
+<li><b>Extra fight tickets</b> plus multiple custom posts &amp; videos across the year</li>
+<li>Priority on <b>ring-walk &amp; fight-night sponsorship</b> when she fights</li>
+</ul>
+<button class="spBtn" onclick="openSponsor('Legacy','$10,000')">I Want To Sponsor</button>
 </div>
 </div></div>
 
