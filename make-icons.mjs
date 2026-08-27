@@ -54,7 +54,7 @@ render(512, 'public/icon-512.png');
 render(192, 'public/icon-192.png');
 render(180, 'public/apple-touch-icon.png');
 
-for (const f of ['index.html', 'manifest.json', 'sw.js', 'sponsor-a-pro-boxer.html']) {
+for (const f of ['index.html', 'manifest.json', 'sw.js', 'sarsha-mcgurk.html']) {
   fs.copyFileSync(f, 'public/' + f);
   console.log('copied', f);
 }
