@@ -306,8 +306,7 @@ h1{font-family:'Osw';font-weight:700;font-size:76px;line-height:.95;text-transfo
 <div class="cta">
 <div class="label" style="text-align:center">Limited Positions</div>
 <div class="h2">Get Behind Sarsha</div>
-<p>A handful of year-round sponsorship positions are open. Enquire below and the team at Legacy Gym will walk you through the levels and find the right fit for your business.</p>
-<a class="site" href="mailto:legacygymkincumber@gmail.com?subject=Sponsor%20a%20Pro%20Boxer%20%E2%80%94%20Sarsha%20McGurk&body=Hi%20Legacy%20Gym%2C%20I%27d%20like%20to%20find%20out%20more%20about%20sponsoring%20Sarsha%20McGurk.">Enquire To Become A Sponsor</a>
+<p>A handful of year-round sponsorship positions are open. Choose the level that suits your business above and hit <b>I Want To Sponsor</b> &mdash; the team at Legacy Gym will take care of the rest.</p>
 <div class="fine">SARSHA McGURK &bull; PROFESSIONAL BOXER &bull; 4&times; CURRENT CHAMPION &bull; PRESENTED BY LEGACY GYM CENTRAL COAST</div>
 </div>
 
@@ -347,11 +346,22 @@ function closeSponsor(){document.getElementById('spOverlay').classList.remove('o
 function closeDone(){document.getElementById('spDone').classList.remove('on');document.getElementById('spForm').reset();}
 function submitSponsor(e){
   e.preventDefault();
-  var f=e.target, data=new FormData(f);
-  data.append('_subject','New Team Sarsha Sponsor — '+data.get('Sponsorship Level'));
-  data.append('_template','table');
+  var f=e.target;
+  var get=function(n){var el=f.querySelector('[name="'+n+'"]');return el?el.value.trim():'';};
+  var level=document.getElementById('spLevelInput').value;
+  var d=new FormData();
+  d.append('Sponsorship Level', level);
+  d.append('Full Name', get('Full Name'));
+  d.append('Business Name', get('Business Name'));
+  d.append('Contact Number', get('Contact Number'));
+  d.append('Email', get('Email'));
+  d.append('_subject', 'New Sarsha Sponsor: '+get('Business Name')+' — '+level);
+  d.append('_replyto', get('Email'));
+  d.append('_cc', 'jakegsixboxing@gmail.com');
+  d.append('_template', 'table');
+  d.append('_captcha', 'false');
   try{
-    fetch('https://formsubmit.co/ajax/legacygymkincumber@gmail.com',{method:'POST',headers:{'Accept':'application/json'},body:data}).catch(function(){});
+    fetch('https://formsubmit.co/ajax/legacygymkincumber@gmail.com',{method:'POST',headers:{'Accept':'application/json'},body:d}).catch(function(){});
   }catch(err){}
   document.getElementById('spOverlay').classList.remove('on');
   document.getElementById('spDone').classList.add('on');
