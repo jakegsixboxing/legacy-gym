@@ -357,11 +357,11 @@ function submitSponsor(e){
   d.append('Email', get('Email'));
   d.append('_subject', 'New Sarsha Sponsor: '+get('Business Name')+' — '+level);
   d.append('_replyto', get('Email'));
-  d.append('_cc', 'jakegsixboxing@gmail.com');
+  d.append('_cc', 'legacygymkincumber@gmail.com');
   d.append('_template', 'table');
   d.append('_captcha', 'false');
   try{
-    fetch('https://formsubmit.co/ajax/legacygymkincumber@gmail.com',{method:'POST',headers:{'Accept':'application/json'},body:d}).catch(function(){});
+    fetch('https://formsubmit.co/ajax/5ff9676c4c14c5f665182ea590273538',{method:'POST',headers:{'Accept':'application/json'},body:d}).catch(function(){});
   }catch(err){}
   document.getElementById('spOverlay').classList.remove('on');
   document.getElementById('spDone').classList.add('on');
