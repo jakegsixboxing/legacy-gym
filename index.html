@@ -2149,6 +2149,29 @@ async function awardPoints(kind,ref,pts){
 /* Cardio Challenges */
 let chRun=null;
 function chElapsed(){return chRun?Math.floor((Date.now()-chRun.start)/1000):0;}
+const WC_PRIZES=["2× Points Day","Bonus Mission","Free Recovery Session","A Legacy Coffee","Duel a Mate","Mystery Crest"];
+const WC_COL=["#c9a44c","#2f9e8f","#4FB8DC","#c0392b","#7d5ba6","#e0a53a"];
+function wcWeekKey(){try{return weekKey(new Date());}catch(e){return "wk";}}
+function wildcardHtml(){
+  var conic="conic-gradient("+WC_COL.map(function(c,i){return c+" "+(i*60)+"deg "+((i+1)*60)+"deg";}).join(",")+")";
+  var labels=WC_PRIZES.map(function(p,i){return '<div style="position:absolute;inset:0;display:flex;justify-content:center;padding-top:14px;transform:rotate('+(i*60)+'deg)"><span style="transform:rotate(30deg);font-family:\'Oswald\',sans-serif;font-weight:700;font-size:10px;color:#fff;max-width:66px;text-align:center;line-height:1.05;text-shadow:0 1px 3px rgba(0,0,0,.7)">'+p+'</span></div>';}).join("");
+  var won="";try{won=localStorage.getItem("lg_wc_"+wcWeekKey())||"";}catch(e){}
+  var wheel='<div style="position:relative;width:230px;margin:8px auto 0"><div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:20px solid var(--gold);z-index:5"></div><div id="wcWheel" style="width:230px;height:230px;border-radius:50%;background:'+conic+';border:5px solid var(--gold);box-shadow:0 0 26px rgba(201,164,76,.4);transition:transform 3.6s cubic-bezier(.15,.9,.2,1);position:relative">'+labels+'<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border-radius:50%;background:var(--gold);color:#161307;display:flex;align-items:center;justify-content:center;font-family:\'Oswald\';font-weight:700;font-size:11px;z-index:4;border:2px solid #7a5a1e">SPIN</div></div></div>';
+  var action = won ? '<div style="margin-top:16px;font-family:\'Oswald\';font-weight:700;font-size:19px;color:var(--gold)">You won: '+esc(won)+'</div><p style="font-size:12px;color:var(--muted);margin-top:6px">See the team to claim it — your next spin unlocks Monday.</p>' : '<button class="btnGold" style="width:auto;padding:13px 34px;margin-top:16px" onclick="spinWildcard()">Spin The Wheel</button><div id="wcRes" style="margin-top:14px;min-height:20px"></div>';
+  return '<div style="text-align:center">'+wheel+action+'<div style="border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--panel);margin-top:18px;text-align:center"><b style="font-family:\'Oswald\',sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold)">The Weekly Wildcard</b><p style="font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5">One free spin every Monday. Land on a bonus, a free session, a duel or a mystery crest — see the team to claim what you win.</p></div></div>';
+}
+var wcSpinning=false,wcRot=0;
+function spinWildcard(){
+  if(wcSpinning)return;wcSpinning=true;
+  var seg=Math.floor(Math.random()*6);
+  wcRot+=360*4+(360-seg*60-30);
+  var w=document.getElementById("wcWheel");if(w)w.style.transform="rotate("+wcRot+"deg)";
+  setTimeout(function(){
+    wcSpinning=false;
+    try{localStorage.setItem("lg_wc_"+wcWeekKey(),WC_PRIZES[seg]);}catch(e){}
+    if(view==="cardio"&&cardioSub==="wildcard")renderCardio();
+  },3700);
+}
 async function renderCardio(){
   $("main").innerHTML=`
     <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
@@ -2161,12 +2184,14 @@ async function renderCardio(){
       <button class="${cardioSub==='stairs'?'active':''}" onclick="cardioSub='stairs';renderCardio()">StairMaster</button>
       <button class="${cardioSub==='tread'?'active':''}" onclick="cardioSub='tread';renderCardio()">Treadmill</button>
       <button class="${cardioSub==='engine'?'active':''}" onclick="cardioSub='engine';renderCardio()">Engine Room</button>
+      <button class="${cardioSub==='wildcard'?'active':''}" onclick="cardioSub='wildcard';renderCardio()">Wildcard</button>
       <button class="${cardioSub==='mvm'?'active':''}" onclick="cardioSub='mvm';renderCardio()">Member vs Member</button>
     </div>
     <div id="cardioList"><div class="loadingDots">Loading challenges\u2026</div></div>`;
   await loadWorld();
   if(view!=="cardio")return;const box=$("cardioList");if(!box)return;
   if(cardioSub==="mvm"){box.innerHTML=mvmBoardHtml();return;}
+  if(cardioSub==="wildcard"){box.innerHTML=wildcardHtml();return;}
   const doneRefs=new Set(ptsData.events.filter(e=>e.user_id===session.user.id&&e.kind==="challenge").map(e=>e.ref));
   const clubCounts={};ptsData.events.filter(e=>e.kind==="challenge").forEach(e=>clubCounts[e.ref]=(clubCounts[e.ref]||0)+1);
   box.innerHTML=CARDIO[cardioSub].map((c,i)=>{
