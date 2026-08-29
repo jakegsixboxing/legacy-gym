@@ -2188,6 +2188,39 @@ function spinWildcard(){
     if(view==="cardio"&&cardioSub==="wildcard")renderCardio();
   },3700);
 }
+let duelsData=null;
+function duelMyName(){var m=(typeof myMp==="function")?myMp():null;return (m&&m.full_name)||((((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim())||"A member";}
+async function loadDuels(){try{if(!session){duelsData=[];return;}var uid=session.user.id;var r=await sb.from("duels").select("*").or("challenger_id.eq."+uid+",opponent_id.eq."+uid).order("created_at",{ascending:false});duelsData=r.data||[];}catch(e){duelsData=[];}}
+function _dbtnG(label,onclick){return '<button style="padding:8px 14px;border-radius:8px;border:none;background:var(--gold);color:#161307;font-family:\'Oswald\',sans-serif;font-weight:700;font-size:12px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer" onclick="'+onclick+'">'+label+'</button>';}
+function _dbtnO(label,onclick){return '<button style="padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);font-family:\'Oswald\',sans-serif;font-weight:700;font-size:12px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer" onclick="'+onclick+'">'+label+'</button>';}
+function _dcard(title,sub,actions){return '<div style="border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:9px;background:var(--panel)"><div style="font-size:14px;color:#fff;font-weight:600;line-height:1.3">'+title+'</div><div style="font-size:11.5px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">'+sub+'</div>'+(actions?'<div style="display:flex;gap:8px;margin-top:11px;flex-wrap:wrap">'+actions+'</div>':'')+'</div>';}
+function duelsHtml(){
+  try{
+   if(!duelsData)return '<div class="loadingDots">Loading duels…</div>';
+   var uid=session.user.id;
+   var members=(ptsData.mprofiles||[]).filter(function(m){return m.user_id!==uid&&m.full_name;}).sort(function(a,b){return (a.full_name||"").localeCompare(b.full_name||"");});
+   var oppOpts='<option value="">Choose a member…</option>'+members.map(function(m){return '<option value="'+m.user_id+'|'+esc(m.full_name)+'">'+esc(m.full_name)+'</option>';}).join("");
+   var battleOpts=(typeof MVM!=="undefined"?MVM:[]).map(function(b){return '<option value="'+esc(b.n)+'">'+esc(b.n)+'</option>';}).join("");
+   var sel='width:100%;padding:12px 14px;border-radius:8px;border:1px solid var(--line);background:#0e0e10;color:var(--text);font-size:15px';
+   var form='<div class="card"><div class="secTitle" style="margin-top:0">Challenge A Mate</div><div class="field"><label>Your rival</label><select id="duelOpp" style="'+sel+'">'+oppOpts+'</select></div><div class="field"><label>The battle</label><select id="duelBattle" style="'+sel+'">'+battleOpts+'</select></div><button class="btnGold" onclick="sendDuel()">Send Challenge</button><p style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5">First to finish wins the bragging rights — the honour system, same as the gym floor. Loser owes a coffee.</p></div>';
+   var incoming=duelsData.filter(function(d){return d.opponent_id===uid&&d.status==="pending";});
+   var active=duelsData.filter(function(d){return d.status==="accepted";});
+   var outgoing=duelsData.filter(function(d){return d.challenger_id===uid&&d.status==="pending";});
+   var done=duelsData.filter(function(d){return d.status==="done";}).slice(0,6);
+   var out=form;
+   if(incoming.length){out+='<div class="secTitle">Incoming Challenges</div>';incoming.forEach(function(d){out+=_dcard('<b>'+esc(d.challenger_name)+'</b> challenged you',esc(d.battle),_dbtnG('Accept',"acceptDuel('"+d.id+"')")+_dbtnO('Decline',"declineDuel('"+d.id+"')"));});}
+   if(active.length){out+='<div class="secTitle">Active Duels</div>';active.forEach(function(d){var other=d.challenger_id===uid?d.opponent_name:d.challenger_name;var otherId=d.challenger_id===uid?d.opponent_id:d.challenger_id;out+=_dcard('You vs <b>'+esc(other)+'</b>',esc(d.battle)+' · who won?',_dbtnG('I Won',"reportDuel('"+d.id+"','"+uid+"')")+_dbtnO(esc(other)+' Won',"reportDuel('"+d.id+"','"+otherId+"')"));});}
+   if(outgoing.length){out+='<div class="secTitle">Waiting To Be Accepted</div>';outgoing.forEach(function(d){out+=_dcard('Sent to <b>'+esc(d.opponent_name)+'</b>',esc(d.battle),_dbtnO('Cancel',"cancelDuel('"+d.id+"')"));});}
+   if(done.length){out+='<div class="secTitle">Recent Results</div>';done.forEach(function(d){var other=d.challenger_id===uid?d.opponent_name:d.challenger_name;var won=d.winner_id===uid;out+=_dcard((won?'You beat <b>'+esc(other)+'</b>':'<b>'+esc(other)+'</b> beat you'),esc(d.battle)+' · '+(won?'WON':'LOST'),'');});}
+   if(!incoming.length&&!active.length&&!outgoing.length&&!done.length){out+='<div class="emptyMsg">No duels yet — call someone out above.</div>';}
+   return out;
+  }catch(e){return '<div class="emptyMsg">Couldn’t load duels — try again in a tick.</div>';}
+}
+async function sendDuel(){try{var opp=document.getElementById("duelOpp"),bt=document.getElementById("duelBattle");if(!opp||!opp.value){toast("Pick a rival first.");return;}var parts=opp.value.split("|");var nm=parts.slice(1).join("|");var r=await sb.from("duels").insert({challenger_id:session.user.id,challenger_name:duelMyName(),opponent_id:parts[0],opponent_name:nm,battle:bt.value,status:"pending"});if(r.error){toast(r.error.message);return;}toast("Challenge sent to "+nm+".");await loadDuels();if(view==="cardio"&&cardioSub==="duels")renderCardio();}catch(e){toast("Couldn't send — try again.");}}
+async function acceptDuel(id){await sb.from("duels").update({status:"accepted"}).eq("id",id);toast("Duel on — go get it.");await loadDuels();if(view==="cardio"&&cardioSub==="duels")renderCardio();}
+async function declineDuel(id){await sb.from("duels").update({status:"declined"}).eq("id",id);await loadDuels();if(view==="cardio"&&cardioSub==="duels")renderCardio();}
+async function cancelDuel(id){await sb.from("duels").delete().eq("id",id);await loadDuels();if(view==="cardio"&&cardioSub==="duels")renderCardio();}
+async function reportDuel(id,winnerId){await sb.from("duels").update({status:"done",winner_id:winnerId}).eq("id",id);toast("Result locked in.");await loadDuels();if(view==="cardio"&&cardioSub==="duels")renderCardio();}
 async function renderCardio(){
   $("main").innerHTML=`
     <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
@@ -2201,6 +2234,7 @@ async function renderCardio(){
       <button class="${cardioSub==='tread'?'active':''}" onclick="cardioSub='tread';renderCardio()">Treadmill</button>
       <button class="${cardioSub==='engine'?'active':''}" onclick="cardioSub='engine';renderCardio()">Engine Room</button>
       <button class="${cardioSub==='wildcard'?'active':''}" onclick="cardioSub='wildcard';renderCardio()">Wildcard</button>
+      <button class="${cardioSub==='duels'?'active':''}" onclick="cardioSub='duels';renderCardio()">Duels</button>
       <button class="${cardioSub==='mvm'?'active':''}" onclick="cardioSub='mvm';renderCardio()">Member vs Member</button>
     </div>
     <div id="cardioList"><div class="loadingDots">Loading challenges\u2026</div></div>`;
@@ -2208,6 +2242,7 @@ async function renderCardio(){
   if(view!=="cardio")return;const box=$("cardioList");if(!box)return;
   if(cardioSub==="mvm"){box.innerHTML=mvmBoardHtml();return;}
   if(cardioSub==="wildcard"){box.innerHTML=wildcardHtml();return;}
+  if(cardioSub==="duels"){box.innerHTML=duelsHtml();if(!duelsData){loadDuels().then(function(){if(view==="cardio"&&cardioSub==="duels"){var bx=$("cardioList");if(bx)bx.innerHTML=duelsHtml();}});}return;}
   const doneRefs=new Set(ptsData.events.filter(e=>e.user_id===session.user.id&&e.kind==="challenge").map(e=>e.ref));
   const clubCounts={};ptsData.events.filter(e=>e.kind==="challenge").forEach(e=>clubCounts[e.ref]=(clubCounts[e.ref]||0)+1);
   box.innerHTML=CARDIO[cardioSub].map((c,i)=>{
