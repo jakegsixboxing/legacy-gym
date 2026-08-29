@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202608291220";
+const LG_BUILD="202608291231";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -824,24 +824,19 @@ function homeFeatureHtml(){
 const FC_REGO="https://view.powr.io/i/40134106";
 const FC_INFO="https://www.legacygym.net/pages/fight-club";
 function fightClubHtml(){
- return `<div class="card" style="padding:0;overflow:hidden;border-color:var(--gold);margin-bottom:16px">
+ return `<style>@keyframes fcGlow{0%,100%{border-color:var(--gold);box-shadow:0 0 0 rgba(201,164,76,0)}50%{border-color:#e8c56a;box-shadow:0 0 22px rgba(201,164,76,.45)}}</style>
+ <div class="card" style="padding:0;overflow:hidden;border:2px solid var(--gold);animation:fcGlow 3s ease-in-out infinite;margin-bottom:16px" onclick="window.open(FC_INFO,'_blank')">
   <div style="position:relative">
-   <img src="/fight-club.jpg" alt="Fight Club corner" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block">
-   <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(8,8,10,.92))"></div>
-   <div style="position:absolute;left:16px;bottom:12px;right:16px">
-    <div style="font-size:10px;font-weight:900;letter-spacing:3px;color:var(--gold);text-transform:uppercase">Fight Club &middot; Next Round</div>
-    <div style="font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fff;line-height:1.1;margin-top:4px">Train 10 Weeks.<br>Fight Under Lights.</div>
+   <img src="/fight-club.jpg" alt="Fight Club" style="width:100%;aspect-ratio:2/1;object-fit:cover;object-position:50% 30%;display:block">
+   <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 35%,rgba(8,8,10,.94))"></div>
+   <div style="position:absolute;left:16px;right:16px;bottom:12px">
+    <div style="font-size:10px;font-weight:900;letter-spacing:3px;color:var(--gold);text-transform:uppercase">The Ultimate 10-Week Challenge</div>
+    <div style="font-family:'Oswald',sans-serif;font-size:30px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#fff;line-height:1;margin-top:3px">Fight Club</div>
    </div>
   </div>
-  <div style="padding:14px 16px 18px">
-   <div style="display:flex;flex-wrap:wrap;gap:7px">
-    <span class="pill" style="border-color:var(--gold);color:var(--gold)">Starts Mon 12 Oct</span>
-    <span class="pill">Mon &middot; Tue &middot; Wed &middot; 6:45 PM</span>
-    <span class="pill">Fight Night &mdash; Sat 19 Dec</span>
-   </div>
-   <p style="margin-top:12px;line-height:1.65;color:var(--muted);font-size:12.5px">A 10-week camp that ends in a real fight, in front of a real crowd, at your own gym. No experience necessary &mdash; you&rsquo;re matched on how you train, not your record. Unlimited gym access, strength work and boxing classes the whole way through. <b style="color:var(--text)">$74.99/wk</b> + <b style="color:var(--text)">$69.99 rego</b> (training shirt &amp; wraps included).</p>
-   <button class="btnGold" style="margin-top:14px" onclick="window.open(FC_REGO,'_blank')">Sign Up For Fight Club &rsaquo;</button>
-   <button class="btnLink" style="margin-top:10px" onclick="window.open(FC_INFO,'_blank')">Full program details &rsaquo;</button>
+  <div style="padding:12px 16px 14px">
+   <div style="font-size:11.5px;color:var(--muted);text-align:center;letter-spacing:.5px">Starts Mon 12 Oct &middot; Mon/Tue/Wed 6:45 PM &middot; Fight Night Sat 19 Dec</div>
+   <button class="btnGold" style="margin-top:10px" onclick="event.stopPropagation();window.open(FC_REGO,'_blank')">Sign Up For Fight Club &rsaquo;</button>
   </div>
  </div>`;
 }
