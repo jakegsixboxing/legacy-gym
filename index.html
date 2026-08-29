@@ -498,6 +498,25 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(13,13,14,.
 /* ======== CONFIG ======== */
 const SUPABASE_URL = "https://jyslqxepodrseyhoppce.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+
+/* ===== MAINTENANCE GATE (front-end only; no auth/password/data changes) ===== */
+const MAINTENANCE=true; /* set to false + redeploy to reopen the app */
+function showMaint(){
+ if(document.getElementById('maintOv'))return;
+ var o=document.createElement('div');o.id='maintOv';
+ o.style.cssText='position:fixed;inset:0;z-index:2147483647;background:radial-gradient(120% 60% at 50% 0,rgba(201,164,76,.14),transparent 60%),linear-gradient(180deg,#0b0b0c,#050403);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;font-family:Oswald,system-ui,sans-serif;color:#f2f0eb';
+ o.innerHTML='<div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(160deg,#c9a44c,#8a7136);display:flex;align-items:center;justify-content:center;font-weight:700;color:#161307;font-size:26px;margin-bottom:22px">LG</div>'
+ +'<div style="font-weight:700;letter-spacing:6px;font-size:24px;text-transform:uppercase">LEGACY<span style="color:#c9a44c">&nbsp;GYM</span></div>'
+ +'<div style="width:46px;height:2px;background:#c9a44c;margin:20px 0"></div>'
+ +'<div style="font-weight:700;letter-spacing:4px;font-size:15px;text-transform:uppercase;color:#c9a44c">Under Maintenance</div>'
+ +'<div style="max-width:340px;margin-top:14px;font-family:system-ui,-apple-system,sans-serif;font-size:14px;line-height:1.65;color:#c9c6be">We\'re building something new for September. The app will be back up in about <b style="color:#f2f0eb">3 hours</b> \u2014 thanks for your patience.</div>';
+ document.documentElement.style.overflow='hidden';
+ (document.body||document.documentElement).appendChild(o);
+}
+if(MAINTENANCE){
+ if(document.body){showMaint();}else{document.addEventListener('DOMContentLoaded',showMaint);}
+ setTimeout(showMaint,0);setTimeout(showMaint,400);
+}
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const LOGO = "icon-512.png";
