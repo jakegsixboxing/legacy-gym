@@ -733,6 +733,21 @@ function homeStatsHtml(){
   const tile=(v,l)=>`<div style="flex:1;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 4px"><div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;color:var(--gold);line-height:1">${v}</div><div style="font-size:8.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);line-height:1.3;margin-top:5px">${l}</div></div>`;
   return `<div style="display:flex;gap:8px;margin:0 0 7px">${tile(cl,'Classes<br>Completed')}${tile(st.toLocaleString(),'Total Stairs<br>Climbed')}${tile(kmTxt,'Total Km<br>Run')}</div><div style="text-align:center;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:18px">Your tally &mdash; adds up as you train</div>`;
 }
+const FEATURED=[
+ {n:"The Matterhorn",t:"3,400 steps",b:"The Swiss giant, step by step."},
+ {n:"City2Surf",t:"14 km",b:"Sydney's famous run — Heartbreak Hill and all."},
+ {n:"Assault Bike · 100-Cal Blitz",t:"100 cal",b:"A hundred calories, nowhere to hide."},
+ {n:"The Great Wall Gauntlet",t:"5,164 steps",b:"The infamous Great Wall step count."},
+ {n:"Bay to Bay",t:"12 km",b:"The Central Coast classic, the whole way."},
+ {n:"Rower · 100-Cal Burn",t:"100 cal",b:"Settle in and empty the tank."}];
+function homeFeatureHtml(){
+ try{
+  var wk=(typeof weekKey==="function")?weekKey(new Date()):"x";
+  var h=0;for(var i=0;i<wk.length;i++){h=(h*31+wk.charCodeAt(i))>>>0;}
+  var f=FEATURED[h%FEATURED.length];
+  return '<div onclick="go(\'cardio\')" style="cursor:pointer;border:1px solid var(--gold-dim);border-radius:14px;padding:15px 18px;margin-bottom:18px;background:linear-gradient(160deg,#1a160c,#0b0a08);display:flex;align-items:center;gap:12px"><div style="flex:1;min-width:0"><div style="font-size:9.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">Challenge Of The Week</div><div style="font-family:\'Oswald\',sans-serif;font-weight:700;font-size:18px;text-transform:uppercase;color:#fff;margin:4px 0 2px;line-height:1.1">'+f.n+'</div><div style="font-size:11.5px;color:var(--muted);line-height:1.4">'+f.t+' · '+f.b+'</div></div><div style="font-size:24px;color:var(--gold);flex:none">›</div></div>';
+ }catch(e){return "";}
+}
 function renderHome(){
   const first=(profile&&profile.first_name)?profile.first_name:"";
   if(!ptsData.loaded)loadWorld().then(()=>{checkMilestone();if(view==="home")renderHome();});else checkMilestone();
@@ -751,6 +766,7 @@ function renderHome(){
       <div class="hwTitle">Culture<br>Without Chaos.</div>
     </div>
     ${homeStatsHtml()}
+    ${homeFeatureHtml()}
     ${HOME_CARDS.map(c0=>{const c=hyCardFor(c0);return `<button class="homeCard" style="${c.lockedSoon?`background:linear-gradient(180deg,rgba(8,8,10,.72),rgba(8,8,10,.96)),url('${LOGO}') center/45% no-repeat #0a0b0e;border-color:#232323;opacity:.72`:c.lb?`background:linear-gradient(90deg,rgba(13,13,13,.55) 0%,rgba(13,13,13,.96) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:c.hyroxLogo?`background:linear-gradient(180deg,rgba(8,8,10,.35),rgba(8,8,10,.95)),url('${HYROX_LOGO}') center 30px/62% no-repeat #0a0b0e;border-color:#2a2a2a`:c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
       
       <div class="hcKicker">${c.kicker}${c.lb&&lbUnread>0?`<span class="hcBadge">${lbUnread>9?"9+":lbUnread}</span>`:""}</div>
