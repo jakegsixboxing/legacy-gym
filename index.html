@@ -315,6 +315,8 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .homeCard::before{content:"";position:absolute;left:0;top:24px;bottom:24px;width:3px;background:var(--gold);border-radius:0 2px 2px 0;z-index:2}
 .homeCard::after{content:"›";position:absolute;right:20px;top:50%;transform:translateY(-54%);font-size:30px;font-weight:600;color:var(--gold);z-index:2}
 .homeCard>*{position:relative;z-index:2}
+.homeCard{transition:transform .16s ease}
+.homeCard:active{transform:scale(.985)}
 .homeCard .hcKicker{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:7px}
 .homeCard .hcTitle{font-family:'Oswald',sans-serif;font-size:23px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fff;line-height:1.1}
 .homeCard .hcSub{font-size:12px;color:#c9c6be;margin-top:7px;line-height:1.5;padding-right:26px}
@@ -366,10 +368,11 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 
 /* bottom nav */
 nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(13,13,14,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;padding:8px 2px calc(8px + env(safe-area-inset-bottom))}
-.navBtn{flex:1;background:transparent;color:#7d838b;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 1px;position:relative}
-.navBtn svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.navBtn span{font-size:8px;font-weight:800;letter-spacing:.6px;text-transform:uppercase}
+.navBtn{flex:1;background:transparent;color:#7d838b;display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 1px;position:relative;transition:color .18s ease}
+.navBtn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.navBtn span{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
 .navBtn.active{color:var(--gold)}
+.navBtn.active::after{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:26px;height:2.5px;background:var(--gold);border-radius:0 0 3px 3px}
 .navBtn .nBadge{position:absolute;top:1px;right:calc(50% - 21px);background:var(--danger);color:#fff;font-size:9px;font-weight:800;min-width:15px;height:15px;border-radius:999px;display:none;align-items:center;justify-content:center;padding:0 4px}
 
 /* toast */
@@ -657,15 +660,20 @@ async function handleResetPassword(e){
 /* ======== NAV ======== */
 const NAV=[
   {id:"home",label:"Home",icon:'<path d="M3 11l9-8 9 8"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>'},
-  {id:"boxing",label:"Boxing",icon:'<path d="M7 10V6a5 5 0 0 1 10 0v4"/><rect x="5" y="10" width="14" height="8" rx="4"/><path d="M9 18v3M15 18v3"/>'},
-  {id:"weights",label:"Weights",icon:'<path d="M2 12h3M19 12h3M8 12h8"/><rect x="5" y="7" width="3" height="10" rx="1"/><rect x="16" y="7" width="3" height="10" rx="1"/>'},
-  {id:"recovery",label:"Recovery",icon:'<path d="M4 13c2-2 4-2 6 0s4 2 6 0 4-2 4 0"/><path d="M4 18c2-2 4-2 6 0s4 2 6 0 4-2 4 0"/><path d="M12 3v5M9 5l3 3 3-3"/>'},
-  {id:"timetable",label:"Times",icon:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/>'},
-  {id:"nutrition",label:"Nutrition",icon:'<path d="M12 20c-4 0-7-3-7-7 0-3 2-5 4-5 1.5 0 2.5.6 3 1.2.5-.6 1.5-1.2 3-1.2 2 0 4 2 4 5 0 4-3 7-7 7z"/><path d="M12 8c0-2 1-4 3-5"/>'},
-  {id:"shop",label:"Shop",icon:'<path d="M6 7V6a6 6 0 0 1 12 0v1"/><path d="M4 7h16l-1.2 12.2a2 2 0 0 1-2 1.8H7.2a2 2 0 0 1-2-1.8L4 7z"/>'}
+  {id:"train",label:"Train",icon:'<path d="M2 12h3M19 12h3M8 12h8"/><rect x="5" y="7" width="3" height="10" rx="1"/><rect x="16" y="7" width="3" height="10" rx="1"/>'},
+  {id:"compete",label:"Compete",icon:'<path d="M8 21h8M12 17v4"/><path d="M7 4h10v6a5 5 0 0 1-10 0z"/><path d="M7 5H4v2a4 4 0 0 0 3.2 3.9M17 5h3v2a4 4 0 0 1-3.2 3.9"/>'},
+  {id:"shop",label:"Shop",icon:'<path d="M6 7V6a6 6 0 0 1 12 0v1"/><path d="M4 7h16l-1.2 12.2a2 2 0 0 1-2 1.8H7.2a2 2 0 0 1-2-1.8L4 7z"/>'},
+  {id:"profile",label:"You",icon:'<circle cx="12" cy="8" r="4"/><path d="M4 20.5c0-4 3.6-6.3 8-6.3s8 2.3 8 6.3"/>'}
 ];
+/* which nav tab lights up for each view */
+const NAV_TAB={home:"home",train:"train",compete:"compete",
+ boxing:"train",coaches:"train",weights:"train",functional:"train",classes:"train",timetable:"train",nutrition:"train",recovery:"train",hyrox:"train",
+ cardio:"compete",mvm:"compete",board:"compete",social:"compete",blokes:"compete",
+ shop:"shop",
+ profile:"profile",chat:"profile",staff:"profile",setup:"profile"};
+function navTabFor(v){return NAV_TAB[v]||"home";}
 function renderNav(){
-  $("nav").innerHTML=NAV.map(n=>`<button class="navBtn ${view===n.id?'active':''}" onclick="go('${n.id}')">
+  $("nav").innerHTML=NAV.map(n=>`<button class="navBtn ${navTabFor(view)===n.id?'active':''}" onclick="go('${n.id}')">
     
     <svg viewBox="0 0 24 24">${n.icon}</svg><span>${n.label}</span></button>`).join("");
   updateBadges();
@@ -678,6 +686,8 @@ function go(v){
 /* ======== RENDER ======== */
 function render(){
   if(view==="home")return renderHome();
+  if(view==="train")return renderTrain();
+  if(view==="compete")return renderCompete();
   if(view==="boxing")return renderBoxing();
   if(view==="coaches")return renderCoaches();
   if(view==="weights")return renderWeights();
@@ -697,6 +707,34 @@ function render(){
   if(view==="staff")return renderStaff();
   if(view==="chat")return renderChat();
   if(view==="profile")return renderProfile();
+}
+
+/* ---- Train & Compete hubs (5-tab nav) ---- */
+function hubCardHtml(c0){
+ const c=hyCardFor(c0);
+ return `<button class="homeCard" style="${c.lockedSoon?`background:linear-gradient(180deg,rgba(8,8,10,.72),rgba(8,8,10,.96)),url('${LOGO}') center/45% no-repeat #0a0b0e;border-color:#232323;opacity:.72`:c.lb?`background:linear-gradient(90deg,rgba(13,13,13,.55) 0%,rgba(13,13,13,.96) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:c.hyroxLogo?`background:linear-gradient(180deg,rgba(8,8,10,.35),rgba(8,8,10,.95)),url('${HYROX_LOGO}') center 30px/62% no-repeat #0a0b0e;border-color:#2a2a2a`:c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
+      <div class="hcKicker">${c.kicker}</div><div class="hcTitle">${c.title}</div><div class="hcSub">${c.sub}</div></button>`;
+}
+function hubCards(ids,extra){
+ const by={};HOME_CARDS.forEach(c=>by[c.id]=c);(extra||[]).forEach(c=>by[c.id]=c);
+ return ids.map(id=>by[id]).filter(Boolean).map(hubCardHtml).join("");
+}
+const HUB_EXTRA=[
+ {id:"timetable",kicker:"The Full Week",title:"Weekly Timetable",sub:"Every class, every day \u2014 see what\u2019s on and when.",img:"classes"},
+ {id:"mvm",kicker:"Head To Head",title:"Member vs Member",sub:"The battles, the records and the bragging rights.",img:"cardio"}
+];
+const TRAIN_IDS=["classes","timetable","boxing","coaches","weights","hyrox","recovery","nutrition"];
+const COMPETE_IDS=["cardio","mvm","board","social","blokes"];
+function renderTrain(){
+ $("main").innerHTML=`
+  <div class="homeWelcome"><div class="hwKicker">Book In &amp; Get To Work</div><div class="hwTitle">Train.</div></div>
+  ${hubCards(TRAIN_IDS,HUB_EXTRA)}`;
+}
+function renderCompete(){
+ if(!ptsData.loaded)loadWorld().then(()=>{if(view==="compete")renderCompete();});
+ $("main").innerHTML=`
+  <div class="homeWelcome"><div class="hwKicker">Points, Battles &amp; Bragging Rights</div><div class="hwTitle">Compete.</div></div>
+  ${hubCards(COMPETE_IDS,HUB_EXTRA)}`;
 }
 
 /* ---- Home ---- */
