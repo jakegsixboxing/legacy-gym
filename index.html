@@ -504,6 +504,40 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 
 /* ===== MAINTENANCE GATE (front-end only; no auth/password/data changes) ===== */
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
+
+/* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
+const LG_BUILD="202608291148";
+(function(){
+ var checking=false;
+ async function latestBuild(){
+  try{
+   var r=await fetch("/index.html",{cache:"no-store"});
+   if(!r.ok)return null;
+   var t=await r.text();
+   var m=t.match(/const LG_BUILD="(\d+)"/);
+   return m?m[1]:null;
+  }catch(e){return null;}
+ }
+ function typing(){var a=document.activeElement;return a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA");}
+ function showUpdateBar(){
+  if(document.getElementById("lgUpd"))return;
+  var b=document.createElement("div");b.id="lgUpd";
+  b.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:9999;background:linear-gradient(160deg,#c9a44c,#a3813c);color:#161307;font-family:Oswald,system-ui,sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;text-align:center;padding:13px 16px;border-radius:10px;box-shadow:0 8px 26px rgba(0,0,0,.55);cursor:pointer";
+  b.textContent="New version ready \u2014 tap to update";
+  b.onclick=function(){location.reload();};
+  document.body.appendChild(b);
+ }
+ async function checkUpdate(auto){
+  if(checking)return;checking=true;
+  var v=await latestBuild();checking=false;
+  if(!v||v===LG_BUILD)return;
+  if(auto&&!typing()&&((typeof session==="undefined"||!session)||(typeof view!=="undefined"&&view==="home")))location.reload();
+  else showUpdateBar();
+ }
+ document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")checkUpdate(true);});
+ setInterval(function(){checkUpdate(false);},15*60*1000);
+ setTimeout(function(){checkUpdate(false);},20000);
+})();
 function showMaint(){
  if(document.getElementById('maintOv'))return;
  var o=document.createElement('div');o.id='maintOv';
