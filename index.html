@@ -710,6 +710,7 @@ function renderHome(){
     loadSpringRsvpCount().then(()=>{if(view==="home")renderHome();});
   }
   $("main").innerHTML=`
+    ${winnerBannerHtml()}
     ${springBannerHtml()}
     ${announcementBannerHtml()}
     ${installBannerHtml()}
@@ -736,6 +737,7 @@ function renderHome(){
   updateBadges();
 startTimetableCountdown();
 startSpringCountdown();
+  t10MaybePopup();
 }
 function timetableCountdownHtml(){
   var t=new Date(2026,6,20,5,15,0,0).getTime();
@@ -1831,6 +1833,147 @@ function dismissSpringBanner(){
   localStorage.setItem(SPRING_DISMISS_KEY,"1");
   const el=$("springBanner");if(el)el.remove();
 }
+
+/* ===================== Legacy Top 10 — member prizes ===================== */
+const T10_WIN={
+ "8278fe4b-e75a-46e2-886d-26ceea892467":{r:"Joint 1st",p:["pt","rec"]},
+ "9d473306-3b56-4fdb-8924-3ed179045fa9":{r:"Joint 1st",p:["pt","rec"]},
+ "282ff057-8359-4a03-a327-e346f9ded4da":{r:"2nd Place",p:["pt"]},
+ "79a888b2-2be9-4b98-8ced-aaf4e2eaadea":{r:"3rd Place",p:["pt"]},
+ "8ddade7e-691b-4c56-9f8d-8594a1c9755f":{r:"4th Place",p:["rec"]},
+ "298a36d8-ecc1-416e-a3d6-ee335086c018":{r:"5th Place",p:["rec"]},
+ "fac20a93-19fc-4553-8035-199759e78348":{r:"6th Place",p:["threads"]},
+ "3d4ab64d-24b1-450c-ad25-bad5a91fe789":{r:"7th Place",p:["threads"]},
+ "893f1793-3b3a-4938-8689-4d6a9671a688":{r:"8th Place",p:["threads"]},
+ "c15367be-5cd8-4180-8431-5a409b45bf95":{r:"9th Place",p:["threads"]},
+ "5554b789-60a2-42e8-af13-8f0ebe6e647b":{r:"10th Place",p:["threads"]}
+};
+function t10Me(){try{return (session&&session.user&&T10_WIN[session.user.id])?session.user.id:null;}catch(e){return null;}}
+const T10_ICON={
+ crown:`<path d="M22 62 L16 30 L34 46 L50 22 L66 46 L84 30 L78 62 Z"/><rect x="22" y="61" width="56" height="10" rx="3"/><circle cx="50" cy="35" r="4" fill="#100b03" opacity=".5"/><circle cx="30" cy="45" r="2.8" fill="#100b03" opacity=".5"/><circle cx="70" cy="45" r="2.8" fill="#100b03" opacity=".5"/>`,
+ glove:`<path d="M31 34 Q31 20 47 20 L60 20 Q78 20 78 40 L78 52 Q78 63 66 63 L40 63 Q31 63 31 53 Z"/><path d="M31 42 Q18 42 18 52 Q18 62 32 59 L34 47 Z"/><rect x="35" y="62" width="42" height="17" rx="7"/><path d="M37 70 H75" stroke="#100b03" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/>`,
+ steam:`<path d="M24 70 Q50 60 76 70 L76 76 Q50 84 24 76 Z"/><g fill="none" stroke-width="5" stroke-linecap="round"><path d="M37 58 C31 51 43 47 37 40 C31 33 43 29 37 22"/><path d="M50 60 C44 52 56 48 50 40 C44 32 56 28 50 20"/><path d="M63 58 C57 51 69 47 63 40 C57 33 69 29 63 22"/></g>`,
+ hoodie:`<path d="M34 24 Q50 14 66 24 L66 30 Q50 40 34 30 Z"/><path d="M30 30 L16 48 L26 57 L30 52 L30 84 L70 84 L70 52 L74 57 L84 48 L70 30 Q50 42 30 30 Z"/><path d="M42 33 Q50 46 58 33 L54 33 Q50 40 46 33 Z" fill="#100b03" opacity=".55"/><rect x="44" y="54" width="12" height="17" rx="3" fill="#100b03" opacity=".4"/>`
+};
+function t10Crest(kind,accent,size){
+ const u="g"+Math.random().toString(36).slice(2,8);
+ return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="display:block">
+ <defs><linearGradient id="m${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2cf"/><stop offset=".28" stop-color="#e4c072"/><stop offset=".52" stop-color="#a97e33"/><stop offset=".72" stop-color="#e9cd83"/><stop offset="1" stop-color="#8a6323"/></linearGradient>
+ <radialGradient id="c${u}" cx="50%" cy="34%" r="72%"><stop offset="0" stop-color="#201a0e"/><stop offset=".62" stop-color="#12100a"/><stop offset="1" stop-color="#070503"/></radialGradient></defs>
+ <circle cx="50" cy="50" r="48" fill="url(#m${u})"/><circle cx="50" cy="50" r="43.5" fill="#0a0805"/><circle cx="50" cy="50" r="41.5" fill="url(#m${u})"/><circle cx="50" cy="50" r="38" fill="url(#c${u})"/>
+ <g transform="translate(50,50) scale(0.6) translate(-50,-50)" fill="${accent}" stroke="${accent}" stroke-width="0.5">${T10_ICON[kind]}</g></svg>`;
+}
+const T10_PRIZE={
+ pt:{k:"glove",a:"#e9d29a",t:"Pad Work PT",s:"Free 45-min session",cta:"Pick the coach you want below &mdash; see the team and we&rsquo;ll organise it.",coach:true},
+ rec:{k:"steam",a:"#7fd0ec",t:"Recovery Week",s:"7 days at Kincumber Recovery",cta:"See the team and we&rsquo;ll set up your week at Kincumber Recovery."},
+ threads:{k:"hoodie",a:"#e9d29a",t:"Legacy Threads",s:"Free hoodie or training shirt",cta:"See the team to pick your style &amp; size."}
+};
+const T10_COACHES=[["Jake","Boxing"],["Joe","Boxing / Strength"],["Sarsha","Boxing"],["Alison","Strength & Cond."]];
+function t10Coach(){return localStorage.getItem("lg_t10_coach")||"";}
+function t10CoachRow(){
+ const sel=t10Coach();
+ const chips=T10_COACHES.map(c=>`<button class="t10chip${sel===c[0]?" on":""}" onclick="t10PickCoach('${c[0]}')">${c[0]}<small>${c[1]}</small></button>`).join("");
+ const note=sel?`<div class="t10picked">&#10003; You picked <b>Coach ${sel}</b> &middot; see them to lock in your 45 min.</div>`:"";
+ return `<div class="t10coaches"><div class="t10clab">Your coach &mdash; tap to choose &middot; 45 min total</div><div class="t10cgrid">${chips}</div>${note}</div>`;
+}
+async function t10PickCoach(coach){
+ localStorage.setItem("lg_t10_coach",coach);
+ if(typeof view!=="undefined"&&view==="profile")renderProfile();
+ toast("Coach "+coach+" — sent to the team. See them to lock in your session.");
+ try{await sb.from("pt_requests").insert({user_id:session.user.id,member_name:((profile&&((profile.first_name||"")+" "+(profile.last_name||"")))||"").trim(),trainer:coach,duration:"45 min",preferred:"",note:"Legacy Top 10 prize — 45 min PT"});}catch(e){}
+}
+function t10PrizeCard(kind){
+ const P=T10_PRIZE[kind];
+ return `<div class="t10pb"><div class="t10pbrow"><div class="t10ic">${t10Crest(P.k,P.a,54)}</div><div class="t10pbtx"><div class="t10pt">${P.t}</div><div class="t10ps">${P.s}</div></div></div><div class="t10cta">${P.cta}</div>${P.coach?t10CoachRow():""}</div>`;
+}
+function winnerRewardsHtml(){
+ const id=t10Me(); if(!id)return"";
+ t10EnsureCss();
+ const w=T10_WIN[id];
+ const cards=w.p.map(t10PrizeCard).join("");
+ return `<div class="t10card"><div class="t10tag">&#9670; Legacy Top 10 &#9670;</div><div class="t10h">Your ${w.p.length>1?"Rewards":"Reward"}</div><div class="t10rank">${w.r} &middot; Members Challenge</div>${cards}<div class="t10note">See the team to lock it in<br><b>Saved to your profile &middot; collect by Monday</b></div></div>`;
+}
+function winnerBannerHtml(){
+ const id=t10Me(); if(!id)return"";
+ if(localStorage.getItem("lg_t10_bannerX"))return"";
+ t10EnsureCss();
+ const w=T10_WIN[id];
+ const nm={pt:"a 45-min PT",rec:"a week of recovery",threads:"free Legacy threads"};
+ const won=w.p.map(k=>nm[k]).join(" + ");
+ return `<div class="t10banner" onclick="go('profile')"><button class="t10bx" onclick="event.stopPropagation();t10DismissBanner()">&times;</button><div class="t10bic">&#127942;</div><div class="t10btx"><div class="t10bk">You made the Legacy Top 10</div><div class="t10bt">${w.r} &mdash; you&rsquo;ve won ${won}</div><div class="t10bcta">Tap to see your prize &rarr;</div></div></div>`;
+}
+function t10DismissBanner(){localStorage.setItem("lg_t10_bannerX","1");if(typeof view!=="undefined"&&view==="home")renderHome();}
+function t10MaybePopup(){
+ const id=t10Me(); if(!id)return;
+ if(localStorage.getItem("lg_t10_pop"))return;
+ localStorage.setItem("lg_t10_pop","1");
+ t10EnsureCss();
+ const w=T10_WIN[id];
+ const nm={pt:"a free 45-min PT",rec:"a free week of recovery",threads:"free Legacy threads"};
+ const won=w.p.map(k=>nm[k]).join(" + ");
+ const o=document.createElement("div");o.className="t10ov";
+ o.onclick=function(e){if(e.target===o)o.remove();};
+ o.innerHTML=`<div class="t10modal"><div class="t10mic">&#127942;</div><div class="t10mk">Congratulations</div><div class="t10mh">You made the<br>Legacy Top 10</div><div class="t10mr">${w.r} &middot; Members Challenge</div><div class="t10mw">You&rsquo;ve won ${won}</div><button class="t10mbtn" onclick="this.closest('.t10ov').remove();go('profile')">See your prize</button><button class="t10mx" onclick="this.closest('.t10ov').remove()">Close</button></div>`;
+ document.body.appendChild(o);
+}
+function t10EnsureCss(){
+ if(document.getElementById("t10css"))return;
+ const s=document.createElement("style");s.id="t10css";
+ s.textContent=`
+ .t10banner{position:relative;display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:16px 18px;border-radius:16px;cursor:pointer;
+  background:radial-gradient(120% 100% at 0 0,rgba(201,162,74,.30),transparent 60%),linear-gradient(180deg,rgba(58,45,16,.72),rgba(16,12,6,.94));
+  border:1px solid #cdae5e;box-shadow:0 0 26px rgba(201,162,74,.28),inset 0 1px 0 rgba(255,238,185,.4)}
+ .t10bic{font-size:38px;line-height:1;filter:drop-shadow(0 3px 8px rgba(0,0,0,.6))}
+ .t10btx{flex:1}
+ .t10bk{font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:.16em;font-size:10px;text-transform:uppercase;color:#d8b968}
+ .t10bt{font-family:'Oswald',sans-serif;font-weight:700;font-size:17px;color:#fff;margin-top:3px;line-height:1.15}
+ .t10bcta{font-weight:600;font-size:12px;color:#e9d29a;margin-top:5px;letter-spacing:.02em}
+ .t10bx{position:absolute;top:8px;right:10px;background:none;border:none;color:#c9b48a;font-size:20px;line-height:1;cursor:pointer;padding:2px 6px}
+ .t10card{margin:18px 0;border-radius:18px;padding:18px 15px 16px;position:relative;
+  background:radial-gradient(120% 70% at 50% 0,rgba(80,62,22,.55),rgba(14,11,6,.95) 72%);
+  border:1px solid #cdae5e;box-shadow:0 0 30px rgba(201,162,74,.22),inset 0 1px 0 rgba(255,238,185,.42)}
+ .t10card:before{content:"";position:absolute;left:18px;right:18px;top:0;height:1px;background:linear-gradient(90deg,transparent,#f2d98f,transparent)}
+ .t10tag{text-align:center;font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:.12em;font-size:12px;text-transform:uppercase;color:#f2d98f}
+ .t10h{text-align:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:24px;color:#fff;margin:2px 0 2px;text-transform:uppercase;letter-spacing:.01em}
+ .t10rank{text-align:center;font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#c2ad7d;margin-bottom:14px}
+ .t10pb{border-radius:13px;padding:13px;margin-bottom:11px;background:linear-gradient(180deg,rgba(34,27,13,.92),rgba(13,10,6,.8));border:1px solid rgba(201,162,74,.34);box-shadow:inset 0 1px 0 rgba(255,238,185,.1)}
+ .t10pbrow{display:flex;align-items:center;gap:12px}
+ .t10ic{flex:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.55))}
+ .t10pbtx{flex:1}
+ .t10pt{font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:.02em;color:#fbeec2;line-height:1.05}
+ .t10ps{font-weight:500;font-size:13px;color:#c3b790;margin-top:2px}
+ .t10cta{font-weight:500;font-size:13.5px;color:#ddd0aa;line-height:1.4;margin-top:11px;padding-top:11px;border-top:1px solid rgba(201,162,74,.2)}
+ .t10coaches{margin-top:12px;padding-top:11px;border-top:1px solid rgba(201,162,74,.2)}
+ .t10clab{font-weight:700;letter-spacing:.1em;font-size:9.5px;text-transform:uppercase;color:#a9925c;text-align:center;margin-bottom:9px}
+ .t10cgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .t10chip{display:flex;flex-direction:column;align-items:center;gap:1px;padding:9px 6px;border-radius:9px;cursor:pointer;
+  border:1px solid rgba(201,162,74,.42);background:linear-gradient(180deg,rgba(30,24,12,.82),rgba(13,10,6,.7));
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;letter-spacing:.03em;color:#f0e3bb;text-transform:uppercase}
+ .t10chip small{font-weight:500;font-size:11px;letter-spacing:0;color:#b0a276;text-transform:none;margin-top:1px}
+ .t10chip.on{background:linear-gradient(180deg,#fbeec2,#d8b968);color:#241a06;border-color:#f2d98f;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+ .t10chip.on small{color:#5a4213}
+ .t10picked{margin-top:10px;text-align:center;font-weight:600;font-size:12.5px;color:#e9d29a}
+ .t10picked b{color:#fff}
+ .t10note{text-align:center;font-weight:500;font-size:12px;color:#c9bd97;line-height:1.45;margin-top:6px}
+ .t10note b{color:#f2d98f}
+ .t10ov{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:26px;
+  background:rgba(4,3,2,.82);backdrop-filter:blur(3px)}
+ .t10modal{max-width:360px;width:100%;text-align:center;border-radius:22px;padding:32px 26px 24px;
+  background:radial-gradient(120% 70% at 50% 0,rgba(80,62,22,.7),rgba(12,9,5,.98) 72%);
+  border:1px solid #e6c877;box-shadow:0 0 60px rgba(201,162,74,.4),inset 0 1px 0 rgba(255,238,185,.5)}
+ .t10mic{font-size:60px;line-height:1;filter:drop-shadow(0 6px 14px rgba(0,0,0,.6))}
+ .t10mk{font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:.28em;font-size:13px;text-transform:uppercase;color:#e9d29a;margin-top:10px}
+ .t10mh{font-family:'Oswald',sans-serif;font-weight:700;font-size:32px;line-height:1.05;color:#fff;text-transform:uppercase;margin-top:6px}
+ .t10mr{font-weight:600;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#c2ad7d;margin-top:10px}
+ .t10mw{font-weight:600;font-size:17px;color:#f2d98f;margin-top:10px}
+ .t10mbtn{display:block;width:100%;margin-top:20px;padding:14px;border:none;border-radius:12px;cursor:pointer;
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:#241a06;
+  background:linear-gradient(180deg,#fbeec2,#d8b968);box-shadow:0 6px 16px rgba(0,0,0,.4)}
+ .t10mx{display:block;width:100%;margin-top:10px;padding:10px;border:none;background:none;cursor:pointer;
+  font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#9c8a63}`;
+ document.head.appendChild(s);
+}
+
 function springBannerHtml(){
   if(Date.now()>=SPRING_EVENT_TARGET)return"";
   if(localStorage.getItem(SPRING_DISMISS_KEY))return"";
@@ -7537,6 +7680,7 @@ function renderProfile(){
     <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
     <div class="hero"><div class="heroKicker">Member Profile</div><div class="heroTitle">${esc((p.first_name||"")+" "+(p.last_name||""))}</div>
     <div class="heroText">Your Legacy Gym member profile.</div></div>
+    ${winnerRewardsHtml()}
     <div class="card" style="text-align:center">
       <div class="avatarBig" id="pfAvatarPreview" style="background-image:${p.avatar_url?`url('${esc(p.avatar_url)}')`:"none"}">${p.avatar_url?"":esc(((p.first_name||"?")[0]+(p.last_name||"?")[0]).toUpperCase())}</div>
       <label class="btnLink" style="cursor:pointer;display:inline-block">Change Photo<input type="file" accept="image/*" id="pfAvatarInput" style="display:none" onchange="handleAvatarPick(event)"></label>
