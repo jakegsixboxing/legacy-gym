@@ -721,9 +721,21 @@ const HOME_CARDS=[
  {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true},
  {id:"nutrition",kicker:"Fuel The Work",title:"Nutritionist",sub:"Meal guidance from our nutritionist — coming soon.",img:"food"}
 ];
+function _stepNum(s){return parseInt(String(s).replace(/[^0-9]/g,''),10)||0;}
+function _kmNum(s){return parseFloat(String(s).replace(/[^0-9.]/g,''))||0;}
+function myDoneChallengeRefs(){if(!session||!ptsData.events)return new Set();const uid=session.user.id;return new Set(ptsData.events.filter(e=>e.user_id===uid&&e.kind==="challenge").map(e=>e.ref));}
+function myStairsClimbed(){const d=myDoneChallengeRefs();let t=0;((typeof CARDIO!=="undefined"&&CARDIO.stairs)||[]).forEach(c=>{if(d.has("stairs:"+c.name))t+=_stepNum(c.target);});return t;}
+function myKmRun(){const d=myDoneChallengeRefs();let t=0;((typeof CARDIO!=="undefined"&&CARDIO.tread)||[]).forEach(c=>{if(d.has("tread:"+c.name))t+=_kmNum(c.target);});return t;}
+function homeStatsHtml(){
+  const cl=(typeof myClassCount==="function")?myClassCount():0;
+  const st=myStairsClimbed(), km=myKmRun();
+  const kmTxt=(km%1===0)?String(km):km.toFixed(1);
+  const tile=(v,l)=>`<div style="flex:1;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 4px"><div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;color:var(--gold);line-height:1">${v}</div><div style="font-size:8.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);line-height:1.3;margin-top:5px">${l}</div></div>`;
+  return `<div style="display:flex;gap:8px;margin:0 0 7px">${tile(cl,'Classes<br>Completed')}${tile(st.toLocaleString(),'Total Stairs<br>Climbed')}${tile(kmTxt,'Total Km<br>Run')}</div><div style="text-align:center;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:18px">Your tally &mdash; adds up as you train</div>`;
+}
 function renderHome(){
   const first=(profile&&profile.first_name)?profile.first_name:"";
-  if(!ptsData.loaded)loadWorld().then(()=>{checkMilestone();});else checkMilestone();
+  if(!ptsData.loaded)loadWorld().then(()=>{checkMilestone();if(view==="home")renderHome();});else checkMilestone();
   if(ANN===undefined)loadAnnouncement().then(()=>{if(view==="home")renderHome();});
   if(SPRING_RSVP_COUNT===null&&Date.now()<SPRING_EVENT_TARGET&&!localStorage.getItem(SPRING_DISMISS_KEY)){
     loadSpringRsvpCount().then(()=>{if(view==="home")renderHome();});
@@ -738,6 +750,7 @@ function renderHome(){
       <div class="hwKicker">${first?("G'day "+esc(first)):"Members Only"}</div>
       <div class="hwTitle">Culture<br>Without Chaos.</div>
     </div>
+    ${homeStatsHtml()}
     ${HOME_CARDS.map(c0=>{const c=hyCardFor(c0);return `<button class="homeCard" style="${c.lockedSoon?`background:linear-gradient(180deg,rgba(8,8,10,.72),rgba(8,8,10,.96)),url('${LOGO}') center/45% no-repeat #0a0b0e;border-color:#232323;opacity:.72`:c.lb?`background:linear-gradient(90deg,rgba(13,13,13,.55) 0%,rgba(13,13,13,.96) 60%),url('${LB.logo}') left -14px center/130px no-repeat #0d0d0d;border-color:#3a2f1b`:c.hyroxLogo?`background:linear-gradient(180deg,rgba(8,8,10,.35),rgba(8,8,10,.95)),url('${HYROX_LOGO}') center 30px/62% no-repeat #0a0b0e;border-color:#2a2a2a`:c.img?bgStyle(c.img):`background:linear-gradient(180deg,rgba(8,8,10,.55),rgba(8,8,10,.9)),url('${LOGO}') center/55% no-repeat #0a0b0e`}" onclick="go('${c.id}')">
       
       <div class="hcKicker">${c.kicker}${c.lb&&lbUnread>0?`<span class="hcBadge">${lbUnread>9?"9+":lbUnread}</span>`:""}</div>
