@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202608291153";
+const LG_BUILD="202608291159";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -1307,6 +1307,13 @@ function bookingHorizon(){
   if(dow===0&&now.getHours()>=7)daysToSunday=7;
   end.setDate(end.getDate()+daysToSunday);
   end.setHours(23,59,59,999);
+  /* Early open: week of 31 Aug released ahead of the usual Sunday 7 AM.
+     Self-expiring — once the normal horizon reaches this date it does nothing. */
+  const EARLY_OPEN_UNTIL="2026-09-06";
+  if(isoDateLocal(end)<EARLY_OPEN_UNTIL){
+    const e2=new Date(EARLY_OPEN_UNTIL+"T23:59:59");
+    if(!isNaN(e2))return e2;
+  }
   return end;
 }
 function upcomingClasses48(){
@@ -6871,7 +6878,7 @@ const CLASS_CAPACITY=9999; // no real capacity limit — booking system is atten
 const CAMP3_START="2026-07-20";
 /* One-off: Sat 29 Aug 2026 classes are replaced by the Welcome To Spring Team
    Challenge. Clear this object (or set date to "") once the day has passed. */
-const CLASS_TAKEOVER={date:"2026-08-29",eventId:"4ee1ec77-8861-41bd-bd56-be552d2e3dec",start:"8:00 AM",finish:"10:00 AM"};
+const CLASS_TAKEOVER={date:"",eventId:"",start:"",finish:""}; /* Welcome To Spring takeover cleared 29 Aug */
 const CLASS_SCHEDULE_OLD=[
   {d:1,t:"05:15",n:"Boxing"},{d:1,t:"18:00",n:"Boxing"},
   {d:2,t:"05:15",n:"Strength & Conditioning"},{d:2,t:"18:00",n:"Strength & Conditioning"},
