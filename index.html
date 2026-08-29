@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202608291159";
+const LG_BUILD="202608291220";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -820,6 +820,32 @@ function homeFeatureHtml(){
   return '<div onclick="go(\'cardio\')" style="cursor:pointer;border:1px solid var(--gold-dim);border-radius:14px;padding:15px 18px;margin-bottom:18px;background:linear-gradient(160deg,#1a160c,#0b0a08);display:flex;align-items:center;gap:12px"><div style="flex:1;min-width:0"><div style="font-size:9.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">Challenge Of The Week</div><div style="font-family:\'Oswald\',sans-serif;font-weight:700;font-size:18px;text-transform:uppercase;color:#fff;margin:4px 0 2px;line-height:1.1">'+f.n+'</div><div style="font-size:11.5px;color:var(--muted);line-height:1.4">'+f.t+' · '+f.b+'</div></div><div style="font-size:24px;color:var(--gold);flex:none">›</div></div>';
  }catch(e){return "";}
 }
+/* ---- Fight Club sign-up promo (home) ---- */
+const FC_REGO="https://view.powr.io/i/40134106";
+const FC_INFO="https://www.legacygym.net/pages/fight-club";
+function fightClubHtml(){
+ return `<div class="card" style="padding:0;overflow:hidden;border-color:var(--gold);margin-bottom:16px">
+  <div style="position:relative">
+   <img src="/fight-club.jpg" alt="Fight Club corner" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block">
+   <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(8,8,10,.92))"></div>
+   <div style="position:absolute;left:16px;bottom:12px;right:16px">
+    <div style="font-size:10px;font-weight:900;letter-spacing:3px;color:var(--gold);text-transform:uppercase">Fight Club &middot; Next Round</div>
+    <div style="font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fff;line-height:1.1;margin-top:4px">Train 10 Weeks.<br>Fight Under Lights.</div>
+   </div>
+  </div>
+  <div style="padding:14px 16px 18px">
+   <div style="display:flex;flex-wrap:wrap;gap:7px">
+    <span class="pill" style="border-color:var(--gold);color:var(--gold)">Starts Mon 12 Oct</span>
+    <span class="pill">Mon &middot; Tue &middot; Wed &middot; 6:45 PM</span>
+    <span class="pill">Fight Night &mdash; Sat 19 Dec</span>
+   </div>
+   <p style="margin-top:12px;line-height:1.65;color:var(--muted);font-size:12.5px">A 10-week camp that ends in a real fight, in front of a real crowd, at your own gym. No experience necessary &mdash; you&rsquo;re matched on how you train, not your record. Unlimited gym access, strength work and boxing classes the whole way through. <b style="color:var(--text)">$74.99/wk</b> + <b style="color:var(--text)">$69.99 rego</b> (training shirt &amp; wraps included).</p>
+   <button class="btnGold" style="margin-top:14px" onclick="window.open(FC_REGO,'_blank')">Sign Up For Fight Club &rsaquo;</button>
+   <button class="btnLink" style="margin-top:10px" onclick="window.open(FC_INFO,'_blank')">Full program details &rsaquo;</button>
+  </div>
+ </div>`;
+}
+
 function renderHome(){
   const first=(profile&&profile.first_name)?profile.first_name:"";
   if(!ptsData.loaded)loadWorld().then(()=>{checkMilestone();if(view==="home")renderHome();});else checkMilestone();
@@ -833,6 +859,7 @@ function renderHome(){
     ${announcementBannerHtml()}
     ${installBannerHtml()}
     ${timetableCountdownHtml()}
+    ${fightClubHtml()}
     <div class="homeWelcome">
       <div class="hwKicker">${first?("G'day "+esc(first)):"Members Only"}</div>
       <div class="hwTitle">Culture<br>Without Chaos.</div>
