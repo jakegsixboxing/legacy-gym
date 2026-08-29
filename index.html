@@ -1781,9 +1781,14 @@ tread:[
   {pts:3,img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"Half City2Surf",target:"7 km",how:"Treadmill or road",blurb:"Half the famous fun run. Heartbreak Hill's in the second half\u2026"},
   {pts:5,img:"https://images.unsplash.com/photo-1529108190281-9a4f620bc2d8?auto=format&fit=crop&w=1000&q=70",name:"Lap of Uluru",target:"10.6 km",how:"Treadmill or road",blurb:"A full lap of the Rock. Flat, long, and honest."},
   {pts:6,img:"https://images.unsplash.com/photo-1672212602462-006b5f22f39f?auto=format&fit=crop&w=1000&q=70",name:"Bay to Bay",target:"12 km",how:"Treadmill or road",blurb:"The Central Coast classic \u2014 Woy Woy to Gosford, the whole way."},
-  {pts:7,img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"City2Surf",target:"14 km",how:"Treadmill or road",blurb:"Sydney's famous fun run \u2014 Heartbreak Hill included, no excuses."},
-  {pts:8,img:"https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&w=1000&q=70",name:"The Half Marathon",target:"21.1 km",how:"Treadmill or road",blurb:"The real deal. 21.1 kilometres, no shortcuts."},
-  {pts:10,img:"https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?auto=format&fit=crop&w=1000&q=70",name:"The Marathon",target:"42.2 km",how:"Treadmill or road",blurb:"42.2 kilometres. The one they name legends after. The 10-pointer."}]};
+  {pts:7,img:"https://images.unsplash.com/photo-1524820197278-540916411e20?auto=format&fit=crop&w=1000&q=70",name:"City2Surf",target:"14 km",how:"Treadmill or road",blurb:"Sydney's famous fun run \u2014 Heartbreak Hill included, no excuses."}],
+engine:[
+  {pts:2,img:"https://images.unsplash.com/photo-1591741535018-d042766c62eb?auto=format&fit=crop&w=1000&q=70",name:"Assault Bike \u00b7 50-Cal Sprint",target:"50 cal",how:"Assault Bike",blurb:"All out. Fifty calories as fast as your legs and lungs will go."},
+  {pts:2,img:"https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?auto=format&fit=crop&w=1000&q=70",name:"Ski Erg \u00b7 50-Cal Nordic",target:"50 cal",how:"Ski Erg",blurb:"Pull hard, pull long \u2014 fifty on the ski."},
+  {pts:3,img:"https://images.unsplash.com/photo-1519505907962-0a6cb0167c73?auto=format&fit=crop&w=1000&q=70",name:"Rower \u00b7 60-Cal Grind",target:"60 cal",how:"Rower",blurb:"Legs, hips, arms \u2014 sixty calories on the erg."},
+  {pts:4,img:"https://images.unsplash.com/photo-1591741535018-d042766c62eb?auto=format&fit=crop&w=1000&q=70",name:"Assault Bike \u00b7 100-Cal Blitz",target:"100 cal",how:"Assault Bike",blurb:"The classic hundred. Nowhere to hide."},
+  {pts:5,img:"https://images.unsplash.com/photo-1519505907962-0a6cb0167c73?auto=format&fit=crop&w=1000&q=70",name:"Rower \u00b7 100-Cal Burn",target:"100 cal",how:"Rower",blurb:"A hundred on the rower. Settle in and empty the tank."},
+  {pts:7,img:"https://images.unsplash.com/photo-1591741535018-d042766c62eb?auto=format&fit=crop&w=1000&q=70",name:"Assault Bike \u00b7 200-Cal Engine",target:"200 cal",how:"Assault Bike",blurb:"Two hundred calories. This is where engines are built."}]};
 const MVM=[
   {id:"deadlift",n:"Heaviest Deadlift",unit:"kg",img:"1517963879433-6ad2b056d712"},
   {id:"squat",n:"Heaviest Back Squat",unit:"kg",img:"1541600383005-565c949cf777"},
@@ -2137,11 +2142,12 @@ async function renderCardio(){
     <div class="hero" style="${bgStyle('stairs',.5)}">
       <div class="heroKicker">Climb, Run & Compete</div>
       <div class="heroTitle">Cardio & Member Challenges</div>
-      <div class="heroText">Famous climbs, iconic runs and the club record board \u2014 all in one place. Cardio missions pay 1 to 10 points, and taking a club record banks a 5-point bonus.</div>
+      <div class="heroText">Famous climbs, iconic runs, engine-room calorie burns and the club record board \u2014 all in one place. Cardio missions pay 1 to 10 points, and taking a club record banks a 5-point bonus.</div>
     </div>
     <div class="subTabs">
       <button class="${cardioSub==='stairs'?'active':''}" onclick="cardioSub='stairs';renderCardio()">StairMaster</button>
       <button class="${cardioSub==='tread'?'active':''}" onclick="cardioSub='tread';renderCardio()">Treadmill</button>
+      <button class="${cardioSub==='engine'?'active':''}" onclick="cardioSub='engine';renderCardio()">Engine Room</button>
       <button class="${cardioSub==='mvm'?'active':''}" onclick="cardioSub='mvm';renderCardio()">Member vs Member</button>
     </div>
     <div id="cardioList"><div class="loadingDots">Loading challenges\u2026</div></div>`;
