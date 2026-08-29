@@ -3345,9 +3345,11 @@ async function renderLeaderboard(){
   await loadWorld();
   if(view!=="board")return;const box=$("lbBody");if(!box)return;
   const mp=myMp();
-  const pts=myPoints();
-  const totals={};ptsData.events.forEach(e=>totals[e.user_id]=(totals[e.user_id]||0)+e.points);
+  /* ---- Season reset: board counts points from Sept 1 onward; all history preserved ---- */
+  const SEASON_START=Date.parse('2026-09-01T00:00:00+10:00');
+  const totals={};ptsData.events.forEach(e=>{if(Date.parse(e.created_at)>=SEASON_START)totals[e.user_id]=(totals[e.user_id]||0)+e.points;});
   ptsData.mprofiles.forEach(m=>{if(!(m.user_id in totals))totals[m.user_id]=0;});
+  const pts=totals[session.user.id]||0;
   const rows=Object.entries(totals).map(([uid,p])=>{
     const prof=ptsData.mprofiles.find(m=>m.user_id===uid);
     return {uid,p,name:(prof&&prof.full_name)||"Unnamed Member",photo:(prof&&prof.photo_url)||"",type:(prof&&prof.member_type)||""};
@@ -3377,7 +3379,7 @@ async function renderLeaderboard(){
       </div>`}
     <div class="secTitle">Members Leaderboard</div>
     <div class="card">
-      <p style="font-size:11.5px;color:var(--muted);margin-bottom:6px">1 point a class · 1–10 points a cardio challenge (bigger mission, bigger points) · 5-point bonus for taking a club record.</p>
+      <p style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:8px">September Season &mdash; the board resets to zero at the start of each month.</p><p style="font-size:11.5px;color:var(--muted);margin-bottom:6px">1 point a class · 1–10 points a cardio challenge (bigger mission, bigger points) · 5-point bonus for taking a club record.</p>
       ${rows.length?rows.map((r,i)=>{
         const lv=levelOf(r.p),st=TIER_STYLES[lv.tier];
         return `<div class="lbRow${r.uid===session.user.id?" me":""}">
