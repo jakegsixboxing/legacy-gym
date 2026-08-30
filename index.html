@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202608300717";
+const LG_BUILD="202608300754";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -6776,14 +6776,72 @@ function krDates(){const out=[];for(let i=0;i<=KR_AHEAD;i++){const d=new Date();
 function krSlots(iso){const d=new Date(iso+"T12:00:00");const wd=d.getDay();const close=(wd===0||wd===6)?KR_CLOSE_WE*60:KR_CLOSE_WD*60;const out=[];for(let t=KR_OPEN*60;t+KR_SLOT<=close;t+=KR_SLOT)out.push(t);return out;}
 /* TEMP LOCK: set RECOVERY_LOCKED to false (or delete this line + the block below) to reopen Recovery bookings */
 let RECOVERY_LOCKED=true;
+const REC_CLAIM_KEY="lg_rec_claim_v1";
+function recoveryOfferHtml(){
+  const claimed=(()=>{try{return localStorage.getItem(REC_CLAIM_KEY);}catch(e){return null;}})();
+  const C="#4FB8DC", H="#e0763a";
+  if(claimed){
+    return `<div style="background:linear-gradient(160deg,#0c1319,#050608);border:1px solid #1b2b34;border-radius:18px;padding:30px 22px;text-align:center;margin-top:14px">
+      <div style="width:56px;height:56px;border-radius:16px;background:rgba(79,184,220,.14);border:1.5px solid ${C};display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="${C}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg></div>
+      <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;letter-spacing:1px;color:#fff;text-transform:uppercase">You're on the list</div>
+      <div style="margin-top:10px;color:#aab4bb;line-height:1.65;font-size:13px;max-width:340px;margin-left:auto;margin-right:auto">Nice one — you chose <b style="color:${C}">${esc(claimed)}</b>. See the team at reception and they'll set you up and start your access. See you in the water. ❄️</div>
+    </div>`;
+  }
+  const plan=(name,price,was,desc,feat)=>`
+    <div style="position:relative;border:1px solid ${feat?'rgba(79,184,220,.5)':'#1b2b34'};border-radius:14px;padding:16px;background:${feat?'linear-gradient(180deg,#0e2530,#081720)':'#0b141a'};margin-top:${feat?'0':'11px'}">
+      ${feat?`<span style="position:absolute;top:-9px;left:15px;font-family:'Oswald',sans-serif;font-weight:700;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#04141b;background:linear-gradient(135deg,#8fd3ee,${C});padding:3px 9px;border-radius:5px">Most Popular</span>`:''}
+      <div style="font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:15px;color:#fff">${name}</div>
+      <div style="color:#9fb2bc;font-size:11.5px;margin-top:3px;line-height:1.5">${desc}</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:10px">
+        <span style="font-family:'Oswald',sans-serif;font-size:28px;color:#fff;line-height:1">${price}</span>
+        <span style="font-size:11px;color:#7f9098">/week</span>
+        <span style="font-size:12px;color:#5f7078;text-decoration:line-through">${was}</span>
+      </div>
+      <button class="btnGold" style="margin-top:12px;${feat?`background:linear-gradient(135deg,#8fd3ee,${C});color:#04141b`:`background:#12222b;color:#dff1f8;border:1px solid #244a5a`}" onclick="recClaim('${name}')">I'm In — Set Me Up</button>
+    </div>`;
+  return `
+  <div style="position:relative;overflow:hidden;background:linear-gradient(160deg,#0c1319,#050608);border:1px solid #244a5a;border-radius:18px;padding:22px 18px;margin-top:14px">
+    <div style="position:absolute;inset:0;background:radial-gradient(130% 80% at 0 0,rgba(79,184,220,.14),transparent 55%),radial-gradient(130% 80% at 100% 100%,rgba(224,118,58,.1),transparent 55%)"></div>
+    <div style="position:relative">
+      <div style="display:inline-flex;align-items:center;gap:6px;font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-size:9.5px;color:${C};border:1px solid #2a6c85;border-radius:999px;padding:4px 11px">🔒 Members-Only · App Exclusive</div>
+      <div style="font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:26px;line-height:1.05;color:#fff;margin-top:12px">Try Recovery<br>This Spring</div>
+      <div style="color:#aab8c0;font-size:13px;line-height:1.65;margin-top:8px">Not on a recovery plan yet? Here's your invite. A <b style="color:#fff">super-special members-only rate</b> to come and try the ice baths, hot spa &amp; saunas for the next month — cheaper than anything on our website. Only in the app, only for members.</div>
+      <div style="margin-top:16px">
+        ${plan('Plunge Pass','$9.99','$14.99','Unlimited ice baths + 6-person hot spa. The cold &amp; the heat.',true)}
+        ${plan('Plunge + Sauna','$19.99','$24.99','Ice baths, hot spa <b>and</b> communal infrared sauna. The full setup.',false)}
+      </div>
+      <div style="color:#6f8088;font-size:10.5px;text-align:center;margin-top:14px;line-height:1.6">4-week intro · uncontracted · cancel anytime · 18+ · for members not already on a recovery plan. Tap to claim and the team sets you up at reception.</div>
+    </div>
+  </div>
+  <div style="margin-top:14px;background:#0b141a;border:1px solid #1b2b34;border-radius:16px;padding:6px 16px">
+    ${[['3 Large Ice Baths','Cold plunge · ground floor'],['6-Person Hot Spa','Hot water therapy'],['Communal Infrared Sauna','Upstairs · walk in'],['Private Infrared Rooms','Gold members · booked']].map(f=>`
+      <div style="display:flex;gap:11px;padding:11px 0;border-bottom:1px solid #16242c;align-items:center">
+        <div style="width:7px;height:7px;border-radius:2px;transform:rotate(45deg);background:${C};flex-shrink:0"></div>
+        <div><div style="font-weight:700;font-size:13px;color:#eaf3f6">${f[0]}</div><div style="color:#8397a0;font-size:11px;margin-top:1px">${f[1]}</div></div>
+      </div>`).join('')}
+    <div style="text-align:center;color:#5f7078;font-size:10px;padding:11px 0 12px;line-height:1.5">General wellbeing, not medical advice · 18+ · check with your doctor if pregnant or heart condition.</div>
+  </div>`;
+}
+async function recClaim(plan){
+  try{
+    if(!session||!session.user){toast("Please log in first");return;}
+    const uid=session.user.id;
+    const nm=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim();
+    try{localStorage.setItem(REC_CLAIM_KEY,plan);}catch(e){}
+    sb.from("recovery_signups").insert({user_id:uid,member_name:nm||null,plan:plan}).then(()=>{}).catch(()=>{});
+    const who=nm||"A member";
+    const body=who+" wants the "+plan+" recovery intro 🧊 — set them up at reception.";
+    const tok=session.access_token;
+    if(tok)fetch("/api/notify-review",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token:tok,title:"Legacy Recovery",body:body,url:"/"})}).catch(()=>{});
+    if(view==="recovery")renderRecovery();
+    window.scrollTo(0,0);
+  }catch(e){}
+}
+
 function renderRecovery(){
     if(RECOVERY_LOCKED){
-        $("main").innerHTML=`<button class="backBtn" onclick="go('home')">‹ Back To Home</button>
-        <div style="background:linear-gradient(160deg,${KR.dark},#050608);border:1px solid #1b2b34;border-radius:16px;padding:32px 22px;text-align:center;margin-top:14px">
-        <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:20px;letter-spacing:3px;color:${KR.blue}">RECOVERY</div>
-        <div style="margin-top:16px;font-size:18px;color:#fff;font-weight:600">Something New Is Brewing</div>
-        <div style="margin-top:10px;color:#aab4bb;line-height:1.6;max-width:420px;margin-left:auto;margin-right:auto">We're putting together some fresh new offers for our members in this space. In the meantime, please continue booking your saunas via MindBody as usual. Recovery bookings will be back very soon — thanks for your patience!</div>
-        </div>`;
+        $("main").innerHTML=`<button class="backBtn" onclick="go('home')">&#8249; Back To Home</button>`+recoveryOfferHtml();
         return;
     }
 
