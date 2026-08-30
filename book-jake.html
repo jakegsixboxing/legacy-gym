@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Book Jake — Legacy Gym</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#0b0b0c; --panel:#121214; --panel2:#17171a; --line:#26262b;
+    --gold:#c9a44c; --gold-dim:#8a7136; --muted:#9a9891; --text:#f2f0eb;
+    --ok:#4caf66; --cold:#5ab6dc; --hot:#e0763a; --booked:#3a3a40;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; height:100%}
+  body{ background:var(--bg); color:var(--text); font-family:Montserrat,system-ui,-apple-system,sans-serif; }
+  .phone{
+    width:100%; max-width:560px; height:100vh; height:100dvh; margin:0 auto;
+    background:var(--bg); overflow:hidden; position:relative; display:flex; flex-direction:column;
+  }
+
+  .appbar{ padding:16px 20px 13px; display:flex; align-items:center; gap:12px;
+    background:linear-gradient(180deg,#121214,#0d0d0f); position:relative; z-index:5; }
+  .appbar h1{margin:0; font-family:Oswald,sans-serif; font-weight:600; font-size:17px; letter-spacing:.14em; text-transform:uppercase}
+  .appbar .sub{font-size:10px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); margin-top:1px}
+  .prog{height:2px; background:var(--line); position:relative; z-index:5}
+  .prog i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--gold-dim),var(--gold)); transition:width .5s cubic-bezier(.2,.8,.2,1); box-shadow:0 0 10px rgba(201,164,76,.6)}
+
+  .scroll{flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch}
+  .scroll::-webkit-scrollbar{width:0}
+
+  .hero{padding:20px 20px 4px; display:flex; gap:14px; align-items:center; position:relative}
+  .hero:before{content:""; position:absolute; left:-4%; top:-30%; width:200px; height:200px; z-index:0; pointer-events:none;
+    background:radial-gradient(circle, rgba(201,164,76,.20), transparent 62%)}
+  .hero>*{position:relative; z-index:1}
+  .avatar{width:64px; height:64px; border-radius:16px; flex:0 0 auto; position:relative;
+    background:radial-gradient(120% 120% at 30% 20%, #2a2a2f, #0e0e10); border:1px solid var(--gold-dim); overflow:hidden;
+    display:flex; align-items:flex-end; justify-content:center; box-shadow:0 0 28px -6px rgba(201,164,76,.55)}
+  .avatar .mono{font-family:Anton,sans-serif; font-size:31px; color:var(--gold); line-height:1; padding-bottom:9px}
+  .hero .name{font-family:Anton,sans-serif; font-size:27px; letter-spacing:.01em; line-height:1}
+  .hero .role{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); margin-top:5px}
+  .chips{display:flex; gap:7px; flex-wrap:wrap; margin-top:9px}
+  .pill{display:inline-flex; align-items:center; gap:6px; font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--gold); border:1px solid var(--gold-dim); border-radius:999px; padding:4px 9px}
+  .pill.alt{color:#d8c793; border-color:var(--line); background:var(--panel)}
+  .pill.alt b{color:var(--gold); font-weight:700}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(76,175,102,.6)}50%{box-shadow:0 0 0 5px rgba(76,175,102,0)}}
+  .pill .dot{width:6px; height:6px; border-radius:50%; background:var(--ok); animation:pulse 1.9s ease-in-out infinite}
+
+  .smart{margin:16px 20px 0; border:1px solid var(--gold-dim); border-radius:16px; overflow:hidden; position:relative;
+    background:linear-gradient(120deg,#1b1608,#121011); display:flex; align-items:center; gap:12px; padding:13px 14px; cursor:pointer; transition:.16s}
+  .smart:active{transform:scale(.99)}
+  .smart .bolt{width:34px; height:34px; border-radius:10px; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 40% 30%, #e9cf86, #c9a44c); color:#1a1508; font-size:17px; box-shadow:0 0 16px rgba(201,164,76,.55)}
+  .smart .st{font-size:9.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--gold)}
+  .smart .sv{font-family:Oswald,sans-serif; font-weight:600; font-size:14.5px; letter-spacing:.02em; margin-top:2px}
+  .smart .go{margin-left:auto; font-family:Oswald,sans-serif; font-weight:600; font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+    color:#1a1508; background:linear-gradient(180deg,#e0c06f,#c9a44c); border-radius:9px; padding:8px 12px; flex:0 0 auto}
+
+  .divider{height:1px; background:var(--line); margin:18px 20px 0}
+
+  .step{padding:20px 20px 0}
+  .step-tag{font-family:Oswald,sans-serif; font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold)}
+  .step-h{font-family:Oswald,sans-serif; font-weight:600; font-size:20px; letter-spacing:.02em; margin:5px 0 2px}
+  .step-h .opt{font-size:9.5px; letter-spacing:.16em; color:#6d6a63; vertical-align:middle; margin-left:7px}
+  .step-note{font-size:12px; color:var(--muted); line-height:1.5}
+
+  .rail{display:flex; gap:10px; overflow-x:auto; padding:15px 20px 6px; scroll-snap-type:x mandatory}
+  .rail::-webkit-scrollbar{height:0}
+  .day{flex:0 0 auto; width:66px; scroll-snap-align:start; background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:11px 0 10px; text-align:center; cursor:pointer; transition:.18s; position:relative}
+  .day:active{transform:scale(.96)}
+  .day .dow{font-family:Oswald,sans-serif; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+  .day .dnum{font-family:Anton,sans-serif; font-size:23px; margin:3px 0 1px}
+  .day .mon{font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted)}
+  .day .tag{font-size:8px; letter-spacing:.08em; text-transform:uppercase; margin-top:5px; color:var(--gold)}
+  .day.sel{border-color:var(--gold); background:linear-gradient(180deg,#1c1707,#131109); box-shadow:0 0 0 1px var(--gold-dim) inset, 0 10px 26px -10px rgba(201,164,76,.55)}
+  .day.sel .dnum{color:var(--gold)} .day.sel .dow,.day.sel .mon{color:#d8c793}
+  .day.full{opacity:.4; cursor:not-allowed} .day.full .tag{color:#6d6a63}
+
+  .durwrap{display:flex; gap:11px; padding:15px 20px 2px; flex-wrap:wrap}
+  .dur{flex:1; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 10px; cursor:pointer; transition:.16s; text-align:center; position:relative}
+  .dur.wide{flex:1 1 100%}
+  .dur:active{transform:scale(.98)}
+  .dur .dl{font-family:Oswald,sans-serif; font-weight:600; font-size:15px; letter-spacing:.05em}
+  .dur .dp{font-size:11px; color:var(--muted); margin-top:3px}
+  .dur .badge{position:absolute; top:-8px; left:50%; transform:translateX(-50%); font-size:8px; letter-spacing:.12em; text-transform:uppercase;
+    color:#1a1508; background:linear-gradient(180deg,#e0c06f,#c9a44c); border-radius:999px; padding:2px 8px; white-space:nowrap}
+  .dur.sel{border-color:var(--gold); background:linear-gradient(180deg,#1c1707,#131109); box-shadow:0 10px 26px -12px rgba(201,164,76,.5)}
+  .dur.sel .dl{color:var(--gold)} .dur.sel .dp{color:#cdbd82}
+  .dur.sel:after{content:"✓"; position:absolute; top:8px; right:10px; color:var(--gold); font-size:12px; font-weight:700}
+
+  @keyframes slotIn{from{opacity:0; transform:translateY(7px)}to{opacity:1; transform:none}}
+  .times{display:grid; grid-template-columns:1fr 1fr; gap:11px; padding:15px 20px 4px}
+  .slot{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 12px; cursor:pointer; transition:.16s; text-align:left; position:relative; overflow:hidden; animation:slotIn .32s ease both}
+  .slot:active{transform:scale(.98)}
+  .slot .t{font-family:Oswald,sans-serif; font-weight:600; font-size:18px; letter-spacing:.03em}
+  .slot .meta{font-size:10.5px; letter-spacing:.04em; color:var(--muted); margin-top:3px}
+  .slot.sel{border-color:var(--gold); background:linear-gradient(180deg,#1c1707,#131109); box-shadow:0 10px 26px -12px rgba(201,164,76,.6)}
+  .slot.sel .t{color:var(--gold)} .slot.sel .meta{color:#cdbd82}
+  .slot.sel:after{content:"✓"; position:absolute; top:9px; right:12px; color:var(--gold); font-size:13px; font-weight:700}
+  .slot.booked{opacity:.38; cursor:not-allowed; border-style:dashed}
+  .slot.booked .t{text-decoration:line-through; color:var(--muted)} .slot.booked .meta{color:#6d6a63}
+  .empty{padding:24px 20px; text-align:center; color:var(--muted); font-size:12.5px; line-height:1.6}
+
+  .focuswrap{display:flex; flex-wrap:wrap; gap:9px; padding:14px 20px 2px}
+  .fchip{border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:999px; padding:9px 14px;
+    font-size:12px; letter-spacing:.02em; cursor:pointer; transition:.15s; font-family:Oswald,sans-serif; font-weight:500}
+  .fchip:active{transform:scale(.97)}
+  .fchip.sel{border-color:var(--gold); color:var(--gold); background:linear-gradient(180deg,#1c1707,#131109)}
+  .notebox{margin:12px 20px 0}
+  .notebox textarea{width:100%; background:var(--panel); border:1px solid var(--line); border-radius:14px; color:var(--text);
+    font-family:Montserrat,sans-serif; font-size:13px; padding:12px 14px; resize:none; min-height:60px; outline:none; line-height:1.5}
+  .notebox textarea:focus{border-color:var(--gold-dim)}
+  .notebox textarea::placeholder{color:#6d6a63}
+
+  .addwrap{padding:14px 20px 2px; display:flex; flex-direction:column; gap:10px}
+  .addon{display:flex; align-items:center; gap:13px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 14px; cursor:pointer; transition:.15s}
+  .addon:active{transform:scale(.99)}
+  .addon .ico{width:40px; height:40px; border-radius:11px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:20px; border:1px solid var(--line)}
+  .addon.ice .ico{color:var(--cold); border-color:#23414c; background:rgba(90,182,220,.06)}
+  .addon.sauna .ico{color:var(--hot); border-color:#4a2f1f; background:rgba(224,118,58,.06)}
+  .addon .txt{flex:1}
+  .addon .an{font-family:Oswald,sans-serif; font-weight:600; font-size:14px; letter-spacing:.03em}
+  .addon .ad{font-size:10.5px; color:var(--muted); margin-top:2px}
+  .addon .ap{font-family:Oswald,sans-serif; font-weight:600; font-size:14px; color:var(--gold); margin-right:2px}
+  .addon .chk{width:22px; height:22px; border-radius:7px; border:1px solid var(--line); flex:0 0 auto; display:flex; align-items:center; justify-content:center; color:transparent; font-size:13px; font-weight:700; transition:.15s}
+  .addon.sel{border-color:rgba(90,182,220,.5); background:linear-gradient(180deg,#0e1519,#0d0f11)}
+  .addon.sel .chk{background:var(--cold); border-color:var(--cold); color:#06222e}
+  .bundle{margin:4px 20px 0; display:flex; align-items:center; gap:8px; font-size:11px; color:#8fd6ef; letter-spacing:.02em}
+  .bundle .bb{font-size:8px; letter-spacing:.12em; text-transform:uppercase; color:#06222e; background:var(--cold); border-radius:999px; padding:2px 7px; font-weight:700}
+
+  .receipt{margin:16px 20px 0; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:6px 16px 10px; overflow:hidden}
+  .rrow{display:flex; align-items:center; justify-content:space-between; padding:9px 0; font-size:13px}
+  .rrow+.rrow{border-top:1px solid var(--line)}
+  .rrow .rk{color:var(--muted)} .rrow .rk b{color:var(--text); font-weight:600; font-family:Oswald,sans-serif; letter-spacing:.02em}
+  .rrow .rv{font-family:Oswald,sans-serif; font-weight:600; letter-spacing:.02em}
+  .rrow.tot .rk{color:var(--text); font-family:Oswald,sans-serif; text-transform:uppercase; letter-spacing:.14em; font-size:11px}
+  .rrow.tot .rv{color:var(--gold); font-size:19px; font-family:Anton,sans-serif}
+
+  .foot{padding:13px 20px calc(16px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:linear-gradient(180deg,#0d0d0f,#111113)}
+  .summary{display:flex; align-items:center; justify-content:space-between; margin-bottom:11px; min-height:18px; gap:12px}
+  .summary .lbl{font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); flex:0 0 auto}
+  .summary .val{font-family:Oswald,sans-serif; font-weight:600; font-size:13px; letter-spacing:.02em; text-align:right}
+  .cta{width:100%; border:none; border-radius:14px; padding:16px; cursor:pointer; position:relative; overflow:hidden;
+    font-family:Oswald,sans-serif; font-weight:600; font-size:15px; letter-spacing:.14em; text-transform:uppercase;
+    background:linear-gradient(180deg,#d8b866,#c9a44c); color:#1a1508; transition:.16s}
+  .cta:active{transform:scale(.985)}
+  .cta:disabled{background:#1d1d21; color:#55534d; cursor:not-allowed}
+  .cta:not(:disabled):after{content:""; position:absolute; top:0; left:-60%; width:38%; height:100%; transform:skewX(-18deg);
+    background:linear-gradient(100deg, transparent, rgba(255,255,255,.45), transparent); animation:sheen 3.6s ease-in-out infinite}
+  @keyframes sheen{0%{left:-60%}55%,100%{left:135%}}
+
+  .confirm{position:absolute; inset:0; z-index:60; background:var(--bg); transform:translateY(100%); transition:transform .44s cubic-bezier(.2,.8,.2,1); display:flex; flex-direction:column; overflow-y:auto}
+  .confirm.show{transform:translateY(0)}
+  .cwrap{flex:1; display:flex; flex-direction:column; align-items:center; text-align:center; padding:40px 26px 10px}
+  .tick{width:82px; height:82px; border-radius:50%; border:2px solid var(--ok); display:flex; align-items:center; justify-content:center; margin-bottom:20px; animation:pop .5s cubic-bezier(.2,1.4,.4,1) both; box-shadow:0 0 34px -6px rgba(76,175,102,.6)}
+  .tick svg{width:38px; height:38px}
+  .tick svg path{stroke:var(--ok); stroke-width:3.6; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:48; stroke-dashoffset:48; animation:draw .5s .25s ease forwards}
+  @keyframes pop{from{transform:scale(.4); opacity:0}to{transform:scale(1); opacity:1}}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .confirm h2{font-family:Anton,sans-serif; font-size:29px; margin:0 0 6px; letter-spacing:.01em}
+  .confirm .cmsg{color:var(--muted); font-size:13px; line-height:1.6; max-width:280px}
+  .ticket{margin-top:24px; width:100%; max-width:340px; background:var(--panel); border:1px solid var(--line); border-radius:18px; overflow:hidden; text-align:left}
+  .cover{background:linear-gradient(180deg,#18150e,#121210); border-bottom:1px solid var(--line); position:relative; padding:16px 16px 15px}
+  .cover .cv{position:relative; z-index:1}
+  .cover .rf{position:absolute; right:14px; top:14px; z-index:1; font-size:9.5px; letter-spacing:.1em; color:#d8c793; background:rgba(0,0,0,.35); border:1px solid var(--gold-dim); border-radius:8px; padding:4px 8px}
+  .cover .who{font-family:Oswald,sans-serif; font-weight:600; font-size:16px; letter-spacing:.04em}
+  .cover .what{font-size:10.5px; color:#d8c793; margin-top:2px; letter-spacing:.08em; text-transform:uppercase}
+  .trow{display:flex; align-items:flex-start; justify-content:space-between; gap:14px; padding:11px 16px}
+  .trow+.trow{border-top:1px solid var(--line)}
+  .trow .k{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); flex:0 0 auto; padding-top:2px}
+  .trow .v{font-family:Oswald,sans-serif; font-weight:600; font-size:13.5px; letter-spacing:.02em; text-align:right}
+  .trow.total .k{color:var(--text)} .trow.total .v{color:var(--gold); font-size:17px; font-family:Anton,sans-serif}
+  .trow.total{background:rgba(201,164,76,.05)}
+  .cactions{width:100%; max-width:340px; margin:16px auto 0; display:flex; flex-direction:column; gap:10px}
+  .calbtn{display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none; border:1px solid var(--gold-dim); color:var(--gold);
+    border-radius:13px; padding:13px; font-family:Oswald,sans-serif; font-weight:600; font-size:13px; letter-spacing:.1em; text-transform:uppercase}
+  .cfoot{padding:12px 24px calc(20px + env(safe-area-inset-bottom))}
+  .ghost{width:100%; background:transparent; border:1px solid var(--line); color:var(--text); border-radius:13px; padding:14px; font-family:Oswald,sans-serif; font-weight:600; font-size:13px; letter-spacing:.12em; text-transform:uppercase; cursor:pointer}
+
+  .tabs{display:flex; background:linear-gradient(180deg,#0d0d0f,#0b0b0c); border-bottom:1px solid var(--line); position:relative; z-index:4}
+  .tab{flex:1; text-align:center; padding:13px 0 12px; font-family:Oswald,sans-serif; font-weight:600; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); cursor:pointer; position:relative; transition:.15s}
+  .tab.sel{color:var(--gold)}
+  .tab.sel:after{content:""; position:absolute; left:22%; right:22%; bottom:-1px; height:2px; background:var(--gold); border-radius:2px; box-shadow:0 0 10px rgba(201,164,76,.6)}
+  .tab .lock{font-size:9px; opacity:.85}
+  .tcount{display:inline-flex; align-items:center; justify-content:center; min-width:17px; height:17px; padding:0 5px; margin-left:5px; border-radius:999px; background:var(--gold); color:#1a1508; font-family:Montserrat; font-weight:700; font-size:10px; vertical-align:middle}
+  .tcount.alert{background:var(--hot); color:#1a0d05}
+
+  .detwrap{padding-top:14px}
+  .field{margin:0 20px}
+  .flabel{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:0 0 6px 2px}
+  .finput{width:100%; background:var(--panel); border:1px solid var(--line); border-radius:12px; color:var(--text); font-family:Montserrat,sans-serif; font-size:14px; padding:13px 14px; outline:none}
+  .finput:focus{border-color:var(--gold-dim)}
+  .finput::placeholder{color:#6d6a63}
+  .frow{display:flex; gap:11px; margin:0 20px}
+  .frow .field{flex:1; margin:0}
+
+  .sigwrap{margin:14px 20px 0}
+  .sigbox{position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px; height:132px; overflow:hidden}
+  #sigPad{position:absolute; inset:0; width:100%; height:100%; touch-action:none; cursor:crosshair}
+  .sigbase{position:absolute; left:16px; right:16px; bottom:36px; border-top:1px solid var(--line)}
+  .sighint{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); color:#5a584f; font-size:13px; letter-spacing:.05em; pointer-events:none}
+  .sigbar{display:flex; align-items:center; justify-content:space-between; margin-top:8px; padding:0 2px}
+  .sigcap{font-size:10.5px; color:#6d6a63; letter-spacing:.04em}
+  .sigclear{background:transparent; border:none; color:var(--gold); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; font-family:Oswald,sans-serif; font-weight:600}
+
+  .policy{margin:15px 20px 0; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px 16px}
+  .phead{font-family:Oswald,sans-serif; font-weight:600; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold)}
+  .ptext{font-size:12px; color:var(--muted); line-height:1.6; margin-top:8px}
+  .ptext b{color:var(--text); font-weight:600}
+  .agreewrap{margin:13px 20px 0}
+  .agree{display:flex; align-items:flex-start; gap:11px; cursor:pointer; font-size:12px; color:var(--text); line-height:1.45}
+  .agree .box{width:21px; height:21px; border-radius:6px; border:1px solid var(--line); flex:0 0 auto; display:flex; align-items:center; justify-content:center; color:transparent; font-size:12px; font-weight:700; transition:.15s; margin-top:1px}
+  .agree.on .box{background:var(--ok); border-color:var(--ok); color:#052712}
+  .agree.on .box:after{content:"✓"}
+
+  .sessvw{padding:20px 20px 26px}
+  .svh{font-family:Oswald,sans-serif; font-weight:600; font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin-bottom:14px}
+  .mcard{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:15px 16px 15px 18px; margin-bottom:12px; position:relative; overflow:hidden}
+  .mcard:before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(180deg,var(--gold),var(--gold-dim))}
+  .mtop{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .mwhen{font-family:Oswald,sans-serif; font-weight:600; font-size:15.5px; letter-spacing:.02em}
+  .mref{font-size:9.5px; letter-spacing:.1em; color:#d8c793; border:1px solid var(--gold-dim); border-radius:7px; padding:3px 7px; flex:0 0 auto}
+  .mmeta{font-size:12px; color:var(--muted); margin-top:6px; letter-spacing:.02em}
+  .mfocus{font-size:11.5px; color:#8a8880; margin-top:5px; line-height:1.5}
+  .mcancel{margin-top:13px; background:transparent; border:1px solid #3a2626; color:#d98a8a; border-radius:11px; padding:10px 15px; font-family:Oswald,sans-serif; font-weight:600; font-size:11px; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; transition:.15s}
+  .mcancel:active{transform:scale(.98)}
+  .semty{text-align:center; color:var(--muted); font-size:13px; line-height:1.7; padding:44px 20px}
+  .semty .big{font-size:34px; margin-bottom:12px}
+
+  .sheet{position:absolute; inset:0; z-index:70; display:flex; align-items:flex-end; justify-content:center; background:rgba(0,0,0,.55); opacity:0; pointer-events:none; transition:opacity .28s}
+  .sheet.show{opacity:1; pointer-events:auto}
+  .shpanel{width:100%; max-width:560px; background:var(--panel2); border-top:1px solid var(--line); border-radius:22px 22px 0 0; padding:22px 22px calc(24px + env(safe-area-inset-bottom)); transform:translateY(24px); transition:transform .3s}
+  .sheet.show .shpanel{transform:none}
+  .shh{font-family:Anton,sans-serif; font-size:23px; letter-spacing:.01em}
+  .shsub{font-size:12.5px; color:var(--muted); margin-top:6px; letter-spacing:.02em}
+  .fee{margin:16px 0; border:1px solid var(--line); border-radius:14px; padding:14px}
+  .ladder{display:flex; flex-direction:column; gap:7px}
+  .lr{display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:var(--muted); padding:9px 11px; border:1px solid var(--line); border-radius:10px}
+  .lr b{font-family:Oswald,sans-serif; letter-spacing:.02em; color:var(--text)}
+  .lr.on{border-color:var(--gold); background:rgba(201,164,76,.06); color:var(--text)}
+  .lr.on b{color:var(--gold)}
+  .fnow{margin-top:11px; font-size:13px; color:var(--muted)}
+  .fnow b{font-family:Oswald,sans-serif; color:var(--text); letter-spacing:.02em}
+  .shbtns{display:flex; gap:11px}
+  .shbtns button{flex:1; border-radius:13px; padding:14px; font-family:Oswald,sans-serif; font-weight:600; font-size:13px; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; border:1px solid var(--line); background:transparent; color:var(--text)}
+  .confirmcx{background:#2a1616!important; border-color:#4a2626!important; color:#e69a9a!important}
+
+  .toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px); z-index:120; background:#17171a; border:1px solid var(--line); color:var(--text); font-size:12.5px; padding:11px 16px; border-radius:12px; opacity:0; transition:.3s; pointer-events:none; letter-spacing:.02em; max-width:90%; text-align:center}
+  .toast.show{opacity:1; transform:translateX(-50%)}
+
+  .adminvw{padding:20px 20px 28px}
+  .adhead{margin-bottom:16px}
+  .adh{font-family:Anton,sans-serif; font-size:26px; letter-spacing:.01em}
+  .adsub{font-size:11px; letter-spacing:.05em; color:var(--muted); margin-top:4px}
+  .adstats{display:flex; gap:11px; margin-bottom:20px}
+  .adstat{flex:1; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 15px}
+  .adstat .an{font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+  .adstat .av{font-family:Anton,sans-serif; font-size:25px; color:var(--gold); margin-top:6px}
+  .adsech{font-family:Oswald,sans-serif; font-weight:600; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:6px 0 12px}
+  .fitem{display:flex; align-items:flex-start; gap:11px; padding:11px 0; border-bottom:1px solid var(--line)}
+  .fdot{width:9px; height:9px; border-radius:50%; margin-top:5px; flex:0 0 auto}
+  .fdot.book{background:var(--ok); box-shadow:0 0 8px rgba(76,175,102,.6)}
+  .fdot.cancel{background:var(--hot); box-shadow:0 0 8px rgba(224,118,58,.5)}
+  .ftxt{flex:1; font-size:13px; line-height:1.45}
+  .ftxt b{font-family:Oswald,sans-serif; font-weight:600; letter-spacing:.02em}
+  .fsub{color:var(--muted); font-size:11.5px}
+  .fago{font-size:10.5px; color:#6d6a63; flex:0 0 auto; letter-spacing:.04em; padding-top:2px}
+  .adfeedwrap{margin-bottom:22px}
+  .acard{background:var(--panel); border:1px solid var(--line); border-radius:15px; padding:14px 15px 14px 17px; margin-bottom:11px; position:relative; overflow:hidden}
+  .acard:before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(180deg,var(--gold),var(--gold-dim))}
+  .atop{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .atop b{font-family:Oswald,sans-serif; font-weight:600; font-size:15px; letter-spacing:.02em}
+  .aref{font-size:9.5px; letter-spacing:.1em; color:#d8c793; border:1px solid var(--gold-dim); border-radius:7px; padding:3px 7px; flex:0 0 auto}
+  .ameta{font-size:12px; color:var(--muted); margin-top:6px; letter-spacing:.02em}
+  .acontact{font-size:11.5px; color:#8fb2c0; margin-top:5px; letter-spacing:.02em}
+  .afocus{font-size:11.5px; color:#8a8880; margin-top:5px; line-height:1.5}
+  .anote{font-size:12px; color:var(--text); margin-top:8px; padding:8px 11px; background:var(--panel2); border-left:2px solid var(--gold-dim); border-radius:0 8px 8px 0; line-height:1.5}
+  .aempty{text-align:center; color:var(--muted); font-size:13px; padding:26px 20px; line-height:1.6}
+
+  /* gate / loading */
+  .gate{position:fixed; inset:0; z-index:200; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; gap:16px}
+  .gate.hide{display:none}
+  .gate .spin{width:34px; height:34px; border-radius:50%; border:2px solid #2a2a2f; border-top-color:var(--gold); animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .gate .gmsg{color:var(--muted); font-size:13.5px; line-height:1.6; max-width:290px}
+
+  @media (prefers-reduced-motion:reduce){.cta:after,.pill .dot,.slot,.tick,.tick svg path,.gate .spin{animation:none}}
+</style>
+</head>
+<body>
+<div class="gate" id="gate"><div class="spin"></div><div class="gmsg" id="gateMsg">Loading your booking…</div></div>
+
+<div class="phone">
+  <div class="appbar">
+    <div>
+      <h1>Book a Session</h1>
+      <div class="sub">Trained by Jake</div>
+    </div>
+  </div>
+  <div class="prog"><i id="prog"></i></div>
+  <div class="tabs">
+    <div class="tab sel" data-tab="book" id="tabBook">Book</div>
+    <div class="tab" data-tab="sessions" id="tabSessions">Sessions <span class="tcount" id="tcount">0</span></div>
+    <div class="tab" data-tab="admin" id="tabAdmin" style="display:none"><span class="lock">🔒</span> Jake's PT <span class="tcount alert" id="acount" style="display:none">0</span></div>
+  </div>
+
+  <div class="scroll" id="scroll">
+    <div class="hero">
+      <div class="avatar"><div class="mono">J</div></div>
+      <div>
+        <div class="name">JAKE</div>
+        <div class="role">Head Coach · 1-on-1 PT</div>
+        <div class="chips">
+          <div class="pill"><span class="dot"></span> Taking bookings</div>
+          <div class="pill alt">From <b>$60</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="smart" id="smart" style="display:none">
+      <div class="bolt">⚡</div>
+      <div><div class="st">Soonest opening</div><div class="sv" id="smartVal">—</div></div>
+      <div class="go">Grab it</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="step">
+      <div class="step-tag">Step 1</div>
+      <div class="step-h">Pick a day</div>
+      <div class="step-note">Tue &amp; Thu afternoons, Sat mornings. The next week opens every Friday.</div>
+    </div>
+    <div class="rail" id="rail"></div>
+
+    <div class="step">
+      <div class="step-tag">Step 2</div>
+      <div class="step-h">Session length</div>
+      <div class="step-note">Pick how long you want to train — the times update to fit.</div>
+    </div>
+    <div class="durwrap" id="durwrap"></div>
+
+    <div class="step" id="timeStep">
+      <div class="step-tag">Step 3</div>
+      <div class="step-h">Pick a time</div>
+      <div class="step-note" id="timeNote">Select a day above to see open times.</div>
+    </div>
+    <div id="timesWrap"></div>
+
+    <div class="step">
+      <div class="step-tag">Step 4</div>
+      <div class="step-h">Focus <span class="opt">OPTIONAL</span></div>
+      <div class="step-note" id="focusNote">What do you want Jake to work on? Tap any that apply.</div>
+    </div>
+    <div class="focuswrap" id="focuswrap"></div>
+    <div class="notebox"><textarea id="note" placeholder="Anything specific? Injuries, goals, what you're chasing…"></textarea></div>
+
+    <div class="step">
+      <div class="step-tag">Step 5</div>
+      <div class="step-h">Add recovery <span class="opt">OPTIONAL</span></div>
+      <div class="step-note">Members-only casual rates — tack it onto your session.</div>
+    </div>
+    <div class="addwrap" id="addwrap">
+      <div class="addon ice" data-add="ice">
+        <div class="ico">❄</div>
+        <div class="txt"><div class="an">Ice Bath</div><div class="ad">Cold plunge straight after you train</div></div>
+        <div class="ap">+$10</div><div class="chk">✓</div>
+      </div>
+      <div class="addon sauna" data-add="sauna">
+        <div class="ico">♨</div>
+        <div class="txt"><div class="an">Sauna</div><div class="ad">Communal sauna to finish</div></div>
+        <div class="ap">+$25</div><div class="chk">✓</div>
+      </div>
+    </div>
+    <div class="bundle" id="bundle" style="display:none"><span class="bb">Bundle</span> Sauna + Ice Bath together — $30, you save $5.</div>
+
+    <div class="receipt" id="receipt" style="display:none"></div>
+
+    <div class="step">
+      <div class="step-tag">Step 6</div>
+      <div class="step-h">Your details</div>
+      <div class="step-note">Jake keeps these on file for your bookings.</div>
+    </div>
+    <div class="detwrap">
+      <div class="field"><div class="flabel">Full name</div><input class="finput" id="fName" type="text" placeholder="Your full name" autocomplete="name"></div>
+      <div class="frow" style="margin-top:11px">
+        <div class="field"><div class="flabel">Age</div><input class="finput" id="fAge" type="number" min="1" placeholder="Age" inputmode="numeric"></div>
+        <div class="field"><div class="flabel">Mobile</div><input class="finput" id="fMobile" type="tel" placeholder="Mobile" autocomplete="tel"></div>
+      </div>
+      <div class="field" style="margin-top:11px"><div class="flabel">Email</div><input class="finput" id="fEmail" type="email" placeholder="you@email.com" autocomplete="email"></div>
+    </div>
+
+    <div class="step">
+      <div class="step-tag">Step 7</div>
+      <div class="step-h">Agreement</div>
+      <div class="step-note">Read, sign and agree to lock in your session.</div>
+    </div>
+    <div class="policy">
+      <div class="phead">Cancellation policy</div>
+      <div class="ptext">Once you book, your session is <b>locked in</b>. Cancel <b>24–48 hours</b> before and you're charged <b>50%</b> of the session. Cancel <b>within 24 hours</b> and the full <b>100%</b> is charged. No exceptions.</div>
+    </div>
+    <div class="sigwrap">
+      <div class="flabel">Signature</div>
+      <div class="sigbox">
+        <canvas id="sigPad"></canvas>
+        <div class="sigbase"></div>
+        <div class="sighint" id="sigHint">Sign here</div>
+      </div>
+      <div class="sigbar"><span class="sigcap">Sign with your finger</span><button class="sigclear" onclick="clearSig()">Clear</button></div>
+    </div>
+    <div class="agreewrap">
+      <label class="agree" id="agree"><span class="box"></span> I agree to the cancellation policy and Jake's training terms, and confirm the details above are mine.</label>
+    </div>
+
+    <div style="height:10px"></div>
+  </div>
+
+  <div class="scroll" id="scrollSessions" style="display:none">
+    <div class="sessvw"><div class="svh">Upcoming sessions</div><div id="sessList"></div></div>
+  </div>
+
+  <div class="scroll" id="scrollAdmin" style="display:none">
+    <div class="adminvw">
+      <div class="adhead"><div class="adh">Jake's PT</div><div class="adsub"><span class="lock">🔒</span> Coach view — only you can see this</div></div>
+      <div class="adstats">
+        <div class="adstat"><div class="an">Upcoming</div><div class="av" id="stUp">0</div></div>
+        <div class="adstat"><div class="an">Booked value</div><div class="av" id="stVal">$0</div></div>
+      </div>
+      <div class="adsech">Activity</div>
+      <div id="adFeed"></div>
+      <div class="adsech">All bookings</div>
+      <div id="adList"></div>
+    </div>
+  </div>
+
+  <div class="foot" id="foot">
+    <div class="summary"><div class="lbl">Your session</div><div class="val" id="sumVal">—</div></div>
+    <button class="cta" id="cta" disabled>Select a time</button>
+  </div>
+
+  <div class="confirm" id="confirm">
+    <div class="cwrap">
+      <div class="tick"><svg viewBox="0 0 40 40"><path d="M10 21 L17 28 L30 12"/></svg></div>
+      <h2>YOU'RE BOOKED</h2>
+      <div class="cmsg">Locked in with Jake. He gets your details and notes straight away, and you'll get a reminder before your session. See you at Legacy.</div>
+      <div class="ticket">
+        <div class="cover">
+          <div class="rf" id="tkRef">LG-0000</div>
+          <div class="cv"><div class="who">Jake · 1-on-1 PT</div><div class="what" id="tkWhat">30 Min Session</div></div>
+        </div>
+        <div class="trow"><span class="k">When</span><span class="v" id="tkWhen">—</span></div>
+        <div class="trow"><span class="k">Time</span><span class="v" id="tkTime">—</span></div>
+        <div class="trow"><span class="k">Member</span><span class="v" id="tkMember">—</span></div>
+        <div class="trow" id="tkFocusRow"><span class="k">Focus</span><span class="v" id="tkFocus">—</span></div>
+        <div class="trow" id="tkNoteRow"><span class="k">Notes</span><span class="v" id="tkNote">—</span></div>
+        <div class="trow" id="tkAddRow"><span class="k">Recovery</span><span class="v" id="tkAdd">—</span></div>
+        <div class="trow"><span class="k">Where</span><span class="v">Legacy Gym, Kincumber</span></div>
+        <div class="trow total"><span class="k">Total</span><span class="v" id="tkPrice">—</span></div>
+      </div>
+      <div class="cactions"><a class="calbtn" id="calBtn" target="_blank" rel="noopener">＋ Add to calendar</a></div>
+    </div>
+    <div class="cfoot"><button class="ghost" onclick="reset()">View my sessions</button></div>
+  </div>
+
+  <div class="sheet" id="cancelSheet">
+    <div class="shpanel">
+      <div class="shh">Cancel session?</div>
+      <div class="shsub" id="cxWhen">—</div>
+      <div class="fee" id="cxFee"></div>
+      <div class="shbtns">
+        <button onclick="closeCancel()">Keep it</button>
+        <button class="confirmcx" id="cxConfirm">Cancel session</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var SB_URL="https://jyslqxepodrseyhoppce.supabase.co";
+  var SB_KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+  var sb=null, session=null, uid=null, isStaff=false;
+
+  var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  var WIN={ 2:{o:16*60,c:19*60}, 4:{o:16*60,c:19*60}, 6:{o:8*60,c:11*60} };
+  var DUR=[
+    {key:"30",   m:30, label:"30 Min", sub:"1-on-1", price:60, badge:"Most popular"},
+    {key:"50",   m:50, label:"50 Min", sub:"1-on-1", price:90},
+    {key:"2on1", m:50, label:"2-on-1", sub:"With a partner", price:140, wide:true, foci:["Partner Drills","Technical Sparring","Sparring"]}
+  ];
+  var KEYS=DUR.map(function(d){return d.key;});
+  var FOCI=["Boxing Fitness & Skill","Technical Development","Competition Prep"];
+  var GRID=30, COACH="Jake";
+
+  function pad(n){return (n<10?"0":"")+n;}
+  function fmt(min){var h=Math.floor(min/60),mm=min%60,ap=h>=12?"PM":"AM",hh=h%12; if(hh===0)hh=12; return hh+":"+pad(mm)+" "+ap;}
+  function overlap(s1,e1,s2,e2){ return s1<e2 && s2<e1; }
+  function dayStr(dt){ return DOW[dt.getDay()]+" "+dt.getDate()+" "+MON[dt.getMonth()]; }
+  function isoDate(dt){ return dt.getFullYear()+"-"+pad(dt.getMonth()+1)+"-"+pad(dt.getDate()); }
+  function localTs(dt, minutes){ return isoDate(dt)+"T"+pad(Math.floor(minutes/60))+":"+pad(minutes%60)+":00"; }
+  function parseDate(s){ var p=String(s).split("-"); return new Date(+p[0], (+p[1])-1, +p[2]); }
+
+  function releasedThrough(base){
+    var t=new Date(base); t.setHours(0,0,0,0); var wd=t.getDay(), toSun=(7-wd)%7;
+    var sun=new Date(t); sun.setDate(t.getDate()+toSun);
+    if(wd===5||wd===6||wd===0) sun.setDate(sun.getDate()+7);
+    return sun;
+  }
+  var now=new Date(), today=new Date(); today.setHours(0,0,0,0);
+  var horizon=releasedThrough(today), days=[], d=new Date(today);
+  while(d<=horizon){ if(WIN[d.getDay()]) days.push(new Date(d)); d.setDate(d.getDate()+1); }
+
+  // ---- data (live) ----
+  var takenMap={}, bookings=[], events=[];
+  function bookedIntervals(dt){ return takenMap[isoDate(dt)] || []; }
+  function openings(dt,L){
+    var w=WIN[dt.getDay()], booked=bookedIntervals(dt), out=[];
+    var isToday=(dt.toDateString()===new Date().toDateString()), nowMin=new Date().getHours()*60+new Date().getMinutes();
+    for(var t=w.o;t+L<=w.c;t+=GRID){
+      var past=isToday&&t<=nowMin, busy=false;
+      for(var b=0;b<booked.length;b++){ if(overlap(t,t+L,booked[b][0],booked[b][1])){busy=true;break;} }
+      out.push({t:t, past:past, busy:busy, off:past||busy});
+    }
+    return out;
+  }
+  function openCount(dt,L){ return openings(dt,L).filter(function(o){return !o.off;}).length; }
+
+  var rail=document.getElementById('rail'), durwrap=document.getElementById('durwrap'),
+      focuswrap=document.getElementById('focuswrap'), addwrap=document.getElementById('addwrap');
+  var state={ dayIdx:null, durIdx:0, start:null, focus:[], note:"", ice:false, sauna:false,
+              name:"", age:"", mobile:"", email:"", sig:false, agree:false };
+
+  // ---- day chips
+  function buildRail(){
+    rail.innerHTML='';
+    days.forEach(function(dt,idx){
+      var oc=openCount(dt,DUR[0].m), tag = oc===0?"Full" : (oc<=2? oc+" left" : "");
+      var el=document.createElement('div');
+      el.className='day'+(oc===0?' full':'')+(state.dayIdx===idx?' sel':'');
+      el.innerHTML='<div class="dow">'+DOW[dt.getDay()]+'</div><div class="dnum">'+dt.getDate()+'</div><div class="mon">'+MON[dt.getMonth()]+'</div>'+(tag?'<div class="tag">'+tag+'</div>':'');
+      if(oc>0) el.onclick=function(){ selectDay(idx, el); };
+      rail.appendChild(el);
+    });
+  }
+
+  // ---- duration
+  function buildDur(){
+    durwrap.innerHTML='';
+    DUR.forEach(function(du,idx){
+      var el=document.createElement('div');
+      el.className='dur'+(idx===state.durIdx?' sel':'')+(du.wide?' wide':'');
+      el.innerHTML=(du.badge?'<div class="badge">'+du.badge+'</div>':'')+'<div class="dl">'+du.label+'</div><div class="dp">'+(du.sub?du.sub+' · ':'')+'$'+du.price+'</div>';
+      el.onclick=function(){ selectDur(idx, el); };
+      durwrap.appendChild(el);
+    });
+  }
+
+  // ---- focus chips
+  function currentFoci(){ return DUR[state.durIdx].foci || FOCI; }
+  function renderFocus(){
+    focuswrap.innerHTML='';
+    currentFoci().forEach(function(f){
+      var el=document.createElement('div'); el.className='fchip'+(state.focus.indexOf(f)>=0?' sel':''); el.textContent=f;
+      el.onclick=function(){
+        var i=state.focus.indexOf(f);
+        if(i>=0){ state.focus.splice(i,1); el.classList.remove('sel'); }
+        else { state.focus.push(f); el.classList.add('sel'); }
+      };
+      focuswrap.appendChild(el);
+    });
+    document.getElementById('focusNote').textContent = DUR[state.durIdx].foci
+      ? '2-on-1 is for partner drills and sparring only.'
+      : 'What do you want Jake to work on? Tap any that apply.';
+  }
+
+  function recoveryPrice(){ if(state.ice&&state.sauna) return 30; if(state.sauna) return 25; if(state.ice) return 10; return 0; }
+  function recoveryLabel(){ if(state.ice&&state.sauna) return "Sauna + Ice Bath"; if(state.sauna) return "Sauna"; if(state.ice) return "Ice Bath"; return ""; }
+  function totalPrice(){ return DUR[state.durIdx].price + recoveryPrice(); }
+
+  function selectDur(idx, el){
+    state.durIdx=idx; state.start=null; state.focus=[];
+    [].forEach.call(durwrap.children,function(c){c.classList.remove('sel');}); el.classList.add('sel');
+    renderFocus();
+    if(state.dayIdx!==null) renderTimes();
+    smartSuggest(); refresh();
+  }
+  function selectDay(idx, el){
+    state.dayIdx=idx; state.start=null;
+    [].forEach.call(rail.children,function(c){c.classList.remove('sel');}); el.classList.add('sel');
+    renderTimes(); refresh();
+    document.getElementById('timeStep').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function renderTimes(){
+    var dt=days[state.dayIdx], w=WIN[dt.getDay()], L=DUR[state.durIdx].m, ops=openings(dt,L), oc=ops.filter(function(o){return !o.off;}).length;
+    document.getElementById('timeNote').textContent = dayStr(dt)+' · '+fmt(w.o)+' – '+fmt(w.c) + (oc>0&&oc<=2? ' · only '+oc+' left':'');
+    var wrap=document.getElementById('timesWrap'), html='<div class="times">', i=0;
+    ops.forEach(function(o){
+      html+='<div class="slot'+(o.off?' booked':'')+'" data-t="'+o.t+'" style="animation-delay:'+(i*40)+'ms">'
+          +'<div class="t">'+fmt(o.t)+'</div>'
+          +'<div class="meta">'+(o.past?'Passed':(o.busy?'Booked':'ends '+fmt(o.t+L)))+'</div></div>'; i++;
+    });
+    html+='</div>';
+    if(oc===0) html='<div class="empty">No '+L+'-minute openings left here.<br>Try another length or day above.</div>';
+    wrap.innerHTML=html;
+    [].forEach.call(wrap.querySelectorAll('.slot:not(.booked)'),function(sl){ sl.onclick=function(){ selectSlot(+sl.dataset.t, sl); }; });
+  }
+  function selectSlot(t, sl){
+    state.start=t;
+    [].forEach.call(document.querySelectorAll('.slot'),function(c){c.classList.remove('sel');}); sl.classList.add('sel');
+    refresh();
+  }
+
+  function smartSuggest(){
+    var L=DUR[state.durIdx].m, found=null;
+    for(var i=0;i<days.length && !found;i++){
+      var ops=openings(days[i],L);
+      for(var j=0;j<ops.length;j++){ if(!ops[j].off){ found={idx:i, t:ops[j].t}; break; } }
+    }
+    var banner=document.getElementById('smart');
+    if(found && state.start===null){
+      document.getElementById('smartVal').textContent = dayStr(days[found.idx])+', '+fmt(found.t);
+      banner.style.display='flex';
+      banner.onclick=function(){
+        var el=rail.children[found.idx]; selectDay(found.idx, el);
+        setTimeout(function(){ var sl=document.querySelector('.slot[data-t="'+found.t+'"]:not(.booked)'); if(sl) selectSlot(found.t, sl); },80);
+      };
+    } else { banner.style.display='none'; }
+  }
+
+  function refresh(){
+    var du=DUR[state.durIdx], cta=document.getElementById('cta'), sum=document.getElementById('sumVal'),
+        rec=document.getElementById('receipt'), prog=document.getElementById('prog');
+    var have = state.dayIdx!==null && state.start!==null;
+    prog.style.width=((state.dayIdx!==null?50:0)+(state.start!==null?50:0))+'%';
+    if(state.start!==null) document.getElementById('smart').style.display='none';
+    if(!have){
+      rec.style.display='none';
+      sum.textContent = state.dayIdx!==null ? dayStr(days[state.dayIdx])+' · pick a time' : '—';
+      cta.disabled=true; cta.textContent='Select a time'; return;
+    }
+    var dt=days[state.dayIdx], rl=recoveryLabel(), tot=totalPrice();
+    var rows='<div class="rrow"><span class="rk"><b>'+du.label+' 1-on-1</b><br>'+fmt(state.start)+' – '+fmt(state.start+du.m)+'</span><span class="rv">$'+du.price+'</span></div>';
+    if(state.ice&&state.sauna) rows+='<div class="rrow"><span class="rk">Sauna + Ice Bath <span style="color:#8fd6ef">(bundle)</span></span><span class="rv">$30</span></div>';
+    else if(state.sauna) rows+='<div class="rrow"><span class="rk">Sauna</span><span class="rv">$25</span></div>';
+    else if(state.ice) rows+='<div class="rrow"><span class="rk">Ice Bath</span><span class="rv">$10</span></div>';
+    rows+='<div class="rrow tot"><span class="rk">Total</span><span class="rv">$'+tot+'</span></div>';
+    rec.innerHTML=rows; rec.style.display='block';
+    sum.textContent = dayStr(dt)+' · '+fmt(state.start)+' · '+du.label + (rl?' + recovery':'');
+    if(readyToBook()){ cta.disabled=false; cta.textContent='Confirm Booking · $'+tot; }
+    else { cta.disabled=true; cta.textContent=nextNeeded(); }
+  }
+  function detailsOk(){ return !!(state.name.trim() && String(state.age).trim() && state.mobile.trim() && /.+@.+\..+/.test(state.email.trim())); }
+  function readyToBook(){ return state.dayIdx!==null && state.start!==null && detailsOk() && state.sig && state.agree; }
+  function nextNeeded(){ if(!detailsOk()) return 'Add your details'; if(!state.sig) return 'Add your signature'; if(!state.agree) return 'Agree to book'; return 'Confirm Booking'; }
+
+  function notifyStaff(title, body){
+    if(!session) return;
+    fetch('/api/notify-staff',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({token:session.access_token, title:title, body:body, url:'/'})}).catch(function(){});
+  }
+
+  // ---- confirm (insert into DB) ----
+  document.getElementById('cta').onclick=async function(){
+    if(!readyToBook()) return;
+    var cta=this; cta.disabled=true;
+    var dt=days[state.dayIdx], du=DUR[state.durIdx], rl=recoveryLabel(), tot=totalPrice();
+    var sig=(window.getSig?window.getSig():null);
+    var row={ user_id:uid, coach:COACH, session_date:isoDate(dt), start_min:state.start, duration_min:du.m,
+      session_type:du.key, price:du.price, addon_ice:state.ice, addon_sauna:state.sauna, recovery_price:recoveryPrice(),
+      total:tot, focus:state.focus.slice(), note:state.note.trim(), member_name:state.name.trim(),
+      member_age:(parseInt(state.age,10)||null), member_mobile:state.mobile.trim(), member_email:state.email.trim(),
+      signature:sig, status:'booked', slot_start:localTs(dt,state.start), slot_end:localTs(dt,state.start+du.m) };
+    var ref=null, lastErr=null;
+    for(var attempt=0; attempt<3 && !ref; attempt++){
+      row.ref='LG-'+Math.random().toString(36).slice(2,6).toUpperCase();
+      var res=await sb.from('pt_bookings').insert(row);
+      if(!res.error){ ref=row.ref; break; }
+      lastErr=res.error;
+      var msg=(res.error.message||'')+' '+(res.error.details||'');
+      if(res.error.code==='23P01' || /pt_no_overlap|overlap/i.test(msg)){
+        cta.disabled=false; toast('Sorry — that time was just booked. Pick another.');
+        await reloadData(); if(state.dayIdx!==null) renderTimes(); refresh(); return;
+      }
+      if(res.error.code==='23505' && /ref/i.test(msg)){ continue; } // ref collision → retry
+      break; // other error
+    }
+    if(!ref){ cta.disabled=false; toast('Could not book — please try again.'); return; }
+
+    // build confirmation ticket
+    document.getElementById('tkRef').textContent=ref;
+    document.getElementById('tkWhat').textContent=du.label+' Session';
+    document.getElementById('tkWhen').textContent=dayStr(dt);
+    document.getElementById('tkTime').textContent=fmt(state.start)+' – '+fmt(state.start+du.m);
+    document.getElementById('tkMember').textContent=state.name.trim()+' · '+state.mobile.trim();
+    var fRow=document.getElementById('tkFocusRow');
+    if(state.focus.length){ document.getElementById('tkFocus').textContent=state.focus.join(', '); fRow.style.display='flex'; } else fRow.style.display='none';
+    var nRow=document.getElementById('tkNoteRow');
+    if(state.note.trim()){ document.getElementById('tkNote').textContent=state.note.trim(); nRow.style.display='flex'; } else nRow.style.display='none';
+    var aRow=document.getElementById('tkAddRow');
+    if(rl){ document.getElementById('tkAdd').textContent=rl+' · $'+recoveryPrice(); aRow.style.display='flex'; } else aRow.style.display='none';
+    document.getElementById('tkPrice').textContent='$'+tot;
+    var s=new Date(dt); s.setHours(0,0,0,0); s.setMinutes(state.start);
+    var e=new Date(s.getTime()+du.m*60000);
+    function z(x){return x.getUTCFullYear()+pad(x.getUTCMonth()+1)+pad(x.getUTCDate())+'T'+pad(x.getUTCHours())+pad(x.getUTCMinutes())+'00Z';}
+    var det='1-on-1 personal training with Jake at Legacy Gym.'+(rl?' Recovery add-on: '+rl+'.':'')+(state.focus.length?' Focus: '+state.focus.join(', ')+'.':'')+' Ref '+ref;
+    document.getElementById('calBtn').href='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(du.label+' PT with Jake — Legacy Gym')+'&dates='+z(s)+'/'+z(e)+'&details='+encodeURIComponent(det)+'&location='+encodeURIComponent('Legacy Gym, Kincumber');
+
+    notifyStaff('New PT booking', state.name.trim()+' — '+dayStr(dt)+' '+fmt(state.start)+' ('+du.label+') · $'+tot);
+    document.getElementById('confirm').classList.add('show');
+    document.getElementById('prog').style.width='100%';
+    cta.disabled=false;
+    await reloadData();
+  };
+
+  window.reset=function(){
+    document.getElementById('confirm').classList.remove('show');
+    state={ dayIdx:null, durIdx:0, start:null, focus:[], note:"", ice:false, sauna:false,
+            name:"", age:"", mobile:"", email:"", sig:false, agree:false };
+    [].forEach.call(durwrap.children,function(c,i){ c.classList.toggle('sel',i===0); });
+    renderFocus();
+    [].forEach.call(addwrap.children,function(c){c.classList.remove('sel');});
+    document.getElementById('note').value='';
+    ['fName','fAge','fMobile','fEmail'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('agree').classList.remove('on');
+    if(window.clearSig) window.clearSig();
+    document.getElementById('bundle').style.display='none';
+    document.getElementById('timesWrap').innerHTML='';
+    document.getElementById('timeNote').textContent='Select a day above to see open times.';
+    document.getElementById('scroll').scrollTop=0;
+    buildRail(); smartSuggest(); refresh();
+    switchTab('sessions');
+  };
+
+  // ---- inputs / agree ----
+  function bindInput(id, key){ document.getElementById(id).addEventListener('input',function(e){ state[key]=e.target.value; refresh(); }); }
+  function wireInputs(){
+    bindInput('fName','name'); bindInput('fAge','age'); bindInput('fMobile','mobile'); bindInput('fEmail','email');
+    document.getElementById('note').addEventListener('input',function(e){ state.note=e.target.value; });
+    document.getElementById('agree').onclick=function(){ state.agree=!state.agree; this.classList.toggle('on',state.agree); refresh(); };
+    [].forEach.call(addwrap.children,function(el){
+      el.onclick=function(){
+        var k=el.dataset.add; state[k]=!state[k]; el.classList.toggle('sel',state[k]);
+        document.getElementById('bundle').style.display=(state.ice&&state.sauna)?'flex':'none';
+        refresh();
+      };
+    });
+  }
+
+  // ---- signature ----
+  (function initSig(){
+    var c=document.getElementById('sigPad'); if(!c) return;
+    var ctx=c.getContext('2d'), drawing=false, dpr=window.devicePixelRatio||1, sized=false;
+    function resize(){ var r=c.getBoundingClientRect(); if(!r.width) return; c.width=r.width*dpr; c.height=r.height*dpr; ctx.setTransform(1,0,0,1,0,0); ctx.scale(dpr,dpr); ctx.lineWidth=2.3; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.strokeStyle='#f2f0eb'; sized=true; }
+    setTimeout(resize,120);
+    function posn(e){ var r=c.getBoundingClientRect(), pt=e.touches?e.touches[0]:e; return {x:pt.clientX-r.left, y:pt.clientY-r.top}; }
+    function start(e){ if(!sized) resize(); drawing=true; var p=posn(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); e.preventDefault(); }
+    function move(e){ if(!drawing) return; var p=posn(e); ctx.lineTo(p.x,p.y); ctx.stroke();
+      if(!state.sig){ state.sig=true; document.getElementById('sigHint').style.display='none'; refresh(); } e.preventDefault(); }
+    function end(){ drawing=false; }
+    c.addEventListener('mousedown',start); c.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+    c.addEventListener('touchstart',start,{passive:false}); c.addEventListener('touchmove',move,{passive:false}); c.addEventListener('touchend',end);
+    window.getSig=function(){ try{ return sized? c.toDataURL('image/png') : null; }catch(e){ return null; } };
+    window.clearSig=function(){ if(sized) ctx.clearRect(0,0,c.width,c.height); state.sig=false; document.getElementById('sigHint').style.display='block'; refresh(); };
+  })();
+
+  // ---- tabs ----
+  function switchTab(name){
+    if(name==='admin' && !isStaff) name='book';
+    var views={ book:'scroll', sessions:'scrollSessions', admin:'scrollAdmin' };
+    document.getElementById('tabBook').classList.toggle('sel',name==='book');
+    document.getElementById('tabSessions').classList.toggle('sel',name==='sessions');
+    document.getElementById('tabAdmin').classList.toggle('sel',name==='admin');
+    for(var k in views){ document.getElementById(views[k]).style.display=(k===name)?'':'none'; }
+    document.getElementById('foot').style.display=(name==='book')?'':'none';
+    if(name==='sessions') renderSessions();
+    if(name==='admin'){ document.getElementById('acount').style.display='none'; renderAdmin(); }
+  }
+  function wireTabs(){
+    document.getElementById('tabBook').onclick=function(){ switchTab('book'); };
+    document.getElementById('tabSessions').onclick=function(){ switchTab('sessions'); };
+    document.getElementById('tabAdmin').onclick=function(){ switchTab('admin'); };
+  }
+
+  // ---- shared helpers ----
+  function dtOf(bk){ var d2=new Date(bk.date); d2.setHours(0,0,0,0); d2.setMinutes(bk.start); return d2; }
+  function recLabelOf(bk){ return (bk.ice&&bk.sauna)?'Sauna + Ice Bath':(bk.sauna?'Sauna':(bk.ice?'Ice Bath':'')); }
+  function myBookings(){ return bookings.filter(function(b){ return b.mine; }); }
+  function updateCount(){ document.getElementById('tcount').textContent=myBookings().length; }
+  function timeAgo(ts){ var s=Math.max(0,(Date.now()-ts)/1000); if(s<60) return 'now'; var m=Math.floor(s/60); if(m<60) return m+'m'; var h=Math.floor(m/60); if(h<24) return h+'h'; return Math.floor(h/24)+'d'; }
+
+  // ---- My Sessions ----
+  function renderSessions(){
+    var list=document.getElementById('sessList'), mine=myBookings();
+    if(!mine.length){ list.innerHTML='<div class="semty"><div class="big">🥊</div>No upcoming sessions.<br>Head to Book to lock one in.</div>'; return; }
+    var sorted=mine.slice().sort(function(a,b){ return dtOf(a)-dtOf(b); }), html='';
+    sorted.forEach(function(bk){
+      var du=DUR[bk.durIdx], rl=recLabelOf(bk);
+      html+='<div class="mcard">'
+        +'<div class="mtop"><div class="mwhen">'+dayStr(bk.date)+' · '+fmt(bk.start)+'–'+fmt(bk.start+du.m)+'</div><div class="mref">'+bk.ref+'</div></div>'
+        +'<div class="mmeta">'+du.label+' 1-on-1 · $'+bk.total+(rl?' · +'+rl:'')+'</div>'
+        +(bk.focus.length?'<div class="mfocus">Focus: '+bk.focus.join(', ')+'</div>':'')
+        +'<button class="mcancel" data-ref="'+bk.ref+'">Cancel session</button>'
+        +'</div>';
+    });
+    list.innerHTML=html;
+    [].forEach.call(list.querySelectorAll('.mcancel'),function(btn){ btn.onclick=function(){ openCancel(btn.dataset.ref); }; });
+  }
+
+  // ---- cancel ----
+  var cancelCtx=null;
+  function openCancel(ref){
+    var bk=bookings.filter(function(b){return b.ref===ref;})[0]; if(!bk) return;
+    var du=DUR[bk.durIdx];
+    document.getElementById('cxWhen').textContent=dayStr(bk.date)+' · '+fmt(bk.start)+'–'+fmt(bk.start+du.m)+' · '+bk.ref;
+    var hrs=(dtOf(bk)-new Date())/3600000, half=Math.round(bk.total*0.5), full=bk.total;
+    var band = hrs>=48?0 : (hrs>=24?1:2);
+    var rows=[ {t:'48+ hours before',v:'Free'}, {t:'24–48 hours before',v:'$'+half+' · 50%'}, {t:'Within 24 hours',v:'$'+full+' · 100%'} ];
+    var lad='<div class="ladder">';
+    rows.forEach(function(r,i){ lad+='<div class="lr'+(i===band?' on':'')+'"><span>'+r.t+'</span><b>'+r.v+'</b></div>'; });
+    lad+='</div><div class="fnow">This cancellation: <b>'+(band===0?'Free — no charge':(band===1?'$'+half+' (50%)':'$'+full+' (100%)'))+'</b></div>';
+    document.getElementById('cxFee').className='fee'; document.getElementById('cxFee').innerHTML=lad;
+    document.getElementById('cxConfirm').textContent = band===0?'Cancel session':'Cancel & pay '+(band===1?'$'+half:'$'+full);
+    cancelCtx={ ref:ref, charge:(band===0?0:(band===1?half:full)), bk:bk };
+    document.getElementById('cancelSheet').classList.add('show');
+  }
+  window.closeCancel=function(){ document.getElementById('cancelSheet').classList.remove('show'); };
+  document.getElementById('cxConfirm').onclick=async function(){
+    var ctx=cancelCtx; if(!ctx) return;
+    var btn=this; btn.disabled=true;
+    var res=await sb.from('pt_bookings').update({ status:'cancelled', cancelled_at:new Date().toISOString(), cancel_fee:ctx.charge }).eq('id', ctx.bk.id);
+    btn.disabled=false;
+    if(res.error){ toast('Could not cancel — please try again.'); return; }
+    notifyStaff('PT cancellation', ctx.bk.name+' cancelled '+dayStr(ctx.bk.date)+' '+fmt(ctx.bk.start)+(ctx.charge>0?' — $'+ctx.charge+' fee':' — no charge'));
+    closeCancel();
+    if(ctx.charge>0) toast('Late cancel — $'+ctx.charge+' charged. Jake has been notified.');
+    else toast('Session cancelled. Jake has been notified.');
+    await reloadData();
+  };
+
+  // ---- Jake's PT (coach) ----
+  function renderAdmin(){
+    document.getElementById('stUp').textContent=bookings.length;
+    document.getElementById('stVal').textContent='$'+bookings.reduce(function(a,b){return a+b.total;},0);
+    var feed=document.getElementById('adFeed');
+    if(!events.length){ feed.innerHTML='<div class="aempty" style="padding:14px">No activity yet.</div>'; }
+    else{
+      var fh='';
+      events.slice(0,10).forEach(function(ev){
+        var du=DUR[ev.durIdx], when=dayStr(ev.date)+', '+fmt(ev.start);
+        var title = ev.type==='book' ? 'New booking' : (ev.charge>0?'Cancelled · $'+ev.charge+' fee':'Cancelled — no charge');
+        fh+='<div class="fitem"><span class="fdot '+ev.type+'"></span><div class="ftxt"><b>'+title+'</b> — '+ev.name
+           +'<br><span class="fsub">'+when+' · '+du.label+'</span></div><div class="fago">'+timeAgo(ev.ts)+'</div></div>';
+      });
+      feed.innerHTML='<div class="adfeedwrap">'+fh+'</div>';
+    }
+    var list=document.getElementById('adList');
+    if(!bookings.length){ list.innerHTML='<div class="aempty">No bookings yet.</div>'; return; }
+    var sorted=bookings.slice().sort(function(a,b){ return dtOf(a)-dtOf(b); }), h='';
+    sorted.forEach(function(bk){
+      var du=DUR[bk.durIdx], rl=recLabelOf(bk);
+      h+='<div class="acard">'
+        +'<div class="atop"><b>'+esc(bk.name)+'</b><span class="aref">'+bk.ref+'</span></div>'
+        +'<div class="ameta">'+dayStr(bk.date)+' · '+fmt(bk.start)+'–'+fmt(bk.start+du.m)+' · '+du.label+' · $'+bk.total+(rl?' · +'+rl:'')+'</div>'
+        +((bk.mobile||bk.email)?'<div class="acontact">'+esc([bk.mobile,bk.email].filter(Boolean).join(' · '))+'</div>':'')
+        +(bk.focus&&bk.focus.length?'<div class="afocus">Focus: '+esc(bk.focus.join(', '))+'</div>':'')
+        +(bk.note?'<div class="anote">“'+esc(bk.note)+'”</div>':'')
+        +'</div>';
+    });
+    list.innerHTML=h;
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  // ---- toast ----
+  var toastT;
+  function toast(msg){ var el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(function(){ el.classList.remove('show'); },2600); }
+
+  // ---- load from Supabase ----
+  async function fetchData(){
+    var av=await sb.rpc('pt_taken_slots',{ p_coach:COACH, p_from:isoDate(today), p_to:isoDate(horizon) });
+    takenMap={};
+    (av.data||[]).forEach(function(r){
+      var k=r.session_date; (takenMap[k]=takenMap[k]||[]).push([r.start_min, r.start_min+r.duration_min]);
+    });
+    var q=await sb.from('pt_bookings').select('*').eq('coach',COACH).gte('session_date', isoDate(today)).order('created_at',{ascending:false});
+    var rows=q.data||[];
+    bookings=[]; events=[];
+    rows.forEach(function(r){
+      var di=KEYS.indexOf(r.session_type); if(di<0) di=0;
+      var dt=parseDate(r.session_date);
+      var b={ id:r.id, ref:r.ref, date:dt, start:r.start_min, durIdx:di, focus:r.focus||[], note:r.note||'',
+        ice:r.addon_ice, sauna:r.addon_sauna, total:r.total, name:r.member_name, mobile:r.member_mobile||'',
+        email:r.member_email||'', mine:(r.user_id===uid), status:r.status };
+      if(r.status==='booked'){
+        bookings.push(b);
+        events.push({type:'book', name:r.member_name, ref:r.ref, date:dt, start:r.start_min, durIdx:di, charge:0, ts:new Date(r.created_at).getTime()});
+      } else if(r.status==='cancelled'){
+        events.push({type:'cancel', name:r.member_name, ref:r.ref, date:dt, start:r.start_min, durIdx:di, charge:r.cancel_fee||0, ts:new Date(r.cancelled_at||r.created_at).getTime()});
+      }
+    });
+    events.sort(function(a,b){ return b.ts-a.ts; });
+  }
+  function bookViewBusy(){ return document.getElementById('scroll').style.display!=='none' && state.start!==null; }
+  async function reloadData(){
+    await fetchData();
+    updateCount(); renderSessions(); if(isStaff) renderAdmin();
+    if(!bookViewBusy()){ buildRail(); smartSuggest(); }
+    refresh();
+  }
+
+  function gate(msg){ var g=document.getElementById('gate'); g.classList.remove('hide'); g.querySelector('.spin').style.display='none'; document.getElementById('gateMsg').textContent=msg; }
+  function hideGate(){ document.getElementById('gate').classList.add('hide'); }
+
+  async function boot(){
+    if(!window.supabase){ gate('Could not load the booking system. Please reopen it from the app.'); return; }
+    sb=window.supabase.createClient(SB_URL, SB_KEY);
+    var s; try{ s=await sb.auth.getSession(); }catch(e){ s=null; }
+    session=(s&&s.data&&s.data.session)||null;
+    if(!session){ gate('Please sign in to the Legacy Gym app to book a session with Jake.'); return; }
+    uid=session.user.id;
+    try{ var pr=await sb.from('profiles').select('is_staff,is_coach').eq('id',uid).single(); isStaff=!!(pr.data&&(pr.data.is_staff||pr.data.is_coach)); }catch(e){ isStaff=false; }
+    document.getElementById('tabAdmin').style.display = isStaff ? '' : 'none';
+    buildDur(); renderFocus(); wireInputs(); wireTabs();
+    await reloadData();
+    hideGate();
+    try{ sb.channel('pt_live_'+uid).on('postgres_changes',{event:'*',schema:'public',table:'pt_bookings'},function(){ reloadData(); }).subscribe(); }catch(e){}
+    document.addEventListener('visibilitychange',function(){ if(!document.hidden && sb) reloadData(); });
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
