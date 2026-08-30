@@ -4,6 +4,10 @@ self.addEventListener("install", e => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(clients.claim()));
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  // Video/audio need native range-request streaming — passing them through the
+  // SW breaks playback (especially iOS). Let the browser handle them directly.
+  if (e.request.headers.has("range") || e.request.destination === "video" ||
+      e.request.destination === "audio" || /\.(mp4|mov|m4v|webm|mp3)(\?|$)/i.test(e.request.url)) return;
   e.respondWith(
     fetch(e.request)
       .then(res => {

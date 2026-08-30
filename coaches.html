@@ -394,7 +394,9 @@ footer p b{color:var(--dim)}
  var v=document.querySelector('.heroVid');
  if(v){var p=function(){var pr=v.play();if(pr&&pr.catch)pr.catch(function(){});};p();
   document.addEventListener('visibilitychange',function(){if(!document.hidden)p();});
-  document.addEventListener('touchstart',p,{once:true});}
+  document.addEventListener('touchstart',p,{once:true});
+  setTimeout(function(){if(v.readyState===0){v.load();p();}},2500);
+  setTimeout(function(){if(v.readyState===0){v.load();p();}},7000);}
  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.14});
  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
 })();

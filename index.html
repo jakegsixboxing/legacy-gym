@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202608300359";
+const LG_BUILD="202608300458";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -912,7 +912,7 @@ function renderCoaches(){
   var tb=document.querySelector('.topBar'), nv=$("nav");
   var top=tb?Math.round(tb.getBoundingClientRect().bottom):0;
   var navH=nv?Math.round(nv.getBoundingClientRect().height):72;
-  $("main").innerHTML='<iframe src="/coaches" title="Coaches · Private Sessions" scrolling="yes" '
+  $("main").innerHTML='<iframe src="/coaches" title="Coaches · Private Sessions" scrolling="yes" allow="autoplay" '
     +'style="position:fixed;left:0;right:0;top:'+top+'px;width:100%;height:calc(100dvh - '+top+'px - '+navH+'px);'
     +'border:0;background:#0a0b0e;display:block"></iframe>';
 }
