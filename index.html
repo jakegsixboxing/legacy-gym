@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202608291312";
+const LG_BUILD="202608300359";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -757,7 +757,7 @@ const HUB_EXTRA=[
  {id:"timetable",kicker:"The Full Week",title:"Weekly Timetable",sub:"Every class, every day \u2014 see what\u2019s on and when.",img:"classes"},
  {id:"mvm",kicker:"Head To Head",title:"Member vs Member",sub:"The battles, the records and the bragging rights.",img:"cardio"}
 ];
-const TRAIN_IDS=["classes","timetable","boxing","coaches","weights","hyrox","recovery","nutrition"];
+const TRAIN_IDS=["classes","timetable","boxing","coaches","weights","hyrox","recovery"];
 const COMPETE_IDS=["cardio","mvm","board","social","blokes"];
 function renderTrain(){
  $("main").innerHTML=`
@@ -790,9 +790,8 @@ const HOME_CARDS=[
  {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:"leaderboard"},
  {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"social"},
  {id:"shop",kicker:"Official Store",title:"Shop Apparel",sub:"Hoodies, tees & gear straight from our store — spend your credit here.",img:"shopmerch"},
- {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true},
- {id:"nutrition",kicker:"Fuel The Work",title:"Nutritionist",sub:"Meal guidance from our nutritionist — coming soon.",img:"food"}
-];
+ {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true}
+]; /* Nutrition card removed 30 Aug — restore when the nutritionist feature is built */
 function _stepNum(s){return parseInt(String(s).replace(/[^0-9]/g,''),10)||0;}
 function _kmNum(s){return parseFloat(String(s).replace(/[^0-9.]/g,''))||0;}
 function myDoneChallengeRefs(){if(!session||!ptsData.events)return new Set();const uid=session.user.id;return new Set(ptsData.events.filter(e=>e.user_id===uid&&e.kind==="challenge").map(e=>e.ref));}
