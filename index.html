@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202608300458";
+const LG_BUILD="202608300717";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -854,6 +854,7 @@ function renderHome(){
     ${installBannerHtml()}
     ${timetableCountdownHtml()}
     ${fightClubHtml()}
+    ${reviewCardHtml()}
     <div class="homeWelcome">
       <div class="hwKicker">${first?("G'day "+esc(first)):"Members Only"}</div>
       <div class="hwTitle">Culture<br>Without Chaos.</div>
@@ -879,6 +880,7 @@ function renderHome(){
 startTimetableCountdown();
 startSpringCountdown();
   t10MaybePopup();
+  reviewMaybePopup();
 }
 function timetableCountdownHtml(){
   var t=new Date(2026,6,20,5,15,0,0).getTime();
@@ -2069,6 +2071,148 @@ function t10MaybePopup(){
  o.innerHTML=`<div class="t10modal"><div class="t10mic">&#127942;</div><div class="t10mk">Congratulations</div><div class="t10mh">You made the<br>Legacy Top 10</div><div class="t10mr">${w.r} &middot; Members Challenge</div><div class="t10mw">You&rsquo;ve won ${won}</div><button class="t10mbtn" onclick="this.closest('.t10ov').remove();go('profile')">See your prize</button><button class="t10mx" onclick="this.closest('.t10ov').remove()">Close</button></div>`;
  document.body.appendChild(o);
 }
+
+/* ===== Google Reviews prompt (personalised popup + home card + private feedback) ===== */
+const REVIEW_URL="https://search.google.com/local/writereview?placeid=ChIJ7Xtn07m1cmsRAM-8pYd5rZk";
+const REV_DONE="lg_rev_done_v1", REV_DISS="lg_rev_diss_v1";
+let _revRating=0;
+function revFirst(){return (profile&&profile.first_name)?esc(profile.first_name):"";}
+function revLog(kind,rating,message){
+  try{
+    if(!session||!session.user)return;
+    const uid=session.user.id;
+    const nm=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim();
+    sb.from("review_events").insert({user_id:uid,member_name:nm||null,kind:kind,rating:rating||null,message:message||null}).then(()=>{}).catch(()=>{});
+    const who=nm||"A member";
+    const body=kind==="google_tap"
+      ? (who+" just tapped through to leave a Google review ⭐")
+      : (who+" sent private feedback"+(rating?(" ("+rating+"★)"):"")+(message?(": "+message.slice(0,90)):""));
+    const tok=session.access_token;
+    if(tok)fetch("/api/notify-review",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token:tok,title:"Legacy Gym",body:body,url:"/"})}).catch(()=>{});
+  }catch(e){}
+}
+function revEnsureCss(){
+  if(document.getElementById("revcss"))return;
+  const st=document.createElement("style");st.id="revcss";
+  st.textContent=`
+  .revov{position:fixed;inset:0;z-index:2147483000;background:rgba(4,4,6,.82);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px}
+  .revmodal{width:100%;max-width:360px;background:linear-gradient(180deg,var(--panel),#0c0c0e);border:1px solid var(--gold-dim);border-radius:20px;padding:24px 20px 20px;box-shadow:0 30px 80px rgba(0,0,0,.7);text-align:center}
+  .revk{font-family:Oswald,sans-serif;font-weight:600;letter-spacing:3px;text-transform:uppercase;font-size:10px;color:var(--gold)}
+  .revh{font-family:Oswald,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:1px;font-size:22px;line-height:1.12;margin:6px 0 4px;color:var(--text)}
+  .revsub{color:var(--muted);font-size:13px;line-height:1.6;margin-top:4px}
+  .revstars{display:flex;justify-content:center;gap:8px;margin:20px 0 4px}
+  .revstar{width:40px;height:40px;cursor:pointer;transition:transform .12s}
+  .revstar:active{transform:scale(.86)}
+  .revstar svg{width:100%;height:100%;display:block}
+  .revstar .f{fill:#2a2a2e;transition:fill .15s}
+  .revstar.on .f{fill:var(--gold)}
+  .revhint{color:var(--muted);font-size:12px;letter-spacing:.5px;min-height:15px;margin-bottom:2px}
+  .revbtn{width:100%;padding:15px;margin-top:12px;border-radius:11px;background:linear-gradient(135deg,#e8c56a,var(--gold));color:#161307;font-family:Oswald,sans-serif;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:13px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px}
+  .revghost{width:100%;padding:12px;margin-top:9px;border-radius:11px;background:none;border:1px solid var(--line);color:var(--muted);font-family:Oswald,sans-serif;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;font-size:11px;cursor:pointer}
+  .revstarline{text-align:center;color:var(--gold);letter-spacing:5px;font-size:17px;margin-top:11px}
+  .revgwrap{display:flex;align-items:center;justify-content:center;gap:1px;margin:12px 0 2px;font-family:Oswald,sans-serif;font-weight:700;font-size:13px;letter-spacing:.5px}
+  .revgwrap span:nth-child(1){color:#4285F4}.revgwrap span:nth-child(2){color:#EA4335}.revgwrap span:nth-child(3){color:#FBBC05}.revgwrap span:nth-child(4){color:#4285F4}.revgwrap span:nth-child(5){color:#34A853}.revgwrap span:nth-child(6){color:#EA4335}
+  .revta{width:100%;background:#17171a;border:1px solid var(--line);border-radius:11px;color:var(--text);padding:12px;font-size:14px;font-family:Montserrat,system-ui,sans-serif;min-height:88px;resize:none;margin-top:10px}
+  .revtick{width:56px;height:56px;border-radius:50%;background:rgba(79,174,122,.14);border:1.5px solid var(--ok,#4fae7a);display:flex;align-items:center;justify-content:center;margin:2px auto 14px}
+  .revtick svg{width:25px;height:25px;stroke:var(--ok,#4fae7a);stroke-width:2.4;fill:none}
+  .revcard{position:relative;display:flex;align-items:center;gap:14px;margin-bottom:16px;padding:15px 17px;border-radius:16px;cursor:pointer;border:1px solid var(--gold-dim);background:radial-gradient(120% 100% at 0 0,rgba(201,162,74,.22),transparent 60%),linear-gradient(180deg,rgba(40,32,12,.7),rgba(14,11,6,.94))}
+  .revcard .ri{width:40px;height:40px;flex-shrink:0;border-radius:11px;background:linear-gradient(160deg,#e8c56a,var(--gold));display:flex;align-items:center;justify-content:center}
+  .revcard .ri svg{width:22px;height:22px;fill:#161307}
+  .revcard .rt{font-family:Oswald,sans-serif;font-weight:700;letter-spacing:.5px;text-transform:uppercase;font-size:14px;color:var(--text)}
+  .revcard .rs{color:var(--muted);font-size:11.5px;margin-top:2px}
+  `;
+  document.head.appendChild(st);
+}
+function _revStarSvg(){return '<svg viewBox="0 0 24 24"><path class="f" d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8L12 2z"/></svg>';}
+function reviewOpen(){
+  revEnsureCss(); _revRating=0;
+  const o=document.createElement("div");o.className="revov";o.id="revov";
+  o.onclick=function(e){if(e.target===o)revDismiss();};
+  const nm=revFirst();
+  o.innerHTML=`<div class="revmodal" id="revmodal">
+    <div class="revk">A big favour 🙏</div>
+    <div class="revh">${nm?("Hi "+nm+", could you<br>do us a favour?"):"Could you do us<br>a little favour?"}</div>
+    <div class="revsub">We’re a small local gym, and honestly, a review from you would mean the world to us. If you’ve enjoyed your time at Legacy, please take 20 seconds — it truly helps us keep doing what we love.</div>
+    <div class="revstars" id="revstars">
+      ${[1,2,3,4,5].map(v=>`<div class="revstar" data-v="${v}" onclick="revStar(${v})">${_revStarSvg()}</div>`).join("")}
+    </div>
+    <div class="revhint" id="revhint">Tap a star</div>
+    <button class="revghost" onclick="revDismiss()">Maybe later</button>
+  </div>`;
+  document.body.appendChild(o);
+}
+function revStar(v){
+  _revRating=v;
+  document.querySelectorAll('#revstars .revstar').forEach(x=>x.classList.toggle('on',(+x.dataset.v)<=v));
+  const h=$("revhint"); if(h)h.textContent=({1:'Ouch — tell us more',2:'We can do better',3:'Noted — what happened?',4:'Nice one!',5:'You legend! ⭐'})[v]||'';
+  setTimeout(()=>{ v>=4?revShowGoogle():revShowPrivate(); },420);
+}
+function revShowGoogle(){
+  const nm=revFirst();
+  const m=$("revmodal"); if(!m)return;
+  m.innerHTML=`
+    <div class="revk">Thank you so much${nm?(", "+nm):""} 🙌</div>
+    <div class="revh">You’re the best</div>
+    <div class="revsub">One tap opens Google — you’re already signed in on your phone. Please share a few words and a rating, and you’ll have given our little gym a massive lift.</div>
+    <div class="revgwrap"><span>G</span><span>o</span><span>o</span><span>g</span><span>l</span><span>e</span></div>
+    <button class="revbtn" onclick="revGoogle()"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="#161307" d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8L12 2z"/></svg>Leave a Google Review</button>
+    <div class="revstarline">★★★★★</div>
+    <button class="revghost" onclick="revDismiss()">Maybe later</button>`;
+}
+function revShowPrivate(){
+  const m=$("revmodal"); if(!m)return;
+  m.innerHTML=`
+    <div class="revk">Thanks for being honest 🙏</div>
+    <div class="revh">We’d love to<br>make it right</div>
+    <div class="revsub">This comes straight to Jake &amp; the team — privately, just between us. We read every single one, and we genuinely want to fix whatever let you down.</div>
+    <textarea class="revta" id="revta" placeholder="Tell us what happened…"></textarea>
+    <button class="revbtn" onclick="revSendPrivate()">Send to the team</button>
+    <button class="revghost" onclick="revDismiss()">Cancel</button>`;
+  setTimeout(()=>{const t=$("revta");if(t)t.focus();},60);
+}
+function revGoogle(){
+  localStorage.setItem(REV_DONE,"1");
+  revLog("google_tap",_revRating,null);
+  try{window.open(REVIEW_URL,"_blank","noopener");}catch(e){location.href=REVIEW_URL;}
+  revDone("Thank you — you’re a legend");
+}
+function revSendPrivate(){
+  const t=$("revta"); const msg=t?t.value.trim():"";
+  localStorage.setItem(REV_DONE,"1");
+  revLog("private_feedback",_revRating,msg);
+  revDone("Got it — thank you");
+}
+function revDone(title){
+  const m=$("revmodal"); if(!m)return;
+  m.innerHTML=`
+    <div class="revtick"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></div>
+    <div class="revh">${esc(title)}</div>
+    <div class="revsub">We really appreciate you.</div>
+    <button class="revghost" onclick="revClose()" style="margin-top:16px">Done</button>`;
+  setTimeout(()=>{const c=$("revov");if(c)c.remove();if(view==="home")renderHome();},2600);
+}
+function revDismiss(){
+  try{localStorage.setItem(REV_DISS,String((+(localStorage.getItem(REV_DISS)||0))+1));}catch(e){}
+  const c=$("revov"); if(c)c.remove();
+}
+function revClose(){const c=$("revov");if(c)c.remove();if(view==="home")renderHome();}
+function reviewMaybePopup(){
+  if(!profile)return;
+  try{
+    if(localStorage.getItem(REV_DONE))return;
+    if((+(localStorage.getItem(REV_DISS)||0))>=3)return;
+  }catch(e){return;}
+  if(document.getElementById("revov"))return;
+  setTimeout(reviewOpen,650);
+}
+function reviewCardHtml(){
+  try{if(localStorage.getItem(REV_DONE))return"";}catch(e){return"";}
+  return `<div class="revcard" onclick="reviewOpen()">
+    <div class="ri"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8L12 2z"/></svg></div>
+    <div><div class="rt">Help our small business</div><div class="rs">A 20-second Google review means the world to us — tap to leave one 🙏</div></div>
+  </div>`;
+}
+
 function t10EnsureCss(){
  if(document.getElementById("t10css"))return;
  const s=document.createElement("style");s.id="t10css";
