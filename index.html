@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202608300803";
+const LG_BUILD="202608301332";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -911,12 +911,27 @@ function startTimetableCountdown(){
 
 /* ---- Coaches · Private Sessions (native full screen, embeds /coaches) ---- */
 function renderCoaches(){
+  // Private Sessions are behind a coming-soon lock for members until the
+  // in-app booking system is finished. Staff & coaches keep access to build it.
+  var canSee=!!(typeof profile!=="undefined"&&profile&&(profile.is_staff||profile.is_coach));
+  if(!canSee)return renderCoachesLocked();
   var tb=document.querySelector('.topBar'), nv=$("nav");
   var top=tb?Math.round(tb.getBoundingClientRect().bottom):0;
   var navH=nv?Math.round(nv.getBoundingClientRect().height):72;
   $("main").innerHTML='<iframe src="/coaches" title="Coaches · Private Sessions" scrolling="yes" allow="autoplay" '
     +'style="position:fixed;left:0;right:0;top:'+top+'px;width:100%;height:calc(100dvh - '+top+'px - '+navH+'px);'
     +'border:0;background:#0a0b0e;display:block"></iframe>';
+}
+function renderCoachesLocked(){
+  $("main").innerHTML=
+   '<div style="max-width:520px;margin:0 auto;padding:56px 26px 96px;text-align:center;color:#f2f0eb;font-family:Montserrat,system-ui,-apple-system,sans-serif">'
+   +'<div style="width:96px;height:96px;margin:0 auto 24px;border-radius:50%;border:1px solid #8a7136;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 30%,rgba(201,164,76,.18),transparent 65%);box-shadow:0 0 42px -8px rgba(201,164,76,.5)">'
+   +'<span style="font-size:38px;line-height:1">&#128274;</span></div>'
+   +'<div style="font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:#c9a44c;font-family:Oswald,sans-serif;font-weight:600">Coaches &middot; Private Sessions</div>'
+   +'<div style="font-family:Anton,Oswald,sans-serif;font-size:38px;letter-spacing:.01em;margin:11px 0 6px">COMING SOON</div>'
+   +'<div style="display:inline-block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#9a9891;border:1px solid #26262b;border-radius:999px;padding:5px 13px">Under maintenance</div>'
+   +'<p style="color:#9a9891;font-size:14px;line-height:1.75;max-width:360px;margin:22px auto 0">Private 1-on-1 personal training with Coach Jake, Coach Joe &amp; Coach Sarsha is getting a serious upgrade. You&rsquo;ll be able to book your sessions right here in the app very soon.</p>'
+   +'</div>';
 }
 
 /* ---- Boxing (sub-tabs: Classes / Fitness Club / Sparring Club) ---- */
