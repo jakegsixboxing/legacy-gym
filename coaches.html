@@ -355,25 +355,13 @@ footer p b{color:var(--dim)}
     <div><span class="k">Coach</span> Jake Williamson · Owner &amp; Head Coach</div>
    </div>
   </div>
-  <form onsubmit="event.preventDefault();document.getElementById('tt').style.display='block';this.querySelector('button').textContent='Request Sent';">
-   <div class="field"><label for="nm">Your Name</label><input id="nm" type="text" placeholder="First and last name" required></div>
-   <div class="row2">
-    <div class="field"><label for="ph">Phone</label><input id="ph" type="tel" placeholder="Mobile"></div>
-    <div class="field"><label for="em">Email</label><input id="em" type="email" placeholder="you@email.com"></div>
-   </div>
-   <div class="field"><label for="ss">Session</label>
-    <select id="ss">
-     <option>The Full Session — 50 min · $90</option>
-     <option>1-on-1 Pad Work — 30 min · $60</option>
-     <option>2-on-1 Sparring — 60 min · $140</option>
-     <option>Not sure yet — help me choose</option>
-    </select>
-   </div>
-   <div class="field"><label for="ex">Your experience &amp; goals</label><textarea id="ex" placeholder="e.g. Total beginner wanting to learn the basics / prepping for my first amateur fight in October…"></textarea></div>
-   <button type="submit" class="btn">Request My Session</button>
-   <div class="toast" id="tt">Request received — this is a demo form. Wire it to your booking system, email or DMs when you go live.</div>
-   <div class="demoNote">Demo preview — no message is actually sent.</div>
-  </form>
+  <div class="bookcta" style="background:#0f0d08;border:1px solid var(--line);border-radius:18px;padding:34px 28px;text-align:center;align-self:center">
+   <div style="font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:12px;color:var(--gold)">Book in the app</div>
+   <h3 style="font-family:'Anton',sans-serif;font-size:27px;margin:12px 0 10px;letter-spacing:.01em">Lock in your session</h3>
+   <p style="color:var(--dim);font-size:14.5px;line-height:1.65;margin:0 auto 24px;max-width:34ch">Pick your day, time and session type, add your details and sign — you're booked straight into Jake's calendar.</p>
+   <a href="/book-jake" class="btn" style="display:inline-block">Book a Session</a>
+   <div style="margin-top:18px;color:var(--dim);font-size:12px;letter-spacing:.05em">30 min $60 &middot; 50 min $90 &middot; 2-on-1 $140</div>
+  </div>
  </div>
 </section>
 

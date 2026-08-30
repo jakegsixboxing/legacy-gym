@@ -24,6 +24,9 @@
 
   .appbar{ padding:16px 20px 13px; display:flex; align-items:center; gap:12px;
     background:linear-gradient(180deg,#121214,#0d0d0f); position:relative; z-index:5; }
+  .back{width:34px; height:34px; border:1px solid var(--line); border-radius:10px; background:var(--panel2);
+    color:var(--muted); display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; flex:0 0 auto; text-decoration:none}
+  .back:active{transform:scale(.95)}
   .appbar h1{margin:0; font-family:Oswald,sans-serif; font-weight:600; font-size:17px; letter-spacing:.14em; text-transform:uppercase}
   .appbar .sub{font-size:10px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); margin-top:1px}
   .prog{height:2px; background:var(--line); position:relative; z-index:5}
@@ -297,6 +300,7 @@
 
 <div class="phone">
   <div class="appbar">
+    <a class="back" href="/coaches" title="Back to Jake's page">‹</a>
     <div>
       <h1>Book a Session</h1>
       <div class="sub">Trained by Jake</div>
