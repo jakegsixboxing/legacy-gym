@@ -286,7 +286,7 @@ footer p b{color:var(--dim)}
    <h2>Choose your round</h2>
    <p>Straightforward rates, real coaching. Book a one-off or make it a regular thing.</p>
   </div>
-  <div class="pgrid">
+  <div class="pgrid" style="grid-template-columns:repeat(2,1fr);max-width:860px;margin-left:auto;margin-right:auto">
    <div class="card">
     <div class="pk">The Sharp Thirty</div><div class="dur">30 Minutes &middot; 1-on-1</div>
     <div class="price">$50</div>
@@ -299,6 +299,12 @@ footer p b{color:var(--dim)}
     <div class="price">$75</div>
     <div class="desc">The complete one-on-one with Joe &mdash; technique, drills and pad work with room to build. Boxing fitness, skill PT or amateur prep, shaped to your goals.</div>
     <a href="#book" class="btn">Book The Full Session</a>
+   </div>
+   <div class="card">
+    <div class="pk">2-on-1 Session</div><div class="dur">50 Minutes &middot; 2 People</div>
+    <div class="price">$100<small> &middot; for two</small></div>
+    <div class="desc">Bring a training partner and work as a pair &mdash; boxing fitness, partner drills, pads and more, run by Joe from start to finish.</div>
+    <a href="#book" class="btn ghost">Book 2-on-1</a>
    </div>
    <div class="card">
     <div class="pk">Tailored To You</div><div class="dur">Anything Else &middot; Your Plan</div>
@@ -332,6 +338,7 @@ footer p b{color:var(--dim)}
     <select id="ss">
      <option>The Full Session &mdash; 45 min &middot; $75</option>
      <option>The Sharp Thirty &mdash; 30 min &middot; $50</option>
+     <option>2-on-1 Session &mdash; 50 min &middot; $100 for two</option>
      <option>Tailored to me &mdash; let&rsquo;s talk</option>
      <option>Not sure yet &mdash; help me choose</option>
     </select>
