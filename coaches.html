@@ -42,6 +42,12 @@ h3{font-family:'Oswald',sans-serif;font-weight:700;text-transform:uppercase;lett
 :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 
 /* hero */
+.hero{overflow:hidden}
+.heroVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 28%;opacity:.42;z-index:0;filter:saturate(.85)}
+.heroVidShade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(11,10,8,.5),rgba(11,10,8,.88)),radial-gradient(120% 90% at 12% 0%,rgba(26,22,13,.55) 0%,rgba(11,10,8,.65) 60%)}
+.hero .wrap{position:relative;z-index:2}
+@media(prefers-reduced-motion:reduce){.heroVid{display:none}}
+
 .hero{position:relative;border-bottom:1px solid var(--line);
  background:radial-gradient(120% 90% at 12% 0%,#1a160d 0%,var(--bg) 60%)}
 .hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center;padding-top:56px;padding-bottom:56px}
@@ -190,6 +196,8 @@ footer p b{color:var(--dim)}
 </style><div class="cbar"><button class="cback" onclick="try{if(window.parent&&window.parent!==window&&window.parent.go){window.parent.go('home');return}}catch(e){}if(history.length>1){history.back()}else{location.href='/'}">&#8249; Home</button><span class="ctitle">Coaches &middot; Private Sessions</span></div><div class="ctabs"><button class="ctab on">Coach Jake</button><button class="ctab" onclick="location.href='/joe-williams'">Coach Joe</button><button class="ctab" onclick="location.href='/sarsha'">Coach Sarsha</button></div>
 
 <header class="hero">
+ <video class="heroVid" src="/jake-pt.mp4" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+ <div class="heroVidShade"></div>
  <div class="wrap">
   <div class="intro">
    <div class="eyebrow kick">Legacy Gym · 1-on-1 Coaching</div>
@@ -383,6 +391,10 @@ footer p b{color:var(--dim)}
 
 <script>
 (function(){
+ var v=document.querySelector('.heroVid');
+ if(v){var p=function(){var pr=v.play();if(pr&&pr.catch)pr.catch(function(){});};p();
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)p();});
+  document.addEventListener('touchstart',p,{once:true});}
  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.14});
  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
 })();

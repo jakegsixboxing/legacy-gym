@@ -54,7 +54,7 @@ render(512, 'public/icon-512.png');
 render(192, 'public/icon-192.png');
 render(180, 'public/apple-touch-icon.png');
 
-for (const f of ['index.html', 'manifest.json', 'sw.js', 'spring-challenge.html', 'coaches.html', 'sarsha-mcgurk.html', 'fight-club.jpg', 'joe-williams.html', 'sarsha.html']) {
+for (const f of ['index.html', 'manifest.json', 'sw.js', 'spring-challenge.html', 'coaches.html', 'sarsha-mcgurk.html', 'fight-club.jpg', 'joe-williams.html', 'sarsha.html', 'jake-pt.mp4']) {
   fs.copyFileSync(f, 'public/' + f);
   console.log('copied', f);
 }
