@@ -402,20 +402,11 @@
     <div class="step">
       <div class="step-tag">Step 7</div>
       <div class="step-h">Agreement</div>
-      <div class="step-note">Read, sign and agree to lock in your session.</div>
+      <div class="step-note">Read the policy and tick to agree — that locks in your session.</div>
     </div>
     <div class="policy">
       <div class="phead">Cancellation policy</div>
       <div class="ptext">Once you book, your session is <b>locked in</b>. Cancel <b>24–48 hours</b> before and you're charged <b>50%</b> of the session. Cancel <b>within 24 hours</b> and the full <b>100%</b> is charged. No exceptions.</div>
-    </div>
-    <div class="sigwrap">
-      <div class="flabel">Signature</div>
-      <div class="sigbox">
-        <canvas id="sigPad"></canvas>
-        <div class="sigbase"></div>
-        <div class="sighint" id="sigHint">Sign here</div>
-      </div>
-      <div class="sigbar"><span class="sigcap">Sign with your finger</span><button class="sigclear" onclick="clearSig()">Clear</button></div>
     </div>
     <div class="agreewrap">
       <label class="agree" id="agree"><span class="box"></span> I agree to the cancellation policy and Jake's training terms, and confirm the details above are mine.</label>
@@ -662,8 +653,8 @@
     else { cta.disabled=true; cta.textContent=nextNeeded(); }
   }
   function detailsOk(){ return !!(state.name.trim() && String(state.age).trim() && state.mobile.trim() && /.+@.+\..+/.test(state.email.trim())); }
-  function readyToBook(){ return state.dayIdx!==null && state.start!==null && detailsOk() && state.sig && state.agree; }
-  function nextNeeded(){ if(!detailsOk()) return 'Add your details'; if(!state.sig) return 'Add your signature'; if(!state.agree) return 'Agree to book'; return 'Confirm Booking'; }
+  function readyToBook(){ return state.dayIdx!==null && state.start!==null && detailsOk() && state.agree; }
+  function nextNeeded(){ if(!detailsOk()) return 'Add your details'; if(!state.agree) return 'Agree to book'; return 'Confirm Booking'; }
 
   function notifyStaff(title, body){
     if(!session) return;
