@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202608310523";
+const LG_BUILD="202608310745";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -910,12 +910,13 @@ function startTimetableCountdown(){
 
 
 /* ---- Coaches · Private Sessions — live Book Jake system ---- */
-/* PT_LIVE=false keeps members on the coming-soon lock while staff test the real
-   booking; flip to true to open Jake's booking to all members. */
+/* PT_LIVE=false keeps ALL members on the coming-soon lock. While we build it,
+   only Jake, Joe & Sarsha can see the coaches page. Flip PT_LIVE to true to open it. */
 var PT_LIVE=false;
+var PT_COACHES=["15a011b9-e222-45f0-8eb9-d5338da935d1","8ddade7e-691b-4c56-9f8d-8594a1c9755f","2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139"];
 function renderCoaches(){
-  var canSee=!!(typeof profile!=="undefined"&&profile&&(profile.is_staff||profile.is_coach));
-  if(!PT_LIVE && !canSee)return renderCoachesLocked();
+  var canSee = PT_LIVE || !!(typeof session!=="undefined" && session && session.user && PT_COACHES.indexOf(session.user.id)>=0);
+  if(!canSee)return renderCoachesLocked();
   var tb=document.querySelector('.topBar'), nv=$("nav");
   var top=tb?Math.round(tb.getBoundingClientRect().bottom):0;
   var navH=nv?Math.round(nv.getBoundingClientRect().height):72;
