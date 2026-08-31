@@ -300,7 +300,7 @@
 
 <div class="phone">
   <div class="appbar">
-    <a class="back" href="/coaches" title="Back to Jake's page">‹</a>
+    <div class="back" title="Home" onclick="try{if(window.parent&&window.parent!==window&&window.parent.go){window.parent.go('home');return}}catch(e){} if(history.length>1){history.back()}else{location.href='/'}">‹</div>
     <div>
       <h1>Book a Session</h1>
       <div class="sub">Trained by Jake</div>
@@ -322,6 +322,7 @@
         <div class="chips">
           <div class="pill"><span class="dot"></span> Taking bookings</div>
           <div class="pill alt">From <b>$60</b></div>
+          <a class="pill alt" href="/coaches" style="text-decoration:none">Meet the coaches ›</a>
         </div>
       </div>
     </div>
