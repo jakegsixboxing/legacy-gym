@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Book Jake — Legacy Gym</title>
+<title>Book a PT Session — Legacy Gym</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -300,7 +300,7 @@
 
 <div class="phone">
   <div class="appbar">
-    <div class="back" title="Home" onclick="try{if(window.parent&&window.parent!==window&&window.parent.go){window.parent.go('home');return}}catch(e){} if(history.length>1){history.back()}else{location.href='/'}">‹</div>
+    <div class="back" title="Home" onclick="if(history.length>1){history.back()}else{location.href='https://legacygym.net'}">‹</div>
     <div>
       <h1>Book a Session</h1>
       <div class="sub">Trained by Jake</div>
@@ -918,10 +918,13 @@
 
   async function boot(){
     if(!window.supabase){ gate('Could not load the booking system. Please reopen it from the app.'); return; }
-    sb=window.supabase.createClient(SB_URL, SB_KEY);
+    sb=window.supabase.createClient(SB_URL, SB_KEY, {auth:{storageKey:'lg-public-book'}});
     var s; try{ s=await sb.auth.getSession(); }catch(e){ s=null; }
     session=(s&&s.data&&s.data.session)||null;
-    if(!session){ gate('Please sign in to the Legacy Gym app to book a session with Jake.'); return; }
+    if(!session){
+      try{ var an=await sb.auth.signInAnonymously(); session=(an&&an.data&&an.data.session)||null; }catch(e){}
+    }
+    if(!session){ gate('Online booking is opening shortly — please check back soon, or call Legacy Gym to book your session.'); return; }
     uid=session.user.id;
     try{ var pr=await sb.from('profiles').select('is_staff,is_coach').eq('id',uid).single(); isStaff=!!(pr.data&&(pr.data.is_staff||pr.data.is_coach)); }catch(e){ isStaff=false; }
     document.getElementById('tabAdmin').style.display = isStaff ? '' : 'none';
