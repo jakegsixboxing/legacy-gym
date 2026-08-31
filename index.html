@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202608301403";
+const LG_BUILD="202608310523";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -3701,8 +3701,8 @@ async function renderLeaderboard(){
   await loadWorld();
   if(view!=="board")return;const box=$("lbBody");if(!box)return;
   const mp=myMp();
-  /* ---- Season reset: board counts points from Sept 1 onward; all history preserved ---- */
-  const SEASON_START=Date.parse('2026-09-01T00:00:00+10:00');
+  /* ---- Season reset: board counts points from Tue 1 Sep, 3:00 AM AEST onward; all history preserved ---- */
+  const SEASON_START=Date.parse('2026-09-01T03:00:00+10:00');
   const totals={};ptsData.events.forEach(e=>{if(Date.parse(e.created_at)>=SEASON_START)totals[e.user_id]=(totals[e.user_id]||0)+e.points;});
   ptsData.mprofiles.forEach(m=>{if(!(m.user_id in totals))totals[m.user_id]=0;});
   const pts=totals[session.user.id]||0;
