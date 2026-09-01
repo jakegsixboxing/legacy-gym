@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609011400";
+const LG_BUILD="202609011435";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -812,7 +812,6 @@ const FEATURED=[
  {n:"Bay to Bay",t:"12 km",b:"The Central Coast classic, the whole way."},
  {n:"Rower · 100-Cal Burn",t:"100 cal",b:"Settle in and empty the tank."}];
 function homeFeatureHtml(){
-  if(typeof myCoach==="function"&&myCoach())return "";
   return '<style>@keyframes bkFlash{0%,100%{box-shadow:0 0 10px rgba(212,175,55,.45),0 0 26px rgba(212,175,55,.15);border-color:var(--gold)}50%{box-shadow:0 0 26px rgba(212,175,55,.85),0 0 54px rgba(212,175,55,.35);border-color:#f1d582}}</style>'
    +'<div onclick="go(\'coaches\')" style="cursor:pointer;border:2px solid var(--gold);border-radius:14px;padding:16px 18px;margin-bottom:18px;background:linear-gradient(160deg,#1e1809,#0b0a08);display:flex;align-items:center;gap:12px;animation:bkFlash 1.4s ease-in-out infinite">'
    +'<div style="flex:1;min-width:0"><div style="font-size:9.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">Coaches &middot; Private Sessions</div>'
