@@ -763,6 +763,12 @@
     fetch('/api/notify-staff',{method:'POST',headers:{'content-type':'application/json'},
       body:JSON.stringify({token:session.access_token, title:title, body:body, url:'/'})}).catch(function(){});
   }
+  function notifyCoach(kind, info){
+    if(!session) return;
+    info=info||{}; info.token=session.access_token; info.coach=COACH; info.kind=kind;
+    fetch('/api/notify-coach',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify(info)}).catch(function(){});
+  }
 
   // ---- confirm (insert into DB) ----
   document.getElementById('cta').onclick=async function(){
@@ -811,6 +817,9 @@
     document.getElementById('calBtn').href='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(du.label+' PT with '+C.name+' — Legacy Gym')+'&dates='+z(s)+'/'+z(e)+'&details='+encodeURIComponent(det)+'&location='+encodeURIComponent('Legacy Gym, Kincumber');
 
     notifyStaff('New PT booking — '+C.name, state.name.trim()+' — '+dayStr(dt)+' '+fmt(state.start)+' ('+du.label+') · $'+tot);
+    notifyCoach('booking',{ ref:ref, member:state.name.trim(), mobile:state.mobile.trim(), email:state.email.trim(),
+      when:dayStr(dt)+' '+fmt(state.start)+' – '+fmt(state.start+du.m), dur:du.label+' ('+du.sub+')', total:tot,
+      focus:state.focus.join(', '), note:state.note.trim() });
     document.getElementById('confirm').classList.add('show');
     document.getElementById('prog').style.width='100%';
     cta.disabled=false;
@@ -936,6 +945,7 @@
     btn.disabled=false;
     if(res.error){ toast('Could not cancel — please try again.'); return; }
     notifyStaff('PT cancellation — '+C.name, ctx.bk.name+' cancelled '+dayStr(ctx.bk.date)+' '+fmt(ctx.bk.start)+(ctx.charge>0?' — $'+ctx.charge+' fee':' — no charge'));
+    notifyCoach('cancel',{ ref:ctx.ref, member:ctx.bk.name, when:dayStr(ctx.bk.date)+' '+fmt(ctx.bk.start), fee:ctx.charge });
     closeCancel();
     if(ctx.charge>0) toast('Late cancel — $'+ctx.charge+' charged. '+C.name+' has been notified.');
     else toast('Session cancelled. '+C.name+' has been notified.');
