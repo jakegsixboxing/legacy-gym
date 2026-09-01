@@ -448,12 +448,12 @@
     <div class="focuswrap" id="focuswrap"></div>
     <div class="notebox"><textarea id="note" placeholder="Anything specific? Injuries, goals, what you're chasing…"></textarea></div>
 
-    <div class="step">
+    <div class="step" style="display:none">
       <div class="step-tag">Step 5</div>
       <div class="step-h">Add recovery <span class="opt">OPTIONAL</span></div>
       <div class="step-note">Members-only casual rates — tack it onto your session.</div>
     </div>
-    <div class="addwrap" id="addwrap">
+    <div class="addwrap" id="addwrap" style="display:none">
       <div class="addon ice" data-add="ice">
         <div class="ico">❄</div>
         <div class="txt"><div class="an">Ice Bath</div><div class="ad">Cold plunge straight after you train</div></div>
@@ -470,7 +470,7 @@
     <div class="receipt" id="receipt" style="display:none"></div>
 
     <div class="step">
-      <div class="step-tag">Step 6</div>
+      <div class="step-tag">Step 5</div>
       <div class="step-h">Your details</div>
       <div class="step-note"><span class="cName">Jake</span> keeps these on file for your bookings.</div>
     </div>
@@ -484,7 +484,7 @@
     </div>
 
     <div class="step">
-      <div class="step-tag">Step 7</div>
+      <div class="step-tag">Step 6</div>
       <div class="step-h">Agreement</div>
       <div class="step-note">Read the policy and tick to agree — that locks in your session.</div>
     </div>
@@ -776,7 +776,7 @@
   function notifyStaff(title, body){
     if(!session) return;
     fetch('/api/notify-staff',{method:'POST',headers:{'content-type':'application/json'},
-      body:JSON.stringify({token:session.access_token, title:title, body:body, url:'/'})}).catch(function(){});
+      body:JSON.stringify({token:session.access_token, title:title, body:body, url:'/', coach:COACH})}).catch(function(){});
   }
   function notifyCoach(kind, info){
     if(!session) return;

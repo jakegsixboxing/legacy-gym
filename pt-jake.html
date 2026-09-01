@@ -252,7 +252,7 @@ window.sendEnq=function(form){
   if(res.error){ err.textContent='Could not send right now \u2014 please try again or call the gym.'; err.style.display='block'; btn.disabled=false; btn.textContent='Try Again'; return; }
   try{ fetch('/api/notify-staff',{method:'POST',headers:{'content-type':'application/json'},
     body:JSON.stringify({token:c.session.access_token, title:'New '+(form.dataset.kind==='camp'?'4-week camp':'online training')+' enquiry \u2014 '+PT_COACH,
-    body:name+' \u00b7 '+spw+'/wk'+(start?' \u00b7 starts '+start:''), url:'/'})}); }catch(e){}
+    body:name+' \u00b7 '+spw+'/wk'+(start?' \u00b7 starts '+start:''), url:'/', coach:PT_COACH})}); }catch(e){}
   form.style.display='none';
   form.parentElement.querySelector('.efdone').style.display='block';
  })();
