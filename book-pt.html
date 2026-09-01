@@ -347,7 +347,7 @@
           <div class="chrole">Head Coach &middot; 14 Years</div>
           <div class="chprice">30 min $60 &middot; 50 min $90 &middot; 2-on-1 $140</div>
           <div class="chwhen">Tue &amp; Thu afternoons &middot; Sat mornings</div>
-          <div class="chbtns"><a class="chghost" href="/coaches">Profile</a><button class="chbook" onclick="setCoach('jake')">Book Jake</button></div>
+          <div class="chbtns"><a class="chghost" href="/coaches">Profile</a><button class="chbook" onclick="location.href='/pt-jake'">Book Jake</button></div>
         </div>
       </div>
       <div class="chcard">
@@ -357,7 +357,7 @@
           <div class="chrole">Pro Boxer &middot; Coach</div>
           <div class="chprice">30 min $60 &middot; 50 min $85 &middot; 2-on-1 $110</div>
           <div class="chwhen">Tue &amp; Thu 7\u20139am + 3pm \u00b7 Fri 7:15 &amp; 8am</div>
-          <div class="chbtns"><a class="chghost" href="/sarsha">Profile</a><button class="chbook" onclick="setCoach('sarsha')">Book Sarsha</button></div>
+          <div class="chbtns"><a class="chghost" href="/sarsha">Profile</a><button class="chbook" onclick="location.href='/pt-sarsha'">Book Sarsha</button></div>
         </div>
       </div>
       <div class="chcard">
@@ -367,7 +367,7 @@
           <div class="chrole">Boxing Coach &middot; 1-on-1 PT</div>
           <div class="chprice">30 min $60 &middot; 50 min $85 &middot; 2-on-1 $110</div>
           <div class="chwhen">Mon, Wed &amp; Fri mornings</div>
-          <div class="chbtns"><a class="chghost" href="/joe-williams">Profile</a><button class="chbook" onclick="setCoach('joe')">Book Joe</button></div>
+          <div class="chbtns"><a class="chghost" href="/joe-williams">Profile</a><button class="chbook" onclick="location.href='/pt-joe'">Book Joe</button></div>
         </div>
       </div>
     </div>
@@ -1054,7 +1054,11 @@
     wireInputs(); wireTabs();
     hideGate();
     var qs=new URLSearchParams(location.search), ck=(qs.get('coach')||'').toLowerCase();
-    if(COACHES[ck] && qs.get('book')==='1'){ await window.setCoach(ck); }
+    if(COACHES[ck] && qs.get('book')==='1'){
+      await window.setCoach(ck);
+      var dp=qs.get('dur'), di=KEYS.indexOf(dp);
+      if(di>=0){ state.durIdx=di; state.focus=[]; buildDur(); renderFocus(); smartSuggest(); refresh(); }
+    }
     else { window.showChooser(); }
     try{ sb.channel('pt_live_'+uid).on('postgres_changes',{event:'*',schema:'public',table:'pt_bookings'},function(){ reloadData(); }).subscribe(); }catch(e){}
     document.addEventListener('visibilitychange',function(){ if(!document.hidden && sb && COACH) reloadData(); });

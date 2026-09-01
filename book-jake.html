@@ -512,6 +512,8 @@
         <div class="adstat"><div class="an">Upcoming</div><div class="av" id="stUp">0</div></div>
         <div class="adstat"><div class="an">Booked value</div><div class="av" id="stVal">$0</div></div>
       </div>
+      <div class="adsech">Enquiries</div>
+      <div id="adEnq"></div>
       <div class="adsech">Activity</div>
       <div id="adFeed"></div>
       <div class="adsech">All bookings</div>
@@ -623,7 +625,7 @@
   }
 
   // ---- data (live) ----
-  var takenMap={}, bookings=[], events=[];
+  var takenMap={}, bookings=[], events=[], enquiries=[];
   function bookedIntervals(dt){ return takenMap[isoDate(dt)] || []; }
   function startsFor(w,L){
     if(w.starts) return w.starts.slice();
@@ -967,6 +969,21 @@
 
   // ---- Jake's PT (coach) ----
   function renderAdmin(){
+    var enq=document.getElementById('adEnq');
+    if(!enquiries.length){ enq.innerHTML='<div class="aempty" style="padding:14px">No enquiries yet.</div>'; }
+    else{
+      var eh='';
+      enquiries.forEach(function(q){
+        var kindLbl = q.kind==='camp' ? '4-Week Camp' : 'Online Training';
+        eh+='<div class="acard">'
+          +'<div class="atop"><b>'+esc(q.name)+'</b><span class="aref">'+kindLbl+'</span></div>'
+          +'<div class="ameta">'+esc(q.sessions_per_week||'?')+' sessions/wk'+(q.start_when?' · starts '+esc(q.start_when):'')+' · '+timeAgo(new Date(q.created_at).getTime())+' ago</div>'
+          +((q.mobile||q.email)?'<div class="acontact">'+esc([q.mobile,q.email].filter(Boolean).join(' · '))+'</div>':'')
+          +(q.goal?'<div class="anote">\u201C'+esc(q.goal)+'\u201D</div>':'')
+          +'</div>';
+      });
+      enq.innerHTML=eh;
+    }
     document.getElementById('stUp').textContent=bookings.length;
     document.getElementById('stVal').textContent='$'+bookings.reduce(function(a,b){return a+b.total;},0);
     var feed=document.getElementById('adFeed');
@@ -1026,6 +1043,13 @@
       }
     });
     events.sort(function(a,b){ return b.ts-a.ts; });
+    enquiries=[];
+    if(isStaff){
+      try{
+        var eq=await sb.from('pt_enquiries').select('*').eq('coach',COACH).order('created_at',{ascending:false}).limit(30);
+        enquiries=eq.data||[];
+      }catch(e){}
+    }
   }
   function bookViewBusy(){ return document.getElementById('scroll').style.display!=='none' && state.start!==null; }
   async function reloadData(){
