@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609011255";
+const LG_BUILD="202609011310";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -944,11 +944,11 @@ async function checkNewPT(){
 function ptAlertHtml(){
   var c=myCoach(); if(!c)return "";
   var hasNew=(ptNewCount+ptNewEnq)>0;
-  var big = !hasNew ? (c.name+"\u2019s PT Profile")
+  var big = !hasNew ? (c.db+"\u2019s PT Profile")
     : (ptNewCount>0 && ptNewEnq>0) ? "New PTs & Enquiries"
     : ptNewCount>0 ? ("You Have "+(ptNewCount>1?ptNewCount+" New PTs":"A New PT"))
     : ("You Have "+(ptNewEnq>1?ptNewEnq+" New PT Enquiries":"A New PT Enquiry"));
-  var kick = hasNew ? "&#129354; New Booking Activity" : "&#128274; Coach Only \u00b7 "+c.name+"\u2019s PT";
+  var kick = hasNew ? "&#129354; New Booking Activity" : "&#128274; Coach Only \u00b7 "+c.db+"\u2019s PT";
   var sub = hasNew ? "Tap to see your bookings &amp; enquiries \u2014 this stays until you check them."
                    : "Your week\u2019s bookings, clients &amp; enquiries \u2014 all in one tap.";
   var box = hasNew
