@@ -308,7 +308,7 @@
   .chcard .shot{display:block; position:relative; aspect-ratio:4/5; overflow:hidden; background:#000}
   .chcard .shot img{width:100%; height:100%; object-fit:cover; object-position:50% 20%; display:block; transition:transform .3s ease}
   .chcard .shot:hover img{transform:scale(1.03)}
-  .chcard .shot:after{content:"VIEW PROFILE \203A"; position:absolute; right:10px; bottom:10px; font-family:Oswald,sans-serif; font-weight:600; font-size:10px; letter-spacing:.14em; color:var(--gold); background:rgba(10,10,12,.72); border:1px solid rgba(212,175,55,.4); padding:6px 10px; border-radius:6px}
+  .chcard .shot:after{content:"SESSIONS & PRICES \203A"; position:absolute; right:10px; bottom:10px; font-family:Oswald,sans-serif; font-weight:600; font-size:10px; letter-spacing:.14em; color:var(--gold); background:rgba(10,10,12,.72); border:1px solid rgba(212,175,55,.4); padding:6px 10px; border-radius:6px}
   .chinfo{padding:15px 15px 17px; display:flex; flex-direction:column; gap:5px; flex:1}
   .chname{font-family:Anton,sans-serif; font-size:23px; line-height:1}
   .chrole{font-family:Oswald,sans-serif; font-weight:600; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold)}
@@ -338,36 +338,36 @@
       <div class="chkick">Legacy Gym &middot; Kincumber</div>
     </div>
     <h1 class="chh">BOOK A <span>PT SESSION</span></h1>
-    <p class="chsub">Meet your coaches. Tap a photo to read their story and see what they&rsquo;ve done &mdash; or book straight in below.</p>
+    <p class="chsub">Pick your coach &mdash; sessions, prices and booking are one tap away. Their full stories are on their pages too.</p>
     <div class="chcards">
       <div class="chcard">
-        <a class="shot" href="/coaches"><img src="/jake-card.jpg" alt="Coach Jake"></a>
+        <a class="shot" href="/pt-jake"><img src="/jake-card.jpg" alt="Coach Jake"></a>
         <div class="chinfo">
           <div class="chname">JAKE</div>
           <div class="chrole">Head Coach &middot; 14 Years</div>
           <div class="chprice">30 min $60 &middot; 50 min $90 &middot; 2-on-1 $140</div>
           <div class="chwhen">Tue &amp; Thu afternoons &middot; Sat mornings</div>
-          <div class="chbtns"><a class="chghost" href="/coaches">Profile</a><button class="chbook" onclick="setCoach('jake')">Book Jake</button></div>
+          <div class="chbtns"><button class="chbook" onclick="location.href='/pt-jake'">Book Jake</button></div>
         </div>
       </div>
       <div class="chcard">
-        <a class="shot" href="/sarsha"><img src="/sarsha-card.jpg" alt="Coach Sarsha"></a>
+        <a class="shot" href="/pt-sarsha"><img src="/sarsha-card.jpg" alt="Coach Sarsha"></a>
         <div class="chinfo">
           <div class="chname">SARSHA</div>
           <div class="chrole">Pro Boxer &middot; Coach</div>
           <div class="chprice">30 min $60 &middot; 50 min $85 &middot; 2-on-1 $110</div>
           <div class="chwhen">Tue &amp; Thu 7&ndash;9am + 3pm &middot; Fri 7:15 &amp; 8am</div>
-          <div class="chbtns"><a class="chghost" href="/sarsha">Profile</a><button class="chbook" onclick="setCoach('sarsha')">Book Sarsha</button></div>
+          <div class="chbtns"><button class="chbook" onclick="location.href='/pt-sarsha'">Book Sarsha</button></div>
         </div>
       </div>
       <div class="chcard">
-        <a class="shot" href="/joe-williams"><img src="/joe-card.jpg" alt="Coach Joe"></a>
+        <a class="shot" href="/pt-joe"><img src="/joe-card.jpg" alt="Coach Joe"></a>
         <div class="chinfo">
           <div class="chname">JOE</div>
           <div class="chrole">Boxing Coach &middot; 1-on-1 PT</div>
           <div class="chprice">30 min $60 &middot; 50 min $85 &middot; 2-on-1 $110</div>
           <div class="chwhen">Mon, Wed &amp; Fri mornings</div>
-          <div class="chbtns"><a class="chghost" href="/joe-williams">Profile</a><button class="chbook" onclick="setCoach('joe')">Book Joe</button></div>
+          <div class="chbtns"><button class="chbook" onclick="location.href='/pt-joe'">Book Joe</button></div>
         </div>
       </div>
     </div>
@@ -1075,7 +1075,12 @@
     wireInputs(); wireTabs();
     hideGate();
     var qs=new URLSearchParams(location.search), ck=(qs.get('coach')||'').toLowerCase();
-    if(COACHES[ck] && qs.get('book')==='1'){ await window.setCoach(ck); if(qs.get('tab')==='admin' && isStaff) switchTab('admin'); }
+    if(COACHES[ck] && qs.get('book')==='1'){
+      await window.setCoach(ck);
+      var dp=qs.get('dur'), di=KEYS.indexOf(dp);
+      if(di>=0){ state.durIdx=di; state.focus=[]; buildDur(); renderFocus(); smartSuggest(); refresh(); }
+      if(qs.get('tab')==='admin' && isStaff) switchTab('admin');
+    }
     else { window.showChooser(); }
     try{ sb.channel('pt_live_'+uid).on('postgres_changes',{event:'*',schema:'public',table:'pt_bookings'},function(){ reloadData(); }).subscribe(); }catch(e){}
     document.addEventListener('visibilitychange',function(){ if(!document.hidden && sb && COACH) reloadData(); });

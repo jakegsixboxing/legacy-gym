@@ -9,6 +9,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,Arial,s
 img{max-width:100%;display:block}
 a{color:inherit}
 .wrap{max-width:980px;margin:0 auto;padding:0 20px}
+.backchip{display:inline-flex;align-items:center;gap:7px;margin-bottom:16px;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:11px;color:var(--dim);background:none;border:1px solid var(--line2);border-radius:999px;padding:8px 16px;cursor:pointer}
 .eyebrow{font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.3em;text-transform:uppercase;font-size:11.5px;color:var(--gold)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:'Oswald',sans-serif;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:13px;padding:14px 26px;border-radius:6px;border:none;cursor:pointer;text-decoration:none;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#141005;box-shadow:0 8px 26px rgba(212,175,55,.24)}
 .btn.ghost{background:transparent;color:var(--gold);border:1.5px solid var(--gold-dim);box-shadow:none}
@@ -80,6 +81,7 @@ footer p{color:var(--dim2);font-size:12.5px;margin-top:8px}
 <section class="hero">
  <div class="wrap">
   <div>
+   <button class="backchip" onclick="if(history.length>1){history.back()}else{location.href='/book-pt'}">&#8249; All Coaches</button>
    <div class="eyebrow">Legacy Gym &middot; Private Sessions</div>
    <h1 class="hname">TRAIN WITH <span>JAKE</span></h1>
    <p class="hlead">Owner and boxing coach of Legacy Gym. Ex-boxer &mdash; been in there, done the rounds, now 14 years building fighters and everyday boxers. Pick your session below and you&rsquo;re booked.</p>
@@ -266,3 +268,5 @@ function openD(id,card){
    setTimeout(function(){ det.scrollIntoView({behavior:'smooth',block:'nearest'}); },60); }
 }
 </script>
+<script>(function(){try{var t=null;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0){t=localStorage.getItem(k);break;}}
+if(t){var as=document.querySelectorAll('a[href^="/book-pt?"]');for(var j=0;j<as.length;j++){as[j].setAttribute('href',as[j].getAttribute('href').replace('/book-pt?','/book-jake?'));}}}catch(e){}})();</script>
