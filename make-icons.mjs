@@ -54,7 +54,7 @@ render(512, 'public/icon-512.png');
 render(192, 'public/icon-192.png');
 render(180, 'public/apple-touch-icon.png');
 
-for (const f of ['index.html', 'manifest.json', 'sw.js', 'spring-challenge.html', 'coaches.html', 'sarsha-mcgurk.html', 'fight-club.jpg', 'joe-williams.html', 'sarsha.html', 'jake-pt.mp4', 'jake-pt-poster.jpg', 'book-jake.html', 'book-pt.html', 'jake-card.jpg', 'joe-card.jpg', 'sarsha-card.jpg', 'pt-jake.html', 'pt-joe.html', 'pt-sarsha.html', 'alison-preview.html']) {
+for (const f of ['index.html', 'manifest.json', 'sw.js', 'spring-challenge.html', 'coaches.html', 'sarsha-mcgurk.html', 'fight-club.jpg', 'joe-williams.html', 'sarsha.html', 'jake-pt.mp4', 'jake-pt-poster.jpg', 'book-jake.html', 'book-pt.html', 'jake-card.jpg', 'joe-card.jpg', 'sarsha-card.jpg', 'pt-jake.html', 'pt-joe.html', 'pt-sarsha.html', 'alison-preview.html', 'qr-poster-jake.jpg', 'qr-poster-joe.jpg', 'qr-poster-sarsha.jpg', 'qr-tv-jake.jpg', 'qr-tv-joe.jpg', 'qr-tv-sarsha.jpg', 'qr-posters-a4.pdf']) {
   fs.copyFileSync(f, 'public/' + f);
   console.log('copied', f);
 }
