@@ -1,5 +1,10 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "public",
-  "cleanUrls": true
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/book-pt-jake", "destination": "/coaches" },
+    { "source": "/book-pt-joe", "destination": "/joe-williams" },
+    { "source": "/book-pt-sarsha", "destination": "/sarsha" }
+  ]
 }
