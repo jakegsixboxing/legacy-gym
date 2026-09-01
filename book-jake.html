@@ -292,37 +292,121 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   .gate .gmsg{color:var(--muted); font-size:13.5px; line-height:1.6; max-width:290px}
 
+
+  /* coach chooser */
+  .chooser{position:fixed; inset:0; z-index:150; background:var(--bg); overflow-y:auto; -webkit-overflow-scrolling:touch}
+  .chwrap{max-width:960px; margin:0 auto; padding:18px 18px 60px}
+  .chtop{display:flex; align-items:center; gap:12px; padding:4px 0 18px}
+  .chback{width:34px; height:34px; border-radius:10px; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--muted); cursor:pointer; flex:none}
+  .chkick{font-family:Oswald,sans-serif; font-weight:600; font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--gold)}
+  .chh{font-family:Anton,sans-serif; font-size:clamp(34px,7vw,54px); line-height:.95; margin:10px 0 8px; letter-spacing:.01em}
+  .chh span{color:var(--gold)}
+  .chsub{color:var(--muted); font-size:13.5px; line-height:1.6; max-width:46ch; margin:0 0 22px}
+  .chcards{display:grid; grid-template-columns:1fr; gap:16px}
+  @media(min-width:760px){ .chcards{grid-template-columns:repeat(3,1fr)} }
+  .chcard{background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden; display:flex; flex-direction:column}
+  .chcard .shot{display:block; position:relative; aspect-ratio:4/5; overflow:hidden; background:#000}
+  .chcard .shot img{width:100%; height:100%; object-fit:cover; object-position:50% 20%; display:block; transition:transform .3s ease}
+  .chcard .shot:hover img{transform:scale(1.03)}
+  .chcard .shot:after{content:"VIEW PROFILE \203A"; position:absolute; right:10px; bottom:10px; font-family:Oswald,sans-serif; font-weight:600; font-size:10px; letter-spacing:.14em; color:var(--gold); background:rgba(10,10,12,.72); border:1px solid rgba(212,175,55,.4); padding:6px 10px; border-radius:6px}
+  .chinfo{padding:15px 15px 17px; display:flex; flex-direction:column; gap:5px; flex:1}
+  .chname{font-family:Anton,sans-serif; font-size:23px; line-height:1}
+  .chrole{font-family:Oswald,sans-serif; font-weight:600; font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold)}
+  .chprice{color:var(--muted); font-size:12.5px; margin-top:2px}
+  .chwhen{color:var(--muted); font-size:12px}
+  .chbtns{display:flex; gap:9px; margin-top:12px}
+  .chghost{flex:1; text-align:center; text-decoration:none; font-family:Oswald,sans-serif; font-weight:600; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:11px 6px}
+  .chbook{flex:1.2; font-family:Oswald,sans-serif; font-weight:700; font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:#141005; background:linear-gradient(135deg,#f1d582,var(--gold)); border:none; border-radius:10px; padding:11px 6px; cursor:pointer}
+  .soon{position:fixed; inset:0; z-index:180; background:rgba(0,0,0,.66); display:none; align-items:flex-end; justify-content:center}
+  .soon.show{display:flex}
+  .soonp{background:var(--panel); border:1px solid var(--line); border-radius:18px 18px 0 0; padding:24px 22px 30px; max-width:520px; width:100%}
+  .soonh{font-family:Anton,sans-serif; font-size:22px; margin-bottom:10px}
+  .soonp p{color:var(--muted); font-size:13.5px; line-height:1.65; margin:0 0 12px}
+  .soonp p b{color:var(--text)}
+  .soonp a{color:var(--gold)}
+  .soonbtn{width:100%; margin-top:6px; font-family:Oswald,sans-serif; font-weight:700; font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:#141005; background:linear-gradient(135deg,#f1d582,var(--gold)); border:none; border-radius:12px; padding:14px; cursor:pointer}
   @media (prefers-reduced-motion:reduce){.cta:after,.pill .dot,.slot,.tick,.tick svg path,.gate .spin{animation:none}}
 </style>
 </head>
 <body>
 <div class="gate" id="gate"><div class="spin"></div><div class="gmsg" id="gateMsg">Loading your booking…</div></div>
 
+<div class="chooser" id="chooser" style="display:none">
+  <div class="chwrap">
+    <div class="chtop">
+      <div class="chback" onclick="try{if(window.parent&&window.parent!==window&&window.parent.go){window.parent.go('home');return}}catch(e){}if(history.length>1){history.back()}else{location.href='/'}">&#8249;</div>
+      <div class="chkick">Legacy Gym &middot; Kincumber</div>
+    </div>
+    <h1 class="chh">BOOK A <span>PT SESSION</span></h1>
+    <p class="chsub">Meet your coaches. Tap a photo to read their story and see what they&rsquo;ve done &mdash; or book straight in below.</p>
+    <div class="chcards">
+      <div class="chcard">
+        <a class="shot" href="/coaches"><img src="/jake-card.jpg" alt="Coach Jake"></a>
+        <div class="chinfo">
+          <div class="chname">JAKE</div>
+          <div class="chrole">Head Coach &middot; 14 Years</div>
+          <div class="chprice">30 min $60 &middot; 50 min $90 &middot; 2-on-1 $140</div>
+          <div class="chwhen">Tue &amp; Thu afternoons &middot; Sat mornings</div>
+          <div class="chbtns"><a class="chghost" href="/coaches">Profile</a><button class="chbook" onclick="setCoach('jake')">Book Jake</button></div>
+        </div>
+      </div>
+      <div class="chcard">
+        <a class="shot" href="/sarsha"><img src="/sarsha-card.jpg" alt="Coach Sarsha"></a>
+        <div class="chinfo">
+          <div class="chname">SARSHA</div>
+          <div class="chrole">Pro Boxer &middot; Coach</div>
+          <div class="chprice">30 min $60 &middot; 50 min $85 &middot; 2-on-1 $110</div>
+          <div class="chwhen">Session times opening soon</div>
+          <div class="chbtns"><a class="chghost" href="/sarsha">Profile</a><button class="chbook" onclick="sarshaSoon()">Book Sarsha</button></div>
+        </div>
+      </div>
+      <div class="chcard">
+        <a class="shot" href="/joe-williams"><img src="/joe-card.jpg" alt="Coach Joe"></a>
+        <div class="chinfo">
+          <div class="chname">JOE</div>
+          <div class="chrole">Boxing Coach &middot; 1-on-1 PT</div>
+          <div class="chprice">30 min $60 &middot; 50 min $85 &middot; 2-on-1 $110</div>
+          <div class="chwhen">Mon, Wed &amp; Fri mornings</div>
+          <div class="chbtns"><a class="chghost" href="/joe-williams">Profile</a><button class="chbook" onclick="setCoach('joe')">Book Joe</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="soon" id="soon" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="soonp">
+    <div class="soonh">SARSHA&rsquo;S SESSIONS</div>
+    <p>Sarsha&rsquo;s online booking times are <b>opening soon</b>. Her rates: <b>30 min $60 &middot; 50 min $85 &middot; 2-on-1 $110</b>.</p>
+    <p>Keen to get in early? <a href="/sarsha">Read her story</a>, message her on Instagram, or call Legacy Gym and we&rsquo;ll lock you in.</p>
+    <button class="soonbtn" onclick="document.getElementById('soon').classList.remove('show')">Got it</button>
+  </div>
+</div>
+
 <div class="phone">
   <div class="appbar">
-    <div class="back" title="Home" onclick="try{if(window.parent&&window.parent!==window&&window.parent.go){window.parent.go('home');return}}catch(e){} if(history.length>1){history.back()}else{location.href='/'}">‹</div>
+    <div class="back" title="Back" onclick="backNav()">‹</div>
     <div>
       <h1>Book a Session</h1>
-      <div class="sub">Trained by Jake</div>
+      <div class="sub">Trained by <span class="cName">Jake</span></div>
     </div>
   </div>
   <div class="prog"><i id="prog"></i></div>
   <div class="tabs">
     <div class="tab sel" data-tab="book" id="tabBook">Book</div>
     <div class="tab" data-tab="sessions" id="tabSessions">Sessions <span class="tcount" id="tcount">0</span></div>
-    <div class="tab" data-tab="admin" id="tabAdmin" style="display:none"><span class="lock">🔒</span> Jake's PT <span class="tcount alert" id="acount" style="display:none">0</span></div>
+    <div class="tab" data-tab="admin" id="tabAdmin" style="display:none"><span class="lock">🔒</span> <span class="cName">Jake</span>'s PT <span class="tcount alert" id="acount" style="display:none">0</span></div>
   </div>
 
   <div class="scroll" id="scroll">
     <div class="hero">
-      <div class="avatar"><div class="mono">J</div></div>
+      <div class="avatar"><div class="mono" id="cInit">J</div></div>
       <div>
-        <div class="name">JAKE</div>
-        <div class="role">Head Coach · 1-on-1 PT</div>
+        <div class="name" id="cBigName">JAKE</div>
+        <div class="role" id="cRole">Head Coach · 1-on-1 PT</div>
         <div class="chips">
           <div class="pill"><span class="dot"></span> Taking bookings</div>
           <div class="pill alt">From <b>$60</b></div>
-          <a class="pill alt" href="/coaches" style="text-decoration:none">Meet the coaches ›</a>
+          <a class="pill alt" href="javascript:void(0)" onclick="showChooser()" style="text-decoration:none">All coaches ›</a>
         </div>
       </div>
     </div>
@@ -338,7 +422,7 @@
     <div class="step">
       <div class="step-tag">Step 1</div>
       <div class="step-h">Pick a day</div>
-      <div class="step-note">Tue &amp; Thu afternoons, Sat mornings. The next week opens every Friday.</div>
+      <div class="step-note" id="dayNote">Tue &amp; Thu afternoons, Sat mornings. The next week opens every Friday.</div>
     </div>
     <div class="rail" id="rail"></div>
 
@@ -388,7 +472,7 @@
     <div class="step">
       <div class="step-tag">Step 6</div>
       <div class="step-h">Your details</div>
-      <div class="step-note">Jake keeps these on file for your bookings.</div>
+      <div class="step-note"><span class="cName">Jake</span> keeps these on file for your bookings.</div>
     </div>
     <div class="detwrap">
       <div class="field"><div class="flabel">Full name</div><input class="finput" id="fName" type="text" placeholder="Your full name" autocomplete="name"></div>
@@ -411,7 +495,7 @@
       <div class="ptext">All sessions are paid in <b>cash</b>, prior to your session commencing.</div>
     </div>
     <div class="agreewrap">
-      <label class="agree" id="agree"><span class="box"></span> I agree to the cancellation policy and Jake's training terms, and confirm the details above are mine.</label>
+      <label class="agree" id="agree"><span class="box"></span> I agree to the cancellation policy and <span class="cName">Jake</span>&rsquo;s training terms, and confirm the details above are mine.</label>
     </div>
 
     <div style="height:10px"></div>
@@ -423,7 +507,7 @@
 
   <div class="scroll" id="scrollAdmin" style="display:none">
     <div class="adminvw">
-      <div class="adhead"><div class="adh">Jake's PT</div><div class="adsub"><span class="lock">🔒</span> Coach view — only you can see this</div></div>
+      <div class="adhead"><div class="adh"><span class="cName">Jake</span>'s PT</div><div class="adsub"><span class="lock">🔒</span> Coach view — only you can see this</div></div>
       <div class="adstats">
         <div class="adstat"><div class="an">Upcoming</div><div class="av" id="stUp">0</div></div>
         <div class="adstat"><div class="an">Booked value</div><div class="av" id="stVal">$0</div></div>
@@ -444,11 +528,11 @@
     <div class="cwrap">
       <div class="tick"><svg viewBox="0 0 40 40"><path d="M10 21 L17 28 L30 12"/></svg></div>
       <h2>YOU'RE BOOKED</h2>
-      <div class="cmsg">Locked in with Jake. He gets your details and notes straight away, and you'll get a reminder before your session. See you at Legacy.</div>
+      <div class="cmsg">Locked in with <span class="cName">Jake</span>. Your details and notes go straight through, and you'll get a reminder before your session. See you at Legacy.</div>
       <div class="ticket">
         <div class="cover">
           <div class="rf" id="tkRef">LG-0000</div>
-          <div class="cv"><div class="who">Jake · 1-on-1 PT</div><div class="what" id="tkWhat">30 Min Session</div></div>
+          <div class="cv"><div class="who"><span class="cName">Jake</span> · 1-on-1 PT</div><div class="what" id="tkWhat">30 Min Session</div></div>
         </div>
         <div class="trow"><span class="k">When</span><span class="v" id="tkWhen">—</span></div>
         <div class="trow"><span class="k">Time</span><span class="v" id="tkTime">—</span></div>
@@ -487,15 +571,27 @@
 
   var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  var WIN={ 2:{o:16*60,c:19*60}, 4:{o:16*60,c:19*60}, 6:{o:8*60,c:11*60} };
-  var DUR=[
-    {key:"30",   m:30, label:"30 Min", sub:"1-on-1", price:60, badge:"Most popular"},
-    {key:"50",   m:50, label:"50 Min", sub:"1-on-1", price:90},
-    {key:"2on1", m:50, label:"2-on-1", sub:"With a partner", price:140, wide:true, foci:["Partner Drills","Technical Sparring","Sparring"]}
-  ];
-  var KEYS=DUR.map(function(d){return d.key;});
+  var COACHES={
+    jake:{ db:"Jake", name:"Jake", init:"J", role:"Head Coach \u00b7 1-on-1 PT",
+      win:{ 2:{o:16*60,c:19*60}, 4:{o:16*60,c:19*60}, 6:{o:8*60,c:11*60} },
+      hint:"Tue & Thu afternoons, Sat mornings. The next week opens every Friday.",
+      dur:[
+        {key:"30",   m:30, label:"30 Min", sub:"1-on-1", price:60, badge:"Most popular"},
+        {key:"50",   m:50, label:"50 Min", sub:"1-on-1", price:90},
+        {key:"2on1", m:50, label:"2-on-1", sub:"With a partner", price:140, wide:true, foci:["Partner Drills","Technical Sparring","Sparring"]}
+      ] },
+    joe:{ db:"Joe", name:"Joe", init:"J", role:"Boxing Coach \u00b7 1-on-1 PT",
+      win:{ 1:{o:9*60,c:11*60}, 3:{o:9*60,c:11*60}, 5:{o:9*60,c:11*60} },
+      hint:"Mon, Wed & Fri mornings. The next week opens every Friday.",
+      dur:[
+        {key:"30",   m:30, label:"30 Min", sub:"1-on-1", price:60, badge:"Most popular"},
+        {key:"50",   m:50, label:"50 Min", sub:"1-on-1", price:85},
+        {key:"2on1", m:50, label:"2-on-1", sub:"With a partner", price:110, wide:true, foci:["Partner Drills","Technical Sparring","Sparring"]}
+      ] }
+  };
+  var C=null, WIN=null, DUR=[], KEYS=[], COACH=null;
   var FOCI=["Boxing Fitness & Skill","Technical Development","Competition Prep"];
-  var GRID=30, COACH="Jake";
+  var GRID=30;
 
   function pad(n){return (n<10?"0":"")+n;}
   function fmt(min){var h=Math.floor(min/60),mm=min%60,ap=h>=12?"PM":"AM",hh=h%12; if(hh===0)hh=12; return hh+":"+pad(mm)+" "+ap;}
@@ -512,8 +608,11 @@
     return sun;
   }
   var now=new Date(), today=new Date(); today.setHours(0,0,0,0);
-  var horizon=releasedThrough(today), days=[], d=new Date(today);
-  while(d<=horizon){ if(WIN[d.getDay()]) days.push(new Date(d)); d.setDate(d.getDate()+1); }
+  var horizon=releasedThrough(today), days=[];
+  function buildDays(){
+    days.length=0; var d=new Date(today);
+    while(d<=horizon){ if(WIN[d.getDay()]) days.push(new Date(d)); d.setDate(d.getDate()+1); }
+  }
 
   // ---- data (live) ----
   var takenMap={}, bookings=[], events=[];
@@ -575,7 +674,7 @@
     });
     document.getElementById('focusNote').textContent = DUR[state.durIdx].foci
       ? '2-on-1 is for partner drills and sparring only.'
-      : 'What do you want Jake to work on? Tap any that apply.';
+      : 'What do you want '+C.name+' to work on? Tap any that apply.';
   }
 
   function recoveryPrice(){ if(state.ice&&state.sauna) return 30; if(state.sauna) return 25; if(state.ice) return 10; return 0; }
@@ -708,10 +807,10 @@
     var s=new Date(dt); s.setHours(0,0,0,0); s.setMinutes(state.start);
     var e=new Date(s.getTime()+du.m*60000);
     function z(x){return x.getUTCFullYear()+pad(x.getUTCMonth()+1)+pad(x.getUTCDate())+'T'+pad(x.getUTCHours())+pad(x.getUTCMinutes())+'00Z';}
-    var det='1-on-1 personal training with Jake at Legacy Gym.'+(rl?' Recovery add-on: '+rl+'.':'')+(state.focus.length?' Focus: '+state.focus.join(', ')+'.':'')+' Ref '+ref;
-    document.getElementById('calBtn').href='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(du.label+' PT with Jake — Legacy Gym')+'&dates='+z(s)+'/'+z(e)+'&details='+encodeURIComponent(det)+'&location='+encodeURIComponent('Legacy Gym, Kincumber');
+    var det='1-on-1 personal training with '+C.name+' at Legacy Gym.'+(rl?' Recovery add-on: '+rl+'.':'')+(state.focus.length?' Focus: '+state.focus.join(', ')+'.':'')+' Ref '+ref;
+    document.getElementById('calBtn').href='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(du.label+' PT with '+C.name+' — Legacy Gym')+'&dates='+z(s)+'/'+z(e)+'&details='+encodeURIComponent(det)+'&location='+encodeURIComponent('Legacy Gym, Kincumber');
 
-    notifyStaff('New PT booking', state.name.trim()+' — '+dayStr(dt)+' '+fmt(state.start)+' ('+du.label+') · $'+tot);
+    notifyStaff('New PT booking — '+C.name, state.name.trim()+' — '+dayStr(dt)+' '+fmt(state.start)+' ('+du.label+') · $'+tot);
     document.getElementById('confirm').classList.add('show');
     document.getElementById('prog').style.width='100%';
     cta.disabled=false;
@@ -836,10 +935,10 @@
     var res=await sb.from('pt_bookings').update({ status:'cancelled', cancelled_at:new Date().toISOString(), cancel_fee:ctx.charge }).eq('id', ctx.bk.id);
     btn.disabled=false;
     if(res.error){ toast('Could not cancel — please try again.'); return; }
-    notifyStaff('PT cancellation', ctx.bk.name+' cancelled '+dayStr(ctx.bk.date)+' '+fmt(ctx.bk.start)+(ctx.charge>0?' — $'+ctx.charge+' fee':' — no charge'));
+    notifyStaff('PT cancellation — '+C.name, ctx.bk.name+' cancelled '+dayStr(ctx.bk.date)+' '+fmt(ctx.bk.start)+(ctx.charge>0?' — $'+ctx.charge+' fee':' — no charge'));
     closeCancel();
-    if(ctx.charge>0) toast('Late cancel — $'+ctx.charge+' charged. Jake has been notified.');
-    else toast('Session cancelled. Jake has been notified.');
+    if(ctx.charge>0) toast('Late cancel — $'+ctx.charge+' charged. '+C.name+' has been notified.');
+    else toast('Session cancelled. '+C.name+' has been notified.');
     await reloadData();
   };
 
@@ -907,6 +1006,7 @@
   }
   function bookViewBusy(){ return document.getElementById('scroll').style.display!=='none' && state.start!==null; }
   async function reloadData(){
+    if(!COACH) return;
     await fetchData();
     updateCount(); renderSessions(); if(isStaff) renderAdmin();
     if(!bookViewBusy()){ buildRail(); smartSuggest(); }
@@ -925,12 +1025,51 @@
     uid=session.user.id;
     try{ var pr=await sb.from('profiles').select('is_staff,is_coach').eq('id',uid).single(); isStaff=!!(pr.data&&(pr.data.is_staff||pr.data.is_coach)); }catch(e){ isStaff=false; }
     document.getElementById('tabAdmin').style.display = isStaff ? '' : 'none';
-    buildDur(); renderFocus(); wireInputs(); wireTabs();
-    await reloadData();
+    wireInputs(); wireTabs();
     hideGate();
+    var qs=new URLSearchParams(location.search), ck=(qs.get('coach')||'').toLowerCase();
+    if(COACHES[ck] && qs.get('book')==='1'){ await window.setCoach(ck); }
+    else { window.showChooser(); if(ck==='sarsha') window.sarshaSoon(); }
     try{ sb.channel('pt_live_'+uid).on('postgres_changes',{event:'*',schema:'public',table:'pt_bookings'},function(){ reloadData(); }).subscribe(); }catch(e){}
-    document.addEventListener('visibilitychange',function(){ if(!document.hidden && sb) reloadData(); });
+    document.addEventListener('visibilitychange',function(){ if(!document.hidden && sb && COACH) reloadData(); });
   }
+
+  window.showChooser=function(){
+    document.getElementById('chooser').style.display='';
+  };
+  window.sarshaSoon=function(){
+    document.getElementById('soon').classList.add('show');
+  };
+  window.backNav=function(){
+    if(document.getElementById('chooser').style.display!=='none'){
+      try{if(window.parent&&window.parent!==window&&window.parent.go){window.parent.go('home');return}}catch(e){}
+      if(history.length>1){ history.back(); } else { location.href='/'; }
+    } else { window.showChooser(); }
+  };
+  window.setCoach=async function(key){
+    var cfg=COACHES[key]; if(!cfg) return;
+    C=cfg; COACH=cfg.db; WIN=cfg.win; DUR=cfg.dur; KEYS=DUR.map(function(d){return d.key;});
+    buildDays();
+    state={ dayIdx:null, durIdx:0, start:null, focus:[], note:"", ice:false, sauna:false,
+            name:"", age:"", mobile:"", email:"", sig:false, agree:false };
+    [].forEach.call(document.querySelectorAll('.cName'),function(n){ n.textContent=C.name; });
+    document.getElementById('cBigName').textContent=C.name.toUpperCase();
+    document.getElementById('cInit').textContent=C.init;
+    document.getElementById('cRole').textContent=C.role;
+    document.getElementById('dayNote').textContent=C.hint;
+    document.getElementById('note').value='';
+    ['fName','fAge','fMobile','fEmail'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('agree').classList.remove('on');
+    document.getElementById('bundle').style.display='none';
+    [].forEach.call(addwrap.children,function(c){c.classList.remove('sel');});
+    document.getElementById('timesWrap').innerHTML='';
+    document.getElementById('timeNote').textContent='Select a day above to see open times.';
+    buildDur(); renderFocus();
+    switchTab('book');
+    document.getElementById('scroll').scrollTop=0;
+    document.getElementById('chooser').style.display='none';
+    await reloadData();
+  };
   boot();
 })();
 </script>
