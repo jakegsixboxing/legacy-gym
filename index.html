@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202608310809";
+const LG_BUILD="202609011045";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -847,7 +847,9 @@ function renderHome(){
   if(SPRING_RSVP_COUNT===null&&Date.now()<SPRING_EVENT_TARGET&&!localStorage.getItem(SPRING_DISMISS_KEY)){
     loadSpringRsvpCount().then(()=>{if(view==="home")renderHome();});
   }
+  checkNewPT();
   $("main").innerHTML=`
+    ${ptAlertHtml()}
     ${winnerBannerHtml()}
     ${springBannerHtml()}
     ${announcementBannerHtml()}
@@ -909,6 +911,50 @@ function startTimetableCountdown(){
 }
 
 
+/* ---- New PT booking alert (coaches only: Jake, Joe, Sarsha) ---- */
+var COACH_BY_UID={
+  "15a011b9-e222-45f0-8eb9-d5338da935d1":{key:"jake",db:"Jake"},
+  "8ddade7e-691b-4c56-9f8d-8594a1c9755f":{key:"joe",db:"Joe"},
+  "2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139":{key:"sarsha",db:"Sarsha"}
+};
+var ptNewCount=0, __ptWatch=false, __ptChecking=false;
+function myCoach(){ return (session&&session.user&&COACH_BY_UID[session.user.id])||null; }
+async function checkNewPT(){
+  var c=myCoach(); if(!c||__ptChecking)return;
+  __ptChecking=true;
+  try{
+    var uid=session.user.id, seen="1970-01-01T00:00:00Z";
+    var sr=await sb.from("pt_seen").select("seen_at").eq("uid",uid).maybeSingle();
+    if(sr.data&&sr.data.seen_at)seen=sr.data.seen_at;
+    var q=await sb.from("pt_bookings").select("id",{count:"exact",head:true})
+      .eq("coach",c.db).eq("status","booked").gt("created_at",seen);
+    var n=(typeof q.count==="number")?q.count:0;
+    if(n!==ptNewCount){ ptNewCount=n; if(view==="home")renderHome(); }
+  }catch(e){}
+  __ptChecking=false;
+  if(!__ptWatch){
+    __ptWatch=true;
+    try{ sb.channel("pt_alert").on("postgres_changes",{event:"*",schema:"public",table:"pt_bookings"},function(){ checkNewPT(); }).subscribe(); }catch(e){}
+    document.addEventListener("visibilitychange",function(){ if(!document.hidden)checkNewPT(); });
+  }
+}
+function ptAlertHtml(){
+  if(!myCoach()||ptNewCount<1)return "";
+  return '<style>@keyframes ptFlash{0%,100%{box-shadow:0 0 14px rgba(255,215,0,.55),0 0 40px rgba(255,215,0,.2);border-color:#ffd700}50%{box-shadow:0 0 34px rgba(255,215,0,.95),0 0 70px rgba(255,215,0,.45);border-color:#fff3c4}}@keyframes ptPulseTxt{0%,100%{opacity:1}50%{opacity:.55}}</style>'
+   +'<button onclick="openMyPT()" style="width:100%;text-align:center;border:3px solid #ffd700;border-radius:16px;padding:18px;margin-bottom:16px;cursor:pointer;background:linear-gradient(160deg,#241c07,#0f0c04);animation:ptFlash 1.1s ease-in-out infinite">'
+   +'<div style="font-size:11px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#ffd700;animation:ptPulseTxt 1.1s ease-in-out infinite">&#129354; New Booking</div>'
+   +'<div style="font-family:\'Oswald\',sans-serif;font-weight:700;font-size:26px;color:#fff;text-transform:uppercase;letter-spacing:1px;margin-top:5px">You Have '+(ptNewCount>1?ptNewCount+' New PTs':'A New PT')+'</div>'
+   +'<div style="font-size:11.5px;color:#cbb26a;margin-top:5px">Tap to see your booked sessions &mdash; this stays until you check them.</div>'
+   +'</button>';
+}
+window.openMyPT=async function(){
+  var c=myCoach(); if(!c)return;
+  try{ await sb.from("pt_seen").upsert({uid:session.user.id, seen_at:new Date().toISOString()}); }catch(e){}
+  ptNewCount=0;
+  window.__ptTarget="/book-jake?coach="+c.key+"&book=1&tab=admin";
+  go("coaches");
+};
+
 /* ---- Coaches · Private Sessions — live Book Jake system ---- */
 /* PT_LIVE=false keeps ALL members on the coming-soon lock. While we build it,
    only Jake, Joe & Sarsha can see the coaches page. Flip PT_LIVE to true to open it. */
@@ -920,7 +966,8 @@ function renderCoaches(){
   var tb=document.querySelector('.topBar'), nv=$("nav");
   var top=tb?Math.round(tb.getBoundingClientRect().bottom):0;
   var navH=nv?Math.round(nv.getBoundingClientRect().height):72;
-  $("main").innerHTML='<iframe src="/book-jake" title="Book a Private Session" scrolling="yes" allow="autoplay" '
+  var ptSrc=window.__ptTarget||"/book-jake"; window.__ptTarget=null;
+  $("main").innerHTML='<iframe src="'+ptSrc+'" title="Book a Private Session" scrolling="yes" allow="autoplay" '
     +'style="position:fixed;left:0;right:0;top:'+top+'px;width:100%;height:calc(100dvh - '+top+'px - '+navH+'px);'
     +'border:0;background:#0b0b0c;display:block"></iframe>';
 }

@@ -1051,7 +1051,7 @@
     wireInputs(); wireTabs();
     hideGate();
     var qs=new URLSearchParams(location.search), ck=(qs.get('coach')||'').toLowerCase();
-    if(COACHES[ck] && qs.get('book')==='1'){ await window.setCoach(ck); }
+    if(COACHES[ck] && qs.get('book')==='1'){ await window.setCoach(ck); if(qs.get('tab')==='admin' && isStaff) switchTab('admin'); }
     else { window.showChooser(); }
     try{ sb.channel('pt_live_'+uid).on('postgres_changes',{event:'*',schema:'public',table:'pt_bookings'},function(){ reloadData(); }).subscribe(); }catch(e){}
     document.addEventListener('visibilitychange',function(){ if(!document.hidden && sb && COACH) reloadData(); });
