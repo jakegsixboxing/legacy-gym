@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609011310";
+const LG_BUILD="202609011400";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -812,12 +812,13 @@ const FEATURED=[
  {n:"Bay to Bay",t:"12 km",b:"The Central Coast classic, the whole way."},
  {n:"Rower · 100-Cal Burn",t:"100 cal",b:"Settle in and empty the tank."}];
 function homeFeatureHtml(){
- try{
-  var wk=(typeof weekKey==="function")?weekKey(new Date()):"x";
-  var h=0;for(var i=0;i<wk.length;i++){h=(h*31+wk.charCodeAt(i))>>>0;}
-  var f=FEATURED[h%FEATURED.length];
-  return '<div onclick="go(\'cardio\')" style="cursor:pointer;border:1px solid var(--gold-dim);border-radius:14px;padding:15px 18px;margin-bottom:18px;background:linear-gradient(160deg,#1a160c,#0b0a08);display:flex;align-items:center;gap:12px"><div style="flex:1;min-width:0"><div style="font-size:9.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">Challenge Of The Week</div><div style="font-family:\'Oswald\',sans-serif;font-weight:700;font-size:18px;text-transform:uppercase;color:#fff;margin:4px 0 2px;line-height:1.1">'+f.n+'</div><div style="font-size:11.5px;color:var(--muted);line-height:1.4">'+f.t+' · '+f.b+'</div></div><div style="font-size:24px;color:var(--gold);flex:none">›</div></div>';
- }catch(e){return "";}
+  if(typeof myCoach==="function"&&myCoach())return "";
+  return '<style>@keyframes bkFlash{0%,100%{box-shadow:0 0 10px rgba(212,175,55,.45),0 0 26px rgba(212,175,55,.15);border-color:var(--gold)}50%{box-shadow:0 0 26px rgba(212,175,55,.85),0 0 54px rgba(212,175,55,.35);border-color:#f1d582}}</style>'
+   +'<div onclick="go(\'coaches\')" style="cursor:pointer;border:2px solid var(--gold);border-radius:14px;padding:16px 18px;margin-bottom:18px;background:linear-gradient(160deg,#1e1809,#0b0a08);display:flex;align-items:center;gap:12px;animation:bkFlash 1.4s ease-in-out infinite">'
+   +'<div style="flex:1;min-width:0"><div style="font-size:9.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold)">Coaches &middot; Private Sessions</div>'
+   +'<div style="font-family:\'Oswald\',sans-serif;font-weight:700;font-size:19px;text-transform:uppercase;color:#fff;margin:4px 0 2px;line-height:1.1">Book A 1-on-1 Session</div>'
+   +'<div style="font-size:11.5px;color:var(--muted);line-height:1.4">Jake, Joe &amp; Sarsha &mdash; pick your coach, pick your time, you\u2019re booked.</div></div>'
+   +'<div style="font-size:24px;color:var(--gold);flex:none">\u203A</div></div>';
 }
 /* ---- Fight Club sign-up promo (home) ---- */
 const FC_REGO="https://view.powr.io/i/40134106";
@@ -973,7 +974,7 @@ window.openMyPT=async function(){
 /* ---- Coaches · Private Sessions — live Book Jake system ---- */
 /* PT_LIVE=false keeps ALL members on the coming-soon lock. While we build it,
    only Jake, Joe & Sarsha can see the coaches page. Flip PT_LIVE to true to open it. */
-var PT_LIVE=false;
+var PT_LIVE=true;
 var PT_COACHES=["15a011b9-e222-45f0-8eb9-d5338da935d1","8ddade7e-691b-4c56-9f8d-8594a1c9755f","2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139"];
 function renderCoaches(){
   var canSee = PT_LIVE || !!(typeof session!=="undefined" && session && session.user && PT_COACHES.indexOf(session.user.id)>=0);
@@ -2285,6 +2286,8 @@ function reviewMaybePopup(){
   setTimeout(reviewOpen,650);
 }
 function reviewCardHtml(){
+  var STAFF_HIDE=["15a011b9-e222-45f0-8eb9-d5338da935d1","8ddade7e-691b-4c56-9f8d-8594a1c9755f","2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"];
+  if(typeof session!=="undefined"&&session&&session.user&&STAFF_HIDE.indexOf(session.user.id)>=0)return"";
   try{if(localStorage.getItem(REV_DONE))return"";}catch(e){return"";}
   return `<div class="revcard" onclick="reviewOpen()">
     <div class="ri"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 21.4l1.4-6.8L2.2 9.9l6.9-.8L12 2z"/></svg></div>
