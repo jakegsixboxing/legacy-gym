@@ -492,7 +492,7 @@
       <div class="phead">Cancellation policy</div>
       <div class="ptext">Once you book, your session is <b>locked in</b>. Cancel <b>24–48 hours</b> before and you're charged <b>50%</b> of the session. Cancel <b>within 24 hours</b> and the full <b>100%</b> is charged. No exceptions.</div>
       <div class="phead" style="margin-top:14px">Payment</div>
-      <div class="ptext">All sessions are paid in <b>cash</b>, prior to your session commencing.</div>
+      <div class="ptext" id="payPolicy">All sessions are paid in <b>cash</b>, prior to your session commencing.</div>
     </div>
     <div class="agreewrap">
       <label class="agree" id="agree"><span class="box"></span> I agree to the cancellation policy and <span class="cName">Jake</span>&rsquo;s training terms, and confirm the details above are mine.</label>
@@ -541,10 +541,10 @@
         <div class="trow" id="tkNoteRow"><span class="k">Notes</span><span class="v" id="tkNote">—</span></div>
         <div class="trow" id="tkAddRow"><span class="k">Recovery</span><span class="v" id="tkAdd">—</span></div>
         <div class="trow"><span class="k">Where</span><span class="v">Legacy Gym, Kincumber</span></div>
-        <div class="trow"><span class="k">Payment</span><span class="v">Cash · before your session</span></div>
+        <div class="trow"><span class="k">Payment</span><span class="v" id="tkPay">Cash · before your session</span></div>
         <div class="trow total"><span class="k">Total</span><span class="v" id="tkPrice">—</span></div>
       </div>
-      <div class="cactions"><a class="calbtn" id="calBtn" target="_blank" rel="noopener">＋ Add to calendar</a></div>
+      <div class="cactions"><a id="payBtn" target="_blank" rel="noopener" style="display:none;text-align:center;text-decoration:none;background:linear-gradient(160deg,#e0be6a,#b8923e);color:#111;font-weight:800;font-size:15px;letter-spacing:1.5px;text-transform:uppercase;border-radius:11px;padding:14px;margin-bottom:10px;box-shadow:0 0 18px rgba(212,175,55,.35)">PAY NOW</a><a class="calbtn" id="calBtn" target="_blank" rel="noopener">＋ Add to calendar</a></div>
     </div>
     <div class="cfoot"><button class="ghost" onclick="reset()">View my sessions</button></div>
   </div>
@@ -823,6 +823,18 @@
     var aRow=document.getElementById('tkAddRow');
     if(rl){ document.getElementById('tkAdd').textContent=rl+' · $'+recoveryPrice(); aRow.style.display='flex'; } else aRow.style.display='none';
     document.getElementById('tkPrice').textContent='$'+tot;
+    var PAY_LINKS={60:'https://www.legacygym.net/cart/48187482341527:1',90:'https://www.legacygym.net/cart/48187483652247:1',140:'https://www.legacygym.net/cart/48187495383191:1'};
+    var payBtn=document.getElementById('payBtn'), tkPay=document.getElementById('tkPay');
+    if(COACH==='Jake'){
+      var payLink=PAY_LINKS[du.price];
+      tkPay.textContent='Card \u00b7 pay now to lock it in';
+      if(payLink){ payBtn.href=payLink; payBtn.textContent='PAY NOW \u00b7 $'+du.price+(rl?'  (recovery add-on paid at the gym)':''); payBtn.style.display='block'; }
+      else { payBtn.style.display='none'; }
+    } else {
+      tkPay.textContent='Cash \u00b7 direct to '+COACH+' before your session';
+      payBtn.style.display='none';
+    }
+
     var s=new Date(dt); s.setHours(0,0,0,0); s.setMinutes(state.start);
     var e=new Date(s.getTime()+du.m*60000);
     function z(x){return x.getUTCFullYear()+pad(x.getUTCMonth()+1)+pad(x.getUTCDate())+'T'+pad(x.getUTCHours())+pad(x.getUTCMinutes())+'00Z';}
@@ -1082,6 +1094,10 @@
     state={ dayIdx:null, durIdx:0, start:null, focus:[], note:"", ice:false, sauna:false,
             name:"", age:"", mobile:"", email:"", sig:false, agree:false };
     [].forEach.call(document.querySelectorAll('.cName'),function(n){ n.textContent=C.name; });
+    var pp=document.getElementById('payPolicy');
+    if(pp){ if(key==='jake'){ pp.innerHTML='All of Jake\u2019s sessions are <b>paid by card at the time of booking</b> through the secure Legacy checkout (card, Apple Pay or Google Pay). Your session is not locked in until payment is complete. Recovery add-ons are paid at the gym.'; }
+    else { pp.innerHTML='All sessions are paid in <b>cash</b>, prior to your session commencing.<br><br>'+C.name+' runs personal training as an <b>independent business</b> within Legacy Gym \u2014 bookings are made here, but payment and any additional enquiries go directly through '+C.name+'.'; } }
+
     document.getElementById('cBigName').textContent=C.name.toUpperCase();
     document.getElementById('cInit').textContent=C.init;
     document.getElementById('cRole').textContent=C.role;
