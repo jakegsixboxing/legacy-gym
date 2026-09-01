@@ -356,8 +356,8 @@
           <div class="chname">SARSHA</div>
           <div class="chrole">Pro Boxer &middot; Coach</div>
           <div class="chprice">30 min $60 &middot; 50 min $85 &middot; 2-on-1 $110</div>
-          <div class="chwhen">Session times opening soon</div>
-          <div class="chbtns"><a class="chghost" href="/sarsha">Profile</a><button class="chbook" onclick="sarshaSoon()">Book Sarsha</button></div>
+          <div class="chwhen">Tue &amp; Thu 7\u20139am + 3pm \u00b7 Fri 7:15 &amp; 8am</div>
+          <div class="chbtns"><a class="chghost" href="/sarsha">Profile</a><button class="chbook" onclick="setCoach('sarsha')">Book Sarsha</button></div>
         </div>
       </div>
       <div class="chcard">
@@ -587,6 +587,14 @@
         {key:"30",   m:30, label:"30 Min", sub:"1-on-1", price:60, badge:"Most popular"},
         {key:"50",   m:50, label:"50 Min", sub:"1-on-1", price:85},
         {key:"2on1", m:50, label:"2-on-1", sub:"With a partner", price:110, wide:true, foci:["Partner Drills","Technical Sparring","Sparring"]}
+      ] },
+    sarsha:{ db:"Sarsha", name:"Sarsha", init:"S", role:"Pro Boxer \u00b7 Coach",
+      win:{ 2:{starts:[420,480,540,900]}, 4:{starts:[420,480,540,900]}, 5:{starts:[435,480]} },
+      hint:"Tue & Thu \u00b7 7, 8 & 9 AM + 3 PM. Fri \u00b7 7:15 & 8 AM. The next week opens every Friday.",
+      dur:[
+        {key:"30",   m:30, label:"30 Min", sub:"1-on-1", price:60, badge:"Most popular"},
+        {key:"50",   m:50, label:"50 Min", sub:"1-on-1", price:85},
+        {key:"2on1", m:50, label:"2-on-1", sub:"With a partner", price:110, wide:true, foci:["Partner Drills","Technical Sparring","Sparring"]}
       ] }
   };
   var C=null, WIN=null, DUR=[], KEYS=[], COACH=null;
@@ -617,14 +625,18 @@
   // ---- data (live) ----
   var takenMap={}, bookings=[], events=[];
   function bookedIntervals(dt){ return takenMap[isoDate(dt)] || []; }
+  function startsFor(w,L){
+    if(w.starts) return w.starts.slice();
+    var st=[]; for(var t=w.o;t+L<=w.c;t+=GRID) st.push(t); return st;
+  }
   function openings(dt,L){
     var w=WIN[dt.getDay()], booked=bookedIntervals(dt), out=[];
     var isToday=(dt.toDateString()===new Date().toDateString()), nowMin=new Date().getHours()*60+new Date().getMinutes();
-    for(var t=w.o;t+L<=w.c;t+=GRID){
+    startsFor(w,L).forEach(function(t){
       var past=isToday&&t<=nowMin, busy=false;
       for(var b=0;b<booked.length;b++){ if(overlap(t,t+L,booked[b][0],booked[b][1])){busy=true;break;} }
       out.push({t:t, past:past, busy:busy, off:past||busy});
-    }
+    });
     return out;
   }
   function openCount(dt,L){ return openings(dt,L).filter(function(o){return !o.off;}).length; }
@@ -697,7 +709,8 @@
 
   function renderTimes(){
     var dt=days[state.dayIdx], w=WIN[dt.getDay()], L=DUR[state.durIdx].m, ops=openings(dt,L), oc=ops.filter(function(o){return !o.off;}).length;
-    document.getElementById('timeNote').textContent = dayStr(dt)+' · '+fmt(w.o)+' – '+fmt(w.c) + (oc>0&&oc<=2? ' · only '+oc+' left':'');
+    var rangeTxt = w.starts ? ('starts '+w.starts.map(fmt).join(', ')) : (fmt(w.o)+' – '+fmt(w.c));
+    document.getElementById('timeNote').textContent = dayStr(dt)+' · '+rangeTxt + (oc>0&&oc<=2? ' · only '+oc+' left':'');
     var wrap=document.getElementById('timesWrap'), html='<div class="times">', i=0;
     ops.forEach(function(o){
       html+='<div class="slot'+(o.off?' booked':'')+'" data-t="'+o.t+'" style="animation-delay:'+(i*40)+'ms">'
@@ -1042,7 +1055,7 @@
     hideGate();
     var qs=new URLSearchParams(location.search), ck=(qs.get('coach')||'').toLowerCase();
     if(COACHES[ck] && qs.get('book')==='1'){ await window.setCoach(ck); }
-    else { window.showChooser(); if(ck==='sarsha') window.sarshaSoon(); }
+    else { window.showChooser(); }
     try{ sb.channel('pt_live_'+uid).on('postgres_changes',{event:'*',schema:'public',table:'pt_bookings'},function(){ reloadData(); }).subscribe(); }catch(e){}
     document.addEventListener('visibilitychange',function(){ if(!document.hidden && sb && COACH) reloadData(); });
   }
