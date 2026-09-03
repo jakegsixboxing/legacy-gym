@@ -8399,5 +8399,654 @@ async function saveProfile(e){
   });
 })();
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");</script>
+<script>
+/* ===================================================================
+   SPARRING CLUB v2 — Workload · tap-tap Sparring · Nominations
+   Add-on block. Overrides renderBoxing / renderSparringClub /
+   renderSparWed / renderCoachFighterView from the main script and adds
+   the program builder, workload view, show calendar and nominations.
+   Data: fighter_programs, fight_nights, fight_nominations, coach_inbox,
+   boxer_profiles.csa_number. Remove this block to roll back.
+   =================================================================== */
+(function(){
+const css=document.createElement("style");
+css.textContent=`
+.sc2Tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.sc2Tabs button{position:relative;border:1px solid var(--line);border-radius:999px;padding:8px 13px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);background:var(--panel);cursor:pointer}
+.sc2Tabs button.on{background:var(--gold);color:#161307;border-color:var(--gold)}
+.sc2Tabs .dotN{font-style:normal;position:absolute;top:-6px;right:-4px;background:var(--danger);color:#fff;border-radius:999px;font-size:9px;min-width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px}
+.fg2{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(min-width:520px){.fg2{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:900px){.fg2{grid-template-columns:repeat(6,1fr)}}
+.ft2{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:11px 8px 9px;text-align:center;cursor:pointer;transition:border-color .12s,opacity .12s}
+.ft2:hover{border-color:var(--gold-dim)}
+.ft2 .av2{margin:0 auto 7px;width:40px;height:40px;border-radius:10px;background:#1e1e22;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--gold);background-size:cover;background-position:center}
+.ft2 .n{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft2 .m{font-size:10.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft2 .m b{color:var(--gold);font-size:13px}
+.ft2 .f{display:flex;justify-content:center;gap:3px;margin-top:6px;min-height:16px;flex-wrap:wrap}
+.ft2 .f i{font-style:normal;font-size:9px;font-weight:800;border-radius:4px;padding:1px 5px;border:1px solid var(--line);color:var(--muted);line-height:1.3}
+.ft2 .f i.ok{color:var(--ok);border-color:rgba(75,201,122,.5)}
+.ft2 .f i.g{border-color:var(--gold-dim);color:var(--gold)}
+.ft2 .f i.bad{color:var(--danger);border-color:rgba(224,82,82,.5)}
+.ft2.sel{border-color:var(--gold);background:#17150e}
+.ft2.sel .av2{background:var(--gold);color:#161307}
+.ft2.dim{opacity:.42}
+.ft2.sc-good{border-color:var(--ok)} .ft2.sc-good .tsc{color:var(--ok)}
+.ft2.sc-ok{border-color:var(--gold)} .ft2.sc-ok .tsc{color:var(--gold)}
+.ft2.sc-bad{border-color:var(--danger);opacity:.6} .ft2.sc-bad .tsc{color:var(--danger)}
+.tsc{position:absolute;top:6px;right:7px;font-size:12px;font-weight:800;color:var(--gold)}
+.sc2Bout{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px 13px;margin-bottom:9px}
+.sc2Bout .vs{display:flex;align-items:center;gap:10px}
+.sc2Bout .vs .mid{font-weight:900;font-size:11px;color:var(--gold-dim);letter-spacing:2px;flex:none}
+.sc2Ed{display:flex;align-items:center;gap:4px;margin-top:10px;padding-top:9px;border-top:1px solid var(--line);flex-wrap:wrap}
+.sc2Ed .l{font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.sc2Ed button{border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;color:var(--muted);background:none;cursor:pointer}
+.sc2Ed button.on{background:var(--gold);color:#161307;border-color:var(--gold)}
+.sc2Chip{display:inline-flex;align-items:center;border-radius:999px;padding:3px 9px;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border:1px solid}
+.sc2Chip.good{color:var(--ok);border-color:rgba(75,201,122,.5)} .sc2Chip.ok{color:var(--gold);border-color:var(--gold-dim)} .sc2Chip.bad{color:var(--danger);border-color:rgba(224,82,82,.5)}
+.st-nominated{color:var(--gold);border-color:var(--gold-dim)} .st-confirmed{color:var(--ok);border-color:rgba(75,201,122,.55)} .st-withdrawn,.st-declined{color:var(--muted);border-color:var(--line);text-decoration:line-through}
+.mh2{font-size:12px;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold);margin:18px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+.shR2{display:flex;align-items:center;gap:11px;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:7px;cursor:pointer}
+.shR2.tr{background:rgba(201,164,76,.07);border-style:dashed}
+.shR2.home{border-left:3px solid var(--gold)}
+.dbox2{width:42px;flex:none;text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px 0}
+.dbox2 b{display:block;font-size:17px;font-weight:800;color:var(--gold);line-height:1}
+.dbox2 span{display:block;font-size:8.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.infoRow2{display:flex;gap:12px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.infoRow2:last-of-type{border-bottom:0}
+.infoRow2 span{color:var(--muted);flex:none;width:112px;font-size:11px;letter-spacing:.8px;text-transform:uppercase;padding-top:2px}
+.infoRow2 b{font-weight:600;flex:1;min-width:0;word-break:break-word}
+.sc2Sheet{position:fixed;left:0;right:0;bottom:0;z-index:95;max-height:88vh;overflow-y:auto;background:var(--panel);border-top:1.5px solid var(--gold-dim);border-radius:18px 18px 0 0;padding:8px 16px 34px;max-width:620px;margin:0 auto;transform:translateY(102%);transition:transform .22s cubic-bezier(.32,.72,0,1)}
+.sc2Sheet.on{transform:translateY(0)}
+.sc2SheetBg{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:94;opacity:0;pointer-events:none;transition:opacity .18s}
+.sc2SheetBg.on{opacity:1;pointer-events:auto}
+.sc2Grab{width:38px;height:4px;background:var(--line);border-radius:99px;margin:6px auto 14px}
+.qrow2{display:flex;align-items:center;gap:11px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:7px}
+.qrow2.fresh{border-left:3px solid var(--gold)}
+.qrow2 .qt{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;line-height:1.25}
+.qrow2 .qs{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+.miniB{border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);background:none;cursor:pointer}
+.miniB.gold{border-color:var(--gold);color:var(--gold)}
+.steps2{display:flex;gap:5px;margin:12px 0 14px;overflow-x:auto;scrollbar-width:none}
+.steps2 button{flex:none;display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);background:var(--panel2);cursor:pointer}
+.steps2 button i{font-style:normal;width:18px;height:18px;border-radius:50%;background:var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:var(--text)}
+.steps2 button.on{background:var(--gold);color:#161307;border-color:var(--gold)} .steps2 button.on i{background:#161307;color:var(--gold)}
+.steps2 button.past{color:var(--text)} .steps2 button.past i{background:var(--gold-dim)}
+@media(min-width:520px){.steps2 button{flex:1}}
+.setRow2{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.setRow2 .l{font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.setRow2 button{border:1px solid var(--line);border-radius:6px;padding:5px 9px;font-size:11px;font-weight:700;color:var(--muted);background:none;cursor:pointer}
+.setRow2 button.on{background:var(--gold);color:#161307;border-color:var(--gold)}
+.rlist2{display:flex;flex-direction:column;gap:5px;margin-top:9px}
+.rrow2{display:flex;align-items:center;gap:9px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+.rrow2 .rn{font-size:12px;font-weight:800;color:var(--gold);width:18px;flex:none;text-align:center}
+.rrow2 b{display:block;font-size:12.5px;font-weight:600;line-height:1.25}
+.rrow2 > div > span{display:block;font-size:10.5px;color:var(--muted)}
+.rrow2 button{border:1px solid var(--line);border-radius:6px;width:26px;height:26px;font-size:12px;color:var(--muted);flex:none;background:none;cursor:pointer}
+.pills2{display:flex;gap:7px;flex-wrap:wrap}
+.pills2 button{border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:11.5px;font-weight:600;color:var(--muted);background:none;cursor:pointer;white-space:nowrap}
+.pills2 button.on{background:var(--gold);color:#161307;border-color:var(--gold);font-weight:800}
+.pills2 button b{margin-left:3px}
+.prog2{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:12px;padding:14px;margin-bottom:11px}
+.noteGrid2{display:grid;gap:7px;margin-top:10px}
+@media(min-width:600px){.noteGrid2{grid-template-columns:1fr 1fr 1fr}}
+.nb2{border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:12.5px;line-height:1.5;background:var(--panel2);white-space:pre-wrap}
+.nb2 span{display:block;font-size:9px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:4px;white-space:normal}
+.nb2.ok{border-color:rgba(75,201,122,.4)} .nb2.ok span{color:var(--ok)}
+.nb2.warn{border-color:rgba(224,82,82,.45)} .nb2.warn span{color:var(--danger)}
+.nb2.gold{border-color:var(--gold-dim)} .nb2.gold span{color:var(--gold)}
+.dayRow2{display:flex;flex-wrap:wrap;gap:6px}
+.dayC2{display:inline-flex;flex-direction:column;align-items:center;min-width:52px;border:1px solid var(--line);border-radius:8px;padding:6px 7px;background:var(--panel2);color:var(--text);cursor:pointer}
+.dayC2 b{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gold)}
+.dayC2 span{font-size:10.5px;color:var(--muted)}
+.dayC2 i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;min-height:11px}
+.dayC2.done{border-color:var(--ok);background:rgba(75,201,122,.1)} .dayC2.done b,.dayC2.done i{color:var(--ok)}
+.dayC2.missed{border-color:rgba(224,82,82,.45)} .dayC2.missed i{color:var(--danger)}
+.dayPick2{display:flex;gap:5px;flex-wrap:wrap}
+.dayPick2 button{border:1px solid var(--line);border-radius:8px;padding:8px 0;flex:1;min-width:40px;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);background:none;cursor:pointer}
+.dayPick2 button.on{background:var(--gold);color:#161307;border-color:var(--gold)}
+.bar2{height:5px;background:#232327;border-radius:99px;overflow:hidden;margin-top:6px}
+.bar2 i{display:block;height:100%;background:var(--gold);border-radius:99px}
+.sc2Note{background:rgba(201,164,76,.1);border:1px solid var(--gold-dim);border-radius:11px;padding:12px 14px;margin-bottom:11px;font-size:13px;line-height:1.55}
+.sc2Note.warn{background:rgba(224,82,82,.1);border-color:var(--danger)}
+.sc2Note b{color:var(--gold)} .sc2Note.warn b{color:var(--danger)}
+.sc2 textarea,.sc2 input[type=text],.sc2 input[type=date],.sc2 select{width:100%;background:#0f0f12;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:16px;color:var(--text);font-family:inherit}
+.sc2 textarea{min-height:74px;resize:vertical;line-height:1.5}
+input[type=date]{color-scheme:dark}
+.lbl2{display:block;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:12px 0 5px}
+.kick2{font-size:10px;font-weight:800;letter-spacing:2.6px;text-transform:uppercase;color:var(--gold)}
+`;
+document.head.appendChild(css);
+const bg=document.createElement("div");bg.className="sc2SheetBg";bg.onclick=()=>sc2Close();document.body.appendChild(bg);
+const sh=document.createElement("div");sh.className="sc2Sheet sc2";sh.innerHTML='<div class="sc2Grab"></div><div id="sc2Body"></div>';document.body.appendChild(sh);
+})();
+function sc2Sheet(html){$("sc2Body").innerHTML=html;document.querySelector(".sc2SheetBg").classList.add("on");document.querySelector(".sc2Sheet").classList.add("on");document.querySelector(".sc2Sheet").scrollTop=0;}
+function sc2Close(){document.querySelector(".sc2SheetBg").classList.remove("on");document.querySelector(".sc2Sheet").classList.remove("on");}
+
+/* ---------- shared helpers ---------- */
+let sc2={programs:[],allPrograms:[],inbox:[],roster:[],ready:false};
+const SC2_DAYN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function sc2IsCoach(){return !!(profile&&(profile.is_coach||profile.is_staff));}
+function sc2Today(){const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function sc2Iso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function sc2Short(iso){const d=new Date(iso+"T12:00:00");return SC2_DAYN[d.getDay()]+" "+d.getDate()+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];}
+function sc2Month(iso){const d=new Date(iso+"T12:00:00");return ["January","February","March","April","May","June","July","August","September","October","November","December"][d.getMonth()]+" "+d.getFullYear();}
+function sc2Days(iso){const t=new Date();t.setHours(0,0,0,0);return Math.round((new Date(iso+"T00:00:00")-t)/864e5);}
+function sc2Initials(n){return (n||"?").split(" ").filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join("");}
+function sc2RoundLen(it,set){return it.fixed||(it.core?(set.core||60):(set.len||180));}
+function sc2Total(list,set){let t=0;list.forEach((id,i)=>{const it=byoFind(id);if(!it)return;t+=sc2RoundLen(it,set);if(i<list.length-1)t+=(set.rest||30);});return t;}
+function sc2Rec(bp){return (bp.wins||0)+"-"+(bp.losses||0)+"-"+(bp.draws||0);}
+async function sc2Load(){
+  const isC=sc2IsCoach(),uid=session.user.id;
+  const [pr,ib,ro]=await Promise.all([
+    isC?sb.from("fighter_programs").select("*").order("created_at",{ascending:false}):sb.from("fighter_programs").select("*").eq("user_id",uid).order("created_at",{ascending:false}),
+    isC?sb.from("coach_inbox").select("*").order("created_at",{ascending:false}).limit(60):Promise.resolve({data:[]}),
+    sb.from("boxer_profiles").select("*").order("name",{ascending:true})
+  ]);
+  sc2.allPrograms=pr.data||[];sc2.programs=sc2.allPrograms.filter(p=>p.user_id===uid);sc2.inbox=ib.data||[];sc2.roster=(ro.data||[]);sc2.ready=true;
+}
+function sc2Unseen(){return sc2.inbox.filter(i=>!i.seen).length+(boxData.noms||[]).filter(n=>n.status==="nominated"&&n.user_id!==session.user.id).length;}
+
+/* ---------- safety score between two boxer_profiles (same rules as the demo) ---------- */
+function sc2Score(a,b){
+  const r=[],hard=[];let s=100;
+  const wa=Number(a.current_weight||a.fight_weight),wb=Number(b.current_weight||b.fight_weight);
+  if(!wa||!wb){hard.push("No weight on file");}
+  else{const g=Math.abs(wa-wb);
+    if(g<=3)r.push(g===0?"Same weight":"Within "+g+"kg");else if(g<=6)s-=8;else if(g<=10){s-=22;r.push(g+"kg apart");}else if(g<=18){s-=45;r.push(g+"kg apart");}else{s-=70;hard.push(g+"kg apart");}}
+  const lv=x=>({"Fitness Club":1,"Sparring Club":2,"Fight Club":3,"Amateur":4,"Professional":5})[x.division||"Sparring Club"]||2;
+  const la=lv(a),lb=lv(b),gap=Math.abs(la-lb);
+  if(gap===0)r.push("Same level");else if(gap===1)s-=6;else if(gap===2)s-=20;else{s-=40;hard.push("Big experience gap");}
+  if(a.age&&b.age&&Math.abs(a.age-b.age)>=15){s-=10;r.push(Math.abs(a.age-b.age)+" years apart");}
+  s=Math.max(0,Math.min(100,Math.round(s)));if(hard.length)s=Math.min(s,34);
+  return {score:s,reasons:r,blockers:hard,band:s>=75?"good":s>=50?"ok":"bad"};
+}
+
+/* ---------- fighter tile ---------- */
+function sc2Tile(bp,onclick,cls,badge){
+  const d=divisionOf(bp);const w=bp.current_weight||bp.fight_weight;
+  const pr=sc2.allPrograms.filter(p=>p.user_id===bp.user_id&&p.approved).length;
+  const nm=(boxData.noms||[]).filter(n=>n.user_id===bp.user_id&&n.status!=="withdrawn"&&n.status!=="declined").length;
+  return `<div class="ft2${cls?" "+cls:""}" onclick="${onclick}">${badge||""}
+    <div class="av2" style="${bp.photo_url?`background-image:url('${esc(bp.photo_url)}')`:""}">${bp.photo_url?"":sc2Initials(bp.name)}</div>
+    <div class="n">${esc(bp.name)}</div>
+    <div class="m"><b>${w?Number(w):"—"}</b>kg · <span style="color:${d.color}">${esc(d.label.replace(" Boxer",""))}</span></div>
+    <div class="f">${pr?`<i class="g">📋 ${pr}</i>`:""}${nm?`<i class="g">🎟 ${nm}</i>`:""}${!w?`<i class="bad">no kg</i>`:""}</div></div>`;
+}
+
+/* ===================== BOXING HUB — no Built By Jake tab ===================== */
+function renderBoxing(){
+  $("main").innerHTML=`
+    <div class="hero" style="${bgStyle('boxing',.55)}">
+      <div class="heroKicker">Legacy Boxing Series</div>
+      <div class="heroTitle">Boxing</div>
+      <div class="heroText">Your classes, your sparring hub, your pathway.</div>
+    </div>
+    <div class="subTabs">
+      <button class="${boxSub==='sparring'?'active':''}" onclick="setBoxSub('sparring')">Sparring Club</button>
+      <button class="${boxSub==='byo'?'active':''}" onclick="setBoxSub('byo')">Build Your Own</button>
+    </div>
+    <div id="boxContent"></div>`;
+  if(boxSub==="jake")boxSub="sparring";
+  renderBoxSub();
+}
+
+/* ===================== SPARRING CLUB ===================== */
+async function renderSparringClub(){
+  if(!(profile&&(profile.is_fighter||profile.is_staff||profile.is_coach))){
+    const c0=$("boxContent");if(!c0)return;
+    c0.innerHTML=`
+      <div style="background:#0d0d0b;border:1px solid #2a2417;border-radius:16px;padding:40px 22px;text-align:center;margin-top:4px">
+        <div style="font-weight:900;letter-spacing:4px;color:#9e9e9e;font-size:11px">FIGHTERS ONLY</div>
+        <h2 style="font-size:22px;margin-top:8px;color:#f5f5f5;letter-spacing:1px;line-height:1.3">THE SPARRING CLUB</h2>
+        <div style="margin:20px auto;width:56px;height:56px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:22px">🔒</div>
+        <p style="color:var(--gold);font-weight:800;font-size:14px;letter-spacing:1px">PRIVATE — SPARRING CLUB & ABOVE.</p>
+        <p style="color:#9e9e9e;font-size:13px;margin-top:10px;line-height:1.6">This room is for Sparring Club fighters, Fight Club, amateurs and professionals.<br>Fight profiles, the matchup list, fight tape — earned, not given.</p>
+        <p style="color:#6e6e6e;font-size:11.5px;margin-top:18px;letter-spacing:.5px">Want in? Upgrade your membership — see the staff at the front desk.</p>
+      </div>`;
+    return;
+  }
+  if(pbState){pbRender();return;}
+  $("boxContent").innerHTML=`<div class="loadingDots">Loading your sparring hub…</div>`;
+  await Promise.all([loadSparringData(),sc2Load()]);
+  if(view!=="boxing"||boxSub!=="sparring")return;
+  const c=$("boxContent");if(!c)return;
+  const bp=boxData.profile;const isC=sc2IsCoach();
+  const myTrainFighter=trainingFighterFor(profile&&profile.id);
+  const showMiaTab=!!myTrainFighter;
+  const showMiaBackdrop=showMiaTab&&myTrainFighter.backdrop;
+  let html="";
+  if(bpEditing)html+=bpFormHtml(bp||{});
+  else if(!bp)html+=`<div class="card" style="text-align:center">
+      <h3>Build Your Boxer Profile</h3>
+      <p style="margin-top:6px">Set up your profile — photo, weights, record — then bank your sparring rounds week by week.</p>
+      <button class="btnGold" style="margin-top:14px" onclick="startBpEdit()">Build My Profile</button></div>`;
+  else{
+    if(sparTab!=="profile"&&sparTab!=="match"&&sparTab!=="titles"&&!(sparTab==="training"&&showMiaTab))sparTab="profile";
+    const un=isC?sc2Unseen():0;
+    html+=`<div class="sc2Tabs">
+      <button class="${sparTab==='profile'?'on':''}" onclick="sparTab='profile';renderSparringClub()">Fighter Profile</button>
+      <button class="${sparTab==='match'?'on':''}" onclick="sparTab='match';renderSparringClub()">Sparring</button>
+      <button class="${sparTab==='titles'?'on':''}" onclick="sparTab='titles';renderSparringClub()">Nominations${un?`<i class="dotN">${un}</i>`:""}</button>
+      ${showMiaTab?`<button class="miaFlash" onclick="sparTab='training';renderSparringClub()">${esc(myTrainFighter.firstName)}'s Training</button>`:""}
+    </div>`;
+    if(sparTab==="titles"){
+      const tHtml=html+(isC?sc2InboxHtml():"")+atShellHtml()+sc2ShowsHtml();
+      c.innerHTML=showMiaBackdrop?miaBackdropWrap(tHtml):tHtml;
+      atLoad();
+      return;
+    }
+    if(sparTab==="match"){
+      const mHtml=html+`<div id="sparWed"><div class="loadingDots">Loading the list…</div></div>`+(isC?coachHtml():"");
+      c.innerHTML=showMiaBackdrop?miaBackdropWrap(mHtml):mHtml;
+      renderSparWed();
+      return;
+    }
+    if(sparTab==="training"&&showMiaTab){
+      const trainHtml=html+miaTrainingHtml(myTrainFighter.uid);
+      c.innerHTML=showMiaBackdrop?miaBackdropWrap(trainHtml):trainHtml;
+      renderMiaTrainTabs();
+      return;
+    }
+    html+=boxerCardHtml(bp)
+      +(isC?sc2RosterHtml():sc2WorkloadHtml(sc2.programs,session.user.id,true))
+      +sparringStatsHtml()+logFormHtml()+historyHtml()+fightTapeHtml()+notesHtml();
+  }
+  c.innerHTML=showMiaBackdrop?miaBackdropWrap(html):html;
+}
+
+/* ---------- coach roster as a grid ---------- */
+function sc2RosterHtml(){
+  const rows=sc2.roster.filter(b=>b.user_id!==session.user.id);
+  return `<div class="secTitle">Fighters (${rows.length})</div>
+    <button class="btnGold" style="margin-bottom:12px" onclick="pbStart()">Build A Workload For A Fighter</button>
+    <p style="font-size:11.5px;color:var(--muted);margin:-4px 2px 10px">Tap a fighter for their profile and workload.</p>
+    <div class="fg2">${rows.map(b=>sc2Tile(b,`openCoachFighterView('${b.user_id}')`)).join("")||'<div class="card"><p>No fighter profiles registered yet.</p></div>'}</div>`;
+}
+function renderCoachFighterView(){
+  const c=$("boxContent");if(!c)return;
+  const bp=boxData.profile;
+  let html=`<button class="backBtn" onclick="closeCoachFighterView()">‹ Back To Fighters</button>`;
+  if(!bp){c.innerHTML=html+`<div class="card"><p>No profile found for this fighter.</p></div>`;return;}
+  const progs=sc2.allPrograms.filter(p=>p.user_id===bp.user_id);
+  html+=rosterCardHtml(bp)
+    +`<button class="btnGold" style="margin:12px 0 4px" onclick="pbStart('${bp.user_id}')">Build ${esc((bp.name||"").split(" ")[0])} A Workload</button>`
+    +sc2WorkloadHtml(progs,bp.user_id,false)+sparringStatsHtml();
+  const showMia=canSeeMiaTraining(bp.user_id);
+  const viewFighter=trainingFighterFor(bp.user_id);
+  if(showMia)html+=miaTrainingHtml(bp.user_id);
+  c.innerHTML=(showMia&&viewFighter&&viewFighter.backdrop)?miaBackdropWrap(html):html;
+  if(showMia)renderMiaTrainTabs();
+}
+
+/* ===================== WORKLOAD (fighter view + coach view) ===================== */
+function sc2SchedLabel(s){if(!s||s.mode==="once")return "One-off · "+(s&&s.start?sc2Short(s.start):"");return "Every "+(s.days||[]).map(d=>SC2_DAYN[d]).join(" & ")+" · "+s.weeks+" week"+(s.weeks>1?"s":"");}
+function sc2WorkloadHtml(progs,uid,owner){
+  const today=sc2Today();
+  let h=`<div class="secTitle">${owner?"Your Workload":"Workload"} <span style="color:var(--muted);font-weight:600;letter-spacing:1px;font-size:11px">${progs.length?progs.length+" programmed":""}</span></div>`;
+  if(!progs.length)return h+`<div class="card"><p>${owner?"Nothing programmed yet. Jake builds these off what he sees on the floor — it'll land here with his notes.":"Nothing programmed for this fighter yet."}</p></div>`;
+  progs.forEach(p=>{
+    const sess=p.sessions||[],done=sess.filter(s=>s.done).length,pct=sess.length?Math.round(done/sess.length*100):0;
+    const nx=sess.find(s=>!s.done&&s.date>=today);const notes=p.notes||{};const set=p.settings||{len:180,rest:30,core:60};const list=p.rounds||[];
+    h+=`<div class="prog2"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+      <div><div class="kick2">${esc(sc2SchedLabel(p.schedule))}</div><b style="font-size:16px;display:block;margin-top:3px;text-transform:uppercase;letter-spacing:.5px">${esc(p.name)}</b>
+      <div style="font-size:11px;color:var(--muted)">${list.length} rounds · ${fmtSec(sc2Total(list,set))} · by ${esc(p.coach_name||"Jake")}, ${fmtDateAU(String(p.created_at).slice(0,10))}</div></div>
+      ${sc2IsCoach()?`<button class="miniB" onclick="sc2DelProgram('${p.id}')">✕</button>`:""}</div>
+      <div class="bar2"><i style="width:${pct}%"></i></div><div style="font-size:11px;color:var(--muted);margin:4px 0 10px">${done} of ${sess.length} sessions done${nx?" · next "+fmtDateAU(nx.date):sess.length?" · complete":""}</div>
+      <div class="noteGrid2">
+        ${notes.well?`<div class="nb2 ok"><span>Doing well</span>${esc(notes.well)}</div>`:""}
+        ${notes.work?`<div class="nb2 warn"><span>Work on</span>${esc(notes.work)}</div>`:""}
+        ${notes.focus?`<div class="nb2 gold"><span>In your own time</span>${esc(notes.focus)}</div>`:""}</div>
+      <div class="kick2" style="margin:12px 0 6px">The session</div>
+      <div class="rlist2">${list.map((id,i)=>{const it=byoFind(id);if(!it)return "";return `<div class="rrow2"><span class="rn">${i+1}</span><div style="flex:1"><b>${esc(it.n)}</b><span>${fmtSec(sc2RoundLen(it,set))}${it.tag?" · "+esc(it.tag):""}</span></div></div>`;}).join("")}</div>
+      ${sess.length?`<div class="kick2" style="margin:12px 0 6px">Days</div><div class="dayRow2">${sess.map((s,k)=>{const past=s.date<today&&!s.done;
+        return `<button class="dayC2${s.done?" done":past?" missed":""}" onclick="sc2TickSession('${p.id}',${k})"><b>${SC2_DAYN[new Date(s.date+"T12:00:00").getDay()]}</b><span>${s.date.slice(8)}/${s.date.slice(5,7)}</span><i>${s.done?"done":past?"missed":""}</i></button>`;}).join("")}</div>`:""}
+      ${owner&&list.length?`<button class="btnGold" style="margin-top:12px" onclick="sc2StartProgram('${p.id}')">Start ${nx?SC2_DAYN[new Date(nx.date+"T12:00:00").getDay()]+"'s":"The"} Session · ${fmtSec(sc2Total(list,set))}</button>`:""}
+    </div>`;
+  });
+  return h;
+}
+async function sc2TickSession(pid,k){
+  const p=sc2.allPrograms.find(x=>x.id===pid);if(!p)return;
+  const sess=(p.sessions||[]).map(s=>({...s}));sess[k].done=sess[k].done?0:1;
+  const {error}=await sb.from("fighter_programs").update({sessions:sess,updated_at:new Date().toISOString()}).eq("id",pid);
+  if(error){toast(error.message);return;}
+  p.sessions=sess;
+  if(sess[k].done&&p.user_id===session.user.id){
+    const nm=(boxData.profile&&boxData.profile.name)||((profile.first_name||"")+" "+(profile.last_name||"")).trim();
+    await sb.from("coach_inbox").insert({kind:"done",user_id:session.user.id,name:nm,ref_id:pid,text:nm.split(" ")[0]+" finished "+p.name+" ("+fmtDateAU(sess[k].date)+")"});
+    toast("Banked. Jake's been told.");
+  }
+  if(coachViewId)renderCoachFighterView();else renderSparringClub();
+}
+function sc2StartProgram(pid){
+  const p=sc2.allPrograms.find(x=>x.id===pid);if(!p)return;
+  const set=p.settings||{};
+  byo={len:set.len||180,rest:set.rest||30,core:set.core||60,db:byo.db||2,list:(p.rounds||[]).slice()};byoSave();
+  boxSub="byo";renderBoxing();byoStart();
+}
+async function sc2DelProgram(pid){
+  if(!confirm("Remove this workload from the fighter's profile?"))return;
+  await sb.from("fighter_programs").delete().eq("id",pid);
+  sc2.allPrograms=sc2.allPrograms.filter(p=>p.id!==pid);
+  if(coachViewId)renderCoachFighterView();else renderSparringClub();
+}
+
+/* ===================== PROGRAM BUILDER (coach) ===================== */
+let pbState=null;
+function pbStart(uid){
+  if(!sc2IsCoach())return;
+  pbState={f:uid||null,step:uid?2:1,name:"",list:[],set:{len:180,rest:30,core:60},notes:{well:"",work:"",focus:""},sched:{mode:"weekly",days:[4],weeks:3,start:sc2Today()}};
+  coachViewId=null;pbRender();window.scrollTo(0,0);
+}
+function pbCancel(){pbState=null;renderSparringClub();}
+function pbGen(sc){
+  const out=[];if(!sc)return out;
+  if(sc.mode==="once")return [{date:sc.start,done:0}];
+  const start=new Date(sc.start+"T12:00:00");const per={};
+  for(let k=0;k<7*(sc.weeks||1)+7;k++){const d=new Date(start);d.setDate(start.getDate()+k);const dow=d.getDay();
+    if((sc.days||[]).indexOf(dow)<0)continue;per[dow]=(per[dow]||0)+1;if(per[dow]>(sc.weeks||1))continue;out.push({date:sc2Iso(d),done:0});}
+  return out.sort((a,b)=>a.date<b.date?-1:1);
+}
+function pbEditor(){
+  const P=pbState,set=P.set,list=P.list;
+  const counts={};list.forEach(id=>counts[id]=(counts[id]||0)+1);
+  let h=`<div class="card" style="padding:12px"><div class="setRow2">
+    <span class="l">Round</span>${[120,180].map(v=>`<button class="${set.len===v?'on':''}" onclick="pbSet('len',${v})">${fmtSec(v)}</button>`).join("")}
+    <span class="l" style="margin-left:8px">Rest</span>${[30,45,60].map(v=>`<button class="${set.rest===v?'on':''}" onclick="pbSet('rest',${v})">${v}s</button>`).join("")}
+    <span class="l" style="margin-left:8px">Core</span>${[30,60].map(v=>`<button class="${set.core===v?'on':''}" onclick="pbSet('core',${v})">${fmtSec(v)}</button>`).join("")}</div></div>`;
+  h+=`<div class="card" style="border-color:var(--gold-dim)"><div style="display:flex;justify-content:space-between;align-items:baseline"><div class="kick2">The session</div><div style="font-size:11px;color:var(--muted)">${list.length} rounds · ${fmtSec(sc2Total(list,set))}</div></div>`;
+  if(!list.length)h+=`<p style="margin-top:8px">Tap rounds below to add them. Same round twice? Tap it twice.</p>`;
+  else h+=`<div class="rlist2">${list.map((id,i)=>{const it=byoFind(id);return `<div class="rrow2"><span class="rn">${i+1}</span><div style="flex:1;min-width:0"><b>${esc(it.n)}</b><span>${fmtSec(sc2RoundLen(it,set))}${it.tag?" · "+esc(it.tag):""}</span></div><button onclick="pbUp(${i})">↑</button><button onclick="pbRm(${i})">✕</button></div>`;}).join("")}</div>`;
+  h+=`</div>`;
+  BYO_LIB.forEach(c=>{h+=`<div class="secTitle">${esc(c.cat)}</div><div class="pills2">${c.items.map(it=>`<button class="${counts[it.id]?'on':''}" onclick="pbAdd('${it.id}')">${esc(it.n)}${counts[it.id]?` <b>×${counts[it.id]}</b>`:""}</button>`).join("")}</div>`;});
+  return h;
+}
+function pbRender(){
+  const c=$("boxContent");if(!c||!pbState)return;
+  const P=pbState;const f=P.f?sc2.roster.find(b=>b.user_id===P.f):null;const first=f?(f.name||"").split(" ")[0]:"";
+  const steps=[["Fighter",1],["Session",2],["Notes",3],["Schedule",4],["Approve",5]];
+  let h=`<div class="card" style="display:flex;align-items:center;gap:10px;padding:12px 14px">
+    ${f?`<div class="av2" style="width:36px;height:36px;border-radius:9px;background:#1e1e22;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--gold);font-size:12px;flex:none">${sc2Initials(f.name)}</div><div style="flex:1;min-width:0"><div class="kick2">Building a workload for</div><b style="font-size:15px;text-transform:uppercase">${esc(f.name)}</b></div>`:`<div style="flex:1"><div class="kick2">New workload</div><b style="font-size:15px;text-transform:uppercase">Pick a fighter</b></div>`}
+    <button class="miniB" onclick="pbCancel()">Cancel</button></div>
+    <div class="steps2">${steps.map(s=>`<button class="${P.step===s[1]?'on':(P.step>s[1]?'past':'')}" onclick="pbStep(${s[1]})"><i>${s[1]}</i>${s[0]}</button>`).join("")}</div>`;
+  if(P.step===1){
+    h+=`<div class="fg2">${sc2.roster.filter(b=>b.user_id!==session.user.id).map(b=>sc2Tile(b,`pbPick('${b.user_id}')`,P.f===b.user_id?"sel":"")).join("")}</div>`;
+  }
+  if(P.step===2){
+    h+=`<label class="lbl2">Name the session</label><input type="text" id="pbName" value="${esc(P.name)}" placeholder="e.g. Hands up, feet moving" oninput="pbState.name=this.value" style="width:100%;background:#0f0f12;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:16px;color:var(--text)"><div style="height:10px"></div>`+pbEditor()
+      +`<button class="btnGold" style="margin-top:14px" onclick="pbStep(3)">Next — Notes For ${esc(first)} →</button>`;
+  }
+  if(P.step===3){
+    h+=`<p style="margin:2px 2px 12px">This is what ${esc(first)} reads before every session. Be specific — it's the most valuable part.</p>
+      <label class="lbl2" style="color:var(--ok)">What they're doing well</label><textarea oninput="pbState.notes.well=this.value" placeholder="e.g. Your engine is the best in your weight…" style="width:100%;background:#0f0f12;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:16px;color:var(--text);min-height:80px">${esc(P.notes.well)}</textarea>
+      <label class="lbl2" style="color:var(--danger)">What to fix</label><textarea oninput="pbState.notes.work=this.value" placeholder="e.g. Lead hand drops after you throw it…" style="width:100%;background:#0f0f12;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:16px;color:var(--text);min-height:80px">${esc(P.notes.work)}</textarea>
+      <label class="lbl2" style="color:var(--gold)">Focus in their own time</label><textarea oninput="pbState.notes.focus=this.value" placeholder="e.g. Two rounds of defence shadow before every session…" style="width:100%;background:#0f0f12;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:16px;color:var(--text);min-height:80px">${esc(P.notes.focus)}</textarea>
+      <button class="btnGold" style="margin-top:16px" onclick="pbStep(4)">Next — When Do They Do It? →</button>`;
+  }
+  if(P.step===4){
+    const sc=P.sched;const prev=pbGen(sc);
+    h+=`<div class="card"><div class="kick2" style="margin-bottom:8px">When</div><div class="pillBtns">
+      <button class="${sc.mode==='once'?'on':''}" onclick="pbSched('mode','once')">One Day</button>
+      <button class="${sc.mode==='weekly'?'on':''}" onclick="pbSched('mode','weekly')">Every Week</button></div>
+      ${sc.mode==="once"?`<label class="lbl2">Which day</label><input type="date" value="${sc.start}" onchange="pbSched('start',this.value)" style="width:100%;background:#0f0f12;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:16px;color:var(--text)">`
+        :`<label class="lbl2">On which days</label><div class="dayPick2">${[1,2,3,4,5,6,0].map(d=>`<button class="${sc.days.indexOf(d)>=0?'on':''}" onclick="pbDay(${d})">${SC2_DAYN[d]}</button>`).join("")}</div>
+          <label class="lbl2">For how long</label><div class="pills2">${[1,2,3,4,6,8].map(w=>`<button class="${sc.weeks===w?'on':''}" onclick="pbSched('weeks',${w})">${w} wk${w>1?'s':''}</button>`).join("")}</div>
+          <label class="lbl2">Starting</label><input type="date" value="${sc.start}" onchange="pbSched('start',this.value)" style="width:100%;background:#0f0f12;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:16px;color:var(--text)">`}
+      </div>
+      <div class="card" style="padding:12px 14px"><div class="kick2" style="margin-bottom:6px">That's ${prev.length} session${prev.length===1?'':'s'}</div><div class="dayRow2">${prev.map(s=>`<span class="dayC2"><b>${SC2_DAYN[new Date(s.date+"T12:00:00").getDay()]}</b><span>${s.date.slice(8)}/${s.date.slice(5,7)}</span></span>`).join("")}</div></div>
+      <button class="btnGold" style="margin-top:14px" onclick="pbStep(5)">Next — Review →</button>`;
+  }
+  if(P.step===5){
+    const prev=pbGen(P.sched),missing=[];
+    if(!P.name.trim())missing.push("a name");if(!P.list.length)missing.push("some rounds");
+    if(!P.notes.well.trim()&&!P.notes.work.trim()&&!P.notes.focus.trim())missing.push("at least one note");
+    h+=`<div class="prog2"><div class="kick2">${esc(sc2SchedLabel(P.sched))} · ${prev.length} sessions</div>
+      <b style="font-size:18px;display:block;margin-top:3px;text-transform:uppercase">${esc(P.name||"Untitled")}</b>
+      <div style="font-size:11px;color:var(--muted)">${P.list.length} rounds · ${fmtSec(sc2Total(P.list,P.set))} · ${fmtSec(P.set.len)} rounds, ${P.set.rest}s rest</div>
+      <div class="noteGrid2" style="margin-top:12px"><div class="nb2 ok"><span>Doing well</span>${esc(P.notes.well||"—")}</div><div class="nb2 warn"><span>Work on</span>${esc(P.notes.work||"—")}</div><div class="nb2 gold"><span>Own time</span>${esc(P.notes.focus||"—")}</div></div>
+      <div class="kick2" style="margin:12px 0 6px">The session</div><div class="rlist2">${P.list.map((id,i)=>{const it=byoFind(id);return `<div class="rrow2"><span class="rn">${i+1}</span><div style="flex:1"><b>${esc(it.n)}</b><span>${fmtSec(sc2RoundLen(it,P.set))}</span></div></div>`;}).join("")}</div></div>
+      ${missing.length?`<div class="sc2Note warn"><b>Still needs</b> ${missing.join(", ")}.</div>`:""}
+      <button class="btnGold" ${missing.length?'disabled style="opacity:.4"':''} onclick="pbApprove()">Approve — Send To ${esc(first)}'s Profile</button>`;
+  }
+  c.innerHTML=h;
+}
+function pbPick(uid){pbState.f=uid;pbState.step=2;pbRender();window.scrollTo(0,0);}
+function pbStep(n){if(n>1&&!pbState.f){toast("Pick a fighter first");return;}pbState.step=n;pbRender();window.scrollTo(0,0);}
+function pbSet(k,v){pbState.set[k]=v;pbRender();}
+function pbAdd(id){pbState.list.push(id);pbRender();}
+function pbRm(i){pbState.list.splice(i,1);pbRender();}
+function pbUp(i){if(i>0){const t=pbState.list[i-1];pbState.list[i-1]=pbState.list[i];pbState.list[i]=t;pbRender();}}
+function pbSched(k,v){pbState.sched[k]=v;pbRender();}
+function pbDay(d){const a=pbState.sched.days;const i=a.indexOf(d);if(i>=0)a.splice(i,1);else a.push(d);a.sort();pbRender();}
+let pbBusy=false;
+async function pbApprove(){
+  if(pbBusy||!pbState)return;pbBusy=true;
+  const P=pbState;const f=sc2.roster.find(b=>b.user_id===P.f);
+  const coachName=((profile.first_name||"")+" "+(profile.last_name||"")).trim()||"Coach";
+  const row={user_id:P.f,coach_id:session.user.id,coach_name:coachName,name:P.name.trim(),settings:P.set,rounds:P.list,notes:P.notes,schedule:P.sched,sessions:pbGen(P.sched),approved:true};
+  const {error}=await sb.from("fighter_programs").insert(row);
+  pbBusy=false;
+  if(error){toast(error.message);return;}
+  bell();toast("Approved — it's in "+((f&&f.name)||"their")+"'s profile.");
+  pbState=null;renderSparringClub();
+}
+
+/* ===================== SPARRING — tap, tap, matched ===================== */
+let sc2PickA=null;
+async function renderSparWed(){
+  const wed=nextWednesday();
+  const [su,mu]=await Promise.all([
+    sb.from("spar_signups").select("*").eq("week_date",wed).order("weight",{ascending:true}),
+    sb.from("spar_matchups").select("*").eq("week_date",wed).order("created_at",{ascending:true})]);
+  if(!sc2.ready)await sc2Load();
+  if(view!=="boxing"||boxSub!=="sparring"||sparTab!=="match")return;
+  const box=$("sparWed");if(!box)return;
+  const signups=su.data||[],matchups=mu.data||[];
+  const mine=signups.find(s=>s.user_id===session.user.id);
+  const isC=sc2IsCoach();
+  const inSet={};signups.forEach(s=>inSet[s.user_id]=s);
+  const byId={};sc2.roster.forEach(b=>byId[b.user_id]=b);
+  const matched={};matchups.forEach(m=>{matched[m.a_user]=1;matched[m.b_user]=1;});
+  const pool=sc2.roster.filter(b=>!matched[b.user_id]).sort((a,b)=>(inSet[b.user_id]?1:0)-(inSet[a.user_id]?1:0)||(Number(a.current_weight||a.fight_weight)||999)-(Number(b.current_weight||b.fight_weight)||999));
+  const A=sc2PickA?byId[sc2PickA]:null;
+  let h=`<div class="card" style="border-color:var(--gold-dim)">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+        <h3 style="font-size:16px">Wednesday Night Sparring — 7:00 PM</h3>
+        <span style="font-size:12px;color:var(--gold);font-weight:800;flex-shrink:0">${fmtDateAU(wed)}</span></div>
+      <p style="font-size:12px;color:var(--muted);margin-top:4px">${signups.length} on the list. Tap attending — your profile carries straight onto the list.</p>
+      ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="sparPullOut('${wed}')">You're In ✓ — ${Number(mine.weight)}kg · Tap To Pull Out</button>`
+        :`<button class="btnGold" style="margin-top:12px" onclick="sparAttend('${wed}')">Yes — I'm Attending Sparring</button>`}
+    </div>`;
+  if(isC){
+    h+=`<div class="card" style="padding:12px 14px;display:flex;align-items:center;gap:10px;justify-content:space-between">
+      <div><div class="kick2">Set the card</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${A?`<b style="color:var(--gold)">Now tap ${esc((A.name||"").split(" ")[0])}'s partner</b>`:"Tap one fighter, then another. That's a bout."}</div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+        <span class="miniB" style="border-color:${muRounds?'var(--gold-dim)':''}" onclick="sc2Defaults()">${muRounds} × ${muMins}:00 · Ring ${muRing}</span>
+        ${A?`<button class="miniB" onclick="sc2PickA=null;renderSparWed()">Clear</button>`:""}</div></div>`;
+    h+=`<div class="fg2" style="margin-bottom:14px">${pool.map(b=>{
+      const on=!!inSet[b.user_id];
+      if(sc2PickA===b.user_id)return sc2Tile(b,`sc2Pick('${b.user_id}')`,"sel",on?'<span class="tsc">IN</span>':'');
+      if(A){const sc=sc2Score(A,b);return sc2Tile(b,`sc2Pick('${b.user_id}')`,"sc-"+(sc.blockers.length?"bad":sc.band)+(on?"":" dim"),`<span class="tsc">${sc.score}</span>`);}
+      return sc2Tile(b,`sc2Pick('${b.user_id}')`,on?"":"dim",on?'<span class="tsc" style="color:var(--ok)">IN</span>':'');}).join("")}</div>`;
+  } else {
+    const groups=[];let cur=null;
+    signups.forEach(s=>{if(!cur||Number(s.weight)>cur.start+10){cur={start:Number(s.weight),list:[]};groups.push(cur);}cur.list.push(s);});
+    h+=`<div class="secTitle">Who's In — ${signups.length} Registered</div>`+(groups.length?groups.map(g=>{
+      const lo=Math.min(...g.list.map(x=>Number(x.weight))),hi=Math.max(...g.list.map(x=>Number(x.weight)));
+      return `<div class="card"><div style="font-weight:900;letter-spacing:2px;font-size:11px;color:var(--gold)">${lo===hi?lo+" KG":lo+"–"+hi+" KG"} · ${g.list.length} BOXER${g.list.length>1?"S":""}</div>
+        ${g.list.map(s=>{const b=byId[s.user_id];const d=DIVISIONS[(b&&b.division)||s.division]||DIVISIONS["Sparring Club"];
+          return `<div class="weekRow"><span style="min-width:0"><b>${esc(s.name)}</b><br><small style="color:${d.color}">${d.label}</small>${b?` <small style="color:var(--muted)">· ${sc2Rec(b)}</small>`:""}</span><span style="color:var(--gold);font-weight:800;flex-shrink:0">${Number(s.weight)}kg</span></div>`;}).join("")}</div>`;}).join("")
+      :'<div class="card"><p>Nobody on the list yet — be the first name down.</p></div>');
+  }
+  h+=`<div class="secTitle">Matched Sparring — ${matchups.length} bout${matchups.length===1?"":"s"}</div>`;
+  if(!matchups.length)h+='<div class="card"><p>Matchups go up here once the coaches set the card.</p></div>';
+  matchups.forEach((m,i)=>{
+    const a=byId[m.a_user],b=byId[m.b_user];const sc=(a&&b)?sc2Score(a,b):null;
+    h+=`<div class="sc2Bout"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+      <span class="kick2">Bout ${i+1}${m.ring?` · Ring ${m.ring}`:""} · ${m.rounds} × ${Number(m.mins||3)}:00</span>${sc?`<span class="sc2Chip ${sc.band}">${sc.score}</span>`:""}</div>
+      <div class="vs"><div style="flex:1;min-width:0;text-align:right"><b style="font-size:14px;text-transform:uppercase">${esc(m.a_name)}</b>${a?`<div style="font-size:11px;color:var(--muted)">${Number(a.current_weight||a.fight_weight)||"—"}kg · ${sc2Rec(a)}</div>`:""}</div>
+      <div class="mid">VS</div>
+      <div style="flex:1;min-width:0"><b style="font-size:14px;text-transform:uppercase">${esc(m.b_name)}</b>${b?`<div style="font-size:11px;color:var(--muted)">${Number(b.current_weight||b.fight_weight)||"—"}kg · ${sc2Rec(b)}</div>`:""}</div></div>
+      ${sc&&sc.blockers.length?`<div style="font-size:11px;color:var(--danger);margin-top:6px;text-align:center">${esc(sc.blockers.join(" · "))}</div>`:sc?`<div style="font-size:11px;color:var(--muted);margin-top:6px;text-align:center">${esc(sc.reasons.slice(0,2).join(" · "))}</div>`:""}
+      ${isC?`<div class="sc2Ed"><span class="l">Rounds</span>${[2,3,4,6].map(r=>`<button class="${m.rounds===r?'on':''}" onclick="sc2SetB('${m.id}','rounds',${r})">${r}</button>`).join("")}
+        <span class="l" style="margin-left:6px">Ring</span>${[1,2,3,4].map(r=>`<button class="${m.ring===r?'on':''}" onclick="sc2SetB('${m.id}','ring',${r})">${r}</button>`).join("")}
+        <span style="flex:1"></span><button onclick="delMatchup('${m.id}')">Unmatch</button></div>`:""}</div>`;
+  });
+  box.innerHTML=h;
+}
+function sc2Defaults(){
+  sc2Sheet(`<div class="kick2">Defaults for new bouts</div><h3 style="margin:5px 0 12px">Rounds · minutes · ring</h3>
+    <label class="lbl2">Rounds</label><div class="pills2">${[1,2,3,4,5,6,8,10].map(r=>`<button class="${muRounds===r?'on':''}" onclick="muRounds=${r};sc2Defaults()">${r}</button>`).join("")}</div>
+    <label class="lbl2">Minutes per round</label><div class="pills2">${[2,3].map(r=>`<button class="${muMins===r?'on':''}" onclick="muMins=${r};sc2Defaults()">${r}:00</button>`).join("")}</div>
+    <label class="lbl2">Ring</label><div class="pills2">${[1,2,3,4].map(r=>`<button class="${muRing===r?'on':''}" onclick="muRing=${r};sc2Defaults()">Ring ${r}</button>`).join("")}</div>
+    <button class="btnGold" style="margin-top:16px" onclick="sc2Close();renderSparWed()">Done</button>`);
+}
+async function sc2Pick(uid){
+  if(!sc2IsCoach())return;
+  if(!sc2PickA){sc2PickA=uid;renderSparWed();return;}
+  if(sc2PickA===uid){sc2PickA=null;renderSparWed();return;}
+  const byId={};sc2.roster.forEach(b=>byId[b.user_id]=b);
+  const a=byId[sc2PickA],b=byId[uid];if(!a||!b)return;
+  const sc=sc2Score(a,b);
+  if(sc.blockers.length&&!confirm("Heads up — "+sc.blockers.join(", ")+".\nMatch them anyway?"))return;
+  if(muBusy)return;muBusy=true;
+  const {error}=await sb.from("spar_matchups").insert({week_date:nextWednesday(),a_user:a.user_id,a_name:a.name,b_user:b.user_id,b_name:b.name,rounds:muRounds,mins:muMins,ring:muRing,created_by:session.user.id});
+  muBusy=false;
+  if(error){toast(error.message);return;}
+  sc2PickA=null;bell();toast(a.name.split(" ")[0]+" v "+b.name.split(" ")[0]+" — matched.");
+  renderSparWed();
+}
+async function sc2SetB(id,k,v){await sb.from("spar_matchups").update({[k]:v}).eq("id",id);renderSparWed();}
+
+/* ===================== NOMINATIONS ===================== */
+function sc2Kind(s){const t=(s.tag||"").toLowerCase();if(s.is_training)return "training";if(t.indexOf("corporate")>=0)return "corporate";if(t.indexOf("pro-am")>=0||t.indexOf("professional")>=0)return "proam";if(t.indexOf("amateur")>=0)return "amateur";return "open";}
+function sc2Suits(bp,s){
+  const k=sc2Kind(s);
+  if(k==="training")return {ok:false,why:"Training day"};
+  if(k==="corporate")return {ok:false,why:"Corporate card"};
+  if(!(bp.current_weight||bp.fight_weight))return {ok:false,why:"No weight on file"};
+  if(k==="amateur"&&bp.division==="Professional")return {ok:false,why:"Amateur card — pro can't box"};
+  const r=[];if(bp.division==="Professional")r.push(k==="proam"?"pro slot":"pro — check with promoter");else if(bp.division==="Amateur"||bp.division==="Fight Club")r.push("amateur");else r.push("first fight");
+  return {ok:true,why:r.join(" · ")};
+}
+function sc2NomsFor(fid){return (boxData.noms||[]).filter(n=>n.fight_id===fid&&n.status!=="withdrawn"&&n.status!=="declined");}
+function sc2InboxHtml(){
+  const noms=(boxData.noms||[]).filter(n=>n.status==="nominated"&&n.user_id!==session.user.id).sort((a,b)=>a.created_at<b.created_at?1:-1);
+  const done=sc2.inbox.filter(i=>i.kind==="done");
+  const fresh=noms.length+done.filter(i=>!i.seen).length;
+  let h=`<div class="secTitle" style="margin-top:0">Inbox <span style="color:var(--muted);font-weight:600;letter-spacing:1px;font-size:11px">${fresh?fresh+" waiting":"all read"}</span></div>`;
+  if(!noms.length&&!done.length)return h+'<div class="card"><p>Nothing waiting.</p></div>';
+  const byId={};sc2.roster.forEach(b=>byId[b.user_id]=b);
+  noms.forEach(n=>{const s=(boxData.fights||[]).find(f=>f.id===n.fight_id);const p=n.payload||{};const b=byId[n.user_id]||{};
+    h+=`<div class="qrow2 fresh"><div style="flex:1;min-width:0"><div class="qt">${esc(n.name)} wants ${esc(s?s.title:"a show")}</div>
+      <div class="qs">${s?sc2Short(s.event_date)+" · ":""}${p.fight_weight||b.fight_weight||b.current_weight||"—"}kg · ${p.record||sc2Rec(b)}${n.csa_number?" · "+esc(n.csa_number):' · <span style="color:var(--danger)">no CSA number</span>'}</div></div>
+      <div style="display:flex;gap:4px"><button class="miniB gold" onclick="sc2Decide('${n.id}','confirmed')">✓</button><button class="miniB" onclick="sc2Decide('${n.id}','declined')">✕</button></div></div>`;});
+  done.slice(0,6).forEach(i=>{h+=`<div class="qrow2${i.seen?"":" fresh"}"><div style="flex:1"><div class="qt">${esc(i.text||"")}</div><div class="qs">${fmtWhen(i.created_at)}</div></div>${i.seen?"":`<button class="miniB" onclick="sc2Seen('${i.id}')">Got it</button>`}</div>`;});
+  return h;
+}
+async function sc2Seen(id){await sb.from("coach_inbox").update({seen:true}).eq("id",id);const i=sc2.inbox.find(x=>x.id===id);if(i)i.seen=true;renderSparringClub();}
+async function sc2Decide(id,status){
+  const {error}=await sb.from("fight_nominations").update({status,decided_by:session.user.id,decided_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id);
+  if(error){toast(error.message);return;}
+  toast(status==="confirmed"?"Confirmed.":"Declined.");renderSparringClub();
+}
+function sc2ShowsHtml(){
+  const shows=(boxData.fights||[]).filter(s=>sc2Days(s.event_date)>=0).sort((a,b)=>a.event_date<b.event_date?-1:1);
+  let h=`<div class="secTitle">Upcoming Shows <span style="color:var(--muted);font-weight:600;letter-spacing:1px;font-size:11px">tap one to nominate</span></div>`;
+  if(!shows.length)return h+'<div class="card"><p>No shows on the calendar yet.</p></div>';
+  let lastM="";
+  shows.forEach(s=>{const mk=sc2Month(s.event_date);if(mk!==lastM){h+=`<div class="mh2">${mk}</div>`;lastM=mk;}
+    const ns=sc2NomsFor(s.id);const mine=ns.some(n=>n.user_id===session.user.id);const d=sc2Days(s.event_date);
+    h+=`<div class="shR2${s.is_training?" tr":""}${s.is_home?" home":""}" onclick="sc2OpenShow('${s.id}')">
+      <div class="dbox2"><b>${s.event_date.slice(8)}</b><span>${SC2_DAYN[new Date(s.event_date+"T12:00:00").getDay()]}</span></div>
+      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.3px">${esc(s.title)}${s.is_home?' <span class="sc2Chip ok" style="font-size:8.5px;padding:1px 6px">Ours</span>':""}</div>
+      <div style="font-size:11.5px;color:var(--muted)">${s.is_training?"Training day":esc(s.promoter||"")+(s.tag?" · "+esc(s.tag):"")}</div></div>
+      <div style="text-align:right;flex:none">${ns.length?`<span class="sc2Chip ${mine?"good":"ok"}">${mine?"you + ":""}${ns.length}</span>`:""}<div style="font-size:11px;color:var(--muted);margin-top:3px">${d}d</div></div></div>`;});
+  return h;
+}
+function sc2OpenShow(id){
+  const s=(boxData.fights||[]).find(f=>f.id===id);if(!s)return;
+  const v=s.venue_info||{};const ns=sc2NomsFor(id);const isC=sc2IsCoach();
+  const mine=ns.find(n=>n.user_id===session.user.id);const byId={};sc2.roster.forEach(b=>byId[b.user_id]=b);
+  const tel=(s.phone||"").replace(/\s/g,"");
+  sc2Sheet(`<div class="kick2">${sc2Short(s.event_date)} · ${sc2Days(s.event_date)} days</div>
+    <h3 style="margin:5px 0 3px;font-size:22px;text-transform:uppercase">${esc(s.title)}</h3>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">${esc(v.name&&v.name!==s.title?v.name:(v.type||""))}${s.tag?" · "+esc(s.tag):""}</div>
+    ${s.is_training?'<div class="sc2Note">Training day — no bouts.</div>':`
+    <div class="card" style="padding:12px 14px">
+      <div class="infoRow2"><span>Where</span><b>${esc(v.addr||s.location||"TBC")}</b></div>
+      <div class="infoRow2"><span>Venue</span><b>${esc(v.type||"—")}</b></div>
+      <div class="infoRow2"><span>From Kincumber</span><b>${esc(v.trip||"—")}</b></div>
+      <div class="infoRow2"><span>Promoter</span><b>${esc(s.promoter||"—")}</b></div>
+      <div class="infoRow2"><span>Contact</span><b>${tel?`<a href="tel:${tel}" style="color:var(--gold);text-decoration:none">${esc(s.phone)}</a>`:"—"}</b></div>
+      ${v.blurb?`<p style="font-size:12px;margin-top:10px;line-height:1.55">${esc(v.blurb)}</p>`:""}</div>
+    <div class="secTitle">Nominated <span style="color:var(--muted);font-weight:600;letter-spacing:1px;font-size:11px">${ns.length}</span></div>
+    ${ns.length?ns.map(n=>{const b=byId[n.user_id]||{};const p=n.payload||{};
+      return `<div class="weekRow"><span style="min-width:0"><b>${esc(n.name)}</b><br><small style="color:var(--muted)">${p.fight_weight||b.fight_weight||b.current_weight||"—"}kg · ${p.record||sc2Rec(b)}${n.csa_number?" · "+esc(n.csa_number):""}</small></span>
+        <span class="sc2Chip st-${n.status}" ${isC?`style="cursor:pointer" onclick="sc2Cycle('${n.id}','${n.status}')"`:""}>${n.status}</span></div>`;}).join("")
+      :'<p style="font-size:12px;color:var(--muted)">Nobody yet.</p>'}
+    ${isC?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"><button class="btnGold" style="margin:0" onclick="sc2NomPick('${id}')">Nominate A Fighter</button>
+        <button class="btnLink" style="margin:0" onclick="sc2TextPromoter('${id}')">Text ${esc((s.promoter||"promoter").split(" ")[0])}</button></div>`
+      :`<div style="margin-top:12px">${mine?`<button class="btnLink" onclick="sc2Withdraw('${mine.id}')">Withdraw My Nomination</button>`:`<button class="btnGold" onclick="sc2NomForm('${id}')">Nominate Me For This Show</button>`}</div>`}`}`);
+}
+function sc2NomForm(showId,uid){
+  const s=(boxData.fights||[]).find(f=>f.id===showId);if(!s)return;
+  const self=!uid||uid===session.user.id;
+  const bp=self?boxData.profile:sc2.roster.find(b=>b.user_id===uid);if(!bp){toast("Build your boxer profile first.");return;}
+  const r=sc2Suits(bp,s);
+  const dob=self&&profile.dob?profile.dob:null;
+  sc2Sheet(`<div class="kick2">Nomination</div><h3 style="margin:5px 0 3px;font-size:20px;text-transform:uppercase">${esc(s.title)}</h3>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">${sc2Short(s.event_date)} · ${esc(s.promoter||"")}</div>
+    ${!r.ok?`<div class="sc2Note warn"><b>Heads up:</b> ${esc(r.why)}. You can still nominate — Jake will call it.</div>`:""}
+    <div class="card" style="padding:12px 14px"><div class="kick2" style="margin-bottom:8px">Built from ${self?"your":"their"} profile</div>
+      <div class="infoRow2"><span>Full name</span><b>${esc(bp.name)}</b></div>
+      <div class="infoRow2"><span>Date of birth</span><b>${dob?esc(dob):(bp.age?"Age "+bp.age+(self?" · add your DOB in My Profile":""):"—")}</b></div>
+      <div class="infoRow2"><span>Record</span><b>${sc2Rec(bp)}</b></div>
+      <div class="infoRow2"><span>Fight weight</span><b>${bp.fight_weight?Number(bp.fight_weight)+" kg":"—"}</b></div>
+      <div class="infoRow2"><span>Walking weight</span><b>${bp.current_weight?Number(bp.current_weight)+" kg":"—"}</b></div>
+      <div class="infoRow2"><span>Division</span><b>${esc(bp.division||"Sparring Club")}${bp.stance?" · "+esc(bp.stance):""}</b></div>
+      <div class="infoRow2"><span>Gym / coach</span><b>Legacy Gym Central Coast · Jake Williamson</b></div>
+      <label class="lbl2">Combat sports number</label><input type="text" id="nmCsn" value="${esc(bp.csa_number||"")}" placeholder="Combat Sports NSW registration — saved to the profile" style="width:100%;background:#0f0f12;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:16px;color:var(--text)">
+    </div>
+    <button class="btnGold" style="margin-top:14px" onclick="sc2NomSubmit('${showId}','${bp.user_id}')">Submit Nomination</button>
+    <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">${self?"Goes straight to Jake to confirm.":"Goes on the list as nominated."}</p>`);
+}
+let sc2NomBusy=false;
+async function sc2NomSubmit(showId,uid){
+  if(sc2NomBusy)return;sc2NomBusy=true;
+  const self=uid===session.user.id;
+  const bp=self?boxData.profile:sc2.roster.find(b=>b.user_id===uid);
+  const csn=($("nmCsn")&&$("nmCsn").value.trim())||null;
+  const payload={record:sc2Rec(bp),fight_weight:bp.fight_weight,current_weight:bp.current_weight,division:bp.division,age:bp.age,stance:bp.stance||null};
+  const row={fight_id:showId,user_id:uid,name:bp.name,status:"nominated",payload,csa_number:csn,updated_at:new Date().toISOString()};
+  const {error}=await sb.from("fight_nominations").upsert(row,{onConflict:"fight_id,user_id"});
+  if(!error&&csn&&(self||sc2IsCoach())){await sb.from("boxer_profiles").update({csa_number:csn}).eq("user_id",uid);bp.csa_number=csn;}
+  sc2NomBusy=false;
+  if(error){toast(error.message);return;}
+  bell();toast(self?"Sent to Jake — he'll confirm it.":bp.name.split(" ")[0]+" nominated.");
+  sc2Close();renderSparringClub();
+}
+async function sc2Withdraw(id){await sb.from("fight_nominations").update({status:"withdrawn",updated_at:new Date().toISOString()}).eq("id",id);toast("Withdrawn.");sc2Close();renderSparringClub();}
+async function sc2Cycle(id,cur){const next=cur==="nominated"?"confirmed":cur==="confirmed"?"declined":"nominated";await sb.from("fight_nominations").update({status:next,decided_by:session.user.id,decided_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id);await loadSparringData();const showId=(boxData.noms.find(n=>n.id===id)||{}).fight_id;if(showId)sc2OpenShow(showId);}
+function sc2NomPick(showId){
+  const s=(boxData.fights||[]).find(f=>f.id===showId);const have=sc2NomsFor(showId).map(n=>n.user_id);
+  sc2Sheet(`<div class="kick2">Nominate a fighter</div><h3 style="margin:5px 0 12px;text-transform:uppercase">${esc(s.title)}</h3>
+    <div class="fg2">${sc2.roster.filter(b=>b.user_id!==session.user.id).map(b=>{const r=sc2Suits(b,s);const isN=have.indexOf(b.user_id)>=0;
+      return sc2Tile(b,`sc2NomForm('${showId}','${b.user_id}')`,isN?"sel":(r.ok?"":"dim"),isN?'<span class="tsc">✓</span>':"");}).join("")}</div>`);
+}
+function sc2TextPromoter(showId){
+  const s=(boxData.fights||[]).find(f=>f.id===showId);const ns=sc2NomsFor(showId);const byId={};sc2.roster.forEach(b=>byId[b.user_id]=b);
+  const body="Hi "+(s.promoter||"").split(" ")[0]+", Jake from Legacy Kincumber. For "+s.title+" "+sc2Short(s.event_date)+":\n"+
+    ns.map(n=>{const b=byId[n.user_id]||{};const p=n.payload||{};return "• "+n.name+" — "+(p.fight_weight||b.fight_weight||b.current_weight||"?")+"kg, "+(p.record||sc2Rec(b))+(p.age?", "+p.age+"yo":"")+", "+(b.division==="Professional"?"pro":"amateur")+(n.csa_number?", "+n.csa_number:"");}).join("\n")+
+    "\nAll sparring weekly. What have you got at those weights?";
+  const tel=(s.phone||"").replace(/\s/g,"");
+  sc2Sheet(`<div class="kick2">Text · ${esc(s.phone||"")}</div><h3 style="margin:5px 0 12px">${esc(s.promoter||"")}</h3>
+    <textarea style="width:100%;min-height:180px;background:#0f0f12;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:15px;color:var(--text)">${esc(body)}</textarea>
+    <a class="btnGold" style="display:block;text-align:center;margin-top:14px;text-decoration:none" href="sms:${tel}?body=${encodeURIComponent(body)}">Open In Messages</a>`);
+}
+
+</script>
 </body>
 </html>
