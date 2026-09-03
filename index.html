@@ -8450,6 +8450,10 @@ css.textContent=`
 .shR2{display:flex;align-items:center;gap:11px;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:7px;cursor:pointer}
 .shR2.tr{background:rgba(201,164,76,.07);border-style:dashed}
 .shR2.home{border-left:3px solid var(--gold)}
+.shR2.rec{border-color:var(--gold);background:linear-gradient(90deg,rgba(201,164,76,.14),var(--panel) 70%)}
+.shR2.at{border-color:#1d6b3a;background:linear-gradient(90deg,#12351f 0%,#0a2013 55%,#0d1a12 100%);border-left:3px solid #FFCD00}
+.shR2.at .dbox2.atd{background:#0a2013;border-color:#1d6b3a} .shR2.at .dbox2.atd b{color:#FFCD00} .shR2.at .dbox2.atd span{color:#94a89a}
+.sc2Sheet #atBody .loadingDots{padding:14px}
 .dbox2{width:42px;flex:none;text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px 0}
 .dbox2 b{display:block;font-size:17px;font-weight:800;color:var(--gold);line-height:1}
 .dbox2 span{display:block;font-size:8.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px}
@@ -8632,9 +8636,9 @@ async function renderSparringClub(){
       ${showMiaTab?`<button class="miaFlash" onclick="sparTab='training';renderSparringClub()">${esc(myTrainFighter.firstName)}'s Training</button>`:""}
     </div>`;
     if(sparTab==="titles"){
-      const tHtml=html+(isC?sc2InboxHtml():"")+atShellHtml()+sc2ShowsHtml();
+      const tHtml=html+(isC?sc2InboxHtml():"")+sc2ShowsHtml();
       c.innerHTML=showMiaBackdrop?miaBackdropWrap(tHtml):tHtml;
-      atLoad();
+      if(atData===null){atLoad().then(()=>{if(view==="boxing"&&boxSub==="sparring"&&sparTab==="titles"&&!document.querySelector(".sc2Sheet.on")&&!pbState)renderSparringClub();});}
       return;
     }
     if(sparTab==="match"){
@@ -8650,7 +8654,7 @@ async function renderSparringClub(){
       return;
     }
     html+=boxerCardHtml(bp)
-      +(isC?sc2RosterHtml():sc2WorkloadHtml(sc2.programs,session.user.id,true))
+      +(isC?sc2RosterHtml():sc2WorkloadHtml(sc2.programs,session.user.id,true)+sc2MyNomsHtml(session.user.id))
       +sparringStatsHtml()+logFormHtml()+historyHtml()+fightTapeHtml()+notesHtml();
   }
   c.innerHTML=showMiaBackdrop?miaBackdropWrap(html):html;
@@ -8664,25 +8668,45 @@ function sc2RosterHtml(){
     <p style="font-size:11.5px;color:var(--muted);margin:-4px 2px 10px">Tap a fighter for their profile and workload.</p>
     <div class="fg2">${rows.map(b=>sc2Tile(b,`openCoachFighterView('${b.user_id}')`)).join("")||'<div class="card"><p>No fighter profiles registered yet.</p></div>'}</div>`;
 }
+let sc2CoachMode="as";
 function renderCoachFighterView(){
   const c=$("boxContent");if(!c)return;
   const bp=boxData.profile;
   let html=`<button class="backBtn" onclick="closeCoachFighterView()">‹ Back To Fighters</button>`;
   if(!bp){c.innerHTML=html+`<div class="card"><p>No profile found for this fighter.</p></div>`;return;}
   const progs=sc2.allPrograms.filter(p=>p.user_id===bp.user_id);
-  html+=rosterCardHtml(bp)
-    +`<button class="btnGold" style="margin:12px 0 4px" onclick="pbStart('${bp.user_id}')">Build ${esc((bp.name||"").split(" ")[0])} A Workload</button>`
-    +sc2WorkloadHtml(progs,bp.user_id,false)+sparringStatsHtml();
+  const first=(bp.name||"").split(" ")[0];
+  html+=`<div class="sc2Tabs" style="margin-bottom:12px">
+    <button class="${sc2CoachMode==='as'?'on':''}" onclick="sc2CoachMode='as';renderCoachFighterView()">As ${esc(first)} Sees It</button>
+    <button class="${sc2CoachMode==='coach'?'on':''}" onclick="sc2CoachMode='coach';renderCoachFighterView()">Coach View</button></div>`;
+  if(sc2CoachMode==="as"){
+    /* exactly what the fighter gets on their own Fighter Profile tab, read-only */
+    html+=`<div class="sc2Note" style="padding:9px 14px;font-size:12px"><b>Viewing as ${esc(first)}.</b> This is their Fighter Profile tab as they see it.</div>`
+      +rosterCardHtml(bp)
+      +sc2WorkloadHtml(progs,bp.user_id,true,true)
+      +sc2MyNomsHtml(bp.user_id)
+      +sparringStatsHtml()+historyHtml()+fightTapeHtml()+notesHtml();
+  } else {
+    html+=rosterCardHtml(bp)
+      +`<button class="btnGold" style="margin:12px 0 4px" onclick="pbStart('${bp.user_id}')">Build ${esc(first)} A Workload</button>`
+      +sc2WorkloadHtml(progs,bp.user_id,false)+sc2MyNomsHtml(bp.user_id)+sparringStatsHtml();
+  }
   const showMia=canSeeMiaTraining(bp.user_id);
   const viewFighter=trainingFighterFor(bp.user_id);
   if(showMia)html+=miaTrainingHtml(bp.user_id);
   c.innerHTML=(showMia&&viewFighter&&viewFighter.backdrop)?miaBackdropWrap(html):html;
   if(showMia)renderMiaTrainTabs();
 }
+function sc2MyNomsHtml(uid){
+  const ns=(boxData.noms||[]).filter(n=>n.user_id===uid&&n.status!=="withdrawn");
+  if(!ns.length)return "";
+  return `<div class="secTitle">Nominations</div><div class="card" style="padding:10px 14px">${ns.map(n=>{const s=(boxData.fights||[]).find(f=>f.id===n.fight_id);
+    return `<div class="weekRow"><span style="min-width:0"><b>${esc(s?s.title:"Show")}</b><br><small style="color:var(--muted)">${s?sc2Short(s.event_date):""}${s&&s.promoter?" · "+esc(s.promoter):""}</small></span><span class="sc2Chip st-${n.status}">${n.status}</span></div>`;}).join("")}</div>`;
+}
 
 /* ===================== WORKLOAD (fighter view + coach view) ===================== */
 function sc2SchedLabel(s){if(!s||s.mode==="once")return "One-off · "+(s&&s.start?sc2Short(s.start):"");return "Every "+(s.days||[]).map(d=>SC2_DAYN[d]).join(" & ")+" · "+s.weeks+" week"+(s.weeks>1?"s":"");}
-function sc2WorkloadHtml(progs,uid,owner){
+function sc2WorkloadHtml(progs,uid,owner,noStart){
   const today=sc2Today();
   let h=`<div class="secTitle">${owner?"Your Workload":"Workload"} <span style="color:var(--muted);font-weight:600;letter-spacing:1px;font-size:11px">${progs.length?progs.length+" programmed":""}</span></div>`;
   if(!progs.length)return h+`<div class="card"><p>${owner?"Nothing programmed yet. Jake builds these off what he sees on the floor — it'll land here with his notes.":"Nothing programmed for this fighter yet."}</p></div>`;
@@ -8692,7 +8716,7 @@ function sc2WorkloadHtml(progs,uid,owner){
     h+=`<div class="prog2"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
       <div><div class="kick2">${esc(sc2SchedLabel(p.schedule))}</div><b style="font-size:16px;display:block;margin-top:3px;text-transform:uppercase;letter-spacing:.5px">${esc(p.name)}</b>
       <div style="font-size:11px;color:var(--muted)">${list.length} rounds · ${fmtSec(sc2Total(list,set))} · by ${esc(p.coach_name||"Jake")}, ${fmtDateAU(String(p.created_at).slice(0,10))}</div></div>
-      ${sc2IsCoach()?`<button class="miniB" onclick="sc2DelProgram('${p.id}')">✕</button>`:""}</div>
+      ${sc2IsCoach()&&!noStart?`<button class="miniB" onclick="sc2DelProgram('${p.id}')">✕</button>`:""}</div>
       <div class="bar2"><i style="width:${pct}%"></i></div><div style="font-size:11px;color:var(--muted);margin:4px 0 10px">${done} of ${sess.length} sessions done${nx?" · next "+fmtDateAU(nx.date):sess.length?" · complete":""}</div>
       <div class="noteGrid2">
         ${notes.well?`<div class="nb2 ok"><span>Doing well</span>${esc(notes.well)}</div>`:""}
@@ -8702,7 +8726,7 @@ function sc2WorkloadHtml(progs,uid,owner){
       <div class="rlist2">${list.map((id,i)=>{const it=byoFind(id);if(!it)return "";return `<div class="rrow2"><span class="rn">${i+1}</span><div style="flex:1"><b>${esc(it.n)}</b><span>${fmtSec(sc2RoundLen(it,set))}${it.tag?" · "+esc(it.tag):""}</span></div></div>`;}).join("")}</div>
       ${sess.length?`<div class="kick2" style="margin:12px 0 6px">Days</div><div class="dayRow2">${sess.map((s,k)=>{const past=s.date<today&&!s.done;
         return `<button class="dayC2${s.done?" done":past?" missed":""}" onclick="sc2TickSession('${p.id}',${k})"><b>${SC2_DAYN[new Date(s.date+"T12:00:00").getDay()]}</b><span>${s.date.slice(8)}/${s.date.slice(5,7)}</span><i>${s.done?"done":past?"missed":""}</i></button>`;}).join("")}</div>`:""}
-      ${owner&&list.length?`<button class="btnGold" style="margin-top:12px" onclick="sc2StartProgram('${p.id}')">Start ${nx?SC2_DAYN[new Date(nx.date+"T12:00:00").getDay()]+"'s":"The"} Session · ${fmtSec(sc2Total(list,set))}</button>`:""}
+      ${owner&&!noStart&&list.length?`<button class="btnGold" style="margin-top:12px" onclick="sc2StartProgram('${p.id}')">Start ${nx?SC2_DAYN[new Date(nx.date+"T12:00:00").getDay()]+"'s":"The"} Session · ${fmtSec(sc2Total(list,set))}</button>`:""}
     </div>`;
   });
   return h;
@@ -8952,19 +8976,40 @@ async function sc2Decide(id,status){
   if(error){toast(error.message);return;}
   toast(status==="confirmed"?"Confirmed.":"Declined.");renderSparringClub();
 }
+const SC2_AT={id:"__at",title:"Australian Titles 2026",event_date:"2026-11-26",promoter:"NSW team · AABLI",tag:"Braeside, Victoria · 26–28 Nov",at:true};
 function sc2ShowsHtml(){
-  const shows=(boxData.fights||[]).filter(s=>sc2Days(s.event_date)>=0).sort((a,b)=>a.event_date<b.event_date?-1:1);
+  const shows=(boxData.fights||[]).filter(s=>sc2Days(s.event_date)>=0).concat(sc2Days(SC2_AT.event_date)>=0?[SC2_AT]:[]).sort((a,b)=>a.event_date<b.event_date?-1:1);
   let h=`<div class="secTitle">Upcoming Shows <span style="color:var(--muted);font-weight:600;letter-spacing:1px;font-size:11px">tap one to nominate</span></div>`;
   if(!shows.length)return h+'<div class="card"><p>No shows on the calendar yet.</p></div>';
   let lastM="";
   shows.forEach(s=>{const mk=sc2Month(s.event_date);if(mk!==lastM){h+=`<div class="mh2">${mk}</div>`;lastM=mk;}
-    const ns=sc2NomsFor(s.id);const mine=ns.some(n=>n.user_id===session.user.id);const d=sc2Days(s.event_date);
-    h+=`<div class="shR2${s.is_training?" tr":""}${s.is_home?" home":""}" onclick="sc2OpenShow('${s.id}')">
+    const d=sc2Days(s.event_date);
+    if(s.at){
+      const atN=(atData||[]).length;
+      h+=`<div class="shR2 at" onclick="sc2OpenAT()">
+        <div class="dbox2 atd"><b>${s.event_date.slice(8)}</b><span>${SC2_DAYN[new Date(s.event_date+"T12:00:00").getDay()]}</span></div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:#FFCD00">${esc(s.title)} <span class="sc2Chip" style="font-size:8.5px;padding:1px 6px;color:#6EC1E4;border-color:#6EC1E4">NSW</span></div>
+        <div style="font-size:11.5px;color:#b8c9bd">${esc(s.tag)} · three days, state v state</div></div>
+        <div style="text-align:right;flex:none">${atN?`<span class="sc2Chip" style="color:#FFCD00;border-color:#FFCD00">${atN} in</span>`:""}<div style="font-size:11px;color:#94a89a;margin-top:3px">${d}d</div></div></div>`;
+      return;
+    }
+    const ns=sc2NomsFor(s.id);const mine=ns.some(n=>n.user_id===session.user.id);
+    h+=`<div class="shR2${s.is_training?" tr":""}${s.is_home?" home":""}${s.featured?" rec":""}" onclick="sc2OpenShow('${s.id}')">
       <div class="dbox2"><b>${s.event_date.slice(8)}</b><span>${SC2_DAYN[new Date(s.event_date+"T12:00:00").getDay()]}</span></div>
-      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.3px">${esc(s.title)}${s.is_home?' <span class="sc2Chip ok" style="font-size:8.5px;padding:1px 6px">Ours</span>':""}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.3px">${esc(s.title)}${s.is_home?' <span class="sc2Chip ok" style="font-size:8.5px;padding:1px 6px">Ours</span>':""}${s.featured?' <span class="sc2Chip" style="font-size:8.5px;padding:1px 6px;color:var(--gold);border-color:var(--gold)">Recommended by Jake</span>':""}</div>
       <div style="font-size:11.5px;color:var(--muted)">${s.is_training?"Training day":esc(s.promoter||"")+(s.tag?" · "+esc(s.tag):"")}</div></div>
       <div style="text-align:right;flex:none">${ns.length?`<span class="sc2Chip ${mine?"good":"ok"}">${mine?"you + ":""}${ns.length}</span>`:""}<div style="font-size:11px;color:var(--muted);margin-top:3px">${d}d</div></div></div>`;});
   return h;
+}
+function sc2OpenAT(){
+  sc2Sheet(atShellHtml());
+  const _t=sparTab;sparTab="titles";atLoad();sparTab=_t;
+}
+async function sc2Feature(id,on){
+  const {error}=await sb.from("fight_nights").update({featured:on}).eq("id",id);
+  if(error){toast(error.message);return;}
+  const s=(boxData.fights||[]).find(f=>f.id===id);if(s)s.featured=on;
+  toast(on?"Marked as recommended.":"Recommendation removed.");sc2OpenShow(id);renderSparringClub();
 }
 function sc2OpenShow(id){
   const s=(boxData.fights||[]).find(f=>f.id===id);if(!s)return;
@@ -8972,7 +9017,7 @@ function sc2OpenShow(id){
   const mine=ns.find(n=>n.user_id===session.user.id);const byId={};sc2.roster.forEach(b=>byId[b.user_id]=b);
   const tel=(s.phone||"").replace(/\s/g,"");
   sc2Sheet(`<div class="kick2">${sc2Short(s.event_date)} · ${sc2Days(s.event_date)} days</div>
-    <h3 style="margin:5px 0 3px;font-size:22px;text-transform:uppercase">${esc(s.title)}</h3>
+    <h3 style="margin:5px 0 3px;font-size:22px;text-transform:uppercase;${s.featured?'color:var(--gold)':''}">${esc(s.title)}${s.featured?' <span class="sc2Chip" style="font-size:9px;vertical-align:middle;color:var(--gold);border-color:var(--gold)">Recommended by Jake</span>':""}</h3>
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px">${esc(v.name&&v.name!==s.title?v.name:(v.type||""))}${s.tag?" · "+esc(s.tag):""}</div>
     ${s.is_training?'<div class="sc2Note">Training day — no bouts.</div>':`
     <div class="card" style="padding:12px 14px">
@@ -8988,7 +9033,8 @@ function sc2OpenShow(id){
         <span class="sc2Chip st-${n.status}" ${isC?`style="cursor:pointer" onclick="sc2Cycle('${n.id}','${n.status}')"`:""}>${n.status}</span></div>`;}).join("")
       :'<p style="font-size:12px;color:var(--muted)">Nobody yet.</p>'}
     ${isC?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"><button class="btnGold" style="margin:0" onclick="sc2NomPick('${id}')">Nominate A Fighter</button>
-        <button class="btnLink" style="margin:0" onclick="sc2TextPromoter('${id}')">Text ${esc((s.promoter||"promoter").split(" ")[0])}</button></div>`
+        <button class="btnLink" style="margin:0" onclick="sc2TextPromoter('${id}')">Text ${esc((s.promoter||"promoter").split(" ")[0])}</button></div>
+        <button class="btnLink" style="margin-top:8px;${s.featured?'border-color:var(--gold);color:var(--gold)':''}" onclick="sc2Feature('${id}',${s.featured?'false':'true'})">${s.featured?"★ Recommended by Jake — tap to remove":"☆ Recommend this show to the club"}</button>`
       :`<div style="margin-top:12px">${mine?`<button class="btnLink" onclick="sc2Withdraw('${mine.id}')">Withdraw My Nomination</button>`:`<button class="btnGold" onclick="sc2NomForm('${id}')">Nominate Me For This Show</button>`}</div>`}`}`);
 }
 function sc2NomForm(showId,uid){
