@@ -3,8 +3,29 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "redirects": [
-    { "source": "/book-pt-jake", "destination": "/coaches" },
-    { "source": "/book-pt-joe", "destination": "/joe-williams" },
-    { "source": "/book-pt-sarsha", "destination": "/sarsha" }
+    {
+      "source": "/book-pt-jake",
+      "destination": "/pt-jake"
+    },
+    {
+      "source": "/book-pt-joe",
+      "destination": "/pt-joe"
+    },
+    {
+      "source": "/book-pt-sarsha",
+      "destination": "/pt-sarsha"
+    },
+    {
+      "source": "/coaches-jake",
+      "destination": "/pt-jake"
+    },
+    {
+      "source": "/coaches-joe",
+      "destination": "/pt-joe"
+    },
+    {
+      "source": "/coaches-sarsha",
+      "destination": "/pt-sarsha"
+    }
   ]
 }
