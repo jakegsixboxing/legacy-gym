@@ -9105,7 +9105,7 @@ function sc2NomText(bp,s,csn){
     "Name: "+bp.name+"\n"+
     (dob?"DOB: "+dob+"\n":bp.age?"Age: "+bp.age+"\n":"")+
     "Record: "+sc2Rec(bp)+"\n"+
-    "Fight weight: "+(bp.fight_weight?Number(bp.fight_weight)+"kg":"—")+" (walking "+(bp.current_weight?Number(bp.current_weight)+"kg":"—")+")\n"+
+    "Fight weight: "+(bp.fight_weight?Number(bp.fight_weight)+"kg":(bp.current_weight?Number(bp.current_weight)+"kg":"—"))+"\n"+
     "Division: "+(bp.division||"Sparring Club")+(bp.stance?" · "+bp.stance:"")+"\n"+
     (csn?"Combat sports no: "+csn+"\n":"")+
     "Gym: Legacy Gym Central Coast, Kincumber — coach Jake Williamson 0492 199 419";
