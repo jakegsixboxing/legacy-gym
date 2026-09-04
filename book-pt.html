@@ -346,7 +346,7 @@
           <div class="chname">JAKE</div>
           <div class="chrole">Head Coach &middot; 14 Years</div>
           <div class="chprice">30 min $60 &middot; 50 min $90 &middot; 2-on-1 $140</div>
-          <div class="chwhen">Tue afternoons &middot; Sat mornings</div>
+          <div class="chwhen">Mon, Tue &amp; Wed arvo &middot; Sat morning</div>
           <div class="chbtns"><button class="chbook" onclick="location.href='/pt-jake'">Book Jake</button></div>
         </div>
       </div>
@@ -422,7 +422,7 @@
     <div class="step">
       <div class="step-tag">Step 1</div>
       <div class="step-h">Pick a day</div>
-      <div class="step-note" id="dayNote">Tue afternoons, Sat mornings. The next week opens every Friday.</div>
+      <div class="step-note" id="dayNote">Mon, Tue &amp; Wed 4:30&ndash;6:30pm &middot; Sat 8:30&ndash;10:30am. The next week opens every Friday.</div>
     </div>
     <div class="rail" id="rail"></div>
 
@@ -573,8 +573,8 @@
   var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   var COACHES={
     jake:{ db:"Jake", name:"Jake", init:"J", role:"Head Coach \u00b7 1-on-1 PT",
-      win:{ 2:{o:16*60,c:19*60}, 6:{o:8*60,c:11*60} },
-      hint:"Tue afternoons, Sat mornings. The next week opens every Friday.",
+      win:{ 1:{o:990,c:1110}, 2:{o:990,c:1110}, 3:{o:990,c:1110}, 6:{o:510,c:630} },
+      hint:"Mon, Tue & Wed 4:30\u20136:30pm \u00b7 Sat 8:30\u201310:30am. The next week opens every Friday.",
       dur:[
         {key:"30",   m:30, label:"30 Min", sub:"1-on-1", price:60, badge:"Most popular"},
         {key:"50",   m:50, label:"50 Min", sub:"1-on-1", price:90},
