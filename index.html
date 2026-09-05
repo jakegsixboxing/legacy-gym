@@ -9300,7 +9300,7 @@ window.renderSocial=async function(){
   var res=await Promise.all([
     sb.from("nfl_games").select("*").eq("week",week.week).order("slot",{ascending:true}),
     sb.from("nfl_tips").select("*").eq("week",week.week),
-    sb.from("profiles").select("id,first_name,last_name"),
+    sb.rpc("nfl_tipper_names"),
     sb.from("nfl_confirms").select("*").eq("week",week.week)
   ]);
   if(view!=="social")return;
