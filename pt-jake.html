@@ -76,6 +76,20 @@ footer p{color:var(--dim2);font-size:12.5px;margin-top:8px}
 .efdone{display:none;border:1px solid var(--gold-dim);border-radius:12px;padding:20px;text-align:center;color:var(--gold2);font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.06em;margin-top:16px}
 .eferr{display:none;color:#e2a1a1;font-size:12.5px;margin-top:4px}
 .demoNote{color:var(--dim2);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-top:10px}
+
+.tbjpaths{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.tbjp{background:#141109;border:1px solid var(--gold-dim);border-radius:12px;padding:14px}
+.tbjp .tbjk{font-family:'Anton',sans-serif;text-transform:uppercase;font-size:16px;color:var(--gold2);line-height:1.1}
+.tbjp .tbjt{display:inline-block;margin-top:6px;font-family:'Oswald';font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:10px;color:var(--gold);border:1px solid var(--gold-dim);border-radius:999px;padding:3px 8px}
+.tbjp p{margin-top:8px;font-size:13px}
+.tbjprice{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 12px}
+.tbjprice div{background:#0b0a06;border:1px solid var(--gold-dim);border-radius:10px;padding:12px 8px;text-align:center}
+.tbjprice b{display:block;font-family:'Anton';font-size:24px;color:#fff;line-height:1}
+.tbjprice span{display:block;font-size:11px;color:var(--dim);margin-top:3px}
+.tbjprice em{display:block;font-style:normal;font-family:'Oswald';font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:10px;color:var(--gold);margin-top:6px}
+.tbjhow{display:flex;flex-wrap:wrap;gap:8px 16px;margin:4px 0 10px;font-size:12.5px;color:var(--dim)}
+.tbjhow b{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--gold);color:#141005;text-align:center;line-height:20px;font-family:'Oswald';font-weight:700;font-size:12px;margin-right:5px}
+@media (max-width:520px){.tbjpaths{grid-template-columns:1fr}.tbjprice{grid-template-columns:1fr 1fr 1fr}.tbjprice b{font-size:20px}}
 </style>
 
 <section class="hero">
@@ -171,17 +185,27 @@ footer p{color:var(--dim2);font-size:12.5px;margin-top:8px}
 
    <button class="pcard wide" data-d="dapp" onclick="openD('dapp',this)">
     <div class="flag">Super Cost-Effective</div>
-    <div class="pk">Trained By Jake &mdash; Online</div>
-    <div class="dur">Through The Legacy App &middot; Anywhere</div>
+    <div class="pk">Trained By Jake</div>
+    <div class="dur">Your Program In The Legacy App &middot; Add-On Or Stand-Alone</div>
     <div class="pr">From $14.99 <small>/ week</small></div>
     <div class="tap">Tap for details &darr;</div>
    </button>
 
    <div class="pdet" id="dapp">
-    <h3>Trained By Jake &mdash; Online</h3><div class="sub">Through The App &middot; From $14.99 A Week &middot; 4 To 12 Week Blocks</div>
-    <p>Already know your way around the basics? This is the most cost-effective way to train under Jake. He tailors your week &mdash; one, two or as many sessions as you like &mdash; through his custom app: a complete training program of skills, drills, bag work, footwork, conditioning and more, built to suit your goals.</p>
-    <ul><li><b style="color:var(--gold2)">$14.99 / week</b> &mdash; one programmed session a week</li><li><b style="color:var(--gold2)">$24.99 / week</b> &mdash; two sessions a week</li><li><b style="color:var(--gold2)">$29.99 / week</b> &mdash; three to four sessions a week</li><li>Mix boxing, strength &amp; conditioning and road work &middot; 4, 6, 8, 10 or 12-week blocks &middot; pay upfront or weekly</li><li>Complete program in the app &mdash; skills, drills, bag work, lifts, runs, weigh-ins, video review &amp; messages with Jake</li></ul>
-    <div class="row"><a class="btn" href="/?tbj=1">Request Your Block In The App</a></div>
+    <h3>Trained By Jake</h3><div class="sub">Your Whole Program In The App &middot; From $14.99 A Week &middot; 4 To 12 Week Blocks</div>
+    <p>From fitness to fight night. Book a 1-on-1 with Jake and your program lives in the Legacy app between sessions &mdash; boxing, strength &amp; conditioning, road work, weigh-ins, sparring video review and messages with Jake. You train it, log it and check in. Jake watches every week.</p>
+    <div class="tbjpaths">
+     <div class="tbjp"><div class="tbjk">Book a 1-on-1 &rsaquo; add programming</div><div class="tbjt">Bonus included</div><p>Book a PT session and you get a free pre &amp; post PT program in the app. Want more? Add 1, 2 or more programmed sessions a week on top.</p></div>
+     <div class="tbjp"><div class="tbjk">Already training with us? &rsaquo; Fight Club or classes</div><div class="tbjt">Block &middot; No PT needed</div><p>Members, Fight Club and amateur boxers can have a custom block built by Jake without booking PT. Fitness and skill development welcome.</p></div>
+    </div>
+    <div class="tbjprice">
+     <div><b>$14.99</b><span>per week</span><em>1 session / week</em></div>
+     <div><b>$24.99</b><span>per week</span><em>2 sessions / week</em></div>
+     <div><b>$29.99</b><span>per week</span><em>3&ndash;4 sessions / week</em></div>
+    </div>
+    <ul><li>Mix boxing, strength &amp; conditioning and road work however you like</li><li>4, 6, 8, 10 or 12-week blocks &middot; pay upfront or week by week by invoice</li><li>Skills, drills and bag work with timers &middot; big lifts with sets &amp; reps &middot; 1k to 10k runs</li><li>Weigh-ins, sparring clip uploads and check-ins straight to Jake</li><li>Add nutrition with Alison, Legacy&rsquo;s in-house nutritionist &mdash; ask Jake</li></ul>
+    <div class="tbjhow"><span><b>1</b> Request your block in the app</span><span><b>2</b> Jake builds it</span><span><b>3</b> Pay your invoice &amp; it unlocks</span><span><b>4</b> Train, log &amp; check in</span></div>
+    <div class="row"><a class="btn" href="/?tbj=1" onclick="try{if(window.parent&&window.parent!==window&&window.parent.go){window.parent.go('tbj');return false;}}catch(e){}">Request Your Block In The App</a></div>
     <p style="margin-top:10px">Not in the app yet, or just want to ask a question first? Send Jake a quick enquiry below.</p>
     <form class="ef" data-kind="online" onsubmit="return sendEnq(this)">
      <label>How many sessions a week in the app?</label>

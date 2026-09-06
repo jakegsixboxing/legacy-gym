@@ -9488,8 +9488,8 @@ var PAY={"site": "https://legacygym.net", "upfront": {}, "weekly": {}}; /* {site
 
 /* ---------- hooks into the app ---------- */
 try{ IMGS.tbj=TBJ_IMG; }catch(e){}
-try{ var ci=HOME_CARDS.findIndex(function(c){return c.id==="coaches";}); if(!HOME_CARDS.some(function(c){return c.id==="tbj";}))HOME_CARDS.splice(ci>=0?ci+1:1,0,{id:"tbj",kicker:"Jake-Only · Personal Training",title:"Trained By Jake",sub:"One session, your whole program. Book a 1-on-1 or get a custom training block built in your app.",img:"tbj"}); }catch(e){}
-try{ var ti=TRAIN_IDS.indexOf("coaches"); if(TRAIN_IDS.indexOf("tbj")<0)TRAIN_IDS.splice(ti>=0?ti+1:1,0,"tbj"); }catch(e){}
+/* Trained by Jake has no tile of its own — it lives inside the 1-on-1 (Coaches › Jake) page and Jake's home card. */
+
 try{ NAV_TAB.tbj="train"; }catch(e){}
 var _render=window.render; window.render=function(){ if(view==="tbj")return renderTBJ(); return _render.apply(this,arguments); };
 
@@ -9590,14 +9590,14 @@ async function loadInbox(){var r=await sb.from("tbj_requests").select("*").order
 /* ---------- main render ---------- */
 window.renderTBJ=async function(){ css();
   var coach=isJake();
-  if(!T.sub)T.sub=coach?"inbox":"pt";
-  $("main").innerHTML='<button class="backBtn" onclick="go(\'train\')">‹ Back To Train</button><div class="loadingDots">Loading Trained by Jake…</div>';
+  if(!T.sub||T.sub==="pt")T.sub=coach?"inbox":"request";
+  $("main").innerHTML='<button class="backBtn" onclick="tbjBack()">‹ Back</button><div class="loadingDots">Loading Trained by Jake…</div>';
   try{
     if(coach){ if(T.sub==="inbox"||T.sub==="pt")T.cache.inbox=await loadInbox(); if(T.sub==="client"&&T.viewUser)T.cache.client=await loadClient(T.viewUser); }
-    else { T.me=await loadMe(); }
+    else { T.me=await loadMe(); if(T.sub==="request"&&!T._picked&&hasAccess(T.me)){T.sub="program";} T._picked=true; }
   }catch(e){ console.warn("tbj load",e); }
   if(view!=="tbj")return;
-  var h='<div class="tbj"><button class="backBtn" onclick="go(\'train\')">‹ Back To Train</button>'+subNav(coach);
+  var h='<div class="tbj"><button class="backBtn" onclick="tbjBack()">'+(coach?"‹ Home":"‹ Back To Book A PT")+'</button>'+subNav(coach);
   if(T.sub==="pt")h+=ptHtml(coach);
   else if(T.sub==="request")h+=requestHtml();
   else if(T.sub==="program")h+=programHtml(T.me,false,session.user.id);
@@ -9608,8 +9608,11 @@ window.renderTBJ=async function(){ css();
   $("main").innerHTML=h; window.scrollTo(0,0);
   if(T.sub==="builder")wireDnD();
 };
+window.tbjBack=function(){ if(isJake()){go("home");} else { window.__ptTarget="/pt-jake"; go("coaches"); } };
+/* Jake-only: Trained by Jake requests button on the home screen, under the PT card */
+if(typeof window.renderHome==="function"){var _renderHome=window.renderHome;window.renderHome=function(){var r=_renderHome.apply(this,arguments);try{if(isJake()&&view==="home"&&!document.getElementById("tbjHomeBtn")){var m=$("main");var first=m.querySelector(".homeCard");var b=document.createElement("button");b.id="tbjHomeBtn";b.setAttribute("onclick","window.__tbj.T.sub='inbox';go('tbj')");b.style.cssText="width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px;border-radius:14px;padding:14px 16px;margin:-6px 0 16px;cursor:pointer;border:1px solid var(--line);background:linear-gradient(160deg,#15130c,#0d0c08);color:var(--text)";b.innerHTML='<span><div style="font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold)">Coach Only · Trained By Jake</div><div style="font-family:Oswald,sans-serif;font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Block Requests &amp; Clients</div></span><span style="font-size:22px;color:var(--gold)">›</span>';if(first)m.insertBefore(b,first);else m.appendChild(b);}}catch(e){}return r;};}
 window.tbjGo=function(s){T.sub=s;if(s!=="builder")T.bld=null;renderTBJ();};
-function subNav(coach){var items=coach?[["inbox","Requests"],["pt","PT Page"]]:[["pt","PT Page"],["request","Request A Block"],["program",(T.me&&hasAccess(T.me))?"My Program":"My Program 🔒"]];
+function subNav(coach){var items=coach?[["inbox","Requests"]]:[["request","Request A Block"],["program",(T.me&&hasAccess(T.me))?"My Program":"My Program 🔒"]];
   if(coach&&T.viewUser)items.push(["client",(T.cache.client&&T.cache.client.req?T.cache.client.req.name.split(" ")[0]:"Client")]);
   var nNew=coach&&T.cache.inbox?T.cache.inbox.reqs.filter(function(r){return r.status==="new";}).length+T.cache.inbox.unread.length+T.cache.inbox.pendClips.length+(T.cache.inbox.enqs||[]).filter(function(q){return (q.status||"new")==="new";}).length:0;
   var nMsg=!coach&&T.me?T.me.msgs.filter(function(m){return m.from_coach&&!m.read;}).length:0;
