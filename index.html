@@ -9584,8 +9584,8 @@ async function loadClient(uid){var q=await Promise.all([
     sb.from("tbj_clips").select("*").eq("user_id",uid).order("created_at",{ascending:false}),
     sb.from("tbj_messages").select("*").eq("user_id",uid).order("created_at")]);
   return {req:(q[0].data||[])[0]||null,block:(q[1].data||[])[0]||null,inv:q[2].data||[],logs:q[3].data||[],prog:q[4].data||[],clips:q[5].data||[],msgs:q[6].data||[]};}
-async function loadInbox(){var r=await sb.from("tbj_requests").select("*").order("created_at",{ascending:false});var m=await sb.from("tbj_messages").select("user_id,read,from_coach").eq("read",false).eq("from_coach",false);var c=await sb.from("tbj_clips").select("user_id,status").eq("status","pending");
-  return {reqs:r.data||[],unread:m.data||[],pendClips:c.data||[]};}
+async function loadInbox(){var r=await sb.from("tbj_requests").select("*").order("created_at",{ascending:false});var m=await sb.from("tbj_messages").select("user_id,read,from_coach").eq("read",false).eq("from_coach",false);var c=await sb.from("tbj_clips").select("user_id,status").eq("status","pending");var e={data:[]};try{e=await sb.from("pt_enquiries").select("*").eq("coach","Jake").order("created_at",{ascending:false}).limit(60);}catch(x){}
+  return {reqs:r.data||[],unread:m.data||[],pendClips:c.data||[],enqs:e.data||[]};}
 
 /* ---------- main render ---------- */
 window.renderTBJ=async function(){ css();
@@ -9611,7 +9611,7 @@ window.renderTBJ=async function(){ css();
 window.tbjGo=function(s){T.sub=s;if(s!=="builder")T.bld=null;renderTBJ();};
 function subNav(coach){var items=coach?[["inbox","Requests"],["pt","PT Page"]]:[["pt","PT Page"],["request","Request A Block"],["program",(T.me&&hasAccess(T.me))?"My Program":"My Program 🔒"]];
   if(coach&&T.viewUser)items.push(["client",(T.cache.client&&T.cache.client.req?T.cache.client.req.name.split(" ")[0]:"Client")]);
-  var nNew=coach&&T.cache.inbox?T.cache.inbox.reqs.filter(function(r){return r.status==="new";}).length+T.cache.inbox.unread.length+T.cache.inbox.pendClips.length:0;
+  var nNew=coach&&T.cache.inbox?T.cache.inbox.reqs.filter(function(r){return r.status==="new";}).length+T.cache.inbox.unread.length+T.cache.inbox.pendClips.length+(T.cache.inbox.enqs||[]).filter(function(q){return (q.status||"new")==="new";}).length:0;
   var nMsg=!coach&&T.me?T.me.msgs.filter(function(m){return m.from_coach&&!m.read;}).length:0;
   return '<div class="sub">'+items.map(function(i){var b=(i[0]==="inbox"&&nNew)?'<span class="bdg">'+nNew+'</span>':(i[0]==="program"&&nMsg)?'<span class="bdg">'+nMsg+'</span>':'';return '<button class="'+(T.sub===i[0]||(T.sub==="builder"&&i[0]==="inbox")?"on":"")+'" onclick="tbjGo(\''+i[0]+'\')">'+i[1]+b+'</button>';}).join("")+'</div>';}
 function hasAccess(me){return !!(me&&me.req&&me.req.paid&&(me.req.status==="built"||me.req.status==="active"||me.req.status==="new"));}
@@ -9699,10 +9699,22 @@ function inboxHtml(){var ib=T.cache.inbox||{reqs:[],unread:[],pendClips:[]};
       '<div class="row" style="margin-top:8px"><span class="tag" style="color:#e0483f;border-color:#e0483f">'+r.box+' × Boxing</span><span class="tag" style="color:#5a9bd8;border-color:#5a9bd8">'+r.sc+' × S&amp;C</span><span class="tag" style="color:#e8933a;border-color:#e8933a">'+r.road+' × Road</span><span class="tag g">'+money(r.weekly_price)+'/wk · '+money(r.total_price)+' · '+r.pay_mode+'</span></div>'+
       (r.notes?'<div class="p13" style="margin-top:8px;font-size:12.5px;color:#9b98a2">“'+esc(r.notes)+'”</div>':'')+
       '<div class="row" style="margin-top:10px"><button class="sm g" onclick="tbjBuild(\''+r.id+'\')">'+(r.status==="new"?"Build this block ›":"Edit block")+'</button><button class="sm" onclick="tbjOpenClient(\''+r.user_id+'\')">Open client</button>'+(r.paid?'':(r.invoice_url?'<a class="sm" href="'+esc(r.invoice_url)+'" target="_blank" style="text-decoration:none">Invoice sent ✓ · view</a><button class="sm" onclick="tbjSendInvoice(\''+r.id+'\',\''+(r.pay_mode==="weekly"?"week":"upfront")+'\',1)">Resend</button>':'<button class="sm g" onclick="tbjSendInvoice(\''+r.id+'\',\''+(r.pay_mode==="weekly"?"week":"upfront")+'\',1)">Send '+(r.pay_mode==="weekly"?"week 1":"block")+' invoice ›</button>'))+'<button class="sm" onclick="tbjPaid(\''+r.id+'\','+(!r.paid)+')">'+(r.paid?"Mark unpaid":"Mark paid ✓")+'</button>'+(r.status!=="complete"?'<button class="sm" onclick="tbjStatus(\''+r.id+'\',\''+(r.status==="paused"?"active":"paused")+'\')">'+(r.status==="paused"?"Resume":"Pause")+'</button>':'')+'</div></div>';}
-  h+='<div class="sec">New <span class="n">'+nw.length+'</span></div>'+(nw.length?nw.map(card).join(""):'<div class="card p13">Nothing waiting.</div>');
+  var enqs=ib.enqs||[],enqNew=enqs.filter(function(q){return (q.status||"new")==="new";}),enqOld=enqs.filter(function(q){return (q.status||"new")!=="new";});
+  function enqCard(q){var kind=q.kind==="camp"?"4-Week Camp":"Trained by Jake · Online";var first=(q.name||"").split(" ")[0]||"there";var msg="Hey "+first+", Jake from Legacy Gym here — got your "+(q.kind==="camp"?"camp":"training")+" enquiry. "+(q.kind==="camp"?"Let's lock in your days.":"Easiest next step: open the Legacy app › Train › Trained By Jake and hit Request A Block — I'll build it from there.");
+    var contact=[q.mobile?'<a class="sm" href="sms:'+esc(q.mobile)+'?&body='+encodeURIComponent(msg)+'" style="text-decoration:none">Text '+esc(q.mobile)+'</a>':'',q.email?'<a class="sm" href="mailto:'+esc(q.email)+'?subject='+encodeURIComponent("Trained by Jake — your enquiry")+'&body='+encodeURIComponent(msg)+'" style="text-decoration:none">Email</a>':''].join("");
+    return '<div class="card" style="border-color:rgba(201,164,76,.45)"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="cn" style="margin:0">'+esc(q.name||"No name")+'</div><div class="cs">'+esc(kind)+' · '+esc(q.sessions_per_week||"?")+' sessions/wk'+(q.start_when?' · starts '+esc(q.start_when):'')+' · '+dAU(q.created_at)+'</div><div class="cs">'+esc([q.mobile,q.email].filter(Boolean).join(" · ")||"No contact details left")+'</div></div><span class="tag '+((q.status||"new")==="new"?"d":"ok")+'">'+((q.status||"new")==="new"?"New enquiry":"Handled")+'</span></div>'+
+      (q.goal?'<div class="p13" style="margin-top:8px;font-size:12.5px;color:#9b98a2">“'+esc(q.goal)+'”</div>':'')+
+      '<div class="row" style="margin-top:10px">'+contact+((q.status||"new")==="new"?'<button class="sm g" onclick="tbjEnqStatus(\''+q.id+'\',\'handled\')">Mark handled ✓</button>':'<button class="sm" onclick="tbjEnqStatus(\''+q.id+'\',\'new\')">Reopen</button>')+'</div></div>';}
+  h+='<div class="sec">Website enquiries <span class="n">'+enqNew.length+'</span></div>'+(enqNew.length?'<div class="card p13" style="margin-bottom:8px;font-size:12.5px;color:#9b98a2">Sent from the PT page. Text or email them back — and point them to <b style="color:#F1D27A">Request A Block</b> in the app so it lands here as a proper request.</div>'+enqNew.map(enqCard).join(""):'<div class="card p13">No new enquiries.</div>')+(enqOld.length?'<details style="margin-top:6px"><summary class="p13" style="cursor:pointer;color:#9b98a2">'+enqOld.length+' handled</summary>'+enqOld.slice(0,20).map(enqCard).join("")+'</details>':'');
+  h+='<div class="sec">Block requests <span class="n">'+nw.length+'</span></div>'+(nw.length?nw.map(card).join(""):'<div class="card p13">Nothing waiting.</div>');
   h+='<div class="sec">Active blocks <span class="n">'+act.length+'</span></div>'+(act.length?act.map(card).join(""):'<div class="card p13">—</div>');
   if(old.length)h+='<div class="sec">Finished</div>'+old.map(card).join("");
   return h;}
+window.tbjEnqStatus=async function(id,st){var r=await sb.from("pt_enquiries").update({status:st}).eq("id",id);if(r.error){toast(r.error.message);return;}toast(st==="handled"?"Enquiry marked handled":"Enquiry reopened");renderTBJ();};
+/* Home-card alert: enquiries now live in the Trained by Jake inbox */
+if(typeof window.openMyPT==="function"){var _openMyPT=window.openMyPT;window.openMyPT=async function(){if(!isJake())return _openMyPT.apply(this,arguments);var enq=(typeof ptNewEnq!=="undefined")?ptNewEnq:0,bk=(typeof ptNewCount!=="undefined")?ptNewCount:0;if(enq>0&&bk===0){try{await sb.from("pt_seen").upsert({uid:session.user.id,seen_at:new Date().toISOString()});}catch(e){}try{ptNewCount=0;ptNewEnq=0;}catch(e){}T.sub="inbox";go("tbj");return;}return _openMyPT.apply(this,arguments);};}
+/* Deep link: /?tbj=1 opens Trained by Jake once signed in */
+try{if(/[?&]tbj=1/.test(location.search)){var _tbjDL=setInterval(function(){if(window.session&&window.session.user&&typeof go==="function"&&document.getElementById("main")){clearInterval(_tbjDL);go("tbj");}},400);setTimeout(function(){clearInterval(_tbjDL);},30000);}}catch(e){}
 window.tbjPaid=async function(id,val){var r=await sb.from("tbj_requests").update({paid:val,status:val?undefined:undefined}).eq("id",id);if(r.error){toast(r.error.message);return;}
   var req=(T.cache.inbox.reqs.find(function(x){return x.id===id;})||{});
   if(val){ if(req.pay_mode==="weekly"){await sb.from("tbj_invoices").upsert({request_id:id,user_id:req.user_id,week_no:1,amount:req.weekly_price,due_date:new Date().toISOString().slice(0,10),status:"paid",paid_at:new Date().toISOString()},{onConflict:"request_id,week_no"});}
@@ -9811,6 +9823,7 @@ window.tbjFbSheet=function(cid){sheet("Review clip",'<div class="fld"><label>You
   async function(){var fb=$("fbT").value||"Reviewed — looking good, keep it up.";var r=await sb.from("tbj_clips").update({feedback:fb,status:"reviewed"}).eq("id",cid);if(r.error){toast(r.error.message);return;}await sb.from("tbj_messages").insert({user_id:T.viewUser,from_coach:true,body:"Reviewed your clip — notes are on it in Video."});tbjCloseSheet();toast("Feedback sent ✓");renderTBJ();},"Send feedback");};
 
 })();
+
 </script>
 </body>
 </html>
