@@ -6,6 +6,7 @@ import fs from 'node:fs';
 
 const OLD_UA = 'Mozilla/4.0'; // old UA makes Google Fonts return plain TTF urls
 
+if (fs.existsSync('img')) fs.cpSync('img', 'public/img', { recursive: true });
 async function fontFile(query, out) {
   const css = await (await fetch(`https://fonts.googleapis.com/css2?family=${query}&display=swap`, {
     headers: { 'User-Agent': OLD_UA }
