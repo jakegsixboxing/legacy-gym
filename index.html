@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609072010";
+const LG_BUILD="202609072030";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10182,6 +10182,13 @@ window.renderMiaTrainTabs=function(){
   if(miaTrainUid===SARSHA)return _mt();
   if(document.getElementById("miaTrainPanel"))renderMiaTrainPanel();
 };
+
+/* --- black & gold everywhere: strip the old pink timer/backdrop styling --- */
+var gcss=document.createElement("style");gcss.textContent=`.pillBtns button.miaFlash,.sc2Tabs button.miaFlash{background:var(--gold)!important;color:#161307!important;border-color:var(--gold)!important;animation:none!important}`;document.head.appendChild(gcss);
+var _bw=window.miaBackdropWrap;window.miaBackdropWrap=function(inner){return inner};
+var _rp=window.renderMiaTrainPanel;window.renderMiaTrainPanel=function(){_rp();var p=document.getElementById("miaTrainPanel");if(p&&p.innerHTML.indexOf("#ff4fc4")>=0){p.innerHTML=p.innerHTML.split("#ff4fc4").join("#c9a44c").split("rgba(255,79,196").join("rgba(201,164,76").split("color:#fff;border:none").join("color:#161307;border:none");}};
+var _pt=window.miaTimerPaint;window.miaTimerPaint=function(){_pt();var ph=document.getElementById("miaTimerPhase"),bx=document.getElementById("miaTimerBox");[ph,bx].forEach(function(el){if(!el)return;if(/rgb\(255, 79, 196\)|#ff4fc4/i.test(el.style.color))el.style.color="#c9a44c";if(/rgb\(255, 79, 196\)|#ff4fc4/i.test(el.style.borderColor))el.style.borderColor="#c9a44c";});
+  document.querySelectorAll('[id^="miaDrill"]').forEach(function(el){if(/255, 79, 196|#ff4fc4/i.test(el.style.boxShadow))el.style.boxShadow="0 0 0 2px #c9a44c"});};
 
 })();
 
