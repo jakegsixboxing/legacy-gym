@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609072120";
+const LG_BUILD="202609072135";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10160,6 +10160,7 @@ window.renderSparWed=async function(){
 var _tff=window.trainingFighterFor;
 window.trainingFighterFor=function(uid){
   var f=_tff(uid);if(f)return f;if(!uid)return null;
+  try{if(profile&&profile.id===uid&&(profile.is_coach||profile.is_staff))return null;}catch(e){}   /* coaches don't get a training tab of their own */
   var bp=null;try{bp=(sc2&&sc2.roster||[]).find(function(b){return b.user_id===uid})||null;if(!bp&&boxData&&boxData.profile&&boxData.profile.user_id===uid)bp=boxData.profile;}catch(e){}
   if(!bp)return null;var first=(bp.name||"").trim().split(" ")[0]||"My";
   return {uid:uid,firstName:first,backdrop:false};
