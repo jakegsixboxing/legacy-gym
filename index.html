@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609071640";
+const LG_BUILD="202609071700";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -9858,9 +9858,9 @@ var css=document.createElement("style");css.textContent=`
 .sp .stat{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:12px;padding:10px 4px;text-align:center;animation:spNeonBox 4s ease-in-out infinite}
 .sp .stat .v{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--c);animation:spNeonText 4s ease-in-out infinite}.sp .stat .l{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px}
 .sp .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.sp .tabs button{position:relative;padding:14px 6px 12px;border-radius:14px;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 10%,var(--panel));color:var(--c);font-family:'Oswald',sans-serif;font-size:17px;letter-spacing:1px;text-transform:uppercase;font-weight:700;animation:spNeonBox 4s ease-in-out infinite,spNeonText 4s ease-in-out infinite}
-.sp .tabs button small{display:block;font-family:inherit;font-size:9px;letter-spacing:1.5px;color:var(--muted);margin-top:3px;text-shadow:none;font-weight:600}
-.sp .tabs button.on{background:var(--c);color:#0b0b0c;text-shadow:none}.sp .tabs button.on small{color:#0b0b0c}
+.sp .tabs button{position:relative;padding:14px 6px 12px;border-radius:14px;border:1px solid var(--c);background:var(--c);color:#0b0b0c;font-family:'Oswald',sans-serif;font-size:17px;letter-spacing:1px;text-transform:uppercase;font-weight:700;animation:spNeonBox 4s ease-in-out infinite}
+.sp .tabs button small{display:block;font-family:inherit;font-size:9px;letter-spacing:1.5px;color:#0b0b0c;margin-top:3px;text-shadow:none;font-weight:700;opacity:.8}
+.sp .tabs button.on{background:color-mix(in srgb,var(--c) 10%,var(--panel));color:var(--c);animation:spNeonBox 4s ease-in-out infinite,spNeonText 4s ease-in-out infinite}.sp .tabs button.on small{color:var(--muted);opacity:1}
 .sp .week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:12px}
 .sp .day{border:1px solid var(--line);border-radius:10px;padding:7px 0;text-align:center;background:var(--panel);color:var(--text);font-size:10px;letter-spacing:1px;text-transform:uppercase}
 .sp .day b{display:block;font-family:'Oswald',sans-serif;font-size:16px;margin-top:2px;color:var(--muted)}
