@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609071600";
+const LG_BUILD="202609071640";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -9887,21 +9887,12 @@ var css=document.createElement("style");css.textContent=`
 @media (prefers-reduced-motion:reduce){.sp *{animation:none!important}}
 `;document.head.appendChild(css);
 
+/* Program is built in 4-week blocks. Fill days as Jake supplies them: days[weekday 0-6] = {h,m,f,ex:[[dose,name,note],...]} */
+var BLOCK={n:1,label:"Block 1",weeks:4,start:"2026-09-07"};
 var SEC={
- box:{name:"Boxing",sub:"Skills · pads · sparring",color:"var(--gr)",days:{
-   1:{h:"Technical + pads",m:"Mon · 60 min · with Jake",f:"Jab to the body then hook off the back foot. Keep the right hand home when she resets.",ex:[["6×3","Shadow boxing","Rounds 1–2 footwork only · 3–4 lead hand · 5–6 full combinations"],["8×3","Pads with Jake","Double jab → right hand → pivot out. 30 s pressure to close each round"],["4×3","Heavy bag","Body work: left hook to body, right hand upstairs"],["3×3","Defence drill","Slip-slip-roll off the jab, counter jab to body"]]},
-   3:{h:"Sparring day",m:"Wed · 75 min · pairs set by Jake",f:"Work behind the jab. Control range for two rounds before letting the hands go.",ex:[["15 min","Warm-up + shadow","Joint prep, skipping, 3 rounds shadow"],["6×3","Sparring","Headgear + 16 oz · pairs on the day"],["3×3","Technical review","Fix one thing from sparring on the pads"],["10 min","Cool down","Walk + stretch · upload one clip"]]},
-   5:{h:"Speed + reaction",m:"Fri · 50 min",f:"Fast hands, short rounds. Everything sharp, nothing loaded.",ex:[["6×2","Double-end bag","Rhythm and head movement"],["6×2","Pads — speed","Jake calls numbers; answer under a second"],["4×2","Speed ball",""],["3×3","Shadow with 1 kg","Slow, perfect form"]]},
-   6:{h:"Open ring · light",m:"Sat · 45 min",f:"Light technical. Film everything.",ex:[["5×3","Shadow boxing",""],["4×3","Partner drills","Jab-only, then jab + right hand only"]]}}},
- con:{name:"Conditioning",sub:"Engine · road work",color:"var(--pk)",days:{
-   1:{h:"Road work — aerobic",m:"Mon · 40 min · early",f:"Easy pace, conversation speed. Log distance and how it felt.",ex:[["40 min","Run — zone 2","Flat route · nose breathing"],["5 min","Walk + stretch",""]]},
-   3:{h:"Fight-pace intervals",m:"Wed PM · 30 min · after sparring",f:"10 rounds of 3 on / 1 off. Match the fight.",ex:[["10×3","Assault bike or rower","Hard for 3, easy for 1 · record total cals"],["10 min","Cool down","Walk"]]},
-   5:{h:"Hill sprints",m:"Fri · 35 min",f:"Full recovery between reps. Quality over count.",ex:[["10×","Hill sprint 15 s","Walk back down = rest"],["10 min","Easy jog",""],["3×20","Skipping — double-unders",""]]},
-   0:{h:"Long run",m:"Sun · 60 min",f:"Camp week 3+ only. Otherwise rest.",ex:[["60 min","Run — steady","Log km"]]}}},
- str:{name:"Strength",sub:"Power · posture · armour",color:"var(--gd)",days:{
-   2:{h:"Lower body power",m:"Tue · 55 min",f:"Move the bar fast. Stop the set the moment speed drops.",ex:[["4×5","Trap bar deadlift","@ 75% · 2 min rest · log the top set"],["4×4","Box jump","Step down, full reset between reps"],["3×8","Bulgarian split squat","Each leg · slow eccentric"],["3×10","Nordic curl","Assisted if needed"],["3×12","Copenhagen plank","Each side"]]},
-   4:{h:"Upper body + trunk",m:"Thu · 50 min",f:"Pull twice as much as you push this block.",ex:[["4×6","Weighted chin-up","Log added weight"],["4×5","Landmine press","Each arm · explosive"],["3×10","Single-arm row",""],["3×8","Med-ball rotational throw","Each side · hard into the wall"],["3×30 s","Pallof hold","Each side"]]},
-   6:{h:"Neck + shoulders",m:"Sat · 20 min",f:"Non-negotiable in camp.",ex:[["3×15","Neck flexion / extension","Plate or band"],["3×15","Face pulls",""],["3×12","Y-T-W raises","Light"]]}}}};
+ box:{name:"Boxing",sub:"Skills · pads · sparring",color:"var(--gr)",days:{}},
+ con:{name:"Conditioning",sub:"Road work · engine",color:"var(--pk)",days:{}},
+ str:{name:"Strength",sub:"Power · posture · armour",color:"var(--gd)",days:{}}};
 var DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], ORDER=[1,2,3,4,5,6,0];
 var S={tab:"box",day:null,done:{}};
 function esc2(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
@@ -9911,23 +9902,32 @@ function spHead(){
    <div class="info"><div class="kick nt">Professional boxer · Legacy Gym · Ranked #36</div><h2 class="nm">Sarsha</h2>
    <div class="badges"><span class="badge" style="--c:var(--pk)">WBO Asia Pacific</span><span class="badge" style="--c:var(--gr)">WBC Asia</span><span class="badge">NSW</span><span class="badge">UBF</span></div>
    <div class="belts"><img src="${IMG}wbo.jpg" alt="" onerror="this.parentNode.style.display='none'"><img src="${IMG}wbc.jpg" alt=""></div></div></div>
-  <div class="stats"><div class="stat" style="--c:var(--pk)"><div class="v">4</div><div class="l">Titles</div></div><div class="stat" style="--c:var(--gr)"><div class="v">#36</div><div class="l">World</div></div><div class="stat"><div class="v">8</div><div class="l">Yrs at Legacy</div></div><div class="stat"><div class="v">Wk 1</div><div class="l">Camp · of 10</div></div></div>
+  <div class="stats"><div class="stat" style="--c:var(--pk)"><div class="v">4</div><div class="l">Titles</div></div><div class="stat" style="--c:var(--gr)"><div class="v">#36</div><div class="l">World</div></div><div class="stat"><div class="v">8</div><div class="l">Yrs at Legacy</div></div><div class="stat"><div class="v">B1</div><div class="l">Block 1 · 4 wk</div></div></div>
   <div class="tabs" id="spTabs"></div><div id="spPanel"></div></div>`;
 }
 function spRender(){
   var t=document.getElementById("spTabs"),p=document.getElementById("spPanel");if(!t||!p)return;
   t.innerHTML=Object.keys(SEC).map(function(k){var s=SEC[k];return `<button class="${k===S.tab?'on':''}" style="--c:${s.color}" onclick="spGo('${k}')">${s.name}<small>${s.sub}</small></button>`}).join("");
   var s=SEC[S.tab],days=Object.keys(s.days).map(Number);
+  var wk=Math.min(BLOCK.weeks,Math.max(1,Math.floor((Date.now()-new Date(BLOCK.start+"T00:00:00").getTime())/6048e5)+1));
+  var logged=Object.keys(S.done).filter(function(x){return x.indexOf(S.tab)===0&&x.indexOf("_all")<0&&S.done[x]}).length;
+  var weekStrip=`<div class="week">${ORDER.map(function(i){var has=!!s.days[i];return `<div class="day ${i===S.day?'on ':''}${has?'has ':''}${S.done[S.tab+i+'_all']?'done':''}" onclick="${has?'spDay('+i+')':''}">${DN[i]}<b>${has?'●':'–'}</b><div class="dot"></div></div>`}).join("")}</div>`;
+  var kpis=`<div class="kpis"><div class="kpi"><div class="v">${days.length}</div><div class="l">Sessions / wk</div></div><div class="kpi"><div class="v">${logged}</div><div class="l">Logged</div></div><div class="kpi"><div class="v">Wk ${wk}</div><div class="l">${BLOCK.label} · ${BLOCK.weeks} wk</div></div></div>`;
+  if(!days.length){
+    p.innerHTML=`<div style="--c:${s.color}">${kpis}${weekStrip}
+     <div class="focus"><b>${s.name} · ${BLOCK.label}</b>Jake is loading your ${s.name.toLowerCase()} sessions for this 4-week block. They'll land here with the days, the work and his focus for each session — you'll get a ping when they do.</div>
+     <button class="cta ghost" onclick="toast&&toast('Note sent to Jake')">Message Jake</button>
+     <div class="lock"><span style="font-size:18px">🔒</span><div><b>Weigh-ins &amp; coach notes</b> — visible to Sarsha and Jake only. Nothing here goes to the gym feed or leaderboards.</div></div></div>`;
+    return;
+  }
   if(S.day===null||!s.days[S.day]){S.day=ORDER.filter(function(d){return s.days[d]})[0];}
-  var d=s.days[S.day],key=S.tab+S.day,logged=Object.keys(S.done).filter(function(x){return x.indexOf(S.tab)===0&&x.indexOf("_all")<0&&S.done[x]}).length;
-  p.innerHTML=`<div style="--c:${s.color}">
-   <div class="kpis"><div class="kpi"><div class="v">${days.length}</div><div class="l">Sessions / wk</div></div><div class="kpi"><div class="v">${logged}</div><div class="l">Logged</div></div><div class="kpi"><div class="v">Wk 1</div><div class="l">Block · 10 wk</div></div></div>
-   <div class="week">${ORDER.map(function(i){var has=!!s.days[i];return `<div class="day ${i===S.day?'on ':''}${has?'has ':''}${S.done[S.tab+i+'_all']?'done':''}" onclick="${has?'spDay('+i+')':''}">${DN[i]}<b>${has?'●':'–'}</b><div class="dot"></div></div>`}).join("")}</div>
+  var d=s.days[S.day],key=S.tab+S.day;
+  p.innerHTML=`<div style="--c:${s.color}">${kpis}${weekStrip}
    <div class="sess"><h3>${esc2(d.h)}</h3><div class="meta">${esc2(d.m)}</div><div class="focus"><b>Jake's focus</b>${esc2(d.f)}</div>
    <div class="ex">${d.ex.map(function(e,i){var id=key+"_"+i;return `<div class="row ${S.done[id]?'done':''}"><div class="k">${e[0]}</div><div><div class="n">${esc2(e[1])}</div>${e[2]?`<div class="s">${esc2(e[2])}</div>`:""}</div><button class="log" onclick="spLog('${id}')">${S.done[id]?'Done':'Log'}</button></div>`}).join("")}</div>
    <button class="cta" onclick="spFinish()">Complete session</button><button class="cta ghost" onclick="toast&&toast('Note sent to Jake')">Add a note for Jake</button></div>
    <div class="lock"><span style="font-size:18px">🔒</span><div><b>Weigh-ins &amp; coach notes</b> — visible to Sarsha and Jake only. Nothing here goes to the gym feed or leaderboards.</div></div>
-   <div class="demo">Week 1 layout · sessions are placeholders until Jake builds the program</div></div>`;
+   </div>`;
 }
 window.spGo=function(k){S.tab=k;S.day=null;spRender();};
 window.spDay=function(i){S.day=i;spRender();};
