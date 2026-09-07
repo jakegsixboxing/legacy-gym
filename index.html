@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609071745";
+const LG_BUILD="202609071810";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -9932,12 +9932,12 @@ var S={tab:"con",week:curWeek(),day:null,logs:null,loading:false,err:null};
 function esc2(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function fmtT(t){t=Math.round(t||0);var h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")}
 function parseT(v){v=String(v||"").trim();if(!v)return 0;var p=v.split(":").map(function(x){return parseFloat(x)||0});if(p.length===1)return Math.round(p[0]*60);if(p.length===2)return Math.round(p[0]*60+p[1]);return Math.round(p[0]*3600+p[1]*60+p[2])}
-function isSarsha(){return !!(window.profile&&profile.id===SARSHA)}
+function isSarsha(){try{return !!(profile&&profile.id===SARSHA)}catch(e){return false}}
 function totalPts(){return (S.logs||[]).reduce(function(a,l){return a+(l.points||0)},0)}
 function logFor(w,d){return (S.logs||[]).find(function(l){return l.week===w&&l.weekday===d})||null}
 function paceOf(sess,secs){return sess.kind==="run"?secs/sess.km:secs/sess.reps}
 async function loadLogs(){
-  if(S.loading||!window.sb)return; S.loading=true;
+  if(S.loading)return; if(typeof sb==="undefined"){S.logs=[];return;} S.loading=true;
   try{var r=await sb.from("fighter_sessions").select("*").eq("user_id",SARSHA).eq("section","con").eq("block",BLOCK.n).order("week").order("weekday");
     S.logs=r.error?[]:(r.data||[]); S.err=r.error?r.error.message:null;}catch(e){S.logs=[];S.err=String(e)}
   S.loading=false; spRender();
