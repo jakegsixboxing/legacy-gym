@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609071950";
+const LG_BUILD="202609072010";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10152,6 +10152,37 @@ window.sparringStatsHtml=function(){
   return `<details class="ftMore"><summary>Sparring log, history, fight tape &amp; notes</summary>`+_stats()+(inCoach?"":_log())+_hist()+_tape()+_notes()+`</details>`;
 };
 window.logFormHtml=function(){return ""};window.historyHtml=function(){return ""};window.fightTapeHtml=function(){return ""};window.notesHtml=function(){return ""};
+/* --- the per-fighter "X's Training" tab (Mia, Brent, Sonnie, Arian, Ayrton) → same three tabs; old categories fold into them --- */
+var TT={tab:{}};
+var CAT_TAB={"Footwork":"box","Shadow Work":"box","Bag Work":"box","Drills Work":"box","Sparring":"box","Conditioning":"con"};
+var _mh=window.miaTrainingHtml,_mt=window.renderMiaTrainTabs;
+function ttCats(uid,k){var pr=(typeof TRAIN_PROGRAMS!=="undefined"&&TRAIN_PROGRAMS[uid])||{};return Object.keys(pr).filter(function(c){return (CAT_TAB[c]||"box")===k});}
+function ttPanel(uid){
+  var k=TT.tab[uid]||"box",s=SECS[k],cats=ttCats(uid,k),isMe=!!(profile&&profile.id===uid);
+  if(cats.length){
+    if(cats.indexOf(miaTrainCat)<0)miaTrainCat=cats[0];
+    return `<div class="subTabs" style="margin-bottom:4px">${cats.map(function(c){return `<button class="${c===miaTrainCat?'active':''}" onclick="miaTimerStop();miaTrainCat='${c}';ttRender('${uid}')">${c}</button>`}).join("")}</div><div id="miaTrainPanel"></div>`;
+  }
+  var msg=isMe?`Jake is building your ${s.name.toLowerCase()} block. The days, the work and his focus for each session land here — you'll get a ping when they do.`:`Nothing loaded for ${s.name.toLowerCase()} yet. Give Claude the block and it lands here for this fighter.`;
+  return `<div class="focus"><b>${s.name} · Block 1</b>${msg}</div>`;
+}
+function ttBlock(uid){
+  return `<div class="ft" id="tt-${uid}"><div class="band"></div>
+   <div class="tabs">${Object.keys(SECS).map(function(k){var s=SECS[k];var n=ttCats(uid,k).length;return `<button class="${k===(TT.tab[uid]||'box')?'on':''}" onclick="ttGo('${uid}','${k}')">${s.name}<small>${n?n+' programmed':s.sub}</small></button>`}).join("")}</div>
+   <div class="ftp">${ttPanel(uid)}</div></div>`;
+}
+window.ttRender=function(uid){var el=document.getElementById("tt-"+uid);if(!el)return;el.outerHTML=ttBlock(uid);if(document.getElementById("miaTrainPanel"))renderMiaTrainPanel();};
+window.ttGo=function(uid,k){TT.tab[uid]=k;try{miaTimerStop()}catch(e){}ttRender(uid);};
+window.miaTrainingHtml=function(uid){
+  if(uid===SARSHA)return _mh(uid);
+  miaTrainUid=uid;var f=(typeof trainingFighterFor==="function"&&trainingFighterFor(uid))||{firstName:""};
+  return `<div class="secTitle">${esc3(f.firstName)}'s Training</div>`+ttBlock(uid);
+};
+window.renderMiaTrainTabs=function(){
+  if(miaTrainUid===SARSHA)return _mt();
+  if(document.getElementById("miaTrainPanel"))renderMiaTrainPanel();
+};
+
 })();
 
 </script>
