@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609071850";
+const LG_BUILD="202609071915";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -9876,7 +9876,7 @@ var css=document.createElement("style");css.textContent=`
 .sp .focus b{display:block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--c);margin-bottom:2px;animation:spNeonText 4s ease-in-out infinite}
 .sp .ex{display:grid;gap:8px;margin-top:12px}
 .sp .row{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2,#18181b)}
-.sp .row .k{font-family:'Oswald',sans-serif;font-weight:700;color:var(--c);width:36px;flex:none;font-size:15px;animation:spNeonText 4s ease-in-out infinite}
+.sp .row .k{font-family:'Oswald',sans-serif;font-weight:700;color:var(--c);width:46px;flex:none;font-size:13px;line-height:1.1;animation:spNeonText 4s ease-in-out infinite}
 .sp .row .n{font-weight:700;font-size:13.5px}.sp .row .s{font-size:11.5px;color:var(--muted);margin-top:2px}
 .sp .row .log{margin-left:auto;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--line);color:var(--muted);background:none;border-radius:8px;padding:6px 9px;flex:none;font-weight:700}
 .sp .row.done .log{background:#4bc97a;color:#06110a;border-color:#4bc97a}.sp .row.done .n{text-decoration:line-through;color:var(--muted)}
@@ -9930,26 +9930,35 @@ var ROAD={
  4:{1:{h:"6 km relaxed",kind:"run",km:6,f:"Relaxed. Legs fresh for Friday's benchmark."},
     3:{h:"Oval sprints · 8 × 100 m",kind:"sprint",reps:8,f:"Back to 8 × 100 m, 100 m jog between. Sharp, not smashed."},
     5:{h:"5 km hard benchmark",kind:"run",km:5,f:"All out. This is the number we measure the next block against."}}};
-var PROG={con:ROAD,box:{},str:{}};   /* box / str filled when Jake supplies the blocks */
+/* Boxing — same every week of the block. Mon/Wed are double sessions. */
+var BOXWEEK={
+ 1:[{id:"pt",t:"5:20 pm",h:"Pad work & drills · PT with Jake"},{id:"spar",t:"6:45 pm",h:"Technical sparring"}],
+ 2:[{id:"am",t:"Morning",h:"Boxing session"}],
+ 3:[{id:"pt",t:"5:20 pm",h:"Pad work & drills · PT with Jake"},{id:"spar",t:"6:45 pm",h:"Open sparring"}],
+ 4:[{id:"am",t:"Morning",h:"Boxing session"}],
+ 5:[{id:"prog",t:"",h:"Programmed boxing session · built by Jake"}],
+ 6:[{id:"am",t:"Morning",h:"Boxing session"}]};
+var BOX={};[1,2,3,4].forEach(function(w){BOX[w]={};Object.keys(BOXWEEK).forEach(function(d){var it=BOXWEEK[d];BOX[w][d]={kind:"box",items:it,h:it.length>1?"Double session":it[0].h,f:d==="5"?"Jake builds this one week by week — details land here before Friday.":(it.length>1?"Two sessions today. Tick each one off as you finish it.":"Tick it off when you're done.")}})});
+var PROG={con:ROAD,box:BOX,str:{}};   /* str filled when Jake supplies the block */
 function sessOn(k,w,d){return ((PROG[k]||{})[w]||{})[d]||null}
 function dayStrip(k,w,sel,onclick){
-  return `<div class="week">${ORDER.map(function(i){var has=!!sessOn(k,w,i);var dn=k==="con"&&!!logFor(w,i);
-    var dots=["box","con","str"].map(function(x){if(!sessOn(x,w,i))return"";var mine=x===k;return `<i class="dt${mine?' me':''}${(x==="con"&&logFor(w,i))?' ok':''}" style="--dc:${SEC[x].color}"></i>`}).join("")||`<i class="dt none"></i>`;
+  return `<div class="week">${ORDER.map(function(i){var has=!!sessOn(k,w,i);var lg=logFor(w,i,k);var dn=!!(lg&&lg.points>0);
+    var dots=["box","con","str"].map(function(x){if(!sessOn(x,w,i))return"";var mine=x===k;var lx=logFor(w,i,x);return `<i class="dt${mine?' me':''}${(lx&&lx.points>0)?' ok':''}" style="--dc:${SEC[x].color}"></i>`}).join("")||`<i class="dt none"></i>`;
     return `<div class="day ${i===sel?'on ':''}${has?'has ':''}${dn?'done':''}" onclick="${has&&onclick?onclick+'('+i+')':''}">${DN[i]}<b>${has?(sessOn(k,w,i).kind==='sprint'?'⚡':'●'):'–'}</b><div class="dots">${dots}</div></div>`}).join("")}</div>`;
 }
 var DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], ORDER=[1,2,3,4,5,6,0];
 function curWeek(){return Math.min(BLOCK.weeks,Math.max(1,Math.floor((Date.now()-new Date(BLOCK.start+"T00:00:00").getTime())/6048e5)+1));}
-var S={tab:"con",week:curWeek(),day:null,logs:null,loading:false,err:null};
+var S={tab:"box",week:curWeek(),day:null,bday:null,logs:null,loading:false,err:null};
 function esc2(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function fmtT(t){t=Math.round(t||0);var h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")}
 function parseT(v){v=String(v||"").trim();if(!v)return 0;var p=v.split(":").map(function(x){return parseFloat(x)||0});if(p.length===1)return Math.round(p[0]*60);if(p.length===2)return Math.round(p[0]*60+p[1]);return Math.round(p[0]*3600+p[1]*60+p[2])}
 function isSarsha(){try{return !!(profile&&profile.id===SARSHA)}catch(e){return false}}
 function totalPts(){return (S.logs||[]).reduce(function(a,l){return a+(l.points||0)},0)}
-function logFor(w,d){return (S.logs||[]).find(function(l){return l.week===w&&l.weekday===d})||null}
+function logFor(w,d,sec){sec=sec||"con";return (S.logs||[]).find(function(l){return l.section===sec&&l.week===w&&l.weekday===d})||null}
 function paceOf(sess,secs){return sess.kind==="run"?secs/sess.km:secs/sess.reps}
 async function loadLogs(){
   if(S.loading)return; if(typeof sb==="undefined"){S.logs=[];return;} S.loading=true;
-  try{var r=await sb.from("fighter_sessions").select("*").eq("user_id",SARSHA).eq("section","con").eq("block",BLOCK.n).order("week").order("weekday");
+  try{var r=await sb.from("fighter_sessions").select("*").eq("user_id",SARSHA).eq("block",BLOCK.n).order("week").order("weekday");
     S.logs=r.error?[]:(r.data||[]); S.err=r.error?r.error.message:null;}catch(e){S.logs=[];S.err=String(e)}
   S.loading=false; spRender();
 }
@@ -9972,7 +9981,7 @@ function emptyPanel(s,k){
 function roadPanel(){
   var s=SEC.con, w=S.week, wk=ROAD[w], days=[1,3,5];
   if(S.day===null||!wk[S.day]){var today=new Date().getDay();S.day=days.indexOf(today)>=0?today:(today>5||today===0?5:days.filter(function(d){return d>=today})[0]||1);}
-  var sess=wk[S.day], lg=logFor(w,S.day), done=(S.logs||[]).length, mine=isSarsha();
+  var sess=wk[S.day], lg=logFor(w,S.day), done=(S.logs||[]).filter(function(l){return l.section==="con"}).length, mine=isSarsha();
   var prev=w>1?logFor(w-1,S.day):null, prevSess=w>1?ROAD[w-1][S.day]:null;
   var weekChips=`<div class="wks">${[1,2,3,4].map(function(n){var c=[1,3,5].filter(function(d){return logFor(n,d)}).length;return `<button class="${n===w?'on':''}" onclick="spWeek(${n})">Wk ${n}<small>${c}/3${n===curWeek()?' · now':''}</small></button>`}).join("")}</div>`;
   var strip=dayStrip("con",w,S.day,"spDay");
@@ -9989,7 +9998,7 @@ function roadPanel(){
   } else {
     body=`<div class="focus" style="animation:none"><b>Not logged yet</b>Sarsha hasn't submitted a time for this session.</div>`;
   }
-  var hist=(S.logs||[]).slice().sort(function(a,b){return a.week-b.week||a.weekday-b.weekday}).map(function(l){var ss=(ROAD[l.week]||{})[l.weekday];if(!ss)return"";var p=w>0&&logFor(l.week-1,l.weekday);var d=p&&p.pace_secs&&l.pace_secs?l.pace_secs-p.pace_secs:null;
+  var hist=(S.logs||[]).filter(function(l){return l.section==="con"}).sort(function(a,b){return a.week-b.week||a.weekday-b.weekday}).map(function(l){var ss=(ROAD[l.week]||{})[l.weekday];if(!ss)return"";var p=w>0&&logFor(l.week-1,l.weekday);var d=p&&p.pace_secs&&l.pace_secs?l.pace_secs-p.pace_secs:null;
      return `<div class="hrow"><div><b>Wk ${l.week} · ${DN[l.weekday]}</b> ${esc2(ss.h)}</div><div class="ht">${fmtT(l.time_secs)}<small>${ss.kind==="run"?fmtT(l.pace_secs)+"/km":fmtT(l.pace_secs)+"/rep"}${d!==null?` <i class="${d<0?'up':'dn'}">${d<0?'▼':'▲'} ${fmtT(Math.abs(d))}</i>`:""}</small><em>+${l.points}</em></div></div>`}).join("");
   return `<div style="--c:${s.color}">
    <div class="kpis"><div class="kpi"><div class="v">${done}<small>/12</small></div><div class="l">Sessions done</div></div><div class="kpi"><div class="v">${totalPts()}</div><div class="l">Points</div></div><div class="kpi"><div class="v">Wk ${curWeek()}</div><div class="l">Running block · 4 wk</div></div></div>
@@ -10002,11 +10011,45 @@ function roadPanel(){
    ${S.err?`<div class="rules" style="color:#f06a5e">Couldn't load logs: ${esc2(S.err)}</div>`:""}
    <div class="lock"><span style="font-size:18px">🔒</span><div><b>Times &amp; notes</b> — visible to Sarsha and Jake only. Nothing here goes to the gym feed or leaderboards.</div></div></div>`;
 }
+function boxPanel(){
+  var s=SEC.box, w=S.week, wk=BOX[w], mine=isSarsha();
+  if(S.bday===undefined||S.bday===null||!wk[S.bday]){var t=new Date().getDay();S.bday=wk[t]?t:1;}
+  var d=wk[S.bday], lg=logFor(w,S.bday,"box"), doneIds=(lg&&lg.data&&lg.data.done)||[];
+  var perWeek=Object.keys(BOXWEEK).reduce(function(a,k){return a+BOXWEEK[k].length},0);
+  var doneAll=(S.logs||[]).filter(function(l){return l.section==="box"}).reduce(function(a,l){return a+(l.points||0)},0);
+  var weekChips=`<div class="wks">${[1,2,3,4].map(function(n){var c=(S.logs||[]).filter(function(l){return l.section==="box"&&l.week===n}).reduce(function(a,l){return a+(l.points||0)},0);return `<button class="${n===w?'on':''}" onclick="spBWeek(${n})">Wk ${n}<small>${c}/${perWeek}${n===curWeek()?' · now':''}</small></button>`}).join("")}</div>`;
+  var items=d.items.map(function(it){var on=doneIds.indexOf(it.id)>=0;return `<div class="row ${on?'done':''}"><div class="k">${it.t?esc2(it.t).replace(" ","<br>"):"—"}</div><div><div class="n">${esc2(it.h)}</div></div>${mine?`<button class="log" onclick="spTick(${w},${S.bday},'${it.id}')">${on?'Done ✓':'Done?'}</button>`:`<span class="log" style="cursor:default">${on?'Done ✓':'—'}</span>`}</div>`}).join("");
+  var hist=(S.logs||[]).filter(function(l){return l.section==="box"&&l.points>0}).sort(function(a,b){return a.week-b.week||a.weekday-b.weekday}).map(function(l){var ids=(l.data&&l.data.done)||[];var names=(BOXWEEK[l.weekday]||[]).filter(function(it){return ids.indexOf(it.id)>=0}).map(function(it){return it.h}).join(" + ");return `<div class="hrow"><div><b>Wk ${l.week} · ${DN[l.weekday]}</b> ${esc2(names)}</div><div class="ht"><em>+${l.points}</em></div></div>`}).join("");
+  return `<div style="--c:${s.color}">
+   <div class="kpis"><div class="kpi"><div class="v">${doneAll}<small>/${perWeek*4}</small></div><div class="l">Sessions done</div></div><div class="kpi"><div class="v">${totalPts()}</div><div class="l">Points</div></div><div class="kpi"><div class="v">Wk ${curWeek()}</div><div class="l">Boxing block · 4 wk</div></div></div>
+   <div class="when">Mon · Wed <b>5:20 pm + 6:45 pm</b> · Tue · Thu · Sat mornings · Fri programmed</div>
+   ${weekChips}${dayStrip("box",w,S.bday,"spBDay")}
+   <div class="legend"><i style="--dc:var(--gr)"></i>Boxing <i style="--dc:var(--pk)"></i>Running <i style="--dc:var(--gd)"></i>Strength — two dots means a double day</div>
+   <div class="sess"><h3>${esc2(d.h)}</h3><div class="meta">Week ${w} · ${DN[S.bday]} · ${d.items.length} session${d.items.length>1?'s':''}</div><div class="focus"><b>Jake's focus</b>${esc2(d.f)}</div><div class="ex">${items}</div></div>
+   <div class="rules">1 point per boxing session ticked off · ${perWeek} sessions a week · ${perWeek*4} in the block</div>
+   ${hist?`<div class="secT">Completed sessions</div><div class="hist">${hist}</div>`:""}
+   ${S.err?`<div class="rules" style="color:#f06a5e">Couldn't load logs: ${esc2(S.err)}</div>`:""}
+   <div class="lock"><span style="font-size:18px">🔒</span><div><b>Sessions &amp; coach notes</b> — visible to Sarsha and Jake only.</div></div></div>`;
+}
+window.spBWeek=function(n){S.week=n;spRender();};
+window.spBDay=function(i){S.bday=i;spRender();};
+window.spTick=async function(w,d,id){
+  if(!isSarsha()){toast("Only Sarsha can tick her sessions");return;}
+  var lg=logFor(w,d,"box"), done=((lg&&lg.data&&lg.data.done)||[]).slice();
+  var i=done.indexOf(id); if(i>=0)done.splice(i,1); else done.push(id);
+  var day=BOX[w][d]; var row={user_id:profile.id,section:"box",block:BLOCK.n,week:w,weekday:d,title:day.h,points:done.length,bonus:false,data:{done:done}};
+  var r=await sb.from("fighter_sessions").upsert(row,{onConflict:"user_id,section,block,week,weekday"}).select().single();
+  if(r.error){toast(r.error.message);return;}
+  S.logs=(S.logs||[]).filter(function(x){return !(x.section==="box"&&x.week===w&&x.weekday===d)}).concat([r.data]);
+  spRender(); toast(i>=0?"Unticked":"Nice · +1 point ✓");
+};
 function spRender(){
   var t=document.getElementById("spTabs"),p=document.getElementById("spPanel");if(!t||!p)return;
   t.innerHTML=Object.keys(SEC).map(function(k){var s=SEC[k];return `<button class="${k===S.tab?'on':''}" style="--c:${s.color}" onclick="spGo('${k}')">${s.name}<small>${s.sub}</small></button>`}).join("");
   var pts=document.getElementById("spPts");if(pts)pts.textContent=totalPts();
-  if(S.tab==="con"){ if(S.logs===null)loadLogs(); p.innerHTML=roadPanel(); }
+  if(S.logs===null)loadLogs();
+  if(S.tab==="con") p.innerHTML=roadPanel();
+  else if(S.tab==="box") p.innerHTML=S.logs===null?`<div style="--c:${SEC.box.color}"><div class="focus"><b>Loading</b>Pulling up your sessions…</div></div>`:boxPanel();
   else p.innerHTML=emptyPanel(SEC[S.tab],S.tab);
 }
 window.spGo=function(k){S.tab=k;spRender();};
