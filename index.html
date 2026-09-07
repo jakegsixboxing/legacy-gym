@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609072030";
+const LG_BUILD="202609072100";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10147,9 +10147,22 @@ window.sc2WorkloadHtml=function(progs,uid,owner,noStart){
   FT.ctx[uid]={progs:progs||[],owner:owner,noStart:noStart,orig:_wl};
   return block(uid);
 };
-window.sparringStatsHtml=function(){
-  var inCoach=false;try{inCoach=!!(coachViewId&&profile&&profile.id!==coachViewId)}catch(e){}
-  return `<details class="ftMore"><summary>Sparring log, history, fight tape &amp; notes</summary>`+_stats()+(inCoach?"":_log())+_hist()+_tape()+_notes()+`</details>`;
+/* Fighter Profile = card + three tabs + nominations only. Sparring stats, round log, history, fight tape upload and notes live in the Sparring tab now. */
+window.sparringStatsHtml=function(){return ""};
+function sparExtras(){var inCoach=false;try{inCoach=!!(coachViewId&&profile&&profile.id!==coachViewId)}catch(e){}return _stats()+(inCoach?"":_log())+_hist()+_tape()+_notes();}
+var _rsw=window.renderSparWed;
+window.renderSparWed=async function(){
+  await _rsw.apply(this,arguments);
+  var w=document.getElementById("sparWed");if(!w)return;
+  if(!document.getElementById("sparExtras")){var d=document.createElement("div");d.id="sparExtras";d.innerHTML=sparExtras();w.parentNode.insertBefore(d,w.nextSibling);}
+};
+/* Every fighter gets their own "[Name]'s Training" tab, not just the named few */
+var _tff=window.trainingFighterFor;
+window.trainingFighterFor=function(uid){
+  var f=_tff(uid);if(f)return f;if(!uid)return null;
+  var bp=null;try{bp=(sc2&&sc2.roster||[]).find(function(b){return b.user_id===uid})||null;if(!bp&&boxData&&boxData.profile&&boxData.profile.user_id===uid)bp=boxData.profile;}catch(e){}
+  if(!bp)return null;var first=(bp.name||"").trim().split(" ")[0]||"My";
+  return {uid:uid,firstName:first,backdrop:false};
 };
 window.logFormHtml=function(){return ""};window.historyHtml=function(){return ""};window.fightTapeHtml=function(){return ""};window.notesHtml=function(){return ""};
 /* --- the per-fighter "X's Training" tab (Mia, Brent, Sonnie, Arian, Ayrton) → same three tabs; old categories fold into them --- */
