@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609072100";
+const LG_BUILD="202609072120";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10144,8 +10144,8 @@ window.sc2WorkloadHtml=function(progs,uid,owner,noStart){
     var me=!!(profile&&profile.id===uid);
     return `<div class="ft"><div class="band"></div><div class="focus"><b>Sarsha · Training</b>${me?"Your boxing, conditioning and strength blocks live in <b style='display:inline;color:var(--gold)'>Sarsha's Training</b> above.":"Her boxing, conditioning and strength blocks are under the Sarsha's Training tab."}</div>${me?`<button class="btnGold" style="margin-top:10px" onclick="sparTab='training';renderSparringClub()">Open Sarsha's Training</button>`:""}</div>`;
   }
-  FT.ctx[uid]={progs:progs||[],owner:owner,noStart:noStart,orig:_wl};
-  return block(uid);
+  /* Fighter Profile stays clean: card + nominations. The three tabs live in "[Name]'s Training". */
+  return "";
 };
 /* Fighter Profile = card + three tabs + nominations only. Sparring stats, round log, history, fight tape upload and notes live in the Sparring tab now. */
 window.sparringStatsHtml=function(){return ""};
@@ -10172,10 +10172,14 @@ var _mh=window.miaTrainingHtml,_mt=window.renderMiaTrainTabs;
 function ttCats(uid,k){var pr=(typeof TRAIN_PROGRAMS!=="undefined"&&TRAIN_PROGRAMS[uid])||{};return Object.keys(pr).filter(function(c){return (CAT_TAB[c]||"box")===k});}
 function ttPanel(uid){
   var k=TT.tab[uid]||"box",s=SECS[k],cats=ttCats(uid,k),isMe=!!(profile&&profile.id===uid);
+  var progs=[];try{progs=(sc2.allPrograms||[]).filter(function(p){return p.user_id===uid})}catch(e){}
+  var inCoach=false;try{inCoach=!!(coachViewId&&profile&&profile.id!==coachViewId)}catch(e){}
+  var work=k==="box"?strip(uid,progs,"box")+_wl(progs,uid,isMe,inCoach):"";
   if(cats.length){
     if(cats.indexOf(miaTrainCat)<0)miaTrainCat=cats[0];
-    return `<div class="subTabs" style="margin-bottom:4px">${cats.map(function(c){return `<button class="${c===miaTrainCat?'active':''}" onclick="miaTimerStop();miaTrainCat='${c}';ttRender('${uid}')">${c}</button>`}).join("")}</div><div id="miaTrainPanel"></div>`;
+    return `<div class="subTabs" style="margin-bottom:4px">${cats.map(function(c){return `<button class="${c===miaTrainCat?'active':''}" onclick="miaTimerStop();miaTrainCat='${c}';ttRender('${uid}')">${c}</button>`}).join("")}</div><div id="miaTrainPanel"></div>`+work;
   }
+  if(k==="box")return work;
   var msg=isMe?`Jake is building your ${s.name.toLowerCase()} block. The days, the work and his focus for each session land here — you'll get a ping when they do.`:`Nothing loaded for ${s.name.toLowerCase()} yet. Give Claude the block and it lands here for this fighter.`;
   return `<div class="focus"><b>${s.name} · Block 1</b>${msg}</div>`;
 }
