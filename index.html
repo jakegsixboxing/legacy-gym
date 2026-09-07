@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609071915";
+const LG_BUILD="202609071950";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10070,6 +10070,88 @@ window.spSubmit=async function(){
 var _html=window.miaTrainingHtml,_tabs=window.renderMiaTrainTabs;
 window.miaTrainingHtml=function(uid){ if(uid!==SARSHA) return _html(uid); miaTrainUid=uid; if(S.logs===null)loadLogs(); return spHead(); };
 window.renderMiaTrainTabs=function(){ if(miaTrainUid!==SARSHA) return _tabs(); spRender(); };
+})();
+
+</script>
+<script>
+/*__FIGHTER_TABS__*/
+(function(){
+var SARSHA="2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139";
+var css=document.createElement("style");css.textContent=`
+.ft{--c:#F1D27A;--g2:#c9a44c;margin:14px 0 6px}
+@keyframes ftBox{0%,100%{box-shadow:0 0 3px var(--c),0 0 8px color-mix(in srgb,var(--c) 35%,transparent)}50%{box-shadow:0 0 8px var(--c),0 0 20px color-mix(in srgb,var(--c) 70%,transparent)}}
+@keyframes ftText{0%,100%{text-shadow:0 0 2px var(--c)}50%{text-shadow:0 0 6px var(--c),0 0 14px color-mix(in srgb,var(--c) 70%,transparent)}}
+.ft .band{height:5px;border-radius:99px;background:linear-gradient(90deg,#c9a44c,#F1D27A,#c9a44c);animation:ftBox 4s ease-in-out infinite;margin-bottom:10px}
+.ft .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.ft .tabs button{padding:11px 4px 9px;border-radius:12px;border:1px solid var(--c);background:var(--c);color:#0b0b0c;font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:1px;text-transform:uppercase;font-weight:700;animation:ftBox 4s ease-in-out infinite}
+.ft .tabs button small{display:block;font-family:inherit;font-size:8px;letter-spacing:1.5px;color:#0b0b0c;margin-top:3px;font-weight:700;opacity:.8}
+.ft .tabs button.on{background:color-mix(in srgb,var(--c) 10%,var(--panel));color:var(--c);animation:ftBox 4s ease-in-out infinite,ftText 4s ease-in-out infinite}.ft .tabs button.on small{color:var(--muted);opacity:1}
+.ft .week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px}
+.ft .day{border:1px solid var(--line);border-radius:9px;padding:6px 0;text-align:center;background:var(--panel);color:var(--text);font-size:9px;letter-spacing:1px;text-transform:uppercase}
+.ft .day.today{border-color:var(--g2)}
+.ft .day b{display:block;font-family:'Oswald',sans-serif;font-size:14px;margin-top:2px;color:var(--muted)}.ft .day.has b{color:var(--c)}
+.ft .day .dots{display:flex;justify-content:center;gap:3px;margin-top:4px;min-height:7px}
+.ft .day .dt{width:7px;height:7px;border-radius:50%;background:var(--dc);display:block;box-shadow:0 0 4px var(--dc)}.ft .day .dt.ok{box-shadow:0 0 0 2px #0b0b0c inset,0 0 4px var(--dc)}.ft .day .dt.none{background:var(--line);box-shadow:none}
+.ft .legend{display:flex;justify-content:center;align-items:center;gap:5px;flex-wrap:wrap;font-size:10px;color:var(--muted);margin:0 0 10px;letter-spacing:.5px}
+.ft .legend i{width:7px;height:7px;border-radius:50%;background:var(--dc);display:inline-block;margin-left:6px;box-shadow:0 0 4px var(--dc)}
+.ft .focus{margin-top:4px;padding:10px 12px;border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 8%,var(--panel));border-radius:0 10px 10px 0;font-size:12.5px;line-height:1.45;animation:ftBox 4s ease-in-out infinite}
+.ft .focus b{display:block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--c);margin-bottom:2px}
+.ft .secTitle{margin-top:4px}
+.ftMore{margin-top:16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:0 12px}
+.ftMore summary{cursor:pointer;list-style:none;padding:12px 0;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.ftMore summary::-webkit-details-marker{display:none}.ftMore summary:after{content:"▾";color:var(--gold)}.ftMore[open] summary:after{content:"▴"}
+.ftMore[open] summary{color:var(--gold);border-bottom:1px solid var(--line);margin-bottom:6px}
+.ftMore>*:not(summary){padding-bottom:6px}
+@media (prefers-reduced-motion:reduce){.ft *{animation:none!important}}
+`;document.head.appendChild(css);
+
+var FT={tab:{},ctx:{}};
+var SECS={box:{name:"Boxing",sub:"Skills · pads · sparring",dc:"#F1D27A"},con:{name:"Conditioning",sub:"Road work · engine",dc:"#f2f0eb"},str:{name:"Strength",sub:"Power · posture · armour",dc:"#8a7a4a"}};
+var DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],ORDER=[1,2,3,4,5,6,0];
+function esc3(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function weekDays(progs){ /* boxing days this week from Jake's programmed workloads: {dow:{has,done}} */
+  var out={},mon=weekStartOf(new Date()),sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  var a=sc2Iso(mon),b=sc2Iso(sun);
+  (progs||[]).forEach(function(p){(p.sessions||[]).forEach(function(s){if(s.date>=a&&s.date<=b){var d=new Date(s.date+"T12:00:00").getDay();out[d]=out[d]||{has:true,done:true};if(!s.done)out[d].done=false;}})});
+  return out;
+}
+function strip(uid,progs,k){
+  var bd=weekDays(progs),td=new Date().getDay();
+  return `<div class="week">${ORDER.map(function(i){var has=k==="box"&&bd[i];var dots=(bd[i]?`<i class="dt${bd[i].done?' ok':''}" style="--dc:${SECS.box.dc}"></i>`:"")||`<i class="dt none"></i>`;
+    return `<div class="day ${i===td?'today ':''}${has?'has':''}">${DN[i]}<b>${has?'●':'–'}</b><div class="dots">${dots}</div></div>`}).join("")}</div>
+  <div class="legend"><i style="--dc:${SECS.box.dc}"></i>Boxing <i style="--dc:${SECS.con.dc}"></i>Conditioning <i style="--dc:${SECS.str.dc}"></i>Strength</div>`;
+}
+function panel(uid){
+  var c=FT.ctx[uid]||{},k=FT.tab[uid]||"box",s=SECS[k];
+  var isMe=!!(profile&&profile.id===uid), coachLook=!isMe;
+  if(k==="box"){
+    return strip(uid,c.progs,k)+c.orig(c.progs,uid,c.owner,c.noStart);
+  }
+  var msg=coachLook?`Nothing loaded for ${s.name.toLowerCase()} yet. Give Claude the block (days, distances/lifts, notes) and it lands here for this fighter.`:`Jake is building your ${s.name.toLowerCase()} block. The days, the work and his focus for each session land here — you'll get a ping when they do.`;
+  return strip(uid,c.progs,k)+`<div class="focus"><b>${s.name} · Block 1</b>${msg}</div>`;
+}
+function block(uid){
+  return `<div class="ft" id="ft-${uid}"><div class="band"></div>
+   <div class="tabs">${Object.keys(SECS).map(function(k){var s=SECS[k];return `<button class="${k===(FT.tab[uid]||'box')?'on':''}" onclick="ftGo('${uid}','${k}')">${s.name}<small>${s.sub}</small></button>`}).join("")}</div>
+   <div class="ftp">${panel(uid)}</div></div>`;
+}
+window.ftGo=function(uid,k){FT.tab[uid]=k;var el=document.getElementById("ft-"+uid);if(!el)return;el.outerHTML=block(uid);};
+
+/* --- hook the Sparring Club profile: workload → 3-tab block; extras → collapsed --- */
+var _wl=window.sc2WorkloadHtml,_stats=window.sparringStatsHtml,_log=window.logFormHtml,_hist=window.historyHtml,_tape=window.fightTapeHtml,_notes=window.notesHtml;
+window.sc2WorkloadHtml=function(progs,uid,owner,noStart){
+  if(uid===SARSHA){
+    var me=!!(profile&&profile.id===uid);
+    return `<div class="ft"><div class="band"></div><div class="focus"><b>Sarsha · Training</b>${me?"Your boxing, conditioning and strength blocks live in <b style='display:inline;color:var(--gold)'>Sarsha's Training</b> above.":"Her boxing, conditioning and strength blocks are under the Sarsha's Training tab."}</div>${me?`<button class="btnGold" style="margin-top:10px" onclick="sparTab='training';renderSparringClub()">Open Sarsha's Training</button>`:""}</div>`;
+  }
+  FT.ctx[uid]={progs:progs||[],owner:owner,noStart:noStart,orig:_wl};
+  return block(uid);
+};
+window.sparringStatsHtml=function(){
+  var inCoach=false;try{inCoach=!!(coachViewId&&profile&&profile.id!==coachViewId)}catch(e){}
+  return `<details class="ftMore"><summary>Sparring log, history, fight tape &amp; notes</summary>`+_stats()+(inCoach?"":_log())+_hist()+_tape()+_notes()+`</details>`;
+};
+window.logFormHtml=function(){return ""};window.historyHtml=function(){return ""};window.fightTapeHtml=function(){return ""};window.notesHtml=function(){return ""};
 })();
 
 </script>
