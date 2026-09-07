@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609071700";
+const LG_BUILD="202609071745";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -9884,57 +9884,136 @@ var css=document.createElement("style");css.textContent=`
 .sp .lock{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);line-height:1.4;margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
 .sp .lock b{color:var(--text)}
 .sp .demo{font-size:11px;color:var(--muted);text-align:center;margin-top:10px}
+.sp .when{text-align:center;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:-4px 0 10px}.sp .when b{color:var(--c);animation:spNeonText 4s ease-in-out infinite}
+.sp .wks{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.sp .wks button{padding:9px 4px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:1px;text-transform:uppercase;font-weight:700}
+.sp .wks button small{display:block;font-size:9px;letter-spacing:.5px;color:var(--muted);margin-top:2px;font-family:Montserrat,sans-serif;font-weight:600;text-transform:none}
+.sp .wks button.on{border-color:var(--c);color:var(--c);background:color-mix(in srgb,var(--c) 12%,var(--panel));animation:spNeonBox 4s ease-in-out infinite}
+.sp .logf{margin-top:12px;display:grid;gap:6px}.sp .logf label{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:4px}
+.sp .logf input{width:100%;padding:13px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-family:'Oswald',sans-serif;font-size:22px;letter-spacing:1px}
+.sp .logf input#spNote{font-family:Montserrat,sans-serif;font-size:14px;letter-spacing:0}
+.sp .target{font-size:12px;color:var(--muted);margin-top:4px}.sp .target b{color:var(--c)}
+.sp .donecard{margin-top:12px;padding:16px;border-radius:14px;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 10%,var(--panel));text-align:center;animation:spNeonBox 4s ease-in-out infinite}
+.sp .donecard .dv{font-family:'Oswald',sans-serif;font-size:44px;font-weight:700;color:var(--c);line-height:1;animation:spNeonText 4s ease-in-out infinite}
+.sp .donecard .dl{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:6px}.sp .donecard .pts{font-family:'Oswald',sans-serif;font-size:16px;color:#fff;margin-top:6px}
+.sp .donecard .nt2{font-size:12.5px;color:var(--muted);margin-top:6px;font-style:italic}
+.sp .rules{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5;text-align:center}
+.sp .secT{font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:1px;color:#fff;margin:16px 0 8px}
+.sp .hist{display:grid;gap:6px}.sp .hrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);font-size:12.5px}
+.sp .hrow b{color:var(--c);font-family:'Oswald',sans-serif;letter-spacing:.5px;margin-right:4px}.sp .hrow .ht{text-align:right;font-family:'Oswald',sans-serif;font-size:18px;color:#fff;white-space:nowrap}
+.sp .hrow .ht small{display:block;font-family:Montserrat,sans-serif;font-size:10.5px;color:var(--muted)}.sp .hrow .ht em{font-style:normal;color:var(--gd);font-size:12px;margin-left:6px}
+.sp .hrow i{font-style:normal;font-weight:700}.sp .hrow i.up{color:var(--gr)}.sp .hrow i.dn{color:#f06a5e}
+.sp .kpi .v small{font-size:12px;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){.sp *{animation:none!important}}
 `;document.head.appendChild(css);
 
-/* Program is built in 4-week blocks. Fill days as Jake supplies them: days[weekday 0-6] = {h,m,f,ex:[[dose,name,note],...]} */
+/* Program is built in 4-week blocks. Conditioning Block 1 = Sarsha's running block (Mon / Wed oval sprints / Fri). */
 var BLOCK={n:1,label:"Block 1",weeks:4,start:"2026-09-07"};
 var SEC={
- box:{name:"Boxing",sub:"Skills · pads · sparring",color:"var(--gr)",days:{}},
- con:{name:"Conditioning",sub:"Road work · engine",color:"var(--pk)",days:{}},
- str:{name:"Strength",sub:"Power · posture · armour",color:"var(--gd)",days:{}}};
+ box:{name:"Boxing",sub:"Skills · pads · sparring",color:"var(--gr)"},
+ con:{name:"Conditioning",sub:"Road work · engine",color:"var(--pk)"},
+ str:{name:"Strength",sub:"Power · posture · armour",color:"var(--gd)"}};
+var ROAD={
+ 1:{1:{h:"6 km comfortable",kind:"run",km:6,f:"Comfortable the whole way. Conversation pace — this is the base for the block."},
+    3:{h:"Oval sprints · 8 × 100 m",kind:"sprint",reps:8,f:"8 × 100 m sprints with a 100 m jog between each. Time runs from the first sprint to the end of the last jog."},
+    5:{h:"5 km — last 2 km strong",kind:"run",km:5,f:"Comfortable for 3 km, then lift for the last 2 km and hold it."}},
+ 2:{1:{h:"7 km comfortable",kind:"run",km:7,f:"One more kilometre than last week. Same comfortable pace."},
+    3:{h:"Oval sprints · 10 × 100 m",kind:"sprint",reps:10,f:"10 × 100 m sprints, 100 m jog between each."},
+    5:{h:"6 km — last 3 km strong",kind:"run",km:6,f:"Comfortable for 3 km, strong for the back 3 km."}},
+ 3:{1:{h:"8 km comfortable",kind:"run",km:8,f:"Longest run of the block. Comfortable — don't race it."},
+    3:{h:"Oval sprints · 12 × 100 m",kind:"sprint",reps:12,f:"12 × 100 m sprints, 100 m jog between each. Peak sprint week."},
+    5:{h:"6 km — last 4 km strong",kind:"run",km:6,f:"2 km comfortable, then 4 km strong. Hold the pace to the line."}},
+ 4:{1:{h:"6 km relaxed",kind:"run",km:6,f:"Relaxed. Legs fresh for Friday's benchmark."},
+    3:{h:"Oval sprints · 8 × 100 m",kind:"sprint",reps:8,f:"Back to 8 × 100 m, 100 m jog between. Sharp, not smashed."},
+    5:{h:"5 km hard benchmark",kind:"run",km:5,f:"All out. This is the number we measure the next block against."}}};
 var DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], ORDER=[1,2,3,4,5,6,0];
-var S={tab:"box",day:null,done:{}};
-function esc2(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function curWeek(){return Math.min(BLOCK.weeks,Math.max(1,Math.floor((Date.now()-new Date(BLOCK.start+"T00:00:00").getTime())/6048e5)+1));}
+var S={tab:"con",week:curWeek(),day:null,logs:null,loading:false,err:null};
+function esc2(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function fmtT(t){t=Math.round(t||0);var h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60;return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")}
+function parseT(v){v=String(v||"").trim();if(!v)return 0;var p=v.split(":").map(function(x){return parseFloat(x)||0});if(p.length===1)return Math.round(p[0]*60);if(p.length===2)return Math.round(p[0]*60+p[1]);return Math.round(p[0]*3600+p[1]*60+p[2])}
+function isSarsha(){return !!(window.profile&&profile.id===SARSHA)}
+function totalPts(){return (S.logs||[]).reduce(function(a,l){return a+(l.points||0)},0)}
+function logFor(w,d){return (S.logs||[]).find(function(l){return l.week===w&&l.weekday===d})||null}
+function paceOf(sess,secs){return sess.kind==="run"?secs/sess.km:secs/sess.reps}
+async function loadLogs(){
+  if(S.loading||!window.sb)return; S.loading=true;
+  try{var r=await sb.from("fighter_sessions").select("*").eq("user_id",SARSHA).eq("section","con").eq("block",BLOCK.n).order("week").order("weekday");
+    S.logs=r.error?[]:(r.data||[]); S.err=r.error?r.error.message:null;}catch(e){S.logs=[];S.err=String(e)}
+  S.loading=false; spRender();
+}
 function spHead(){
   return `<div class="sp">
   <div class="hero"><div class="band"></div><img class="ph" src="${IMG}card.jpg" alt="Sarsha with her belts" onerror="this.style.display='none'">
    <div class="info"><div class="kick nt">Professional boxer · Legacy Gym · Ranked #36</div><h2 class="nm">Sarsha</h2>
    <div class="badges"><span class="badge" style="--c:var(--pk)">WBO Asia Pacific</span><span class="badge" style="--c:var(--gr)">WBC Asia</span><span class="badge">NSW</span><span class="badge">UBF</span></div>
    <div class="belts"><img src="${IMG}wbo.jpg" alt="" onerror="this.parentNode.style.display='none'"><img src="${IMG}wbc.jpg" alt=""></div></div></div>
-  <div class="stats"><div class="stat" style="--c:var(--pk)"><div class="v">4</div><div class="l">Titles</div></div><div class="stat" style="--c:var(--gr)"><div class="v">#36</div><div class="l">World</div></div><div class="stat"><div class="v">8</div><div class="l">Yrs at Legacy</div></div><div class="stat"><div class="v">B1</div><div class="l">Block 1 · 4 wk</div></div></div>
+  <div class="stats"><div class="stat" style="--c:var(--pk)"><div class="v">4</div><div class="l">Titles</div></div><div class="stat" style="--c:var(--gr)"><div class="v">#36</div><div class="l">World</div></div><div class="stat"><div class="v">8</div><div class="l">Yrs at Legacy</div></div><div class="stat"><div class="v" id="spPts">${totalPts()}</div><div class="l">Points</div></div></div>
   <div class="tabs" id="spTabs"></div><div id="spPanel"></div></div>`;
+}
+function emptyPanel(s){
+  return `<div style="--c:${s.color}">
+   <div class="kpis"><div class="kpi"><div class="v">0</div><div class="l">Sessions / wk</div></div><div class="kpi"><div class="v">0</div><div class="l">Logged</div></div><div class="kpi"><div class="v">Wk ${curWeek()}</div><div class="l">${BLOCK.label} · ${BLOCK.weeks} wk</div></div></div>
+   <div class="week">${ORDER.map(function(i){return `<div class="day">${DN[i]}<b>–</b><div class="dot"></div></div>`}).join("")}</div>
+   <div class="focus"><b>${s.name} · ${BLOCK.label}</b>Jake is loading your ${s.name.toLowerCase()} sessions for this 4-week block. They'll land here with the days, the work and his focus for each session.</div>
+   <div class="lock"><span style="font-size:18px">🔒</span><div><b>Weigh-ins &amp; coach notes</b> — visible to Sarsha and Jake only. Nothing here goes to the gym feed or leaderboards.</div></div></div>`;
+}
+function roadPanel(){
+  var s=SEC.con, w=S.week, wk=ROAD[w], days=[1,3,5];
+  if(S.day===null||!wk[S.day]){var today=new Date().getDay();S.day=days.indexOf(today)>=0?today:(today>5||today===0?5:days.filter(function(d){return d>=today})[0]||1);}
+  var sess=wk[S.day], lg=logFor(w,S.day), done=(S.logs||[]).length, mine=isSarsha();
+  var prev=w>1?logFor(w-1,S.day):null, prevSess=w>1?ROAD[w-1][S.day]:null;
+  var weekChips=`<div class="wks">${[1,2,3,4].map(function(n){var c=[1,3,5].filter(function(d){return logFor(n,d)}).length;return `<button class="${n===w?'on':''}" onclick="spWeek(${n})">Wk ${n}<small>${c}/3${n===curWeek()?' · now':''}</small></button>`}).join("")}</div>`;
+  var strip=`<div class="week">${ORDER.map(function(i){var has=!!wk[i];var dn=!!logFor(w,i);return `<div class="day ${i===S.day?'on ':''}${has?'has ':''}${dn?'done':''}" onclick="${has?'spDay('+i+')':''}">${DN[i]}<b>${has?(wk[i].kind==='sprint'?'⚡':'●'):'–'}</b><div class="dot"></div></div>`}).join("")}</div>`;
+  var meta=`Week ${w} · ${DN[S.day]} 8:30 am${S.day===3?" · Oval":""} · ${sess.kind==="run"?sess.km+" km":sess.reps+" × 100 m"}`;
+  var body;
+  if(S.logs===null){body=`<div class="focus"><b>Loading</b>Pulling up your logged sessions…</div>`;}
+  else if(lg){
+    var pace=lg.pace_secs?(sess.kind==="run"?fmtT(lg.pace_secs)+" /km":fmtT(lg.pace_secs)+" per rep"):"";
+    body=`<div class="donecard"><div class="dv">${fmtT(lg.time_secs)}</div><div class="dl">Done ✓ · ${pace}${lg.bonus?' · <span style="color:var(--gr)">beat last week</span>':''}</div><div class="pts">+${lg.points} pt${lg.points>1?'s':''}${lg.bonus?' (incl. 3 bonus)':''}</div>${lg.notes?`<div class="nt2">“${esc2(lg.notes)}”</div>`:""}${mine?`<button class="cta ghost" style="margin-top:10px" onclick="spEdit()">Edit time</button>`:""}</div>`;
+  } else if(mine){
+    var hint=sess.kind==="run"?"Total time for the "+sess.km+" km, e.g. 31:40":"First sprint to end of the last jog, e.g. 9:15";
+    var target=prev&&prevSess?`<div class="target">Beat last week: <b>${fmtT(paceOf(prevSess,prev.time_secs))}${sess.kind==="run"?" /km":" per rep"}</b> → +3 bonus</div>`:(w===1?`<div class="target">Week 1 sets your baseline · +3 bonus from week 2 when you beat it</div>`:`<div class="target">Log last week's ${DN[S.day]} first to unlock the bonus</div>`);
+    body=`<div class="logf"><label>Your time</label><input id="spTime" inputmode="numeric" placeholder="${hint}"><label>Note for Jake (optional)</label><input id="spNote" placeholder="How it felt, where you ran…">${target}<button class="cta" onclick="spSubmit()">Submit time · complete session</button></div>`;
+  } else {
+    body=`<div class="focus" style="animation:none"><b>Not logged yet</b>Sarsha hasn't submitted a time for this session.</div>`;
+  }
+  var hist=(S.logs||[]).slice().sort(function(a,b){return a.week-b.week||a.weekday-b.weekday}).map(function(l){var ss=(ROAD[l.week]||{})[l.weekday];if(!ss)return"";var p=w>0&&logFor(l.week-1,l.weekday);var d=p&&p.pace_secs&&l.pace_secs?l.pace_secs-p.pace_secs:null;
+     return `<div class="hrow"><div><b>Wk ${l.week} · ${DN[l.weekday]}</b> ${esc2(ss.h)}</div><div class="ht">${fmtT(l.time_secs)}<small>${ss.kind==="run"?fmtT(l.pace_secs)+"/km":fmtT(l.pace_secs)+"/rep"}${d!==null?` <i class="${d<0?'up':'dn'}">${d<0?'▼':'▲'} ${fmtT(Math.abs(d))}</i>`:""}</small><em>+${l.points}</em></div></div>`}).join("");
+  return `<div style="--c:${s.color}">
+   <div class="kpis"><div class="kpi"><div class="v">${done}<small>/12</small></div><div class="l">Sessions done</div></div><div class="kpi"><div class="v">${totalPts()}</div><div class="l">Points</div></div><div class="kpi"><div class="v">Wk ${curWeek()}</div><div class="l">Running block · 4 wk</div></div></div>
+   <div class="when">Mon · Wed · Fri — <b>8:30 am</b> starts</div>
+   ${weekChips}${strip}
+   <div class="sess"><h3>${esc2(sess.h)}</h3><div class="meta">${meta}</div><div class="focus"><b>Jake's focus</b>${esc2(sess.f)}</div>${body}</div>
+   <div class="rules">1 point per completed session · 3 bonus points when you beat last week's pace on the same day · 12 sessions in the block</div>
+   ${hist?`<div class="secT">Completed sessions</div><div class="hist">${hist}</div>`:""}
+   ${S.err?`<div class="rules" style="color:#f06a5e">Couldn't load logs: ${esc2(S.err)}</div>`:""}
+   <div class="lock"><span style="font-size:18px">🔒</span><div><b>Times &amp; notes</b> — visible to Sarsha and Jake only. Nothing here goes to the gym feed or leaderboards.</div></div></div>`;
 }
 function spRender(){
   var t=document.getElementById("spTabs"),p=document.getElementById("spPanel");if(!t||!p)return;
   t.innerHTML=Object.keys(SEC).map(function(k){var s=SEC[k];return `<button class="${k===S.tab?'on':''}" style="--c:${s.color}" onclick="spGo('${k}')">${s.name}<small>${s.sub}</small></button>`}).join("");
-  var s=SEC[S.tab],days=Object.keys(s.days).map(Number);
-  var wk=Math.min(BLOCK.weeks,Math.max(1,Math.floor((Date.now()-new Date(BLOCK.start+"T00:00:00").getTime())/6048e5)+1));
-  var logged=Object.keys(S.done).filter(function(x){return x.indexOf(S.tab)===0&&x.indexOf("_all")<0&&S.done[x]}).length;
-  var weekStrip=`<div class="week">${ORDER.map(function(i){var has=!!s.days[i];return `<div class="day ${i===S.day?'on ':''}${has?'has ':''}${S.done[S.tab+i+'_all']?'done':''}" onclick="${has?'spDay('+i+')':''}">${DN[i]}<b>${has?'●':'–'}</b><div class="dot"></div></div>`}).join("")}</div>`;
-  var kpis=`<div class="kpis"><div class="kpi"><div class="v">${days.length}</div><div class="l">Sessions / wk</div></div><div class="kpi"><div class="v">${logged}</div><div class="l">Logged</div></div><div class="kpi"><div class="v">Wk ${wk}</div><div class="l">${BLOCK.label} · ${BLOCK.weeks} wk</div></div></div>`;
-  if(!days.length){
-    p.innerHTML=`<div style="--c:${s.color}">${kpis}${weekStrip}
-     <div class="focus"><b>${s.name} · ${BLOCK.label}</b>Jake is loading your ${s.name.toLowerCase()} sessions for this 4-week block. They'll land here with the days, the work and his focus for each session — you'll get a ping when they do.</div>
-     <button class="cta ghost" onclick="toast&&toast('Note sent to Jake')">Message Jake</button>
-     <div class="lock"><span style="font-size:18px">🔒</span><div><b>Weigh-ins &amp; coach notes</b> — visible to Sarsha and Jake only. Nothing here goes to the gym feed or leaderboards.</div></div></div>`;
-    return;
-  }
-  if(S.day===null||!s.days[S.day]){S.day=ORDER.filter(function(d){return s.days[d]})[0];}
-  var d=s.days[S.day],key=S.tab+S.day;
-  p.innerHTML=`<div style="--c:${s.color}">${kpis}${weekStrip}
-   <div class="sess"><h3>${esc2(d.h)}</h3><div class="meta">${esc2(d.m)}</div><div class="focus"><b>Jake's focus</b>${esc2(d.f)}</div>
-   <div class="ex">${d.ex.map(function(e,i){var id=key+"_"+i;return `<div class="row ${S.done[id]?'done':''}"><div class="k">${e[0]}</div><div><div class="n">${esc2(e[1])}</div>${e[2]?`<div class="s">${esc2(e[2])}</div>`:""}</div><button class="log" onclick="spLog('${id}')">${S.done[id]?'Done':'Log'}</button></div>`}).join("")}</div>
-   <button class="cta" onclick="spFinish()">Complete session</button><button class="cta ghost" onclick="toast&&toast('Note sent to Jake')">Add a note for Jake</button></div>
-   <div class="lock"><span style="font-size:18px">🔒</span><div><b>Weigh-ins &amp; coach notes</b> — visible to Sarsha and Jake only. Nothing here goes to the gym feed or leaderboards.</div></div>
-   </div>`;
+  var pts=document.getElementById("spPts");if(pts)pts.textContent=totalPts();
+  if(S.tab==="con"){ if(S.logs===null)loadLogs(); p.innerHTML=roadPanel(); }
+  else p.innerHTML=emptyPanel(SEC[S.tab]);
 }
-window.spGo=function(k){S.tab=k;S.day=null;spRender();};
+window.spGo=function(k){S.tab=k;spRender();};
+window.spWeek=function(n){S.week=n;spRender();};
 window.spDay=function(i){S.day=i;spRender();};
-window.spLog=function(id){S.done[id]=!S.done[id];spRender();};
-window.spFinish=function(){var s=SEC[S.tab];s.days[S.day].ex.forEach(function(e,i){S.done[S.tab+S.day+"_"+i]=true});S.done[S.tab+S.day+"_all"]=true;spRender();try{toast("Session complete · Jake notified")}catch(e){}};
+window.spEdit=function(){var l=logFor(S.week,S.day);if(!l)return;S.logs=S.logs.filter(function(x){return x!==l});S._editing=l;spRender();var i=document.getElementById("spTime");if(i){i.value=fmtT(l.time_secs);}var n=document.getElementById("spNote");if(n)n.value=l.notes||"";};
+window.spSubmit=async function(){
+  if(!isSarsha()){toast("Only Sarsha can log her sessions");return;}
+  var secs=parseT((document.getElementById("spTime")||{}).value);if(!secs||secs<30){toast("Enter your time as mm:ss");return;}
+  var w=S.week,d=S.day,sess=ROAD[w][d],pace=paceOf(sess,secs);
+  var prev=w>1?logFor(w-1,d):null;var bonus=!!(prev&&prev.pace_secs&&pace<prev.pace_secs);
+  var row={user_id:profile.id,section:"con",block:BLOCK.n,week:w,weekday:d,title:sess.h,distance_km:sess.kind==="run"?sess.km:null,reps:sess.kind==="sprint"?sess.reps:null,time_secs:secs,pace_secs:Math.round(pace*100)/100,notes:((document.getElementById("spNote")||{}).value||"").slice(0,300)||null,points:1+(bonus?3:0),bonus:bonus};
+  var r=await sb.from("fighter_sessions").upsert(row,{onConflict:"user_id,section,block,week,weekday"}).select().single();
+  if(r.error){toast(r.error.message);return;}
+  S.logs=(S.logs||[]).filter(function(x){return !(x.week===w&&x.weekday===d)}).concat([r.data]); S._editing=null;
+  spRender(); toast(bonus?"Saved · +4 points — you beat last week 🔥":"Saved · +1 point ✓");
+};
 var _html=window.miaTrainingHtml,_tabs=window.renderMiaTrainTabs;
-window.miaTrainingHtml=function(uid){ if(uid!==SARSHA) return _html(uid); miaTrainUid=uid; return spHead(); };
+window.miaTrainingHtml=function(uid){ if(uid!==SARSHA) return _html(uid); miaTrainUid=uid; if(S.logs===null)loadLogs(); return spHead(); };
 window.renderMiaTrainTabs=function(){ if(miaTrainUid!==SARSHA) return _tabs(); spRender(); };
 })();
 
