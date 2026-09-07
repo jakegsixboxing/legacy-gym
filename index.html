@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609061840";
+const LG_BUILD="202609071600";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -9828,6 +9828,114 @@ window.tbjCheckinSheet=function(){sheet("Weekly check-in",'<div style="display:f
 window.tbjFbSheet=function(cid){sheet("Review clip",'<div class="fld"><label>Your notes for the fighter</label><textarea id="fbT" placeholder="What you saw, what to fix, timestamp…"></textarea></div>',
   async function(){var fb=$("fbT").value||"Reviewed — looking good, keep it up.";var r=await sb.from("tbj_clips").update({feedback:fb,status:"reviewed"}).eq("id",cid);if(r.error){toast(r.error.message);return;}await sb.from("tbj_messages").insert({user_id:T.viewUser,from_coach:true,body:"Reviewed your clip — notes are on it in Video."});tbjCloseSheet();toast("Feedback sent ✓");renderTBJ();},"Send feedback");};
 
+})();
+
+</script>
+<script>
+/*__SARSHA_PROFILE__*/
+(function(){
+var SARSHA="2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139";
+var IMG="/img/sarsha/";
+var css=document.createElement("style");css.textContent=`
+.sp{--pk:#ff4fa3;--gr:#2cf58a;--gd:#FFDC6E;--c:var(--gd)}
+@keyframes spNeonBox{0%,100%{box-shadow:0 0 4px var(--c),0 0 10px color-mix(in srgb,var(--c) 45%,transparent),inset 0 0 4px color-mix(in srgb,var(--c) 28%,transparent)}50%{box-shadow:0 0 10px var(--c),0 0 26px var(--c),inset 0 0 10px color-mix(in srgb,var(--c) 55%,transparent)}}
+@keyframes spNeonText{0%,100%{text-shadow:0 0 3px var(--c),0 0 8px color-mix(in srgb,var(--c) 50%,transparent)}50%{text-shadow:0 0 6px var(--c),0 0 18px var(--c),0 0 30px color-mix(in srgb,var(--c) 60%,transparent)}}
+@keyframes spNeon{0%,100%{filter:drop-shadow(0 0 2px var(--c)) drop-shadow(0 0 6px color-mix(in srgb,var(--c) 55%,transparent)) brightness(1)}50%{filter:drop-shadow(0 0 6px var(--c)) drop-shadow(0 0 18px var(--c)) brightness(1.25)}}
+@keyframes spBand{0%,100%{box-shadow:0 0 6px #ff4fa3,0 0 10px #FFDC6E,0 0 6px #2cf58a;filter:brightness(1)}50%{box-shadow:0 0 14px #ff4fa3,0 0 30px #FFDC6E,0 0 14px #2cf58a;filter:brightness(1.35) saturate(1.3)}}
+.sp .nb{animation:spNeonBox 4s ease-in-out infinite}.sp .nt{animation:spNeonText 4s ease-in-out infinite}.sp .nf{animation:spNeon 4s ease-in-out infinite}
+.sp .hero{border-radius:20px;overflow:hidden;border:1px solid var(--line);background:var(--panel);margin-bottom:12px}
+.sp .band{height:7px;background:linear-gradient(90deg,#ff4fa3 0 33%,#FFDC6E 33% 66%,#2cf58a 66%);animation:spBand 4s ease-in-out infinite;position:relative;z-index:2}
+.sp .hero img.ph{width:100%;display:block;max-height:340px;object-fit:cover;object-position:center 30%}
+.sp .info{padding:12px 14px 14px}
+.sp .kick{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gd);--c:var(--gd);font-weight:700}
+.sp h2.nm{font-family:'Oswald',sans-serif;font-size:38px;line-height:1;text-transform:uppercase;margin:4px 0 8px;color:#fff}
+.sp .badges{display:flex;gap:6px;flex-wrap:wrap}
+.sp .badge{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;padding:5px 9px;border-radius:999px;border:1px solid var(--c);color:var(--c);background:color-mix(in srgb,var(--c) 12%,#000);animation:spNeonBox 4s ease-in-out infinite,spNeonText 4s ease-in-out infinite}
+.sp .belts{display:flex;height:60px;border-radius:12px;overflow:hidden;border:1px solid var(--line);margin-top:10px;position:relative}
+.sp .belts img{flex:1;min-width:0;object-fit:cover;object-position:center 55%;height:100%;display:block}
+.sp .belts:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#0b0b0c,transparent 14%,transparent 86%,#0b0b0c)}
+.sp .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.sp .stat{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--c);border-radius:12px;padding:10px 4px;text-align:center;animation:spNeonBox 4s ease-in-out infinite}
+.sp .stat .v{font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:var(--c);animation:spNeonText 4s ease-in-out infinite}.sp .stat .l{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.sp .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.sp .tabs button{position:relative;padding:14px 6px 12px;border-radius:14px;border:1px solid var(--c);background:color-mix(in srgb,var(--c) 10%,var(--panel));color:var(--c);font-family:'Oswald',sans-serif;font-size:17px;letter-spacing:1px;text-transform:uppercase;font-weight:700;animation:spNeonBox 4s ease-in-out infinite,spNeonText 4s ease-in-out infinite}
+.sp .tabs button small{display:block;font-family:inherit;font-size:9px;letter-spacing:1.5px;color:var(--muted);margin-top:3px;text-shadow:none;font-weight:600}
+.sp .tabs button.on{background:var(--c);color:#0b0b0c;text-shadow:none}.sp .tabs button.on small{color:#0b0b0c}
+.sp .week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:12px}
+.sp .day{border:1px solid var(--line);border-radius:10px;padding:7px 0;text-align:center;background:var(--panel);color:var(--text);font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.sp .day b{display:block;font-family:'Oswald',sans-serif;font-size:16px;margin-top:2px;color:var(--muted)}
+.sp .day.has b{color:var(--c)}.sp .day.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 16%,var(--panel));animation:spNeonBox 4s ease-in-out infinite}
+.sp .day .dot{width:6px;height:6px;border-radius:50%;margin:4px auto 0;background:var(--line)}.sp .day.has .dot{background:var(--c);animation:spNeon 4s ease-in-out infinite}.sp .day.done .dot{background:#4bc97a}
+.sp .sess h3{font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;line-height:1;color:#fff;margin:0}
+.sp .meta{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.sp .focus{margin-top:10px;padding:10px 12px;border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 10%,var(--panel));border-radius:0 10px 10px 0;font-size:13px;line-height:1.45;animation:spNeonBox 4s ease-in-out infinite}
+.sp .focus b{display:block;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--c);margin-bottom:2px;animation:spNeonText 4s ease-in-out infinite}
+.sp .ex{display:grid;gap:8px;margin-top:12px}
+.sp .row{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2,#18181b)}
+.sp .row .k{font-family:'Oswald',sans-serif;font-weight:700;color:var(--c);width:36px;flex:none;font-size:15px;animation:spNeonText 4s ease-in-out infinite}
+.sp .row .n{font-weight:700;font-size:13.5px}.sp .row .s{font-size:11.5px;color:var(--muted);margin-top:2px}
+.sp .row .log{margin-left:auto;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--line);color:var(--muted);background:none;border-radius:8px;padding:6px 9px;flex:none;font-weight:700}
+.sp .row.done .log{background:#4bc97a;color:#06110a;border-color:#4bc97a}.sp .row.done .n{text-decoration:line-through;color:var(--muted)}
+.sp .cta{display:block;width:100%;margin-top:14px;font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;letter-spacing:1.5px;text-transform:uppercase;padding:14px;border-radius:12px;border:0;background:var(--c);color:#0b0b0c;animation:spNeonBox 4s ease-in-out infinite}
+.sp .ghost{background:none;border:1px solid var(--line);color:var(--text);animation:none;margin-top:8px}
+.sp .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.sp .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px;text-align:center;animation:spNeonBox 4s ease-in-out infinite}
+.sp .kpi .v{font-family:'Oswald',sans-serif;font-size:19px;font-weight:700;color:var(--c);animation:spNeonText 4s ease-in-out infinite}.sp .kpi .l{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.sp .lock{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);line-height:1.4;margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.sp .lock b{color:var(--text)}
+.sp .demo{font-size:11px;color:var(--muted);text-align:center;margin-top:10px}
+@media (prefers-reduced-motion:reduce){.sp *{animation:none!important}}
+`;document.head.appendChild(css);
+
+var SEC={
+ box:{name:"Boxing",sub:"Skills · pads · sparring",color:"var(--gr)",days:{
+   1:{h:"Technical + pads",m:"Mon · 60 min · with Jake",f:"Jab to the body then hook off the back foot. Keep the right hand home when she resets.",ex:[["6×3","Shadow boxing","Rounds 1–2 footwork only · 3–4 lead hand · 5–6 full combinations"],["8×3","Pads with Jake","Double jab → right hand → pivot out. 30 s pressure to close each round"],["4×3","Heavy bag","Body work: left hook to body, right hand upstairs"],["3×3","Defence drill","Slip-slip-roll off the jab, counter jab to body"]]},
+   3:{h:"Sparring day",m:"Wed · 75 min · pairs set by Jake",f:"Work behind the jab. Control range for two rounds before letting the hands go.",ex:[["15 min","Warm-up + shadow","Joint prep, skipping, 3 rounds shadow"],["6×3","Sparring","Headgear + 16 oz · pairs on the day"],["3×3","Technical review","Fix one thing from sparring on the pads"],["10 min","Cool down","Walk + stretch · upload one clip"]]},
+   5:{h:"Speed + reaction",m:"Fri · 50 min",f:"Fast hands, short rounds. Everything sharp, nothing loaded.",ex:[["6×2","Double-end bag","Rhythm and head movement"],["6×2","Pads — speed","Jake calls numbers; answer under a second"],["4×2","Speed ball",""],["3×3","Shadow with 1 kg","Slow, perfect form"]]},
+   6:{h:"Open ring · light",m:"Sat · 45 min",f:"Light technical. Film everything.",ex:[["5×3","Shadow boxing",""],["4×3","Partner drills","Jab-only, then jab + right hand only"]]}}},
+ con:{name:"Conditioning",sub:"Engine · road work",color:"var(--pk)",days:{
+   1:{h:"Road work — aerobic",m:"Mon · 40 min · early",f:"Easy pace, conversation speed. Log distance and how it felt.",ex:[["40 min","Run — zone 2","Flat route · nose breathing"],["5 min","Walk + stretch",""]]},
+   3:{h:"Fight-pace intervals",m:"Wed PM · 30 min · after sparring",f:"10 rounds of 3 on / 1 off. Match the fight.",ex:[["10×3","Assault bike or rower","Hard for 3, easy for 1 · record total cals"],["10 min","Cool down","Walk"]]},
+   5:{h:"Hill sprints",m:"Fri · 35 min",f:"Full recovery between reps. Quality over count.",ex:[["10×","Hill sprint 15 s","Walk back down = rest"],["10 min","Easy jog",""],["3×20","Skipping — double-unders",""]]},
+   0:{h:"Long run",m:"Sun · 60 min",f:"Camp week 3+ only. Otherwise rest.",ex:[["60 min","Run — steady","Log km"]]}}},
+ str:{name:"Strength",sub:"Power · posture · armour",color:"var(--gd)",days:{
+   2:{h:"Lower body power",m:"Tue · 55 min",f:"Move the bar fast. Stop the set the moment speed drops.",ex:[["4×5","Trap bar deadlift","@ 75% · 2 min rest · log the top set"],["4×4","Box jump","Step down, full reset between reps"],["3×8","Bulgarian split squat","Each leg · slow eccentric"],["3×10","Nordic curl","Assisted if needed"],["3×12","Copenhagen plank","Each side"]]},
+   4:{h:"Upper body + trunk",m:"Thu · 50 min",f:"Pull twice as much as you push this block.",ex:[["4×6","Weighted chin-up","Log added weight"],["4×5","Landmine press","Each arm · explosive"],["3×10","Single-arm row",""],["3×8","Med-ball rotational throw","Each side · hard into the wall"],["3×30 s","Pallof hold","Each side"]]},
+   6:{h:"Neck + shoulders",m:"Sat · 20 min",f:"Non-negotiable in camp.",ex:[["3×15","Neck flexion / extension","Plate or band"],["3×15","Face pulls",""],["3×12","Y-T-W raises","Light"]]}}}};
+var DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], ORDER=[1,2,3,4,5,6,0];
+var S={tab:"box",day:null,done:{}};
+function esc2(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function spHead(){
+  return `<div class="sp">
+  <div class="hero"><div class="band"></div><img class="ph" src="${IMG}card.jpg" alt="Sarsha with her belts" onerror="this.style.display='none'">
+   <div class="info"><div class="kick nt">Professional boxer · Legacy Gym · Ranked #36</div><h2 class="nm">Sarsha</h2>
+   <div class="badges"><span class="badge" style="--c:var(--pk)">WBO Asia Pacific</span><span class="badge" style="--c:var(--gr)">WBC Asia</span><span class="badge">NSW</span><span class="badge">UBF</span></div>
+   <div class="belts"><img src="${IMG}wbo.jpg" alt="" onerror="this.parentNode.style.display='none'"><img src="${IMG}wbc.jpg" alt=""></div></div></div>
+  <div class="stats"><div class="stat" style="--c:var(--pk)"><div class="v">4</div><div class="l">Titles</div></div><div class="stat" style="--c:var(--gr)"><div class="v">#36</div><div class="l">World</div></div><div class="stat"><div class="v">8</div><div class="l">Yrs at Legacy</div></div><div class="stat"><div class="v">Wk 1</div><div class="l">Camp · of 10</div></div></div>
+  <div class="tabs" id="spTabs"></div><div id="spPanel"></div></div>`;
+}
+function spRender(){
+  var t=document.getElementById("spTabs"),p=document.getElementById("spPanel");if(!t||!p)return;
+  t.innerHTML=Object.keys(SEC).map(function(k){var s=SEC[k];return `<button class="${k===S.tab?'on':''}" style="--c:${s.color}" onclick="spGo('${k}')">${s.name}<small>${s.sub}</small></button>`}).join("");
+  var s=SEC[S.tab],days=Object.keys(s.days).map(Number);
+  if(S.day===null||!s.days[S.day]){S.day=ORDER.filter(function(d){return s.days[d]})[0];}
+  var d=s.days[S.day],key=S.tab+S.day,logged=Object.keys(S.done).filter(function(x){return x.indexOf(S.tab)===0&&x.indexOf("_all")<0&&S.done[x]}).length;
+  p.innerHTML=`<div style="--c:${s.color}">
+   <div class="kpis"><div class="kpi"><div class="v">${days.length}</div><div class="l">Sessions / wk</div></div><div class="kpi"><div class="v">${logged}</div><div class="l">Logged</div></div><div class="kpi"><div class="v">Wk 1</div><div class="l">Block · 10 wk</div></div></div>
+   <div class="week">${ORDER.map(function(i){var has=!!s.days[i];return `<div class="day ${i===S.day?'on ':''}${has?'has ':''}${S.done[S.tab+i+'_all']?'done':''}" onclick="${has?'spDay('+i+')':''}">${DN[i]}<b>${has?'●':'–'}</b><div class="dot"></div></div>`}).join("")}</div>
+   <div class="sess"><h3>${esc2(d.h)}</h3><div class="meta">${esc2(d.m)}</div><div class="focus"><b>Jake's focus</b>${esc2(d.f)}</div>
+   <div class="ex">${d.ex.map(function(e,i){var id=key+"_"+i;return `<div class="row ${S.done[id]?'done':''}"><div class="k">${e[0]}</div><div><div class="n">${esc2(e[1])}</div>${e[2]?`<div class="s">${esc2(e[2])}</div>`:""}</div><button class="log" onclick="spLog('${id}')">${S.done[id]?'Done':'Log'}</button></div>`}).join("")}</div>
+   <button class="cta" onclick="spFinish()">Complete session</button><button class="cta ghost" onclick="toast&&toast('Note sent to Jake')">Add a note for Jake</button></div>
+   <div class="lock"><span style="font-size:18px">🔒</span><div><b>Weigh-ins &amp; coach notes</b> — visible to Sarsha and Jake only. Nothing here goes to the gym feed or leaderboards.</div></div>
+   <div class="demo">Week 1 layout · sessions are placeholders until Jake builds the program</div></div>`;
+}
+window.spGo=function(k){S.tab=k;S.day=null;spRender();};
+window.spDay=function(i){S.day=i;spRender();};
+window.spLog=function(id){S.done[id]=!S.done[id];spRender();};
+window.spFinish=function(){var s=SEC[S.tab];s.days[S.day].ex.forEach(function(e,i){S.done[S.tab+S.day+"_"+i]=true});S.done[S.tab+S.day+"_all"]=true;spRender();try{toast("Session complete · Jake notified")}catch(e){}};
+var _html=window.miaTrainingHtml,_tabs=window.renderMiaTrainTabs;
+window.miaTrainingHtml=function(uid){ if(uid!==SARSHA) return _html(uid); miaTrainUid=uid; return spHead(); };
+window.renderMiaTrainTabs=function(){ if(miaTrainUid!==SARSHA) return _tabs(); spRender(); };
 })();
 
 </script>
