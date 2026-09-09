@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609091400";
+const LG_BUILD="202609091530";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10256,6 +10256,81 @@ window.inAtt=async function(id,v){await sb.from("info_night_rsvps").update({atte
 window.inCopy=function(){var t=(IN.rows||[]).map(function(r){return [r.full_name,r.mobile,r.email,r.suburb,r.source||"",r.attended?"attended":""].join("\t")}).join("\n");navigator.clipboard&&navigator.clipboard.writeText("Name\tMobile\tEmail\tSuburb\tSource\tAttended\n"+t).then(function(){toast("List copied — paste into Sheets")});};
 window.inSms=function(){var nums=(IN.rows||[]).map(function(r){return r.mobile}).filter(Boolean);if(!nums.length){toast("No numbers yet");return;}location.href="sms:"+nums.join(",");};
 if(typeof window.renderHome==="function"){var _rh=window.renderHome;window.renderHome=function(){var r=_rh.apply(this,arguments);try{if(jake()&&view==="home"&&!document.getElementById("inHomeBtn")){var m=$("main");var anchor=document.getElementById("tbjHomeBtn")||m.querySelector(".homeCard");var b=document.createElement("button");b.id="inHomeBtn";b.setAttribute("onclick","inOpen()");b.innerHTML='<span><div style="font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold)">Coach Only · Fight Club</div><div style="font-family:Oswald,sans-serif;font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Info Night RSVPs <span id="inCount" style="color:var(--gold)"></span></div></span><span style="font-size:22px;color:var(--gold)">›</span>';if(anchor)m.insertBefore(b,anchor.nextSibling);else m.appendChild(b);load().then(function(rows){var c=document.getElementById("inCount");if(c)c.textContent="· "+rows.length;});}}catch(e){}return r;};}
+})();
+
+</script>
+<script>
+/*__CLASS_CANCEL__*/
+(function(){
+/* One-off class cancellations. Each entry: date (YYYY-MM-DD local), times to cancel, reason, and when to stop showing the notice.
+   To clear: empty the array. */
+var CANCELLED=[
+  {date:"2026-09-11", times:["16:30","18:00"], label:"Friday afternoon classes", reason:"coaches away", showUntil:"2026-09-12T23:59:00"}
+];
+function isoLocal(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function isCancelled(dateIso,time){return CANCELLED.some(function(c){return c.date===dateIso&&c.times.indexOf(time)>=0;});}
+function active(){var now=new Date();return CANCELLED.filter(function(c){return now<new Date(c.showUntil);});}
+var css=document.createElement("style");css.textContent=`
+@keyframes ccFlash{0%,100%{background:#3a0d0d;border-color:#ff4d4d;box-shadow:0 0 0 0 rgba(255,77,77,.0)}50%{background:#5a1414;border-color:#ffd166;box-shadow:0 0 18px 2px rgba(255,77,77,.55)}}
+@keyframes ccBlink{0%,100%{opacity:1}50%{opacity:.25}}
+.ccNotice{border:2px solid #ff4d4d;border-radius:14px;padding:14px 16px;margin:0 0 14px;background:#3a0d0d;color:#fff;animation:ccFlash 1.4s ease-in-out infinite}
+.ccNotice .k{font-size:10.5px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#ffd166;display:flex;align-items:center;gap:8px}
+.ccNotice .k i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff4d4d;animation:ccBlink .9s steps(1) infinite}
+.ccNotice h3{font-family:Oswald,sans-serif;font-size:20px;line-height:1.15;text-transform:uppercase;letter-spacing:.5px;margin:6px 0 4px;color:#fff}
+.ccNotice p{margin:0;font-size:13.5px;line-height:1.5;color:#ffe9e9}
+.ccNotice p b{color:#ffd166}
+.ccCard{border:2px dashed #ff4d4d;border-radius:14px;padding:14px 16px;margin-bottom:10px;background:#1a0a0a;color:#ffb3b3}
+.ccCard b{color:#ff4d4d;letter-spacing:2px;font-size:11px;text-transform:uppercase}
+@media (prefers-reduced-motion:reduce){.ccNotice,.ccNotice .k i{animation:none}}
+`;document.head.appendChild(css);
+function fmt(iso){var d=new Date(iso+"T12:00:00");return d.toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"});}
+function noticeHtml(){
+  return active().map(function(c){
+    return '<div class="ccNotice" role="alert"><div class="k"><i></i>Class cancellation</div>'+
+      '<h3>No '+c.label+' this week</h3>'+
+      '<p><b>'+fmt(c.date)+'</b> — '+c.times.map(function(t){return fmtClassTime(t)}).join(" and ")+' classes are <b>cancelled</b> ('+c.reason+'). '+
+      'Friday <b>morning</b> classes run as normal. Sorry for the short notice — back to normal Saturday.</p></div>';
+  }).join("");
+}
+function inject(){
+  try{
+    if(!active().length)return;
+    var m=document.getElementById("main");if(!m)return;
+    if(m.querySelector(".ccNotice"))return;
+    var el=document.createElement("div");el.innerHTML=noticeHtml();
+    var back=m.querySelector(".backBtn");
+    if(back&&back.nextSibling)m.insertBefore(el.firstChild,back.nextSibling);else m.insertBefore(el.firstChild,m.firstChild);
+  }catch(e){}
+}
+/* remove cancelled classes from booking lists */
+["upcomingClasses48","upcomingClasses"].forEach(function(fn){
+  if(typeof window[fn]==="function"){var o=window[fn];window[fn]=function(){return o.apply(this,arguments).filter(function(c){return !isCancelled(c.date,c.t);});};}
+});
+/* notice on Home, Classes, Timetable */
+["renderHome","renderClasses","renderTimetable"].forEach(function(fn){
+  if(typeof window[fn]!=="function")return;var o=window[fn];
+  window[fn]=function(){var r=o.apply(this,arguments);inject();if(r&&typeof r.then==="function")r.then(inject);setTimeout(inject,50);setTimeout(inject,600);return r;};
+});
+/* cancelled card in the Classes list on the day */
+if(typeof window.renderClasses==="function"){
+  var mo=new MutationObserver(function(){
+    try{
+      var list=document.getElementById("classList");if(!list||list.querySelector(".ccCard"))return;
+      active().forEach(function(c){
+        var today=isoLocal(new Date());
+        if(c.date<today)return;
+        var titles=[].slice.call(list.querySelectorAll(".secTitle"));
+        var t=titles.find(function(s){return s.textContent.indexOf(fmt(c.date).split(",")[0])===0||s.textContent.indexOf(c.date.slice(8,10))>-1&&/Fri/.test(s.textContent);});
+        var card=document.createElement("div");card.className="ccCard";card.innerHTML='<b>Cancelled</b><div style="font-weight:800;color:#fff;margin-top:4px">'+fmt(c.date)+' — '+c.times.map(function(x){return fmtClassTime(x)}).join(" &amp; ")+'</div><div style="font-size:13px;margin-top:2px">'+c.label.charAt(0).toUpperCase()+c.label.slice(1)+' are off ('+c.reason+'). Morning classes run as normal.</div>';
+        if(t&&t.nextSibling)t.parentNode.insertBefore(card,t.nextSibling);else list.appendChild(card);
+      });
+    }catch(e){}
+  });
+  mo.observe(document.body,{childList:true,subtree:true});
+}
+/* block booking a cancelled class even if a stale list is open */
+if(typeof window.attendClass==="function"){var oa=window.attendClass;window.attendClass=function(date,time,name){if(isCancelled(date,time)){toast("That class is cancelled this week — coaches away.");return;}return oa.apply(this,arguments);};}
+setTimeout(inject,800);
 })();
 
 </script>
