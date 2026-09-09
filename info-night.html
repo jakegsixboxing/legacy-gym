@@ -46,12 +46,15 @@ input.err{border-color:var(--bad)}
 .ok .tick{width:72px;height:72px;border-radius:50%;background:var(--ok);color:#06110a;font-size:38px;display:grid;place-items:center;margin:0 auto 14px}
 .ok h2{font-size:30px}
 .ok p{color:#e9e4d8;line-height:1.5}
-.row{display:flex;gap:10px;margin-top:16px}
-.row a{flex:1;text-align:center;font-family:Oswald,sans-serif;font-weight:600;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--gold);color:var(--gold2);text-decoration:none;padding:12px 8px;border-radius:12px}
-.share{margin:18px 0 6px;border:1.5px solid var(--gold);border-radius:14px;padding:14px;background:rgba(217,174,69,.06)}
-.share .sh{font-size:14px;color:#e9e4d8;line-height:1.4}
-.share .lk{margin-top:10px;font-family:Oswald,sans-serif;font-size:17px;letter-spacing:.5px;color:var(--gold2);word-break:break-all;user-select:all;-webkit-user-select:all;background:#0b0b0c;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.share .cp{display:none;margin-top:8px;font-size:13px;color:var(--ok);font-weight:700}
+.row{display:flex;gap:10px;margin-top:10px}
+.row a{flex:1;text-align:center;display:block;line-height:1.25;font-family:Oswald,sans-serif;font-weight:600;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--gold);color:var(--gold2);text-decoration:none;padding:12px 8px;border-radius:12px}
+.ok .lead{font-size:16px;line-height:1.5;color:#e9e4d8;margin:0 0 6px}
+.ok .lead b{color:var(--gold2)}
+.grp{margin-top:18px;border:1.5px solid var(--gold);border-radius:14px;padding:14px;background:rgba(217,174,69,.06);text-align:left}
+.gl{font-family:Oswald,sans-serif;font-weight:600;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);margin-bottom:4px}
+.row a.pri{background:linear-gradient(178deg,#F6D97C,#C9962A);color:#141005;border-color:transparent;font-weight:700}
+.lk{margin-top:10px;font-family:Oswald,sans-serif;font-size:17px;letter-spacing:.5px;color:var(--gold2);word-break:break-all;user-select:all;-webkit-user-select:all;background:#0b0b0c;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.cp{display:none;margin-top:8px;font-size:13px;color:var(--ok);font-weight:700}
 .pic{margin-top:26px;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
 .pic img{width:100%;display:block}
 .foot{margin-top:26px;text-align:center;font-family:Oswald,sans-serif;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
@@ -78,7 +81,7 @@ input.err{border-color:var(--bad)}
 
   <div class="card" id="formCard">
     <h2>Let us know you're coming</h2>
-    <p class="sub">So we've got a seat and a coffee ready. Takes 20 seconds.</p>
+    <p class="sub">Takes 20 seconds. We'll text you a reminder the day before.</p>
     <form id="f" novalidate>
       <label for="name">Full name</label><input id="name" name="name" autocomplete="name" placeholder="Your name" required>
       <label for="mobile">Mobile</label><input id="mobile" name="mobile" type="tel" inputmode="tel" autocomplete="tel" placeholder="04xx xxx xxx" required>
@@ -90,12 +93,17 @@ input.err{border-color:var(--bad)}
     </form>
     <div class="ok" id="ok">
       <div class="tick">✓</div>
-      <h2>Thanks for registering</h2>
-      <p>You're on the list. See you <b>Wed 16 Sep, 6:45 pm</b> at Legacy Gym, Kincumber. We'll text you a reminder the day before.</p>
-      <div class="share"><div class="sh">Know someone who'd be into this? Here's the link to send to a friend</div><div class="lk" id="shareLink">legacygym.net/pages/fight-club-info-night</div><div class="row" style="margin-top:10px"><a href="#" id="copyBtn">Copy link</a><a href="#" id="shareBtn">Send to a friend</a></div><div class="cp" id="copied">Link copied ✓</div></div>
-      <div class="row">
-        <a id="ics" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Fight+Club+Information+Night+-+Legacy+Gym&dates=20260916T084500Z/20260916T094500Z&details=Fight+Club+Ten+Week+Challenge+info+night.+Free,+no+experience+needed.+Bring+a+mate.&location=Legacy+Gym,+Kincumber+NSW" target="_blank" rel="noopener">Add to calendar</a>
-        <a href="https://maps.google.com/?q=Legacy+Gym+Kincumber" target="_blank" rel="noopener">Directions</a>
+      <h2>You're booked in</h2>
+      <p class="lead">Registration confirmed for the <b>Fight Club info night</b><br><b>Wed 16 Sep · 6:45 pm</b> · Legacy Gym, 12 Bilinga Rd, Kincumber</p>
+      <div class="grp"><div class="gl">Save it</div>
+        <div class="row"><a id="calApple" href="https://legacygym-app.vercel.app/img/fc/fight-club-info-night.ics">Apple Calendar</a><a id="calGoogle" href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Fight+Club+Info+Night+-+Legacy+Gym&amp;dates=20260916T084500Z/20260916T094500Z&amp;details=Fight+Club+Ten+Week+Challenge+information+night.+Free,+no+experience+needed.+Bring+a+mate.&amp;location=Legacy+Gym,+12+Bilinga+Rd,+Kincumber+NSW+2251" target="_blank" rel="noopener">Google Calendar</a></div>
+        <div class="row"><a id="mapBtn" href="https://www.google.com/maps/search/?api=1&amp;query=Legacy+Gym,+12+Bilinga+Rd,+Kincumber+NSW+2251" target="_blank" rel="noopener">Directions · 12 Bilinga Rd</a></div>
+      </div>
+      <div class="grp"><div class="gl">Bring a mate — share the link</div>
+        <div class="lk" id="shareLink">legacygym.net/pages/fight-club-info-night</div>
+        <div class="row"><a href="#" id="shareBtn" class="pri">Share link…</a><a href="#" id="copyBtn">Copy link</a></div>
+        <div class="row"><a id="smsBtn" href="#">Text it</a><a id="waBtn" href="#" target="_blank" rel="noopener">WhatsApp</a></div>
+        <div class="cp" id="copied">Link copied ✓ — paste it anywhere</div>
       </div>
     </div>
   </div>
@@ -126,16 +134,22 @@ input.err{border-color:var(--bad)}
     var r=await sb.from("info_night_rsvps").insert({full_name:name,mobile:mob,email:em,suburb:sub,source:src});
     if(r.error){go.disabled=false;go.textContent="I'm coming · save my seat";msg.textContent="Something went wrong — try again, or just turn up on the night.";msg.style.display="block";return;}
     try{if(window.fbq)fbq("track","Lead");}catch(e){}
-      var isApple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent); if(isApple){var _i=document.getElementById("ics"); _i.href="https://legacygym-app.vercel.app/img/fc/fight-club-info-night.ics"; _i.removeAttribute("target");}
-    var SHARE_URL="https://www.legacygym.net/pages/fight-club-info-night", SHARE_TXT="Free Fight Club info night — Wed 16 Sep, 6:45 pm at Legacy Gym Kincumber. Come with me? Save a seat here: ";
-    function copied(){var c=document.getElementById("copied");c.style.display="block";setTimeout(function(){c.style.display="none"},2500);}
-    function fallback(){var el=document.getElementById("shareLink");var r=document.createRange();r.selectNodeContents(el);var sel=window.getSelection();sel.removeAllRanges();sel.addRange(r);try{document.execCommand("copy");copied();}catch(e){}}
+      var UA=navigator.userAgent, isApple=/iPhone|iPad|iPod|Macintosh/.test(UA);
+    var SHARE_URL="https://www.legacygym.net/pages/fight-club-info-night";
+    var SHARE_TXT="Free Fight Club info night at Legacy Gym Kincumber — Wed 16 Sep, 6:45 pm. Come with me? Book your seat here: "+SHARE_URL;
+    var $=function(id){return document.getElementById(id)};
+    if(isApple){$("mapBtn").href="https://maps.apple.com/?q=Legacy+Gym&address=12+Bilinga+Rd,+Kincumber+NSW+2251";}
+    else{$("calApple").style.display="none";}
+    $("smsBtn").href="sms:?&body="+encodeURIComponent(SHARE_TXT);
+    $("waBtn").href="https://wa.me/?text="+encodeURIComponent(SHARE_TXT);
+    function copied(){var c=$("copied");c.style.display="block";setTimeout(function(){c.style.display="none"},3000);}
+    function fallback(){var el=$("shareLink");var r=document.createRange();r.selectNodeContents(el);var sel=window.getSelection();sel.removeAllRanges();sel.addRange(r);var ok=false;try{ok=document.execCommand("copy");}catch(e){} if(ok)copied(); else {var c=$("copied");c.textContent="Link selected — press and hold to copy";c.style.display="block";}}
     function doCopy(){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(SHARE_URL).then(copied,fallback);}else fallback();}
-    document.getElementById("copyBtn").addEventListener("click",function(e){e.preventDefault();doCopy();});
-    document.getElementById("shareLink").addEventListener("click",doCopy);
-    var shb=document.getElementById("shareBtn");
-    if(navigator.share){shb.addEventListener("click",function(e){e.preventDefault();navigator.share({title:"Fight Club Info Night",text:SHARE_TXT,url:SHARE_URL}).catch(function(){});});}
-    else{shb.href="sms:?&body="+encodeURIComponent(SHARE_TXT+SHARE_URL);}
+    $("copyBtn").addEventListener("click",function(e){e.preventDefault();doCopy();});
+    $("shareLink").addEventListener("click",doCopy);
+    var shb=$("shareBtn");
+    if(navigator.share){shb.addEventListener("click",function(e){e.preventDefault();navigator.share({title:"Fight Club Info Night — Legacy Gym",text:SHARE_TXT.replace(SHARE_URL,"").trim(),url:SHARE_URL}).catch(function(){});});}
+    else{shb.style.display="none";$("copyBtn").className="pri";}
     var _c=document.getElementById("formCard"); var _h=_c.querySelector("h2"), _s=_c.querySelector("p.sub"); if(_h)_h.style.display="none"; if(_s)_s.style.display="none";
     f.style.display="none"; document.getElementById("ok").style.display="block"; document.getElementById("formCard").scrollIntoView({behavior:"smooth",block:"start"});
   });
