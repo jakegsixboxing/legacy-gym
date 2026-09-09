@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609091300";
+const LG_BUILD="202609091400";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10218,9 +10218,12 @@ var EVENT="fc-info-2026-09-16";
 function jake(){try{return !!(profile&&profile.id===JAKE_UID)}catch(e){return false}}
 var css=document.createElement("style");css.textContent=`
 #inHomeBtn{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px;border-radius:14px;padding:14px 16px;margin:-6px 0 16px;cursor:pointer;border:1px solid var(--line);background:linear-gradient(160deg,#15130c,#0d0c08);color:var(--text)}
-#inOverlay{position:fixed;inset:0;z-index:9000;background:var(--bg,#0b0b0c);overflow:auto;padding:18px 16px 40px}
-#inOverlay .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-#inOverlay h2{font-family:Oswald,sans-serif;font-size:24px;text-transform:uppercase;letter-spacing:1px;margin:0}
+#inOverlay{position:fixed;inset:0;z-index:9000;background:var(--bg,#0b0b0c);overflow:auto;padding:0 16px calc(96px + env(safe-area-inset-bottom))}
+#inOverlay .hd{position:sticky;top:0;z-index:2;background:rgba(11,11,12,.96);backdrop-filter:blur(10px);margin:0 -16px 12px;padding:calc(14px + env(safe-area-inset-top)) 16px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+#inOverlay .back{background:none;border:1px solid var(--gold);color:var(--gold);border-radius:10px;padding:9px 14px;font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase}
+#inOverlay .bot{position:fixed;left:0;right:0;bottom:0;z-index:3;padding:10px 16px calc(12px + env(safe-area-inset-bottom));background:rgba(13,13,14,.96);border-top:1px solid var(--line)}
+#inOverlay .bot button{width:100%;background:linear-gradient(178deg,#F6D97C,#C9962A);color:#141005;border:0;border-radius:12px;padding:14px;font-family:Oswald,sans-serif;font-weight:700;font-size:16px;letter-spacing:1.5px;text-transform:uppercase}
+#inOverlay h2{font-family:Oswald,sans-serif;font-size:19px;text-transform:uppercase;letter-spacing:1px;margin:0}
 #inOverlay .x{background:none;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:8px 12px;font-weight:700}
 #inOverlay .kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
 #inOverlay .kp div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
@@ -10240,13 +10243,14 @@ function fmt(d){try{return new Date(d).toLocaleString("en-AU",{weekday:"short",d
 function render(){
   var o=document.getElementById("inOverlay");if(!o)return;var rows=IN.rows||[];
   var att=rows.filter(function(r){return r.attended}).length, meta=rows.filter(function(r){return r.source==="meta"}).length;
-  o.innerHTML=`<div class="hd"><h2>Info night · Wed 16 Sep</h2><button class="x" onclick="inClose()">Close</button></div>
+  o.innerHTML=`<div class="hd"><button class="back" onclick="inClose()">‹ Back</button><h2>Info night · Wed 16 Sep</h2><button class="x" onclick="inClose()">✕</button></div>
   <div class="kp"><div><b>${rows.length}</b><span>Registered</span></div><div><b>${meta}</b><span>From the ad</span></div><div><b>${att}</b><span>Turned up</span></div></div>
   <div class="tools"><button onclick="inCopy()">Copy list</button><button onclick="inSms()">Text everyone</button><button onclick="inReload()">Refresh</button></div>
-  ${rows.length?rows.map(function(r){return `<div class="r ${r.attended?'on':''}"><div style="min-width:0;flex:1"><div class="n">${esc(r.full_name)}</div><div class="s">${esc(r.suburb)} · ${esc(r.mobile)} · ${esc(r.email)}<br>${fmt(r.created_at)}${r.source?" · via "+esc(r.source):""}</div><div style="display:flex;gap:6px;margin-top:8px"><a href="tel:${esc(r.mobile)}">Call</a><a href="sms:${esc(r.mobile)}">Text</a></div></div><button class="att" onclick="inAtt('${r.id}',${r.attended?'false':'true'})">${r.attended?'Here ✓':'Here?'}</button></div>`}).join(""):`<div class="r"><div class="s">No registrations yet. Share legacygym-app.vercel.app/info-night — the ad adds ?src=meta so you can see where people came from.</div></div>`}`;
+  ${rows.length?rows.map(function(r){return `<div class="r ${r.attended?'on':''}"><div style="min-width:0;flex:1"><div class="n">${esc(r.full_name)}</div><div class="s">${esc(r.suburb)} · ${esc(r.mobile)} · ${esc(r.email)}<br>${fmt(r.created_at)}${r.source?" · via "+esc(r.source):""}</div><div style="display:flex;gap:6px;margin-top:8px"><a href="tel:${esc(r.mobile)}">Call</a><a href="sms:${esc(r.mobile)}">Text</a></div></div><button class="att" onclick="inAtt('${r.id}',${r.attended?'false':'true'})">${r.attended?'Here ✓':'Here?'}</button></div>`}).join(""):`<div class="r"><div class="s">No registrations yet. Share legacygym.net/pages/fight-club-info-night — website sign-ups show "via website", the ad shows "via meta".</div></div>`}<div class="bot"><button onclick="inClose()">‹ Back to Home</button></div>`;
 }
-window.inOpen=async function(){var o=document.createElement("div");o.id="inOverlay";o.innerHTML='<div class="hd"><h2>Info night</h2></div><div class="r"><div class="s">Loading…</div></div>';document.body.appendChild(o);await load();render();};
-window.inClose=function(){var o=document.getElementById("inOverlay");if(o)o.remove();};
+window.inOpen=async function(){var o=document.createElement("div");o.id="inOverlay";o.innerHTML='<div class="hd"><button class="back" onclick="inClose()">‹ Back</button><h2>Info night</h2><button class="x" onclick="inClose()">✕</button></div><div class="r"><div class="s">Loading…</div></div>';document.body.appendChild(o);try{history.pushState({inOverlay:1},"");}catch(e){}await load();render();};
+window.addEventListener("popstate",function(){var o=document.getElementById("inOverlay");if(o){o.remove();}});
+window.inClose=function(){var o=document.getElementById("inOverlay");if(o){o.remove();try{if(history.state&&history.state.inOverlay)history.back();}catch(e){}}};
 window.inReload=async function(){await load();render();};
 window.inAtt=async function(id,v){await sb.from("info_night_rsvps").update({attended:v}).eq("id",id);await load();render();};
 window.inCopy=function(){var t=(IN.rows||[]).map(function(r){return [r.full_name,r.mobile,r.email,r.suburb,r.source||"",r.attended?"attended":""].join("\t")}).join("\n");navigator.clipboard&&navigator.clipboard.writeText("Name\tMobile\tEmail\tSuburb\tSource\tAttended\n"+t).then(function(){toast("List copied — paste into Sheets")});};
