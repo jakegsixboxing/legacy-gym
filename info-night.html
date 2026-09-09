@@ -48,6 +48,10 @@ input.err{border-color:var(--bad)}
 .ok p{color:#e9e4d8;line-height:1.5}
 .row{display:flex;gap:10px;margin-top:16px}
 .row a{flex:1;text-align:center;font-family:Oswald,sans-serif;font-weight:600;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;border:1px solid var(--gold);color:var(--gold2);text-decoration:none;padding:12px 8px;border-radius:12px}
+.share{margin:18px 0 6px;border:1.5px solid var(--gold);border-radius:14px;padding:14px;background:rgba(217,174,69,.06)}
+.share .sh{font-size:14px;color:#e9e4d8;line-height:1.4}
+.share .lk{margin-top:10px;font-family:Oswald,sans-serif;font-size:17px;letter-spacing:.5px;color:var(--gold2);word-break:break-all;user-select:all;-webkit-user-select:all;background:#0b0b0c;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.share .cp{display:none;margin-top:8px;font-size:13px;color:var(--ok);font-weight:700}
 .pic{margin-top:26px;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
 .pic img{width:100%;display:block}
 .foot{margin-top:26px;text-align:center;font-family:Oswald,sans-serif;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
@@ -86,13 +90,13 @@ input.err{border-color:var(--bad)}
     </form>
     <div class="ok" id="ok">
       <div class="tick">✓</div>
-      <h2>You're on the list</h2>
-      <p>See you <b>Wed 16 Sep, 6:45 pm</b> at Legacy Gym, Kincumber. We'll text you a reminder the day before.</p>
+      <h2>Thanks for registering</h2>
+      <p>You're on the list. See you <b>Wed 16 Sep, 6:45 pm</b> at Legacy Gym, Kincumber. We'll text you a reminder the day before.</p>
+      <div class="share"><div class="sh">Know someone who'd be into this? Here's the link to send to a friend</div><div class="lk" id="shareLink">legacygym.net/pages/fight-club-info-night</div><div class="row" style="margin-top:10px"><a href="#" id="copyBtn">Copy link</a><a href="#" id="shareBtn">Send to a friend</a></div><div class="cp" id="copied">Link copied ✓</div></div>
       <div class="row">
-        <a id="ics" href="#" download="fight-club-info-night.ics">Add to calendar</a>
+        <a id="ics" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Fight+Club+Information+Night+-+Legacy+Gym&dates=20260916T084500Z/20260916T094500Z&details=Fight+Club+Ten+Week+Challenge+info+night.+Free,+no+experience+needed.+Bring+a+mate.&location=Legacy+Gym,+Kincumber+NSW" target="_blank" rel="noopener">Add to calendar</a>
         <a href="https://maps.google.com/?q=Legacy+Gym+Kincumber" target="_blank" rel="noopener">Directions</a>
       </div>
-      <p style="margin-top:16px;font-size:13px;color:var(--muted)">Know someone who'd be into this? Send them this page.</p>
     </div>
   </div>
 
@@ -122,8 +126,17 @@ input.err{border-color:var(--bad)}
     var r=await sb.from("info_night_rsvps").insert({full_name:name,mobile:mob,email:em,suburb:sub,source:src});
     if(r.error){go.disabled=false;go.textContent="I'm coming · save my seat";msg.textContent="Something went wrong — try again, or just turn up on the night.";msg.style.display="block";return;}
     try{if(window.fbq)fbq("track","Lead");}catch(e){}
-    var ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Legacy Gym//Fight Club//EN","BEGIN:VEVENT","UID:fc-info-2026-09-16@legacygym.net","DTSTAMP:20260909T000000Z","DTSTART;TZID=Australia/Sydney:20260916T184500","DTEND;TZID=Australia/Sydney:20260916T194500","SUMMARY:Fight Club Information Night — Legacy Gym","LOCATION:Legacy Gym, Kincumber NSW","DESCRIPTION:Fight Club Ten Week Challenge info night. Bring a mate.","END:VEVENT","END:VCALENDAR"].join("\r\n");
-    document.getElementById("ics").href="data:text/calendar;charset=utf-8,"+encodeURIComponent(ics);
+      var isApple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent); if(isApple){var _i=document.getElementById("ics"); _i.href="https://legacygym-app.vercel.app/img/fc/fight-club-info-night.ics"; _i.removeAttribute("target");}
+    var SHARE_URL="https://www.legacygym.net/pages/fight-club-info-night", SHARE_TXT="Free Fight Club info night — Wed 16 Sep, 6:45 pm at Legacy Gym Kincumber. Come with me? Save a seat here: ";
+    function copied(){var c=document.getElementById("copied");c.style.display="block";setTimeout(function(){c.style.display="none"},2500);}
+    function fallback(){var el=document.getElementById("shareLink");var r=document.createRange();r.selectNodeContents(el);var sel=window.getSelection();sel.removeAllRanges();sel.addRange(r);try{document.execCommand("copy");copied();}catch(e){}}
+    function doCopy(){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(SHARE_URL).then(copied,fallback);}else fallback();}
+    document.getElementById("copyBtn").addEventListener("click",function(e){e.preventDefault();doCopy();});
+    document.getElementById("shareLink").addEventListener("click",doCopy);
+    var shb=document.getElementById("shareBtn");
+    if(navigator.share){shb.addEventListener("click",function(e){e.preventDefault();navigator.share({title:"Fight Club Info Night",text:SHARE_TXT,url:SHARE_URL}).catch(function(){});});}
+    else{shb.href="sms:?&body="+encodeURIComponent(SHARE_TXT+SHARE_URL);}
+    var _c=document.getElementById("formCard"); var _h=_c.querySelector("h2"), _s=_c.querySelector("p.sub"); if(_h)_h.style.display="none"; if(_s)_s.style.display="none";
     f.style.display="none"; document.getElementById("ok").style.display="block"; document.getElementById("formCard").scrollIntoView({behavior:"smooth",block:"start"});
   });
 })();
