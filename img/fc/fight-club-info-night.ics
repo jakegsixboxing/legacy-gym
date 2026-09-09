@@ -1,0 +1,21 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Legacy Gym//Fight Club//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:fc-info-2026-09-16@legacygym.net
+DTSTAMP:20260909T000000Z
+DTSTART:20260916T084500Z
+DTEND:20260916T094500Z
+SUMMARY:Fight Club Information Night - Legacy Gym
+LOCATION:Legacy Gym\, Kincumber NSW
+DESCRIPTION:Fight Club Ten Week Challenge info night. Free\, no experience needed. Bring a mate. legacygym.net/pages/fight-club-info-night
+URL:https://www.legacygym.net/pages/fight-club-info-night
+BEGIN:VALARM
+TRIGGER:-PT2H
+ACTION:DISPLAY
+DESCRIPTION:Fight Club info night tonight 6:45pm
+END:VALARM
+END:VEVENT
+END:VCALENDAR
