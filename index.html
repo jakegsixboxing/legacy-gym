@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609121000";
+const LG_BUILD="202609121200";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -9877,7 +9877,9 @@ var css=document.createElement("style");css.textContent=`
 .sp .ex{display:grid;gap:8px;margin-top:12px}
 .sp .row{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel2,#18181b)}
 .sp .row .k{font-family:'Oswald',sans-serif;font-weight:700;color:var(--c);width:46px;flex:none;font-size:13px;line-height:1.1;animation:spNeonText 4s ease-in-out infinite}
-.sp .row .n{font-weight:700;font-size:13.5px}.sp .row .s{font-size:11.5px;color:var(--muted);margin-top:2px}
+.sp .row .n{font-weight:700;font-size:13.5px}
+.row.hasn{cursor:pointer}.row .nhint{font-size:11px;color:var(--c);margin-top:2px;font-weight:600}
+.snotes{margin:-4px 0 8px;padding:10px 12px 8px;border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;background:#0d0d0f;font-size:13px;line-height:1.5}.snotes b{display:block;font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:var(--c);margin-bottom:6px}.snotes p{margin:0 0 7px}.snotes p:last-child{margin:0}.sp .row .s{font-size:11.5px;color:var(--muted);margin-top:2px}
 .sp .row .log{margin-left:auto;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--line);color:var(--muted);background:none;border-radius:8px;padding:6px 9px;flex:none;font-weight:700}
 .sp .row.done .log{background:#4bc97a;color:#06110a;border-color:#4bc97a}.sp .row.done .n{text-decoration:line-through;color:var(--muted)}
 .sp .cta{display:block;width:100%;margin-top:12px;font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;padding:12px;border-radius:12px;border:0;background:var(--c);color:#0b0b0c;animation:spNeonBox 4s ease-in-out infinite}
@@ -9954,6 +9956,11 @@ var STRSESS={
     warm:[["Banded TKE","2 × 12/side"],["Leg swings","1 × 10/side"],["Supported single-leg RDL reach","1 × 6/side"],["Wall slide","1 × 10"],["Banded external rotation","1 × 10/side"]],
     ex:[{id:"a",l:"A",n:"Trap-bar deadlift",s:"3 × 6–8",c:"2–3 RIR"},{id:"b",l:"B",n:"Chest-supported DB row",s:"3 × 8–10",c:""},{id:"c1",l:"C1",n:"DB single-leg step-up",s:"3 × 8/side",c:"2–3 sec eccentric"},{id:"c2",l:"C2",n:"Half-kneeling single-arm landmine press",s:"3 × 8/side",c:""},{id:"d",l:"D",n:"Plate-loaded glute drive",s:"3 × 10",c:""},{id:"e",l:"E",n:"DB / KB suitcase carry",s:"2 × 20–30 m/side",c:""}]}};
 var STR={};[1,2,3,4].forEach(function(w){STR[w]={};Object.keys(STRSESS).forEach(function(d){var x=STRSESS[d];STR[w][d]={kind:"str",h:x.h,f:x.f,warm:x.warm,ex:x.ex}})});
+/* Per-week session notes from Jake — tap a session to read them. {week:{weekday:{itemId:[lines]}}} */
+var BOXNOTES={2:{1:{
+ pt:["Key focus: straight punches. Range, feints, set-ups. Build bent-arm attacks off the back of the straights.","Technical correction: back-hand uppercut — the position we throw it from needs work.","Counter work: less counter jabs, more counter backhand.","Simple pad session before tech sparring."],
+ spar:["Your partner for the whole tech sparring Monday night is Brent. Stay with him.","Roughly 70% runs as a team session with the group, then the last 30% you two do individual work away from the rest of the group."]}}};
+function boxNotes(w,d,id){return (((BOXNOTES[w]||{})[d]||{})[id])||null}
 var PROG={con:ROAD,box:BOX,str:STR};
 function sessOn(k,w,d){return ((PROG[k]||{})[w]||{})[d]||null}
 function dayStrip(k,w,sel,onclick){
@@ -10033,7 +10040,7 @@ function boxPanel(){
   var perWeek=Object.keys(BOXWEEK).reduce(function(a,k){return a+BOXWEEK[k].length},0);
   var doneAll=(S.logs||[]).filter(function(l){return l.section==="box"}).reduce(function(a,l){return a+(l.points||0)},0);
   var weekChips=`<div class="wks">${[1,2,3,4].map(function(n){var c=(S.logs||[]).filter(function(l){return l.section==="box"&&l.week===n}).reduce(function(a,l){return a+(l.points||0)},0);return `<button class="${n===w?'on':''}" onclick="spBWeek(${n})">Wk ${n}<small>${c}/${perWeek}${n===curWeek()?' · now':''}</small></button>`}).join("")}</div>`;
-  var items=d.items.map(function(it){var on=doneIds.indexOf(it.id)>=0;return `<div class="row ${on?'done':''}"><div class="k">${it.t?esc2(it.t).replace(" ","<br>"):"—"}</div><div><div class="n">${esc2(it.h)}</div></div>${mine?`<button class="log" onclick="spTick(${w},${S.bday},'${it.id}')">${on?'Done ✓':'Done?'}</button>`:`<span class="log" style="cursor:default">${on?'Done ✓':'—'}</span>`}</div>`}).join("");
+  var items=d.items.map(function(it){var on=doneIds.indexOf(it.id)>=0;var nt=boxNotes(w,S.bday,it.id);var open=S.bopen===it.id;return `<div class="row ${on?'done':''} ${nt?'hasn':''}" ${nt?`onclick="spBOpen('${it.id}')"`:''}><div class="k">${it.t?esc2(it.t).replace(" ","<br>"):"—"}</div><div style="flex:1"><div class="n">${esc2(it.h)}</div>${nt?`<div class="nhint">${open?'Hide notes':'Tap to read Jake\'s notes'} ${open?'▴':'▾'}</div>`:''}</div>${mine?`<button class="log" onclick="event.stopPropagation();spTick(${w},${S.bday},'${it.id}')">${on?'Done ✓':'Done?'}</button>`:`<span class="log" style="cursor:default">${on?'Done ✓':'—'}</span>`}</div>${nt&&open?`<div class="snotes"><b>Jake's notes · ${esc2(it.h)}</b>${nt.map(function(l){return `<p>${esc2(l)}</p>`}).join("")}</div>`:''}`}).join("");
   var hist=(S.logs||[]).filter(function(l){return l.section==="box"&&l.points>0}).sort(function(a,b){return a.week-b.week||a.weekday-b.weekday}).map(function(l){var ids=(l.data&&l.data.done)||[];var names=(BOXWEEK[l.weekday]||[]).filter(function(it){return ids.indexOf(it.id)>=0}).map(function(it){return it.h}).join(" + ");return `<div class="hrow"><div><b>Wk ${l.week} · ${DN[l.weekday]}</b> ${esc2(names)}</div><div class="ht"><em>+${l.points}</em></div></div>`}).join("");
   return `<div style="--c:${s.color}">
    <div class="kpis"><div class="kpi"><div class="v">${doneAll}<small>/${perWeek*4}</small></div><div class="l">Sessions done</div></div><div class="kpi"><div class="v">${totalPts()}</div><div class="l">Points</div></div><div class="kpi"><div class="v">Wk ${curWeek()}</div><div class="l">Boxing block · 4 wk</div></div></div>
@@ -10087,6 +10094,7 @@ window.spSNote=async function(w,d){
   if(!isSarsha())return; var lg=logFor(w,d,"str"); var n=((document.getElementById("spSNote")||{}).value||"").slice(0,300);
   var r=await spSSave(w,d,((lg&&lg.data&&lg.data.done)||[]).slice(),n); if(!r)return; spRender(); toast("Note saved");
 };
+window.spBOpen=function(id){S.bopen=S.bopen===id?null:id;spRender();};
 window.spBWeek=function(n){S.week=n;spRender();};
 window.spBDay=function(i){S.bday=i;spRender();};
 window.spTick=async function(w,d,id){
