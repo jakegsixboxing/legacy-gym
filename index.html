@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609121520";
+const LG_BUILD="202609121540";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10464,7 +10464,8 @@ var css=document.createElement("style");css.textContent=`
 var ART='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" fill="none" stroke="#cfeaff" stroke-width="1.5" stroke-linecap="round"><g opacity=".5"><g transform="translate(236 44)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g><g transform="translate(160 30) scale(.7)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g><g transform="translate(274 96) scale(.55)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g><g transform="translate(200 120) scale(.45)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g></g><g opacity=".35" fill="#ffffff" stroke="none"><circle cx="120" cy="52" r="1.4"/><circle cx="206" cy="70" r="1.2"/><circle cx="252" cy="150" r="1.4"/><circle cx="170" cy="164" r="1"/><circle cx="286" cy="24" r="1"/><circle cx="140" cy="126" r="1.1"/></g></svg>';
 function E(s){return (typeof esc==="function")?esc(s==null?"":String(s)):String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]});}
 function T(m){if(typeof toast==="function")toast(m);}
-function staff(){return !!(profile&&(profile.is_staff||profile.is_coach||profile.is_manager));}
+var WHO_CAN_SEE=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* Jake, Alison */
+function staff(){return !!(session&&session.user&&WHO_CAN_SEE.indexOf(session.user.id)>=0);}
 function membership(){var m=(typeof myMpCache!=="undefined"&&myMpCache&&myMpCache.membership)||"";return m;}
 function classMember(){var m=membership();return m&&m!=="Open Gym";}
 function days(){return Math.max(0,Math.ceil((new Date(RTC.start+"T00:00:00")-new Date())/864e5));}
@@ -10535,7 +10536,7 @@ function renderReg(){var n=(RTC.reg&&RTC.reg.nutrition)||"none";
 function whoHtml(){if(!staff())return "";
   if(!RTC.all){loadAll().then(function(){RTC._fresh=true;if(view==="rtc")renderPage();});return '<div class="card"><h3>Who\'s in</h3><p>Loading…</p></div>';}
   var a=RTC.all,plan=a.filter(function(x){return x.nutrition==="plan";}).length,one=a.filter(function(x){return x.nutrition==="one";}).length;
-  return '<div class="card"><h3>Who\'s in <span>coach view</span></h3><div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat"><b>'+a.length+'</b><span>registered</span></div><div class="stat"><b>'+plan+'</b><span>$99 plan</span></div><div class="stat"><b>'+one+'</b><span>1-on-1 Alison</span></div></div>'+
+  return '<div class="card"><h3>Who\'s in <span>Jake &amp; Alison only</span></h3><div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat"><b>'+a.length+'</b><span>registered</span></div><div class="stat"><b>'+plan+'</b><span>$99 plan</span></div><div class="stat"><b>'+one+'</b><span>1-on-1 Alison</span></div></div>'+
    (a.length?'<div class="rtcWho">'+a.map(function(x){var d=new Date(x.created_at);return '<div><b>'+E(x.name||x.email||"—")+'</b><br><span style="color:#9a9891;font-size:11px">'+E(x.membership||"")+' · '+d.toLocaleDateString("en-AU",{day:"numeric",month:"short"})+'</span></div><div class="'+(x.nutrition!=="none"?"n":"")+'" style="text-align:right;font-size:11.5px">'+(x.nutrition==="plan"?"$99 plan":x.nutrition==="one"?"1-on-1 Alison":"—")+'</div>';}).join("")+'</div>':'<p>Nobody yet — first one\'s coming.</p>')+'</div>';
 }
 function renderPage(){
