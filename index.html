@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609121540";
+const LG_BUILD="202609122010";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10401,7 +10401,7 @@ setTimeout(inject,800);
 /*__RTC__*/
 (function(){
 /* Road to Christmas · 10 Week Challenge — home pop-up, info page, one-tap register, nutrition choice, coach "who's in". */
-var RTC={key:"rtc2026",start:"2026-10-12",reg:null,count:null,loaded:false,all:null};
+var RTC={key:"rtc2026",start:"2026-10-12",reg:null,count:null,loaded:false,all:null,leads:null,lf:"new"};
 var css=document.createElement("style");css.textContent=`
 @keyframes rtcGlow{0%,100%{box-shadow:0 0 0 0 rgba(90,169,255,0);border-color:#5aa9ff}50%{box-shadow:0 0 22px 3px rgba(90,169,255,.65);border-color:#cfeaff}}
 @keyframes rtcSheen{0%{transform:translateX(-140%) skewX(-18deg)}100%{transform:translateX(240%) skewX(-18deg)}}
@@ -10459,6 +10459,7 @@ var css=document.createElement("style");css.textContent=`
 .rtcOpt{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #26262b;font-size:13px;cursor:pointer}.rtcOpt:last-child{border:0}
 .rtcOpt .bx{width:22px;height:22px;border-radius:7px;border:1.5px solid #d9ae45;display:grid;place-items:center;color:#161307;font-size:13px;flex:0 0 22px}.rtcOpt.on .bx{background:#d9ae45}
 .rtcOpt b{display:block;font-weight:700}.rtcOpt span{color:#9a9891;font-size:11.5px;display:block}
+.rtcLead{background:#141416;border:1px solid #26262b;border-radius:14px;padding:11px 12px;margin-bottom:8px}.rtcLead.new{border-color:#5aa9ff}.rtcLead .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.rtcLead .nm{font-weight:800;font-size:14.5px}.rtcLead .pk{font-family:Oswald,sans-serif;font-size:15px;color:#F1D27A;white-space:nowrap}.rtcLead .pk small{font-size:10px;color:#9a9891;letter-spacing:1px;margin-left:3px}.rtcLead .meta{font-size:11.5px;color:#9a9891;margin-top:2px}.rtcLead .ct{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}.rtcLead .ct a{flex:1;text-align:center;border:1px solid #26262b;border-radius:9px;padding:8px 6px;font-size:12px;color:#f2f0eb;text-decoration:none;font-weight:700;background:#0b0b0c;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rtcLead .st{display:flex;gap:6px;margin-top:8px}.rtcLead .st button{flex:1;border:1px solid #26262b;background:#0b0b0c;color:#9a9891;border-radius:999px;padding:6px 4px;font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;cursor:pointer}.rtcLead .st button.on{background:#F1D27A;color:#161307;border-color:#F1D27A}.rtcLead .st button.on.j{background:#4bc97a;border-color:#4bc97a;color:#06110a}.rtcLead .st button.on.x{background:#3a2a2a;border-color:#7a3a3a;color:#ffb3b3}.rtcLead textarea{width:100%;box-sizing:border-box;background:#0b0b0c;border:1px solid #26262b;color:#f2f0eb;border-radius:9px;padding:7px 9px;font:inherit;font-size:12px;margin-top:8px;resize:none;min-height:34px}.rtcTabs{display:flex;gap:6px;margin-bottom:10px}.rtcTabs button{flex:1;border:1px solid #26262b;background:#141416;color:#9a9891;border-radius:999px;padding:7px 4px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;cursor:pointer}.rtcTabs button.on{background:#0f2a5c;border-color:#5aa9ff;color:#cfeaff}.rtcPill{display:inline-block;background:#1d4fb0;color:#fff;font-size:9px;font-weight:900;letter-spacing:1px;padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
 .rtcWho{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:12.5px}.rtcWho div{padding:6px 0;border-bottom:1px solid #26262b}.rtcWho .n{color:#4bc97a;font-weight:700}
 `;document.head.appendChild(css);
 var ART='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" fill="none" stroke="#cfeaff" stroke-width="1.5" stroke-linecap="round"><g opacity=".5"><g transform="translate(236 44)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g><g transform="translate(160 30) scale(.7)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g><g transform="translate(274 96) scale(.55)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g><g transform="translate(200 120) scale(.45)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g></g><g opacity=".35" fill="#ffffff" stroke="none"><circle cx="120" cy="52" r="1.4"/><circle cx="206" cy="70" r="1.2"/><circle cx="252" cy="150" r="1.4"/><circle cx="170" cy="164" r="1"/><circle cx="286" cy="24" r="1"/><circle cx="140" cy="126" r="1.1"/></g></svg>';
@@ -10476,8 +10477,11 @@ async function load(){
     RTC.reg=r.data||null;
     var c=await sb.rpc("challenge_reg_count",{c:RTC.key}); if(typeof c.data==="number")RTC.count=c.data;
   }catch(e){}
+  if(staff()){try{await loadLeads();}catch(e){}}
   RTC.loaded=true;
 }
+async function loadLeads(){try{var r=await sb.from("challenge_leads").select("*").eq("challenge",RTC.key).order("created_at",{ascending:false});RTC.leads=r.data||[];}catch(e){RTC.leads=[];}}
+function newLeads(){return (RTC.leads||[]).filter(function(x){return x.status==="new";}).length;}
 async function loadAll(){try{var r=await sb.from("challenge_regs").select("*").eq("challenge",RTC.key).order("created_at",{ascending:false});RTC.all=r.data||[];}catch(e){RTC.all=[];}}
 function cntHtml(){return RTC.count==null?"":'<span class="rtcCnt"><i></i>'+RTC.count+' in</span>';}
 function blueHtml(){return '<div class="rtcBlue"><div class="rtcArt">'+ART+'</div><div class="rtcBig"><span>Road to Christmas</span>10 Week<br>Challenge</div><div class="rtcHook">Best shape of the year —<br>right before Christmas.</div><div class="rtcLine"><span>12 Oct → 19 Dec · Free for class members</span>'+cntHtml()+'</div></div>';}
@@ -10520,8 +10524,8 @@ window.rtcNutSave=async function(){
   go("rtc");
 };
 /* ---- views ---- */
-try{NAV_TAB.rtc="home";NAV_TAB.rtcreg="home";}catch(e){}
-var _render=window.render;window.render=function(){if(view==="rtc")return renderPage();if(view==="rtcreg")return renderReg();return _render.apply(this,arguments);};
+try{NAV_TAB.rtc="home";NAV_TAB.rtcreg="home";NAV_TAB.rtcleads="home";}catch(e){}
+var _render=window.render;window.render=function(){if(view==="rtc")return renderPage();if(view==="rtcreg")return renderReg();if(view==="rtcleads")return renderLeads();return _render.apply(this,arguments);};
 function renderReg(){var n=(RTC.reg&&RTC.reg.nutrition)||"none";
   function opt(k,l,s){return '<div class="rtcOpt '+(n===k?"on":"")+'" onclick="rtcNut(\''+k+'\')"><div class="bx">'+(n===k?"✓":"")+'</div><div><b>'+l+'</b>'+(s?'<span>'+s+'</span>':'')+'</div></div>';}
   $("main").innerHTML='<div class="rtcPage"><button class="backBtn" onclick="go(\'home\')">‹ Home</button>'+
@@ -10533,6 +10537,9 @@ function renderReg(){var n=(RTC.reg&&RTC.reg.nutrition)||"none";
    '<button class="rtcBtn" onclick="rtcNutSave()">'+(n==="plan"?"Add the $99 plan ›":n==="one"?"Book with Alison ›":"Done")+'</button>'+
    '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">'+(n==="plan"?"Alison will be in touch to sort payment and get you started.":n==="one"?"Alison sets the price with you at your first session.":"You can add nutrition later from your challenge page.")+'</p></div>';
 }
+function leadsCard(){if(!staff())return "";var L=RTC.leads||[],n=L.filter(function(x){return x.status==="new";}).length,c=L.filter(function(x){return x.status==="contacted";}).length,j=L.filter(function(x){return x.status==="joined";}).length;
+  return '<div class="card" style="border-color:#2a4a80"><h3>Website sign-ups'+(n?'<span class="rtcPill">'+n+' new</span>':'')+' <span>Jake &amp; Alison only</span></h3><div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat"><b style="color:#5aa9ff">'+n+'</b><span>to call</span></div><div class="stat"><b>'+c+'</b><span>contacted</span></div><div class="stat"><b style="color:#4bc97a">'+j+'</b><span>joined</span></div></div>'+
+   '<p style="font-size:12px">New people who registered on legacygym.net land here the moment they hit submit — name, mobile, email, suburb and the package they picked.</p><button class="rtcBtn" style="margin-top:4px" onclick="go(\'rtcleads\')">'+(L.length?'Open the list ›':'No sign-ups yet')+'</button></div>';}
 function whoHtml(){if(!staff())return "";
   if(!RTC.all){loadAll().then(function(){RTC._fresh=true;if(view==="rtc")renderPage();});return '<div class="card"><h3>Who\'s in</h3><p>Loading…</p></div>';}
   var a=RTC.all,plan=a.filter(function(x){return x.nutrition==="plan";}).length,one=a.filter(function(x){return x.nutrition==="one";}).length;
@@ -10544,7 +10551,7 @@ function renderPage(){
   $("main").innerHTML='<div class="rtcPage"><button class="backBtn" onclick="go(\'home\')">‹ Home</button>'+
   '<div class="hero"><div class="rtcArt">'+ART+'</div><div style="font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:#cfeaff">Legacy Gym</div><h2 class="hh">Road to <span>Christmas</span></h2><div class="fc">10 Week Challenge</div><div class="rtcHook" style="margin-top:8px">Your fittest, fastest and strongest — best shape of the year, right before Christmas.</div><div class="when">Mon 12 Oct → Sat 19 Dec</div><div><span class="tag w">Free</span><span class="tag">Every level</span><span class="tag">No fighting or sparring</span>'+(RTC.count!=null?'<span class="tag">'+RTC.count+' in</span>':'')+'</div></div>'+
   (reg?'<div class="card" style="border-color:#4bc97a"><h3 style="color:#4bc97a">You\'re in ✓ <span>'+days()+' days to go</span></h3><p>Nutrition: <b>'+(RTC.reg.nutrition==="plan"?"$99 10-week plan":RTC.reg.nutrition==="one"?"1-on-1 with Alison":"just the training")+'</b> · <a href="#" onclick="go(\'rtcreg\');return false" style="color:#F1D27A">change</a></p></div>':'')+
-  whoHtml()+
+  leadsCard()+whoHtml()+
   '<div class="card"><h3>The deal</h3><p style="color:#f2f0eb;font-size:14px;font-weight:600">Ten weeks of training with the whole gym behind you. Your classes as normal, strength &amp; conditioning three days a week, two team Games days, points on the board every session — and a Christmas Party to finish.</p><p>Boxing Fitness, Sparring Club, Fight Club, S&amp;C — everyone\'s in. You don\'t need to fight or spar.</p></div>'+
   '<div class="card"><h3>How it works <span>four parts</span></h3><div class="four"><div><b>Your classes</b><span>Book and train as normal. Every class = 1 point.</span></div><div><b>Strength &amp; Con</b><span>Tue, Thu &amp; Sat sessions = 2 points. Optional — do what fits.</span></div><div><b>Legacy Games</b><span>Team events, end of weeks 4 &amp; 9.</span></div><div><b>App challenges</b><span>Bonus cardio &amp; conditioning hits for extra points.</span></div></div></div>'+
   '<div class="card"><h3>The key sessions <span>2 points each</span></h3><p style="font-size:12px;margin-bottom:6px">These are the ones we want big turn-outs to every week. Every other class is 1 point — these S&amp;C sessions are worth <b style="color:#F1D27A">2</b>.</p>'+
@@ -10579,6 +10586,27 @@ function renderPage(){
   (reg?'<button class="rtcBtn o" onclick="go(\'home\')">Back to home</button>':(classMember()?'<button class="rtcBtn" onclick="rtcRegister(this)">Register for the challenge ›</button>':'<button class="rtcBtn" disabled>Class membership needed</button><p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">Open Gym members — see the front desk to add classes and you\'re in.</p>'))+
   '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">Registration closes Sun 11 Oct · class members only</p></div>';
 }
+window.rtcLf=function(f){RTC.lf=f;renderLeads();};
+window.rtcLeadSt=async function(id,st){if(!staff())return;var L=(RTC.leads||[]).find(function(x){return x.id===id;});if(!L)return;
+  var up={status:st,updated_at:new Date().toISOString()};if(st==="contacted"&&!L.contacted_at){up.contacted_at=new Date().toISOString();up.contacted_by=session.user.id;}
+  var r=await sb.from("challenge_leads").update(up).eq("id",id);if(r.error){T(r.error.message);return;}
+  Object.assign(L,up);T(st==="contacted"?"Marked contacted":st==="joined"?"Joined ✓":st==="no"?"Marked no":"Back to new");renderLeads();};
+window.rtcLeadNote=async function(id,el){var L=(RTC.leads||[]).find(function(x){return x.id===id;});if(!L||el.value===(L.notes||""))return;var r=await sb.from("challenge_leads").update({notes:el.value,updated_at:new Date().toISOString()}).eq("id",id);if(r.error){T(r.error.message);return;}L.notes=el.value;T("Note saved");};
+function ago(iso){var m=Math.round((Date.now()-new Date(iso))/6e4);if(m<60)return m+" min ago";var h=Math.round(m/60);if(h<24)return h+" hr ago";var d=Math.round(h/24);return d===1?"yesterday":d+" days ago";}
+function renderLeads(){if(!staff()){go("home");return;}
+  var L=RTC.leads||[],f=RTC.lf,list=f==="all"?L:L.filter(function(x){return x.status===f;});
+  var cnt={new:0,contacted:0,joined:0};L.forEach(function(x){if(cnt[x.status]!=null)cnt[x.status]++;});
+  function tab(k,l){return '<button class="'+(f===k?"on":"")+'" onclick="rtcLf(\''+k+'\')">'+l+(cnt[k]?' '+cnt[k]:'')+'</button>';}
+  $("main").innerHTML='<div class="rtcPage"><button class="backBtn" onclick="go(\'rtc\')">‹ Challenge</button>'+
+   '<div class="hero" style="padding:14px"><div class="rtcArt">'+ART+'</div><div style="font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:#cfeaff">Road to Christmas · website</div><h2 class="hh" style="font-size:28px">Sign-<span>ups</span></h2><div class="when" style="font-size:13px">'+L.length+' registered on legacygym.net · '+cnt.new+' to call · <a href="#" onclick="rtcReloadLeads();return false" style="color:#cfeaff">refresh</a></div></div>'+
+   '<div class="rtcTabs">'+tab("new","New")+tab("contacted","Contacted")+tab("joined","Joined")+tab("all","All")+'</div>'+
+   (list.length?list.map(function(x){var ph=(x.phone||"").replace(/\s/g,"");var s=x.status;
+     return '<div class="rtcLead '+(s==="new"?"new":"")+'"><div class="top"><div><div class="nm">'+E((x.first_name+" "+(x.last_name||"")).trim())+'</div><div class="meta">'+E(x.suburb||"—")+' · '+ago(x.created_at)+(x.contacted_at?' · contacted '+new Date(x.contacted_at).toLocaleDateString("en-AU",{day:"numeric",month:"short"}):'')+'</div></div><div class="pk">'+(x.price?'$'+x.price+'<small>/WK</small>':'')+'<div style="font-family:Inter,sans-serif;font-size:10.5px;color:#9a9891;font-weight:600;text-align:right">'+E(x.package||"")+'</div></div></div>'+
+     '<div class="ct"><a href="tel:'+E(ph)+'">📞 '+E(x.phone||"")+'</a><a href="sms:'+E(ph)+'">💬 Text</a><a href="mailto:'+E(x.email||"")+'">✉️ '+E(x.email||"")+'</a></div>'+
+     '<div class="st"><button class="'+(s==="new"?"on":"")+'" onclick="rtcLeadSt(\''+x.id+'\',\'new\')">New</button><button class="'+(s==="contacted"?"on":"")+'" onclick="rtcLeadSt(\''+x.id+'\',\'contacted\')">Contacted</button><button class="j '+(s==="joined"?"on":"")+'" onclick="rtcLeadSt(\''+x.id+'\',\'joined\')">Joined</button><button class="x '+(s==="no"?"on":"")+'" onclick="rtcLeadSt(\''+x.id+'\',\'no\')">No</button></div>'+
+     '<textarea placeholder="Note — e.g. left message, call back Thursday" onblur="rtcLeadNote(\''+x.id+'\',this)">'+E(x.notes||"")+'</textarea></div>';}).join(""):'<div class="card"><p>'+(f==="new"?"Nobody waiting — all caught up.":"Nothing here yet.")+'</p></div>')+
+   '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">Only you and Alison can see this list.</p></div>';}
+window.rtcReloadLeads=async function(){await loadLeads();renderLeads();T("Updated");};
 /* ---- hooks: load once signed in, pop the sheet on Home ---- */
 ["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){if(!RTC.loaded){load().then(function(){if(view==="home"){try{o();}catch(e){}maybeSheet();}});}else maybeSheet();};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,50);return r;};});
 })();
