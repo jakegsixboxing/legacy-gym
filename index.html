@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609121230";
+const LG_BUILD="202609121500";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10394,6 +10394,192 @@ if(typeof window.renderClasses==="function"){
 /* block booking a cancelled class even if a stale list is open */
 if(typeof window.attendClass==="function"){var oa=window.attendClass;window.attendClass=function(date,time,name){if(isCancelled(date,time)){toast("That class is cancelled this week — coaches away.");return;}return oa.apply(this,arguments);};}
 setTimeout(inject,800);
+})();
+
+</script>
+<script>
+/*__RTC__*/
+(function(){
+/* Road to Christmas · 10 Week Challenge — home pop-up, info page, one-tap register, nutrition choice, coach "who's in". */
+var RTC={key:"rtc2026",start:"2026-10-12",reg:null,count:null,loaded:false,all:null};
+var css=document.createElement("style");css.textContent=`
+@keyframes rtcGlow{0%,100%{box-shadow:0 0 0 0 rgba(90,169,255,0);border-color:#5aa9ff}50%{box-shadow:0 0 22px 3px rgba(90,169,255,.65);border-color:#cfeaff}}
+@keyframes rtcSheen{0%{transform:translateX(-140%) skewX(-18deg)}100%{transform:translateX(240%) skewX(-18deg)}}
+@keyframes rtcBlink{0%,100%{opacity:1}50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){.rtcBlue,.rtcSheet,.rtcCnt i{animation:none!important}.rtcBlue:before{display:none}}
+.rtcDim{position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:9000;display:flex;align-items:flex-end;padding:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+.rtcSheet{width:100%;max-width:520px;margin:0 auto;border-radius:22px 22px 18px 18px;background:#0b0b0c;border:1.5px solid #5aa9ff;padding:12px 12px 14px;animation:rtcGlow 1.8s ease-in-out infinite}
+.rtcGrab{width:38px;height:4px;border-radius:4px;background:#2a3a55;margin:0 auto 10px}
+.rtcBlue{position:relative;overflow:hidden;border-radius:14px;background:radial-gradient(120% 90% at 100% 0%,#1d4fb0 0%,#0f2a5c 45%,#0a162e 100%);padding:14px 12px 12px;color:#fff}
+.rtcBlue:before{content:"";position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);animation:rtcSheen 3.2s ease-in-out infinite;pointer-events:none}
+.rtcBlue .rtcArt{position:absolute;right:-4px;top:0;bottom:0;width:60%;pointer-events:none;z-index:0}.rtcBlue .rtcArt svg{width:100%;height:100%;display:block}
+.rtcBig{font-family:Oswald,sans-serif;font-weight:700;font-size:36px;line-height:.92;text-transform:uppercase;color:#fff;position:relative}
+.rtcBig span{display:block;font-size:14px;letter-spacing:3px;color:#cfeaff;font-weight:600;margin-bottom:5px}
+.rtcHook{font-family:Oswald,sans-serif;font-size:16px;letter-spacing:.5px;color:#cfeaff;margin-top:10px;position:relative;line-height:1.15}
+.rtcLine{font-size:11.5px;color:#e6f2ff;margin-top:8px;position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rtcCnt{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;color:#cfeaff;font-weight:700;letter-spacing:.5px;white-space:nowrap}.rtcCnt i{width:7px;height:7px;border-radius:50%;background:#4bc97a;display:inline-block;animation:rtcBlink 1.2s steps(1) infinite}
+.rtcW{display:block;width:100%;text-align:center;background:#fff;color:#0c1a33;border:0;border-radius:11px;padding:12px;font-family:Oswald,sans-serif;font-weight:700;font-size:15px;letter-spacing:1.5px;text-transform:uppercase;margin-top:10px;cursor:pointer}
+.rtcW:disabled{opacity:.6}
+.rtcLnk{display:block;text-align:center;color:#cfeaff;font-size:12.5px;font-weight:700;margin-top:10px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;background:none;border:0;width:100%}
+.rtcLater{display:block;text-align:center;color:#9a9891;font-size:11.5px;margin-top:8px;cursor:pointer;background:none;border:0;width:100%}
+.rtcStrip{position:relative;overflow:hidden;border:1.5px solid #5aa9ff;border-radius:16px;background:radial-gradient(120% 90% at 100% 0%,#1d4fb0 0%,#0f2a5c 45%,#0a162e 100%);padding:10px 12px;margin-bottom:16px;cursor:pointer;display:flex;align-items:center;gap:10px;color:#fff}
+.rtcStrip .t{font-family:Oswald,sans-serif;font-size:16px;text-transform:uppercase;line-height:1}.rtcStrip .t small{display:block;font-size:10px;letter-spacing:2px;color:#cfeaff;margin-top:3px;font-family:Inter,sans-serif;font-weight:800}
+.rtcStrip .p{margin-left:auto;background:#fff;color:#0c1a33;font-size:9px;font-weight:900;letter-spacing:1.5px;padding:6px 10px;border-radius:999px;white-space:nowrap;text-transform:uppercase}
+.rtcStrip .p.in{background:#4bc97a;color:#06110a}
+.rtcPage .hero{border:1.5px solid #5aa9ff;border-radius:18px;background:radial-gradient(120% 90% at 100% 0%,#1d4fb0 0%,#0f2a5c 45%,#0a162e 100%);padding:18px 14px 14px;margin-bottom:10px;position:relative;overflow:hidden;color:#fff}
+.rtcPage .hero .rtcArt{position:absolute;right:-4px;top:0;bottom:0;width:60%;pointer-events:none;z-index:0}.rtcPage .hero .rtcArt svg{width:100%;height:100%;display:block}
+.rtcPage .hero>*{position:relative;z-index:1}
+.rtcPage h2.hh{font-family:Oswald,sans-serif;font-size:36px;line-height:.92;text-transform:uppercase;margin:4px 0 6px;color:#fff}.rtcPage h2.hh span{color:#cfeaff}
+.rtcPage .fc{display:inline-block;font-family:Oswald,sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;background:#fff;color:#0c1a33;padding:1px 6px;border-radius:4px;margin-top:6px}
+.rtcPage .when{font-family:Oswald,sans-serif;font-size:15px;color:#fff;letter-spacing:.5px;margin-top:6px}
+.rtcPage .tag{display:inline-block;line-height:1.2;font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;border:1px solid #cfeaff;color:#cfeaff;border-radius:999px;padding:3px 8px;margin:8px 4px 0 0}.rtcPage .tag.w{background:#fff;color:#0c1a33;border-color:#fff}
+.rtcPage .card{background:#141416;border:1px solid #26262b;border-radius:14px;padding:12px 13px;margin-bottom:10px}
+.rtcPage .card h3{font-family:Oswald,sans-serif;font-size:16px;text-transform:uppercase;letter-spacing:.5px;margin:0 0 6px;color:#F1D27A;display:flex;justify-content:space-between;align-items:baseline}
+.rtcPage .card h3 span{font-family:Inter,sans-serif;font-size:10px;letter-spacing:1.5px;color:#9a9891;text-transform:uppercase}
+.rtcPage .card p{margin:0 0 8px;font-size:13px;color:#d8d3c6;line-height:1.45}.rtcPage .card p:last-child{margin:0}
+.rtcPage .four{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rtcPage .four div{border:1px solid #26262b;border-radius:12px;padding:10px;background:#0b0b0c}
+.rtcPage .four b{display:block;font-family:Oswald,sans-serif;font-size:13.5px;text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px;color:#F1D27A}.rtcPage .four span{font-size:11.5px;color:#9a9891;line-height:1.35;display:block}
+.rtcPage .ks{display:grid;grid-template-columns:42px 1fr auto;gap:6px 10px;align-items:center;padding:7px 0;border-bottom:1px solid #26262b;font-size:12.5px}.rtcPage .ks:last-child{border:0}
+.rtcPage .ks .d{font-family:Oswald,sans-serif;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:#F1D27A}.rtcPage .ks b{display:block;font-weight:700}.rtcPage .ks span{color:#9a9891;font-size:11px}
+.rtcPage .ks .pt{font-family:Oswald,sans-serif;font-size:15px;color:#F1D27A;white-space:nowrap;background:#1b1a12;border:1px solid #d9ae45;border-radius:8px;padding:2px 8px}.rtcPage .ks.one .pt{color:#9a9891;background:none;border-color:#26262b}
+.rtcPage .tl{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;margin:8px 0 4px}.rtcPage .tl div{height:26px;border-radius:6px;background:#1e1e22;border:1px solid #26262b;font-family:Oswald,sans-serif;font-size:11px;display:grid;place-items:center;color:#9a9891}
+.rtcPage .tl div.a{background:#0f2a5c;color:#9cc8ff;border-color:#2a4a80}.rtcPage .tl div.b{background:#143a7a;color:#cfeaff;border-color:#3a6ab0}.rtcPage .tl div.g{background:#fff;color:#0c1a33;border-color:#fff}.rtcPage .tl div.d{background:#0c1a33;color:#fff;border-color:#5aa9ff}
+.rtcPage .wk{display:grid;grid-template-columns:58px 1fr;gap:8px;padding:7px 0;border-bottom:1px solid #26262b;font-size:12.5px;align-items:start}.rtcPage .wk:last-child{border:0}
+.rtcPage .wk i{font-style:normal;white-space:nowrap;font-family:Oswald,sans-serif;font-size:13px;letter-spacing:1px;color:#9a9891;text-transform:uppercase;padding-top:1px}.rtcPage .wk b{display:block;font-weight:700}.rtcPage .wk span{color:#9a9891;font-size:11.5px}
+.rtcPage .wk.hot i,.rtcPage .wk.hot b{color:#F1D27A}.rtcPage .wk.fin i,.rtcPage .wk.fin b{color:#fff}
+.rtcPage .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.rtcPage .stat{background:#0b0b0c;border:1px solid #26262b;border-radius:12px;padding:8px 4px;text-align:center}
+.rtcPage .stat b{display:block;font-family:Oswald,sans-serif;font-size:20px;color:#F1D27A;line-height:1}.rtcPage .stat span{font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;color:#9a9891}
+.rtcPage .price{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-bottom:1px solid #26262b;font-size:12.5px;align-items:center}.rtcPage .price:last-child{border:0}
+.rtcPage .price b{display:block;font-weight:700}.rtcPage .price span{color:#9a9891;font-size:11.5px}.rtcPage .price .p{font-family:Oswald,sans-serif;font-size:16px;color:#4bc97a;white-space:nowrap}.rtcPage .price .p.x{color:#F1D27A}
+.rtcPage details{border-bottom:1px solid #26262b;padding:7px 0;font-size:12.5px}.rtcPage details:last-child{border:0}
+.rtcPage summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between}.rtcPage summary::-webkit-details-marker{display:none}.rtcPage summary:after{content:"+";color:#F1D27A}.rtcPage details[open] summary:after{content:"–"}
+.rtcPage details p{margin:6px 0 0;color:#d8d3c6;font-size:12.5px}
+.rtcBtn{display:block;width:100%;text-align:center;background:linear-gradient(178deg,#6fb4ff,#1f5fd6);color:#fff;border:0;border-radius:12px;padding:13px;font-family:Oswald,sans-serif;font-weight:700;font-size:16px;letter-spacing:1.5px;text-transform:uppercase;margin-top:10px;cursor:pointer}
+.rtcBtn.o{background:none;border:1px solid #5aa9ff;color:#cfeaff}.rtcBtn:disabled{opacity:.55}
+.rtcOpt{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #26262b;font-size:13px;cursor:pointer}.rtcOpt:last-child{border:0}
+.rtcOpt .bx{width:22px;height:22px;border-radius:7px;border:1.5px solid #d9ae45;display:grid;place-items:center;color:#161307;font-size:13px;flex:0 0 22px}.rtcOpt.on .bx{background:#d9ae45}
+.rtcOpt b{display:block;font-weight:700}.rtcOpt span{color:#9a9891;font-size:11.5px;display:block}
+.rtcWho{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:12.5px}.rtcWho div{padding:6px 0;border-bottom:1px solid #26262b}.rtcWho .n{color:#4bc97a;font-weight:700}
+`;document.head.appendChild(css);
+var ART='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" fill="none" stroke="#cfeaff" stroke-width="1.5" stroke-linecap="round"><g opacity=".5"><g transform="translate(236 44)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g><g transform="translate(160 30) scale(.7)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g><g transform="translate(274 96) scale(.55)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g><g transform="translate(200 120) scale(.45)"><line x1="-8" y1="0" x2="8" y2="0"/><line x1="0" y1="-8" x2="0" y2="8"/><line x1="-6" y1="-6" x2="6" y2="6"/><line x1="-6" y1="6" x2="6" y2="-6"/></g></g><g opacity=".35" fill="#ffffff" stroke="none"><circle cx="120" cy="52" r="1.4"/><circle cx="206" cy="70" r="1.2"/><circle cx="252" cy="150" r="1.4"/><circle cx="170" cy="164" r="1"/><circle cx="286" cy="24" r="1"/><circle cx="140" cy="126" r="1.1"/></g></svg>';
+function E(s){return (typeof esc==="function")?esc(s==null?"":String(s)):String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]});}
+function T(m){if(typeof toast==="function")toast(m);}
+function staff(){return !!(profile&&(profile.is_staff||profile.is_coach||profile.is_manager));}
+function membership(){var m=(typeof myMpCache!=="undefined"&&myMpCache&&myMpCache.membership)||"";return m;}
+function classMember(){var m=membership();return m&&m!=="Open Gym";}
+function days(){return Math.max(0,Math.ceil((new Date(RTC.start+"T00:00:00")-new Date())/864e5));}
+async function load(){
+  if(!session||!session.user)return;
+  try{
+    var r=await sb.from("challenge_regs").select("*").eq("challenge",RTC.key).eq("user_id",session.user.id).maybeSingle();
+    RTC.reg=r.data||null;
+    var c=await sb.rpc("challenge_reg_count",{c:RTC.key}); if(typeof c.data==="number")RTC.count=c.data;
+  }catch(e){}
+  RTC.loaded=true;
+}
+async function loadAll(){try{var r=await sb.from("challenge_regs").select("*").eq("challenge",RTC.key).order("created_at",{ascending:false});RTC.all=r.data||[];}catch(e){RTC.all=[];}}
+function cntHtml(){return RTC.count==null?"":'<span class="rtcCnt"><i></i>'+RTC.count+' in</span>';}
+function blueHtml(){return '<div class="rtcBlue"><div class="rtcArt">'+ART+'</div><div class="rtcBig"><span>Road to Christmas</span>10 Week<br>Challenge</div><div class="rtcHook">Best shape of the year —<br>right before Christmas.</div><div class="rtcLine"><span>12 Oct → 19 Dec · Free for class members</span>'+cntHtml()+'</div></div>';}
+/* ---- home strip (replaces the Fight Club promo) ---- */
+window.fightClubHtml=function(){
+  if(RTC.reg)return '<div class="rtcStrip" onclick="go(\'rtc\')"><div class="t">You\'re in ✓<small>10 Week Challenge · starts Mon 12 Oct'+(staff()&&RTC.count!=null?' · '+RTC.count+' in':'')+'</small></div><span class="p in">My challenge</span></div>';
+  return '<div class="rtcStrip" onclick="rtcOpen()"><div class="t">10 Week Challenge<small>Road to Christmas · registrations open'+(RTC.count!=null?' · '+RTC.count+' in':'')+'</small></div><span class="p">I\'m in</span></div>';
+};
+/* ---- pop-up sheet on open ---- */
+function seen(){try{return sessionStorage.getItem("rtcSeen")==="1";}catch(e){return false;}}
+function markSeen(){try{sessionStorage.setItem("rtcSeen","1");}catch(e){}}
+function closeSheet(){var d=document.getElementById("rtcDim");if(d)d.remove();}
+window.rtcOpen=function(){closeSheet();if(RTC.reg){go("rtc");return;}
+  var d=document.createElement("div");d.className="rtcDim";d.id="rtcDim";
+  d.innerHTML='<div class="rtcSheet"><div class="rtcGrab"></div>'+blueHtml()+
+    (classMember()?'<button class="rtcW" onclick="rtcRegister(this)">Register for the challenge</button>':'<button class="rtcW" disabled>Class membership needed</button><div style="text-align:center;font-size:11px;color:#9a9891;margin-top:6px">Open Gym members — see the front desk to add classes and you\'re in.</div>')+
+    '<button class="rtcLnk" onclick="rtcDismiss();go(\'rtc\')">Click for info on the challenge ›</button><button class="rtcLater" onclick="rtcDismiss()">Not now</button></div>';
+  d.addEventListener("click",function(e){if(e.target===d)rtcDismiss();});
+  document.body.appendChild(d);
+};
+window.rtcDismiss=function(){markSeen();closeSheet();};
+function maybeSheet(){if(view!=="home"||!session||!RTC.loaded||RTC.reg||seen()||(typeof needsSetup!=="undefined"&&needsSetup))return;if(document.getElementById("rtcDim"))return;rtcOpen();}
+/* ---- register ---- */
+window.rtcRegister=async function(btn){
+  if(!session||!session.user){T("Sign in first");return;}
+  if(!classMember()){T("Class membership needed — see the front desk");return;}
+  if(btn)btn.disabled=true;
+  var nm=((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"");nm=nm.trim()||((typeof myMpCache!=="undefined"&&myMpCache&&myMpCache.full_name)||"");
+  var row={challenge:RTC.key,user_id:session.user.id,name:nm,email:(profile&&profile.email)||session.user.email||"",membership:membership(),nutrition:"none"};
+  var r=await sb.from("challenge_regs").upsert(row,{onConflict:"challenge,user_id"}).select().single();
+  if(r.error){T(r.error.message);if(btn)btn.disabled=false;return;}
+  RTC.reg=r.data;RTC.count=(RTC.count||0)+1;markSeen();closeSheet();T("You're registered ✓");go("rtcreg");
+};
+window.rtcNut=function(v){if(!RTC.reg)return;RTC.reg.nutrition=v;renderReg();};
+window.rtcNutSave=async function(){
+  if(!RTC.reg)return;var v=RTC.reg.nutrition||"none";
+  var r=await sb.from("challenge_regs").update({nutrition:v,updated_at:new Date().toISOString()}).eq("id",RTC.reg.id);
+  if(r.error){T(r.error.message);return;}
+  T(v==="plan"?"Nutrition plan added — Alison will be in touch":v==="one"?"Alison will be in touch to book you in":"All set — see you 12 Oct");
+  go("rtc");
+};
+/* ---- views ---- */
+try{NAV_TAB.rtc="home";NAV_TAB.rtcreg="home";}catch(e){}
+var _render=window.render;window.render=function(){if(view==="rtc")return renderPage();if(view==="rtcreg")return renderReg();return _render.apply(this,arguments);};
+function renderReg(){var n=(RTC.reg&&RTC.reg.nutrition)||"none";
+  function opt(k,l,s){return '<div class="rtcOpt '+(n===k?"on":"")+'" onclick="rtcNut(\''+k+'\')"><div class="bx">'+(n===k?"✓":"")+'</div><div><b>'+l+'</b>'+(s?'<span>'+s+'</span>':'')+'</div></div>';}
+  $("main").innerHTML='<div class="rtcPage"><button class="backBtn" onclick="go(\'home\')">‹ Home</button>'+
+   '<div class="hero" style="text-align:center;padding:16px 14px"><div class="rtcArt">'+ART+'</div><div style="font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:#cfeaff">Registered ✓</div><h2 class="hh" style="font-size:30px">You\'re <span>in</span></h2><div class="when">Road to Christmas · 10 Week Challenge · starts Mon 12 Oct</div></div>'+
+   '<div class="card"><h3>Are you looking for a nutrition plan? <span>optional</span></h3>'+
+   opt("plan","Yes — happy with the $99 10-week group plan","Built by Alison · everyone follows the same plan")+
+   opt("one","Yes — I\'d prefer to see Alison 1-on-1 for a custom program","Book sessions with Alison · priced separately")+
+   opt("none","No thanks — just the training","")+'</div>'+
+   '<button class="rtcBtn" onclick="rtcNutSave()">'+(n==="plan"?"Add the $99 plan ›":n==="one"?"Book with Alison ›":"Done")+'</button>'+
+   '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">'+(n==="plan"?"Alison will be in touch to sort payment and get you started.":n==="one"?"Alison sets the price with you at your first session.":"You can add nutrition later from your challenge page.")+'</p></div>';
+}
+function whoHtml(){if(!staff())return "";
+  if(!RTC.all){loadAll().then(function(){if(view==="rtc")renderPage();});return '<div class="card"><h3>Who\'s in</h3><p>Loading…</p></div>';}
+  var a=RTC.all,plan=a.filter(function(x){return x.nutrition==="plan";}).length,one=a.filter(function(x){return x.nutrition==="one";}).length;
+  return '<div class="card"><h3>Who\'s in <span>coach view</span></h3><div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat"><b>'+a.length+'</b><span>registered</span></div><div class="stat"><b>'+plan+'</b><span>$99 plan</span></div><div class="stat"><b>'+one+'</b><span>1-on-1 Alison</span></div></div>'+
+   (a.length?'<div class="rtcWho">'+a.map(function(x){var d=new Date(x.created_at);return '<div><b>'+E(x.name||x.email||"—")+'</b><br><span style="color:#9a9891;font-size:11px">'+E(x.membership||"")+' · '+d.toLocaleDateString("en-AU",{day:"numeric",month:"short"})+'</span></div><div class="'+(x.nutrition!=="none"?"n":"")+'" style="text-align:right;font-size:11.5px">'+(x.nutrition==="plan"?"$99 plan":x.nutrition==="one"?"1-on-1 Alison":"—")+'</div>';}).join("")+'</div>':'<p>Nobody yet — first one\'s coming.</p>')+'</div>';
+}
+function renderPage(){
+  var reg=!!RTC.reg;
+  $("main").innerHTML='<div class="rtcPage"><button class="backBtn" onclick="go(\'home\')">‹ Home</button>'+
+  '<div class="hero"><div class="rtcArt">'+ART+'</div><div style="font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:#cfeaff">Legacy Gym</div><h2 class="hh">Road to <span>Christmas</span></h2><div class="fc">10 Week Challenge</div><div class="rtcHook" style="margin-top:8px">Your fittest, fastest and strongest — best shape of the year, right before Christmas.</div><div class="when">Mon 12 Oct → Sat 19 Dec</div><div><span class="tag w">Free</span><span class="tag">Every level</span><span class="tag">No fighting or sparring</span>'+(RTC.count!=null?'<span class="tag">'+RTC.count+' in</span>':'')+'</div></div>'+
+  (reg?'<div class="card" style="border-color:#4bc97a"><h3 style="color:#4bc97a">You\'re in ✓ <span>'+days()+' days to go</span></h3><p>Nutrition: <b>'+(RTC.reg.nutrition==="plan"?"$99 10-week plan":RTC.reg.nutrition==="one"?"1-on-1 with Alison":"just the training")+'</b> · <a href="#" onclick="go(\'rtcreg\');return false" style="color:#F1D27A">change</a></p></div>':'')+
+  whoHtml()+
+  '<div class="card"><h3>The deal</h3><p style="color:#f2f0eb;font-size:14px;font-weight:600">Ten weeks of training with the whole gym behind you. Your classes as normal, strength &amp; conditioning three days a week, two team Games days, points on the board every session — and a Christmas Party to finish.</p><p>Boxing Fitness, Sparring Club, Fight Club, S&amp;C — everyone\'s in. You don\'t need to fight or spar.</p></div>'+
+  '<div class="card"><h3>How it works <span>four parts</span></h3><div class="four"><div><b>Your classes</b><span>Book and train as normal. Every class = 1 point.</span></div><div><b>Strength &amp; Con</b><span>Tue, Thu &amp; Sat sessions = 2 points. Optional — do what fits.</span></div><div><b>Legacy Games</b><span>Team events, end of weeks 4 &amp; 9.</span></div><div><b>App challenges</b><span>Bonus cardio &amp; conditioning hits for extra points.</span></div></div></div>'+
+  '<div class="card"><h3>The key sessions <span>2 points each</span></h3><p style="font-size:12px;margin-bottom:6px">These are the ones we want big turn-outs to every week. Every other class is 1 point — these S&amp;C sessions are worth <b style="color:#F1D27A">2</b>.</p>'+
+   '<div class="ks"><div class="d">Tue</div><div><b>‘GRUNT’ S&amp;C · 5:15 am &amp; 6:15 am</b><span>Strength · same main lifts all block</span></div><div class="pt">2 pts</div></div>'+
+   '<div class="ks"><div class="d">Tue</div><div><b>‘GRUNT’ S&amp;C · 6:00 pm</b><span>Strength · evening option</span></div><div class="pt">2 pts</div></div>'+
+   '<div class="ks"><div class="d">Thu</div><div><b>‘GRUNT’ S&amp;C · 5:15 am &amp; 6:15 am</b><span>Strength + conditioning toward the Games</span></div><div class="pt">2 pts</div></div>'+
+   '<div class="ks"><div class="d">Thu</div><div><b>‘GRUNT’ S&amp;C · 6:00 pm</b><span>Strength + conditioning · evening option</span></div><div class="pt">2 pts</div></div>'+
+   '<div class="ks"><div class="d">Sat</div><div><b>‘GRUNT’ S&amp;C · 8:30 am</b><span>Games day — strength block, then team Games training</span></div><div class="pt">2 pts</div></div>'+
+   '<div class="ks one"><div class="d">Any</div><div><b>Boxing, Boxing Fitness, Sparring &amp; Drills, Mon / Wed S&amp;C</b><span>Your normal classes — book and train as usual</span></div><div class="pt">1 pt</div></div>'+
+   '<p style="font-size:11.5px;color:#9a9891;margin-top:8px">Morning or evening — pick what fits your week. Nobody\'s expected at every session.</p></div>'+
+  '<div class="card"><h3>The 10 weeks</h3><div class="tl">'+[1,2,3,4,5,6,7,8,9,10].map(function(w){return '<div class="'+(w===4||w===9?"g":w<4?"a":w<9?"b":"d")+'">'+w+'</div>';}).join("")+'</div><div style="margin-top:8px">'+
+   '<div class="wk"><i>Wk 1–3</i><div><b>Build</b><span>Learn the events, set benchmarks, bank points.</span></div></div>'+
+   '<div class="wk hot"><i>Wk 4</i><div><b>Legacy Games · Sat 7 Nov</b><span>Teams drawn. Strength, cardio &amp; conditioning events.</span></div></div>'+
+   '<div class="wk"><i>Wk 5–8</i><div><b>Build 2</b><span>Lifts up, engine longer, Games rehearsals.</span></div></div>'+
+   '<div class="wk hot"><i>Wk 9</i><div><b>Legacy Games · Sat 12 Dec</b><span>The big one. Team prizes decided.</span></div></div>'+
+   '<div class="wk fin"><i>Wk 10</i><div><b>Deload → Sat 19 Dec</b><span>Fight night at Legacy + the Christmas Party.</span></div></div></div></div>'+
+  '<div class="card"><h3>Training for Hyrox? <span>this is your prep</span></h3><p>Solo or doubles — the whole block is built around the same engine: runs, rows, bike, carries, deadballs, wall balls, under fatigue, on the clock. The Games are your race-day rehearsal. Same prep, better company.</p></div>'+
+  '<div class="card"><h3>What\'s free &amp; what\'s extra</h3>'+
+   '<div class="price"><div><b>The 10-week program</b><span>Classes, S&amp;C sessions, the Legacy Games</span></div><div class="p">Free</div></div>'+
+   '<div class="price"><div><b>The app</b><span>Points, leaderboard, challenges, your team</span></div><div class="p">Free</div></div>'+
+   '<div class="price"><div><b>Weekly weigh-ins &amp; check-ins</b><span>If that\'s what you\'re chasing — log it in the app</span></div><div class="p">Free</div></div>'+
+   '<div class="price"><div><b>10-week nutrition plan</b><span>Built by Alison, our in-house nutritionist. Open to everyone.</span></div><div class="p x">$99</div></div>'+
+   '<div class="price"><div><b>1-on-1 with Alison</b><span>Book individual sessions for a fully custom plan</span></div><div class="p x">Extra</div></div></div>'+
+  '<div class="card"><h3>Points &amp; prizes</h3><div class="stats"><div class="stat"><b>1</b><span>per class</span></div><div class="stat"><b>2</b><span>per S&amp;C</span></div><div class="stat"><b>+3</b><span>app challenge</span></div><div class="stat"><b>+10</b><span>Games day</span></div></div><p>3 / 5 / 7 classes in a week = Bronze / Silver / Gold with bonus points. Live leaderboard in the app. Prizes announced week 1.</p></div>'+
+  '<div class="card"><h3>Fight Club <span>how it links</span></h3><p><b style="color:#F1D27A">The perfect additional training to get you fitter, faster and stronger for fight night.</b></p><p>Being technically sound and ready to fight through your boxing is only half of it — you have to be fit, fast and strong too. The fittest, fastest and strongest at Fight Club will always perform the best, and this is the best way to build that into your training.</p><p>Fight Club does its boxing prep in its own sessions, then trains with Road to Christmas on Tue / Thu / Sat and in the Legacy Games. Do the S&amp;C sessions that fit around your boxing workload.</p></div>'+
+  '<div class="card"><h3>The finish <span>Sat 19 Dec</span></h3><p>Fight Club, amateurs and pros on a huge final card at Legacy — and everyone on the Road to Christmas there to back them, then the <b style="color:#F1D27A">Legacy Gym Christmas Party</b>.</p></div>'+
+  '<div class="card"><h3>Quick answers</h3>'+
+   '<details><summary>Do I have to fight or spar?</summary><p>No. That\'s Fight Club. This is classes, S&amp;C and the Games.</p></details>'+
+   '<details><summary>What does it cost?</summary><p>Nothing — it\'s in your class membership. Nutrition with Alison is the only optional extra.</p></details>'+
+   '<details><summary>Do I have to do every S&amp;C session?</summary><p>No. Do the ones that fit your week.</p></details>'+
+   '<details><summary>Never done S&amp;C before?</summary><p>You\'re fine. The lifts are coached and stay the same all block — you\'ll build from wherever you start.</p></details></div>'+
+  (reg?'<button class="rtcBtn o" onclick="go(\'home\')">Back to home</button>':(classMember()?'<button class="rtcBtn" onclick="rtcRegister(this)">Register for the challenge ›</button>':'<button class="rtcBtn" disabled>Class membership needed</button><p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">Open Gym members — see the front desk to add classes and you\'re in.</p>'))+
+  '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">Registration closes Sun 11 Oct · class members only</p></div>';
+}
+/* ---- hooks: load once signed in, pop the sheet on Home ---- */
+["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){if(!RTC.loaded){load().then(function(){if(view==="home"){try{o();}catch(e){}maybeSheet();}});}else maybeSheet();};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,50);return r;};});
 })();
 
 </script>
