@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609091600";
+const LG_BUILD="202609121000";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10321,9 +10321,7 @@ if(typeof window.renderHome==="function"){var _rh=window.renderHome;window.rende
 (function(){
 /* One-off class cancellations. Each entry: date (YYYY-MM-DD local), times to cancel, reason, and when to stop showing the notice.
    To clear: empty the array. */
-var CANCELLED=[
-  {date:"2026-09-11", times:["16:30","18:00"], label:"Friday afternoon classes", reason:"coaches away", showUntil:"2026-09-12T23:59:00"}
-];
+var CANCELLED=[];
 function isoLocal(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function isCancelled(dateIso,time){return CANCELLED.some(function(c){return c.date===dateIso&&c.times.indexOf(time)>=0;});}
 function active(){var now=new Date();return CANCELLED.filter(function(c){return now<new Date(c.showUntil);});}
