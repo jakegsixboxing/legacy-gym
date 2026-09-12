@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609121200";
+const LG_BUILD="202609121230";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -9920,7 +9920,7 @@ var css=document.createElement("style");css.textContent=`
 `;document.head.appendChild(css);
 
 /* Program is built in 4-week blocks. Conditioning Block 1 = Sarsha's running block (Mon / Wed oval sprints / Fri). */
-var BLOCK={n:1,label:"Block 1",weeks:4,start:"2026-09-07"};
+var BLOCK={n:1,label:"Block 1",weeks:4,start:"2026-09-14"};
 var SEC={
  box:{name:"Boxing",sub:"Skills · pads · sparring",color:"var(--gr)"},
  con:{name:"Conditioning",sub:"Road work · engine",color:"var(--pk)"},
@@ -9957,7 +9957,7 @@ var STRSESS={
     ex:[{id:"a",l:"A",n:"Trap-bar deadlift",s:"3 × 6–8",c:"2–3 RIR"},{id:"b",l:"B",n:"Chest-supported DB row",s:"3 × 8–10",c:""},{id:"c1",l:"C1",n:"DB single-leg step-up",s:"3 × 8/side",c:"2–3 sec eccentric"},{id:"c2",l:"C2",n:"Half-kneeling single-arm landmine press",s:"3 × 8/side",c:""},{id:"d",l:"D",n:"Plate-loaded glute drive",s:"3 × 10",c:""},{id:"e",l:"E",n:"DB / KB suitcase carry",s:"2 × 20–30 m/side",c:""}]}};
 var STR={};[1,2,3,4].forEach(function(w){STR[w]={};Object.keys(STRSESS).forEach(function(d){var x=STRSESS[d];STR[w][d]={kind:"str",h:x.h,f:x.f,warm:x.warm,ex:x.ex}})});
 /* Per-week session notes from Jake — tap a session to read them. {week:{weekday:{itemId:[lines]}}} */
-var BOXNOTES={2:{1:{
+var BOXNOTES={1:{1:{
  pt:["Key focus: straight punches. Range, feints, set-ups. Build bent-arm attacks off the back of the straights.","Technical correction: back-hand uppercut — the position we throw it from needs work.","Counter work: less counter jabs, more counter backhand.","Simple pad session before tech sparring."],
  spar:["Your partner for the whole tech sparring Monday night is Brent. Stay with him.","Roughly 70% runs as a team session with the group, then the last 30% you two do individual work away from the rest of the group."]}}};
 function boxNotes(w,d,id){return (((BOXNOTES[w]||{})[d]||{})[id])||null}
