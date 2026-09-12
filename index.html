@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609122120";
+const LG_BUILD="202609122135";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10537,7 +10537,7 @@ function renderReg(){var n=(RTC.reg&&RTC.reg.nutrition)||"none";
    '<button class="rtcBtn" onclick="rtcNutSave()">'+(n==="plan"?"Add the $99 plan ›":n==="one"?"Book with Alison ›":"Done")+'</button>'+
    '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">'+(n==="plan"?"Alison will be in touch to sort payment and get you started.":n==="one"?"Alison sets the price with you at your first session.":"You can add nutrition later from your challenge page.")+'</p></div>';
 }
-function leadsCard(){if(!staff())return "";var L=RTC.leads||[],n=L.filter(function(x){return x.status==="new";}).length,c=L.filter(function(x){return x.status==="contacted";}).length,j=L.filter(function(x){return x.status==="joined";}).length;
+function leadsCard(){if(!staff())return "";if(!RTC.leads){loadLeads().then(function(){RTC._lfresh=true;if(view==="rtc")renderPage();});return '<div class="card" style="border-color:#2a4a80"><h3>Website sign-ups</h3><p>Checking for new sign-ups…</p></div>';}var L=RTC.leads||[],n=L.filter(function(x){return x.status==="new";}).length,c=L.filter(function(x){return x.status==="contacted";}).length,j=L.filter(function(x){return x.status==="joined";}).length;
   return '<div class="card" style="border-color:#2a4a80"><h3>Website sign-ups'+(n?'<span class="rtcPill">'+n+' new</span>':'')+' <span>Jake &amp; Alison only</span></h3><div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat"><b style="color:#5aa9ff">'+n+'</b><span>to call</span></div><div class="stat"><b>'+c+'</b><span>contacted</span></div><div class="stat"><b style="color:#4bc97a">'+j+'</b><span>joined</span></div></div>'+
    '<p style="font-size:12px">New people who registered on legacygym.net land here the moment they hit submit — name, mobile, email, suburb and the package they picked.</p><button class="rtcBtn" style="margin-top:4px" onclick="go(\'rtcleads\')">'+(L.length?'Open the list ›':'No sign-ups yet')+'</button></div>';}
 function whoHtml(){if(!staff())return "";
@@ -10547,7 +10547,7 @@ function whoHtml(){if(!staff())return "";
    (a.length?'<div class="rtcWho">'+a.map(function(x){var d=new Date(x.created_at);return '<div><b>'+E(x.name||x.email||"—")+'</b><br><span style="color:#9a9891;font-size:11px">'+E(x.membership||"")+' · '+d.toLocaleDateString("en-AU",{day:"numeric",month:"short"})+'</span></div><div class="'+(x.nutrition!=="none"?"n":"")+'" style="text-align:right;font-size:11.5px">'+(x.nutrition==="plan"?"$99 plan":x.nutrition==="one"?"1-on-1 Alison":"—")+'</div>';}).join("")+'</div>':'<p>Nobody yet — first one\'s coming.</p>')+'</div>';
 }
 function renderPage(){
-  var reg=!!RTC.reg;if(staff()&&RTC.all&&!RTC._fresh){RTC.all=null;}RTC._fresh=false;
+  var reg=!!RTC.reg;if(staff()&&RTC.all&&!RTC._fresh){RTC.all=null;}RTC._fresh=false;if(staff()&&RTC.leads&&!RTC._lfresh){RTC.leads=null;}RTC._lfresh=false;RTC._lvNeed=true;
   $("main").innerHTML='<div class="rtcPage"><button class="backBtn" onclick="go(\'home\')">‹ Home</button>'+
   '<div class="hero"><div class="rtcArt">'+ART+'</div><div style="font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:#cfeaff">Legacy Gym</div><h2 class="hh">Road to <span>Christmas</span></h2><div class="fc">10 Week Challenge</div><div class="rtcHook" style="margin-top:8px">Your fittest, fastest and strongest — best shape of the year, right before Christmas.</div><div class="when">Mon 12 Oct → Sat 19 Dec</div><div><span class="tag w">Free</span><span class="tag">Every level</span><span class="tag">No fighting or sparring</span>'+(RTC.count!=null?'<span class="tag">'+RTC.count+' in</span>':'')+'</div></div>'+
   (reg?'<div class="card" style="border-color:#4bc97a"><h3 style="color:#4bc97a">You\'re in ✓ <span>'+days()+' days to go</span></h3><p>Nutrition: <b>'+(RTC.reg.nutrition==="plan"?"$99 10-week plan":RTC.reg.nutrition==="one"?"1-on-1 with Alison":"just the training")+'</b> · <a href="#" onclick="go(\'rtcreg\');return false" style="color:#F1D27A">change</a></p></div>':'')+
@@ -10594,6 +10594,7 @@ window.rtcLeadSt=async function(id,st){if(!staff())return;var L=(RTC.leads||[]).
 window.rtcLeadNote=async function(id,el){var L=(RTC.leads||[]).find(function(x){return x.id===id;});if(!L||el.value===(L.notes||""))return;var r=await sb.from("challenge_leads").update({notes:el.value,updated_at:new Date().toISOString()}).eq("id",id);if(r.error){T(r.error.message);return;}L.notes=el.value;T("Note saved");};
 function ago(iso){var m=Math.round((Date.now()-new Date(iso))/6e4);if(m<60)return m+" min ago";var h=Math.round(m/60);if(h<24)return h+" hr ago";var d=Math.round(h/24);return d===1?"yesterday":d+" days ago";}
 function renderLeads(){if(!staff()){go("home");return;}
+  if(RTC._lvNeed!==false){RTC._lvNeed=false;loadLeads().then(function(){if(view==="rtcleads")renderLeads();});}
   var L=RTC.leads||[],f=RTC.lf,list=f==="all"?L:L.filter(function(x){return x.status===f;});
   var cnt={new:0,contacted:0,joined:0};L.forEach(function(x){if(cnt[x.status]!=null)cnt[x.status]++;});
   function tab(k,l){return '<button class="'+(f===k?"on":"")+'" onclick="rtcLf(\''+k+'\')">'+l+(cnt[k]?' '+cnt[k]:'')+'</button>';}
