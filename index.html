@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609121500";
+const LG_BUILD="202609121520";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10508,14 +10508,14 @@ window.rtcRegister=async function(btn){
   var row={challenge:RTC.key,user_id:session.user.id,name:nm,email:(profile&&profile.email)||session.user.email||"",membership:membership(),nutrition:"none"};
   var r=await sb.from("challenge_regs").upsert(row,{onConflict:"challenge,user_id"}).select().single();
   if(r.error){T(r.error.message);if(btn)btn.disabled=false;return;}
-  RTC.reg=r.data;RTC.count=(RTC.count||0)+1;markSeen();closeSheet();T("You're registered ✓");go("rtcreg");
+  RTC.reg=r.data;RTC.count=(RTC.count||0)+1;RTC.all=null;markSeen();closeSheet();T("You're registered ✓");go("rtcreg");
 };
 window.rtcNut=function(v){if(!RTC.reg)return;RTC.reg.nutrition=v;renderReg();};
 window.rtcNutSave=async function(){
   if(!RTC.reg)return;var v=RTC.reg.nutrition||"none";
   var r=await sb.from("challenge_regs").update({nutrition:v,updated_at:new Date().toISOString()}).eq("id",RTC.reg.id);
   if(r.error){T(r.error.message);return;}
-  T(v==="plan"?"Nutrition plan added — Alison will be in touch":v==="one"?"Alison will be in touch to book you in":"All set — see you 12 Oct");
+  RTC.all=null;T(v==="plan"?"Nutrition plan added — Alison will be in touch":v==="one"?"Alison will be in touch to book you in":"All set — see you 12 Oct");
   go("rtc");
 };
 /* ---- views ---- */
@@ -10533,13 +10533,13 @@ function renderReg(){var n=(RTC.reg&&RTC.reg.nutrition)||"none";
    '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">'+(n==="plan"?"Alison will be in touch to sort payment and get you started.":n==="one"?"Alison sets the price with you at your first session.":"You can add nutrition later from your challenge page.")+'</p></div>';
 }
 function whoHtml(){if(!staff())return "";
-  if(!RTC.all){loadAll().then(function(){if(view==="rtc")renderPage();});return '<div class="card"><h3>Who\'s in</h3><p>Loading…</p></div>';}
+  if(!RTC.all){loadAll().then(function(){RTC._fresh=true;if(view==="rtc")renderPage();});return '<div class="card"><h3>Who\'s in</h3><p>Loading…</p></div>';}
   var a=RTC.all,plan=a.filter(function(x){return x.nutrition==="plan";}).length,one=a.filter(function(x){return x.nutrition==="one";}).length;
   return '<div class="card"><h3>Who\'s in <span>coach view</span></h3><div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat"><b>'+a.length+'</b><span>registered</span></div><div class="stat"><b>'+plan+'</b><span>$99 plan</span></div><div class="stat"><b>'+one+'</b><span>1-on-1 Alison</span></div></div>'+
    (a.length?'<div class="rtcWho">'+a.map(function(x){var d=new Date(x.created_at);return '<div><b>'+E(x.name||x.email||"—")+'</b><br><span style="color:#9a9891;font-size:11px">'+E(x.membership||"")+' · '+d.toLocaleDateString("en-AU",{day:"numeric",month:"short"})+'</span></div><div class="'+(x.nutrition!=="none"?"n":"")+'" style="text-align:right;font-size:11.5px">'+(x.nutrition==="plan"?"$99 plan":x.nutrition==="one"?"1-on-1 Alison":"—")+'</div>';}).join("")+'</div>':'<p>Nobody yet — first one\'s coming.</p>')+'</div>';
 }
 function renderPage(){
-  var reg=!!RTC.reg;
+  var reg=!!RTC.reg;if(staff()&&RTC.all&&!RTC._fresh){RTC.all=null;}RTC._fresh=false;
   $("main").innerHTML='<div class="rtcPage"><button class="backBtn" onclick="go(\'home\')">‹ Home</button>'+
   '<div class="hero"><div class="rtcArt">'+ART+'</div><div style="font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:#cfeaff">Legacy Gym</div><h2 class="hh">Road to <span>Christmas</span></h2><div class="fc">10 Week Challenge</div><div class="rtcHook" style="margin-top:8px">Your fittest, fastest and strongest — best shape of the year, right before Christmas.</div><div class="when">Mon 12 Oct → Sat 19 Dec</div><div><span class="tag w">Free</span><span class="tag">Every level</span><span class="tag">No fighting or sparring</span>'+(RTC.count!=null?'<span class="tag">'+RTC.count+' in</span>':'')+'</div></div>'+
   (reg?'<div class="card" style="border-color:#4bc97a"><h3 style="color:#4bc97a">You\'re in ✓ <span>'+days()+' days to go</span></h3><p>Nutrition: <b>'+(RTC.reg.nutrition==="plan"?"$99 10-week plan":RTC.reg.nutrition==="one"?"1-on-1 with Alison":"just the training")+'</b> · <a href="#" onclick="go(\'rtcreg\');return false" style="color:#F1D27A">change</a></p></div>':'')+
