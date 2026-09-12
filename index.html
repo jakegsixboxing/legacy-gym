@@ -506,7 +506,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202609122010";
+const LG_BUILD="202609122120";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -790,7 +790,7 @@ const HOME_CARDS=[
  {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"social"},
  {id:"shop",kicker:"Official Store",title:"Shop Apparel",sub:"Hoodies, tees & gear straight from our store — spend your credit here.",img:"shopmerch"},
  {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true}
-]; /* Nutrition card removed 30 Aug — restore when the nutritionist feature is built */
+]; /* Nutrition card removed 30 Aug — restore when the nutrition coach feature is built */
 function _stepNum(s){return parseInt(String(s).replace(/[^0-9]/g,''),10)||0;}
 function _kmNum(s){return parseFloat(String(s).replace(/[^0-9.]/g,''))||0;}
 function myDoneChallengeRefs(){if(!session||!ptsData.events)return new Set();const uid=session.user.id;return new Set(ptsData.events.filter(e=>e.user_id===uid&&e.kind==="challenge").map(e=>e.ref));}
@@ -7108,8 +7108,8 @@ function renderNutrition(){
   $("main").innerHTML=`
     <div class="hero" style="${bgStyle('food',.5)}">
       <div class="heroKicker">Fuel The Work</div>
-      <div class="heroTitle">Nutritionist</div>
-      <div class="heroText">Real food guidance from our nutritionist — plans, check-ins and meal support built around your training.</div>
+      <div class="heroTitle">Nutrition coach</div>
+      <div class="heroText">Real food guidance from our nutrition coach — plans, check-ins and meal support built around your training.</div>
     </div>
     <div class="card" style="text-align:center;padding:36px 20px">
       <div style="font-size:40px">🍳</div>
@@ -10573,7 +10573,7 @@ function renderPage(){
    '<div class="price"><div><b>The 10-week program</b><span>Classes, S&amp;C sessions, the Legacy Games</span></div><div class="p">Free</div></div>'+
    '<div class="price"><div><b>The app</b><span>Points, leaderboard, challenges, your team</span></div><div class="p">Free</div></div>'+
    '<div class="price"><div><b>Weekly weigh-ins &amp; check-ins</b><span>If that\'s what you\'re chasing — log it in the app</span></div><div class="p">Free</div></div>'+
-   '<div class="price"><div><b>10-week nutrition plan</b><span>Built by Alison, our in-house nutritionist. Open to everyone.</span></div><div class="p x">$99</div></div>'+
+   '<div class="price"><div><b>10-week nutrition plan</b><span>Built by Alison, our in-house nutrition coach. Open to everyone.</span></div><div class="p x">$99</div></div>'+
    '<div class="price"><div><b>1-on-1 with Alison</b><span>Book individual sessions for a fully custom plan</span></div><div class="p x">Extra</div></div></div>'+
   '<div class="card"><h3>Points &amp; prizes</h3><div class="stats"><div class="stat"><b>1</b><span>per class</span></div><div class="stat"><b>2</b><span>per S&amp;C</span></div><div class="stat"><b>+3</b><span>app challenge</span></div><div class="stat"><b>+10</b><span>Games day</span></div></div><p>3 / 5 / 7 classes in a week = Bronze / Silver / Gold with bonus points. Live leaderboard in the app. Prizes announced week 1.</p></div>'+
   '<div class="card"><h3>Fight Club <span>how it links</span></h3><p><b style="color:#F1D27A">The perfect additional training to get you fitter, faster and stronger for fight night.</b></p><p>Being technically sound and ready to fight through your boxing is only half of it — you have to be fit, fast and strong too. The fittest, fastest and strongest at Fight Club will always perform the best, and this is the best way to build that into your training.</p><p>Fight Club does its boxing prep in its own sessions, then trains with Road to Christmas on Tue / Thu / Sat and in the Legacy Games. Do the S&amp;C sessions that fit around your boxing workload.</p></div>'+
