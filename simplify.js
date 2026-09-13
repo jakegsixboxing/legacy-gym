@@ -16,6 +16,9 @@ css.textContent="#tbjHomeBtn,#inHomeBtn{display:none!important}"+
  ".smRow .s{font-size:11px;color:var(--muted);margin-top:2px}"+
  ".smRow .a{margin-left:auto;font-size:22px;color:var(--gold);flex:none}"+
  ".smCoach{display:flex;gap:6px;margin:0 0 16px}.smCoach button{flex:1;border:1px solid var(--gold-dim,#5a4a22);background:linear-gradient(160deg,#181407,#0d0b06);border-radius:12px;padding:10px 6px;color:#fff;font-family:Oswald,sans-serif;font-weight:700;font-size:12.5px;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;line-height:1.15}"+
+ "@keyframes smFlash{0%,100%{box-shadow:0 0 10px rgba(212,175,55,.45),0 0 26px rgba(212,175,55,.15);border-color:var(--gold)}50%{box-shadow:0 0 26px rgba(212,175,55,.85),0 0 54px rgba(212,175,55,.35);border-color:#f1d582}}"+
+ ".homeCard.smGold{border:2px solid var(--gold)!important;animation:smFlash 1.4s ease-in-out infinite}"+
+ "@media (prefers-reduced-motion:reduce){.homeCard.smGold{animation:none}}"+
  ".smCoach button small{display:block;font-family:Montserrat,Inter,sans-serif;font-size:8.5px;letter-spacing:1.5px;color:var(--gold);font-weight:800;margin-bottom:3px}";
 document.head.appendChild(css);
 
@@ -27,13 +30,14 @@ try{
   HOME_CARDS.forEach(function(c){
     if(c.id==="cardio"){c.kicker="Race, Climb & Compete";c.title="HYROX, Cardio & Member Challenges";c.sub="HYROX sessions, StairMaster missions, iconic runs, duels & the club record board — all worth points.";}
     if(c.id==="weights"){c.kicker="The Gym Floor";c.title="Programs & WODs";c.sub="Strength programs and CrossFit benchmarks with timers built in — there when you want them.";}
-    if(c.id==="coaches"){c.title="Book A Coach";c.sub="1-on-1s with Coach Jake, Coach Joe & Coach Sarsha — pads, skills and sparring. Pick your coach, pick your time.";}
+    if(c.id==="coaches"){c.kicker="Coaches \u00b7 1-On-1 Sessions";c.title="Book A Coach";c.sub="1-on-1s with Coach Jake, Coach Joe & Coach Sarsha — pads, skills and sparring. Pick your coach, pick your time.";}
     if(c.id==="board"){c.title="Leaderboard";c.sub="Every point, every member — see who runs the gym.";}
   });
   TRAIN_IDS.splice(0,TRAIN_IDS.length,"classes","boxing","coaches","weights");
   COMPETE_IDS.splice(0,COMPETE_IDS.length,"cardio","board","social","blokes");
 }catch(e){}
-var HOME_HIDE=["weights","cardio","hyrox","social","shop","staff","mvm","timetable"];
+var HOME_HIDE=["weights","hyrox","social","shop","staff","mvm","timetable"];
+var HOME_ORDER=["classes","boxing","coaches","cardio","board","__fc","blokes"];
 function prune(main,ids){ids.forEach(function(id){main.querySelectorAll('.homeCard[onclick="go(\''+id+'\')"]').forEach(function(el){el.remove();});});}
 
 /* ---------- 3. Home: stats that mean something, no duplicate booking strip ---------- */
@@ -78,11 +82,17 @@ window.renderProfile=function(){
 };
 
 /* ---------- 6. Home & hubs: prune what moved, blokes only for blokes ---------- */
+function cardEl(m,id){return id==="__fc"?document.getElementById("fcxCard"):m.querySelector('.homeCard[onclick="go(\''+id+'\')"]');}
 function fixHome(){
   var m=$("main");if(!m||view!=="home")return;
   prune(m,HOME_HIDE);
-  var lb=m.querySelector('.homeCard[onclick="go(\'blokes\')"]');
-  if(lb){if(!isBloke())lb.remove();else{var first=m.querySelector('.homeCard[onclick="go(\'classes\')"]');if(first&&first!==lb.nextSibling)first.insertAdjacentElement("beforebegin",lb);}}
+  var lb=cardEl(m,"blokes");if(lb&&!isBloke())lb.remove();
+  var co=cardEl(m,"coaches");if(co&&!co.classList.contains("smGold"))co.classList.add("smGold");
+  var els=HOME_ORDER.map(function(id){return cardEl(m,id);}).filter(function(e){return e&&e.parentNode===m;});
+  if(els.length<2)return;
+  var ok=true;for(var i=1;i<els.length;i++){if(els[i-1].compareDocumentPosition(els[i])&Node.DOCUMENT_POSITION_PRECEDING){ok=false;break;}}
+  if(ok)return;
+  var ref=els[0];els.slice(1).forEach(function(e){ref.insertAdjacentElement("afterend",e);ref=e;});
 }
 var _renderHome=window.renderHome;
 window.renderHome=function(){var r=_renderHome.apply(this,arguments);try{fixHome();setTimeout(fixHome,60);setTimeout(fixHome,400);}catch(e){}return r;};
