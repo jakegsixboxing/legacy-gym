@@ -124,3 +124,22 @@ function homeRow(){
 var _rh=window.renderHome;window.renderHome=function(){var r=_rh.apply(this,arguments);try{homeRow();setTimeout(homeRow,80);}catch(e){}return r;};
 try{if(view==="home")homeRow();}catch(e){}
 })();
+
+/* ---------- Coach-written rounds: named rounds that aren't in the Build Your Own library.
+   Programs in fighter_programs reference these ids; the workload card and the round timer resolve them here. ---------- */
+(function(){
+"use strict";
+var C={
+ ay1:{id:"ay1",n:"Jab to the head",tag:"Bag · single jabs · clean lead hand"},
+ ay2:{id:"ay2",n:"Jab to the chest",tag:"Bag · single jabs · hand doesn’t wander"},
+ ay3:{id:"ay3",n:"Jab — head and chest",tag:"Bag · mix the targets, same position"},
+ ay4:{id:"ay4",n:"Speed of the jab",tag:"Bag · fast out, fast back"},
+ ay5:{id:"ay5",n:"Jabs + straight back hand",tag:"Bag · 3 jabs to 1 back hand"},
+ ay6:{id:"ay6",n:"Floor-to-ceiling ball · jabs",tag:"Timing and hand position"},
+ ay7:{id:"ay7",n:"High-volume jabs · wrecking ball",tag:"Volume — elbows in, hand home"},
+ aySlip1:{id:"aySlip1",n:"Slip line · round 1",tag:"5:00 · arm & foot defence, controlled head and trunk",fixed:300},
+ aySlip2:{id:"aySlip2",n:"Slip line · round 2",tag:"5:00 · clean punches, no big leans or pulls",fixed:300}
+};
+var _bf=window.byoFind;
+window.byoFind=function(id){return C[id]||(_bf?_bf.apply(this,arguments):null);};
+})();
