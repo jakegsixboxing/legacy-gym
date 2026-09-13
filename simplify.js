@@ -36,8 +36,8 @@ try{
   TRAIN_IDS.splice(0,TRAIN_IDS.length,"classes","boxing","coaches","weights");
   COMPETE_IDS.splice(0,COMPETE_IDS.length,"cardio","board","social","blokes");
 }catch(e){}
-var HOME_HIDE=["weights","hyrox","social","shop","staff","mvm","timetable"];
-var HOME_ORDER=["classes","boxing","coaches","cardio","board","__fc","blokes"];
+var HOME_HIDE=["weights","hyrox","shop","staff","mvm","timetable"];
+var HOME_ORDER=["classes","boxing","coaches","cardio","board","social","__fc","blokes"];
 function prune(main,ids){ids.forEach(function(id){main.querySelectorAll('.homeCard[onclick="go(\''+id+'\')"]').forEach(function(el){el.remove();});});}
 
 /* ---------- 3. Home: stats that mean something, no duplicate booking strip ---------- */
