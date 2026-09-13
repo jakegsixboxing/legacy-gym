@@ -246,7 +246,7 @@ function renderFC(){
   var main=$("main");
   if(!FC.loaded){main.innerHTML='<div class="fcx"><button class="back" onclick="go(\'home\')">‹ Home</button><div class="card"><p>Loading Fight Club…</p></div></div>';load().then(function(){if(view==="fc")renderFC();});return;}
   if(!canEnter()){go("home");return;}
-  var tabs=staff()?[["fighters","Fighters"],["train","Extra Training"],["spar","Sparring"],["camp","Camp"]]:[["camp","Camp"],["progress","Progress"],["spar","Sparring"],["fight","Fight Night"]];
+  var tabs=staff()?[["fighters","Fighters"],["progress","Progress"],["train","Extra Training"],["spar","Sparring"],["camp","Camp"]]:[["camp","Camp"],["progress","Progress"],["spar","Sparring"],["fight","Fight Night"]];
   var w=WEEK();
   var newVid=!staff()&&FC.me&&vidsOf(FC.me).some(function(v){return !v.seen_at;});
   var html='<div class="fcx"><button class="back" onclick="go(\'home\')">‹ Home</button>'+
@@ -254,7 +254,7 @@ function renderFC(){
    '<div class="pills">'+tabs.map(function(t){return '<button class="'+(FC.tab===t[0]?"on":"")+'" onclick="fcxSet(\'tab\',\''+t[0]+'\')">'+t[1]+(t[0]==="spar"&&newVid?'<span class="dot"></span>':'')+'</button>';}).join("")+'</div>';
   var body="";
   try{
-    if(staff()){body=FC.tab==="fighters"?fightersHtml():FC.tab==="train"?trainHtml():FC.tab==="spar"?sparStaffHtml():campStaffHtml();}
+    if(staff()){body=FC.tab==="fighters"?fightersHtml():FC.tab==="progress"?progressStaffHtml():FC.tab==="train"?trainHtml():FC.tab==="spar"?sparStaffHtml():campStaffHtml();}
     else{body=FC.tab==="camp"?campHtml():FC.tab==="progress"?progressHtml():FC.tab==="spar"?sparHtml():fightHtml();}
   }catch(e){console.error(e);body='<div class="card"><p>Something went wrong loading this bit. Pull down to refresh.</p></div>';}
   main.innerHTML=html+body+'</div>';
@@ -293,7 +293,7 @@ function chartAtt(f){
     if(sel){var t=pol(ang,Rr+9);s+='<circle cx="'+t[0]+'" cy="'+t[1]+'" r="3" fill="#fff" filter="url(#atg)"/>';}
     if(d===0&&w>0&&w%3===0){var l=pol(a0+(a1-a0)*i/N,Rr+12);s+='<text x="'+l[0]+'" y="'+(l[1]+3)+'" fill="#6f6d66" font-size="8" text-anchor="middle" font-family="Inter,Montserrat,sans-serif">wk '+(w+1)+'</text>';}}
   var n=attN(f),tot=Math.max(0,WEEK()*3);
-  s+='<text x="'+cx+'" y="'+(cy-22)+'" fill="#fff" font-size="44" text-anchor="middle" font-family="Oswald" font-weight="700" filter="url(#ats)">'+n+'</text><text x="'+cx+'" y="'+(cy-4)+'" fill="#9a9891" font-size="9.5" text-anchor="middle" font-family="Inter,Montserrat,sans-serif" font-weight="800" letter-spacing="2">OF '+tot+' SO FAR</text><text x="'+cx+'" y="'+(cy+14)+'" fill="'+col+'" font-size="10" text-anchor="middle" font-family="Inter,Montserrat,sans-serif" font-weight="700">'+(30-tot)+' sessions to fight night</text></svg>';
+  s+='<text x="'+cx+'" y="'+(cy-22)+'" fill="#fff" font-size="44" text-anchor="middle" font-family="Oswald" font-weight="700" filter="url(#ats)">'+n+'</text><text x="'+cx+'" y="'+(cy-4)+'" fill="#9a9891" font-size="9.5" text-anchor="middle" font-family="Inter,Montserrat,sans-serif" font-weight="800" letter-spacing="2">'+(tot?'OF '+tot+' SO FAR':'OF 30 · CAMP STARTS '+fmtD(iso(campStart())).toUpperCase())+'</text><text x="'+cx+'" y="'+(cy+14)+'" fill="'+col+'" font-size="10" text-anchor="middle" font-family="Inter,Montserrat,sans-serif" font-weight="700">'+(30-tot)+' sessions to fight night</text></svg>';
   if(FC.attSel!==null){var ww=Math.floor(FC.attSel/3),dd=FC.attSel%3,stt=a[ww][dd];var lbl=stt===1?"Trained":stt===0?"Missed":(sessDate(ww+1,dd)<new Date()?"Not logged":"Coming up");
     s+='<div class="tip"><div><b>Week '+(ww+1)+' · '+sessDate(ww+1,dd).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"})+'</b><span>'+DAYLBL[dd]+' · 6:45 pm</span></div><span class="tag '+(lbl==="Trained"?"ntag":lbl==="Missed"?"rd":"")+'">'+lbl+'</span></div>';}
   else s+='<div class="tip dimtip"><span>Tap any tick for the session</span></div>';
@@ -301,13 +301,13 @@ function chartAtt(f){
 }
 window.FC_attSel=function(i){FC.attSel=i;R();};
 function chartWt(f){
-  var col=NEON.wt,rows=wiOf(f);if(!rows.length)return '';
+  var col=NEON.wt,rows=wiOf(f),pre=false;if(!rows.length){if(!f.weight_kg)return '';rows=[{week:1,weight_kg:f.weight_kg}];pre=true;}
   var w=rows.map(function(r){return Number(r.weight_kg);}),wk=rows.map(function(r){return r.week;});
   var goal=Number(f.fight_weight_kg||w[0]);var all=w.concat([goal]);var mn=Math.min.apply(null,all)-0.6,mx=Math.max.apply(null,all)+0.6;
   function y(v){return CH-PB-(v-mn)/(mx-mn)*(CH-PT-PB);}function x(i){return xs(Math.max(0,Math.min(9,wk[i]-1)));}
   var pts=w.map(function(v,i){return x(i)+","+y(v);});
   var area='M'+x(0)+','+(CH-PB)+' L'+pts.join(" L")+' L'+x(w.length-1)+','+(CH-PB)+' Z';var lx=x(w.length-1),ly=y(w[w.length-1]);
-  return '<svg class="chart" viewBox="0 0 '+CW+' '+CH+'">'+glowDefs('wt',col)+grid()+'<path d="'+area+'" fill="url(#wta)"/><line x1="'+PL+'" x2="'+(CW-PR)+'" y1="'+y(goal)+'" y2="'+y(goal)+'" stroke="'+col+'" stroke-opacity=".5" stroke-dasharray="4 4"/><text x="'+(CW-PR)+'" y="'+(y(goal)-4)+'" fill="'+col+'" fill-opacity=".8" font-size="8.5" text-anchor="end" font-family="Inter,Montserrat,sans-serif" font-weight="700">FIGHT WEIGHT '+goal+' KG</text><polyline class="draw" points="'+pts.join(" ")+'" fill="none" stroke="'+col+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" filter="url(#wtg)"/>'+w.map(function(v,i){return i<w.length-1?'<circle cx="'+x(i)+'" cy="'+y(v)+'" r="2.5" fill="#0b0b0c" stroke="'+col+'" stroke-width="1.5"/>':'';}).join("")+'<circle cx="'+lx+'" cy="'+ly+'" r="9" fill="'+col+'" fill-opacity=".18"><animate attributeName="r" values="6;12;6" dur="2.4s" repeatCount="indefinite"/><animate attributeName="fill-opacity" values=".3;.05;.3" dur="2.4s" repeatCount="indefinite"/></circle><circle cx="'+lx+'" cy="'+ly+'" r="4.5" fill="#fff" filter="url(#wtg)"/><text x="'+lx+'" y="'+(ly-12)+'" fill="#fff" font-size="12" text-anchor="middle" font-family="Oswald" font-weight="700">'+w[w.length-1]+' kg</text>'+axisWeeks()+'</svg>';
+  return '<svg class="chart" viewBox="0 0 '+CW+' '+CH+'">'+glowDefs('wt',col)+grid()+'<path d="'+area+'" fill="url(#wta)"/><line x1="'+PL+'" x2="'+(CW-PR)+'" y1="'+y(goal)+'" y2="'+y(goal)+'" stroke="'+col+'" stroke-opacity=".5" stroke-dasharray="4 4"/><text x="'+(CW-PR)+'" y="'+(y(goal)-4)+'" fill="'+col+'" fill-opacity=".8" font-size="8.5" text-anchor="end" font-family="Inter,Montserrat,sans-serif" font-weight="700">FIGHT WEIGHT '+goal+' KG</text><polyline class="draw" points="'+pts.join(" ")+'" fill="none" stroke="'+col+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" filter="url(#wtg)"/>'+w.map(function(v,i){return i<w.length-1?'<circle cx="'+x(i)+'" cy="'+y(v)+'" r="2.5" fill="#0b0b0c" stroke="'+col+'" stroke-width="1.5"/>':'';}).join("")+'<circle cx="'+lx+'" cy="'+ly+'" r="9" fill="'+col+'" fill-opacity=".18"><animate attributeName="r" values="6;12;6" dur="2.4s" repeatCount="indefinite"/><animate attributeName="fill-opacity" values=".3;.05;.3" dur="2.4s" repeatCount="indefinite"/></circle><circle cx="'+lx+'" cy="'+ly+'" r="4.5" fill="#fff" filter="url(#wtg)"/><text x="'+lx+'" y="'+(ly-12)+'" fill="#fff" font-size="12" text-anchor="middle" font-family="Oswald" font-weight="700">'+w[w.length-1]+' kg</text>'+(pre?'<text x="'+lx+'" y="'+(ly+18)+'" fill="#9a9891" font-size="8.5" text-anchor="start" font-family="Inter,Montserrat,sans-serif" font-weight="700">WALK-AROUND · LINE STARTS WEEK 1</text>':'')+axisWeeks()+'</svg>';
 }
 function chartSpar(f){
   var col=NEON.spar,nights=nightsOf(f),cum=roundsOf(f).length,target=(FC.camp&&FC.camp.spar_target)||12;
@@ -334,12 +334,23 @@ function chartKm(f){
 }
 function gCard(title,big,unit,tag,svg,foot,col){return '<div class="card gph" style="--n:'+col+'"><div class="row" style="align-items:flex-start"><div><div class="gk">'+title+'</div><div class="gb">'+big+'<small>'+unit+'</small></div></div>'+(tag?'<span class="tag ntag">'+tag+'</span>':'')+'</div>'+svg+(foot?'<p style="font-size:11px;margin-top:2px">'+foot+'</p>':'')+'</div>';}
 function graphsHtml(f){
-  var a=attN(f),tot=Math.max(0,WEEK()*3),rows=wiOf(f),lost=rows.length>1?(Number(rows[0].weight_kg)-Number(rows[rows.length-1].weight_kg)).toFixed(1):null,cum=roundsOf(f).length,km=kmN(f),kw=kmByWeek(f),best=Math.max.apply(null,kw.concat([0]));
+  var a=attN(f),tot=Math.max(0,WEEK()*3),rows=wiOf(f),lost=rows.length>1?(Number(rows[0].weight_kg)-Number(rows[rows.length-1].weight_kg)).toFixed(1):null,cum=roundsOf(f).length,km=kmN(f),kw=kmByWeek(f),best=Math.max.apply(null,kw.concat([0])),st=staff(),you=st?E(f.first_name):"you",kmT=(FC.camp&&FC.camp.km_target)||10;
   var cur=rows.length?Number(rows[rows.length-1].weight_kg):(f.weight_kg?Number(f.weight_kg):null);
-  return gCard("Sessions turned up to",a," of "+tot,"",chartAtt(f),a>=tot-1&&tot>0?"Turning up is the camp. You're doing the camp.":"Every missed session is a red tick. Fill the next three.",NEON.att)
-   +gCard("Weight",cur!=null?cur:"—"," kg",lost&&Number(lost)>0?"−"+lost+" kg this camp":"",chartWt(f)||'<p style="margin-top:8px">Log a Sunday weigh-in below and the line starts here.</p>',f.fight_weight_kg&&cur!=null?"Fight weight "+f.fight_weight_kg+" kg · "+(cur-Number(f.fight_weight_kg)).toFixed(1)+" kg to go · only you, Jake and Ali see this":"Only you, Jake and Ali see this",NEON.wt)
-   +gCard("Sparring rounds banked",cum," rounds","",chartSpar(f),"Every round you do on a sparring night lands here. Jake logs them ringside.",NEON.spar)
-   +gCard("Road work",km," km this camp",best>=10?"best week "+best+" km":"",chartKm(f),"Log your runs below. "+((FC.camp&&FC.camp.km_target)||10)+" km a week is the camp minimum from week 4.",NEON.km);
+  var togo=f.fight_weight_kg&&cur!=null?(cur-Number(f.fight_weight_kg)).toFixed(1).replace(/^-?0\.0$/,"0"):null;
+  return gCard("Sessions turned up to",a," of "+(tot||30),"",chartAtt(f),tot===0?(st?"Three a week from Mon 12 Oct. Every session "+you+" makes lights up gold, every miss goes red.":"Three a week from Mon 12 Oct. Every session you make lights up gold, every miss goes red."):a>=tot-1&&tot>0?(st?you+" is turning up. That's the camp.":"Turning up is the camp. You're doing the camp."):"Every missed session is a red tick. Fill the next three.",NEON.att)
+   +gCard("Weight",cur!=null?cur:"—"," kg",lost&&Number(lost)>0?"−"+lost+" kg this camp":"",chartWt(f)||'<p style="margin-top:8px">'+(st?"No weight on "+you+"'s profile yet — add one under Profile › Edit.":"Log a Sunday weigh-in below and the line starts here.")+'</p>',(togo!=null?"Fight weight "+f.fight_weight_kg+" kg · "+togo+" kg to go":"No fight weight set yet")+(st?" · Sunday weigh-ins land here":" · only you, Jake and Ali see this"),NEON.wt)
+   +gCard("Sparring rounds banked",cum," rounds","",chartSpar(f),st?"Every round logged ringside lands here the night "+you+" does it.":"Every round you do on a sparring night lands here. Jake logs them ringside.",NEON.spar)
+   +gCard("Road work",km," km this camp",best>=kmT?"best week "+best+" km":"",chartKm(f),(st?you+" logs runs in the app. ":"Log your runs below. ")+kmT+" km a week is the camp minimum from week 4.",NEON.km);
+}
+function progressStaffHtml(){
+  var tot=Math.max(0,WEEK()*3),att=0,kg=0,rounds=FC.rounds.length,km=0;
+  FC.F.forEach(function(f){att+=attN(f);km+=Number(kmN(f));var r=wiOf(f);if(r.length>1)kg+=Number(r[0].weight_kg)-Number(r[r.length-1].weight_kg);});
+  if(!FC.pfid||!byId(FC.pfid))FC.pfid=(FC.fid&&byId(FC.fid)?FC.fid:(FC.F[0]||{}).id);var f=byId(FC.pfid);
+  var h='<div class="card"><div class="row"><h3 style="margin:0">Whole camp</h3><span class="tag g">'+FC.F.length+' fighters</span></div><div class="tot" style="margin-top:8px"><div><b>'+att+'<small>/'+(tot*FC.F.length||30*FC.F.length)+'</small></b><span>Sessions</span></div><div><b>'+(kg>0?"−"+kg.toFixed(1):"0")+'<small>kg</small></b><span>Camp total</span></div><div><b>'+rounds+'</b><span>Spar rounds</span></div><div><b>'+km.toFixed(0)+'<small>km</small></b><span>Road work</span></div></div></div>';
+  h+='<div class="chips" style="overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -4px;padding:2px 4px 10px">'+FC.F.map(function(x){return '<button class="chip" style="flex:none;'+(x.id===FC.pfid?'background:#2a2410;border-color:#c9a44c;color:#F1D27A':'')+'" onclick="FC.pfid=\''+x.id+'\';FC.attSel=null;FC.sparSel=null;fcxSub(FC.sub)">'+E(short(x))+'</button>';}).join("")+'</div>';
+  if(!f)return h+'<div class="card"><p>No fighters in the camp yet.</p></div>';
+  h+='<div class="card" style="padding:10px 12px"><div class="row">'+av(f)+'<div class="n" style="flex:1;margin-left:10px"><b style="font-family:Oswald,sans-serif;font-size:16px;color:#fff;letter-spacing:.5px">'+E(full(f))+'</b><span style="display:block;font-size:10.5px;color:#9a9891">'+(f.camp_number===1?'Debut':'Camp '+f.camp_number)+(f.suburb?' · '+E(f.suburb):'')+(f.opponent_id&&byId(f.opponent_id)?' · v '+E(short(byId(f.opponent_id))):'')+'</span></div><button class="sm" onclick="fcxOpen(\''+f.id+'\')">Profile ›</button></div></div>';
+  return h+graphsHtml(f);
 }
 function progressHtml(){
   var f=FC.me,w=Math.max(1,WEEK()),cur=FC.wi.find(function(r){return r.fighter_id===f.id&&r.week===w;})||{};
