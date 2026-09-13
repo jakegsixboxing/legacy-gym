@@ -116,6 +116,17 @@ window.renderClasses=function(){
   return r;
 };
 
-/* ---------- 9. Anything already on screen gets the treatment ---------- */
-try{if(view==="home"){renderNav();renderHome();}else renderNav();}catch(e){}
+/* ---------- 9. Belt and braces: some add-ons re-render through captured references, so watch the page ---------- */
+function fixCompete(){try{if(view==="compete"&&!isBloke())prune($("main"),["blokes"]);}catch(e){}}
+function fixCardio(){try{if(view!=="cardio")return;var m=$("main");var t=m.querySelector(".subTabs");if(t&&!t.querySelector("[data-hy]")){var b=document.createElement("button");b.setAttribute("data-hy","1");b.textContent="HYROX";b.setAttribute("onclick","go('hyrox')");t.insertBefore(b,t.firstChild);}var hk=m.querySelector(".heroKicker"),ht=m.querySelector(".heroTitle");if(hk&&hk.textContent!=="Race, Climb & Compete")hk.textContent="Race, Climb & Compete";if(ht&&ht.textContent!=="HYROX, Cardio & Member Challenges")ht.textContent="HYROX, Cardio & Member Challenges";}catch(e){}}
+function fixHyrox(){try{if(view!=="hyrox")return;var b=$("main").querySelector(".backBtn");if(b&&/Home/i.test(b.textContent)){b.textContent="\u2039 Back To Challenges";b.setAttribute("onclick","go('cardio')");}}catch(e){}}
+function fixClasses(){try{if(view!=="classes")return;var m=$("main");if(m.querySelector("#smWeek"))return;var back=m.querySelector(".backBtn");if(!back)return;var b=document.createElement("button");b.id="smWeek";b.className="btnLink";b.style.cssText="display:block;margin:-4px 0 12px;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;font-weight:800;color:var(--gold);background:none;border:0;padding:0;cursor:pointer";b.textContent="See the full week\u2019s timetable \u203a";b.setAttribute("onclick","go('timetable')");back.insertAdjacentElement("afterend",b);}catch(e){}}
+function fixProfile(){try{if(view!=="profile")return;var m=$("main");if(m.querySelector(".smRow"))return;var hero=m.querySelector(".hero");if(!hero)return;var w=document.createElement("div");w.innerHTML='<button class="smRow" onclick="go(\'shop\')"><span><div class="k">Official store</div><div class="t">Store &amp; Credit</div><div class="s">Hoodies, tees &amp; gear \u2014 spend your credit here.</div></span><span class="a">\u203a</span></button>'+(isStaff()?'<button class="smRow" onclick="go(\'staff\')"><span><div class="k">Staff eyes only</div><div class="t">Staff Room</div><div class="s">Team chat, daily tasks &amp; PT commissions.</div></span><span class="a">\u203a</span></button>':'');Array.prototype.slice.call(w.childNodes).reverse().forEach(function(n){hero.insertAdjacentElement("afterend",n);});}catch(e){}}
+function fixAll(){fixHome();fixCompete();fixCardio();fixHyrox();fixClasses();fixProfile();}
+var pend=null;function schedule(){if(pend)return;pend=setTimeout(function(){pend=null;fixAll();},40);}
+try{var mo=new MutationObserver(schedule);var mainEl=document.getElementById("main");if(mainEl)mo.observe(mainEl,{childList:true,subtree:true});}catch(e){}
+try{var navEl=document.getElementById("nav");if(navEl)new MutationObserver(function(){try{if(navEl.querySelectorAll(".navBtn").length===5)renderNav();}catch(e){}}).observe(navEl,{childList:true});}catch(e){}
+
+/* ---------- 10. Anything already on screen gets the treatment ---------- */
+try{renderNav();fixAll();}catch(e){}
 })();
