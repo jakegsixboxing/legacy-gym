@@ -108,7 +108,8 @@ function runCard(uid){
 }
 function programsHtml(){
   var all=[];try{all=(sc2.allPrograms||[]).slice();}catch(e){}
-  all.sort(function(a,b){var n=nameOf(a.user_id).localeCompare(nameOf(b.user_id));return n||(String(b.created_at)<String(a.created_at)?-1:1);});
+  function dayRank(p){var d=(p.schedule&&p.schedule.days)||[];if(!d.length)return 99;return Math.min.apply(null,d.map(function(x){return Number(x)===0?7:Number(x);}));}
+  all.sort(function(a,b){var n=nameOf(a.user_id).localeCompare(nameOf(b.user_id));return n||(dayRank(a)-dayRank(b))||(String(b.created_at)<String(a.created_at)?-1:1);});
   var h='<div class="secTitle">Blocks <span style="color:var(--muted);font-weight:600;letter-spacing:1px;font-size:11px">'+Object.keys(RUNNERS).length+' fighters</span></div>';
   if(!isJake())h+='<div class="pvNone">Running-block times are private to each fighter and Jake.</div>';
   else if(PV.runs===null)h+='<div class="pvNone">Loading logged sessions…</div>';
