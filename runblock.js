@@ -174,6 +174,21 @@ var C={
  jkSpeed:{id:"jkSpeed",n:"Speedball",tag:"Rhythm and hand speed"},
  jkDead:{id:"jkDead",n:"Dead ball in the air · shadow on the back foot",tag:"Throw it up, box on the back foot while it’s in the air"}
 };
+/* ---- Section colour coding on every fighter's training block (.ft = Boxing / Conditioning / Strength).
+   Sarsha's block renders as .sp, not .ft, so hers is untouched. Mia gets her own scheme. ---- */
+var MIA_UID="154f7fe0-401c-4076-8074-ad1c9a7502e3";
+var scss=document.createElement("style");scss.textContent=
+ ".ft .tabs button{--bgc:transparent;--txt:var(--c);background:var(--bgc);color:var(--txt);border:1.5px solid var(--c);opacity:.72;animation:none}"+
+ ".ft .tabs button small{color:var(--txt);opacity:.75}"+
+ ".ft .tabs button.on{opacity:1;border-width:2.5px;box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 28%,transparent)}"+
+ ".ft .tabs button.on small{opacity:.95}"+
+ ".ft .tabs button:nth-child(1){--c:#4bc97a}"+
+ ".ft .tabs button:nth-child(2){--c:#ff5247}"+
+ ".ft .tabs button:nth-child(3){--c:#4a9cff}"+
+ "#tt-"+MIA_UID+" .tabs button:nth-child(1){--c:#ffffff;--bgc:#000000;--txt:#ffffff}"+
+ "#tt-"+MIA_UID+" .tabs button:nth-child(2){--c:#ff4fc4;--bgc:#ff4fc4;--txt:#ffffff}"+
+ "#tt-"+MIA_UID+" .tabs button:nth-child(3){--c:#ff4fc4;--bgc:#000000;--txt:#ff4fc4}";
+document.head.appendChild(scss);
 var _bf=window.byoFind;
 window.byoFind=function(id){return C[id]||(_bf?_bf.apply(this,arguments):null);};
 })();
