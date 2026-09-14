@@ -21,6 +21,8 @@ function find(id){try{return byoFind(id);}catch(e){return null;}}
 function gloves(it,prev){
   if(!it)return !!prev;
   if(Object.prototype.hasOwnProperty.call(FORCE,it.id))return FORCE[it.id];
+  if(/^bg/.test(it.id||""))return true;            /* library: Bag Work */
+  if(/^(sh|da|rs|tb|fw|skip|db|cd|co|run|lf_)/.test(it.id||""))return false; /* shadow, defence, ring shadow, tennis ball, footwork, skipping, dumbbells, conditioning, core, road, lifts */
   var t=(it.n||"")+" "+(it.tag||"");
   if(NOGLOVE.test(t))return false;
   if(GLOVE.test(t))return true;
