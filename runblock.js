@@ -165,7 +165,14 @@ var C={
  suWallOpen:{id:"suWallOpen",n:"Wall bag · open round",tag:"Everything, off the level change"},
  suFtcJab:{id:"suFtcJab",n:"Floor-to-ceiling ball · jab only",tag:"Timing on the jab"},
  suFtcStr:{id:"suFtcStr",n:"Floor-to-ceiling ball · straight shots",tag:"Straights, hands home"},
- suFtcOpen:{id:"suFtcOpen",n:"Floor-to-ceiling ball · open",tag:"Open work on the ball"}
+ suFtcOpen:{id:"suFtcOpen",n:"Floor-to-ceiling ball · open",tag:"Open work on the ball"},
+ jkRing10:{id:"jkRing10",n:"Open shadow · ring control",tag:"10 minutes straight at 50% — never touch the ropes or a corner. Straights building the combinations, two-phase attacks, catch and counter.",fixed:600},
+ jkAngle:{id:"jkAngle",n:"Shadow · angles only",tag:"Create the angle, find the attack off it. Nothing else."},
+ jkBack1:{id:"jkBack1",n:"Back-foot boxing · 30 m",tag:"Downstairs — jabbing on the back foot"},
+ jkBack2:{id:"jkBack2",n:"Back-foot boxing · 30 m",tag:"Jab on the back foot, angle off with the counter, straight back onto the back foot"},
+ jkFtc:{id:"jkFtc",n:"Floor-to-ceiling ball",tag:"Speed and combinations"},
+ jkSpeed:{id:"jkSpeed",n:"Speedball",tag:"Rhythm and hand speed"},
+ jkDead:{id:"jkDead",n:"Dead ball in the air · shadow on the back foot",tag:"Throw it up, box on the back foot while it’s in the air"}
 };
 var _bf=window.byoFind;
 window.byoFind=function(id){return C[id]||(_bf?_bf.apply(this,arguments):null);};
