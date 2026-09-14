@@ -172,7 +172,21 @@ var C={
  jkBack2:{id:"jkBack2",n:"Back-foot boxing · 30 m",tag:"Jab on the back foot, angle off with the counter, straight back onto the back foot"},
  jkFtc:{id:"jkFtc",n:"Floor-to-ceiling ball",tag:"Speed and combinations"},
  jkSpeed:{id:"jkSpeed",n:"Speedball",tag:"Rhythm and hand speed"},
- jkDead:{id:"jkDead",n:"Dead ball in the air · shadow on the back foot",tag:"Throw it up, box on the back foot while it’s in the air"}
+ jkDead:{id:"jkDead",n:"Dead ball in the air · shadow on the back foot",tag:"Throw it up, box on the back foot while it’s in the air"},
+ dgShadow5:{id:"dgShadow5",n:"Shadow boxing · mirror",tag:"5:00 continuous — hand position, two-phase attacks, counter punching",fixed:300},
+ dgJab1:{id:"dgJab1",n:"Jabs to head and chest",tag:"Bag · lead hand only"},
+ dgJab2:{id:"dgJab2",n:"Jabs to head, chest and stomach",tag:"Bag · three levels off the jab"},
+ dgJab3:{id:"dgJab3",n:"Jab anywhere + backhand to the head",tag:"Bag · jab free, back hand upstairs"},
+ dgStr:{id:"dgStr",n:"Open straight punches",tag:"Bag · straights only"},
+ dgBent:{id:"dgBent",n:"Bent-arm punches",tag:"Bag · mid to short range"},
+ dgOpen:{id:"dgOpen",n:"Open boxing",tag:"Bag · put it together"},
+ dgRing1:{id:"dgRing1",n:"Shadow · movement only",tag:"In the ring — no punches. Movement, positioning and footwork"},
+ dgRing2:{id:"dgRing2",n:"Shadow · lead hand only",tag:"In the ring"},
+ dgRing3:{id:"dgRing3",n:"Shadow · straight shots only",tag:"In the ring"},
+ dgRing4:{id:"dgRing4",n:"Open shadow",tag:"In the ring"},
+ dgWallSw:{id:"dgWallSw",n:"Wall bag · straight shots",tag:"Switch punching"},
+ dgWallBent:{id:"dgWallBent",n:"Wall bag · bent-arm punching",tag:"All inside work · shift attacks"},
+ dgWallOpen:{id:"dgWallOpen",n:"Wall bag · open round",tag:"Everything you have"}
 };
 /* ---- Section colour coding on every fighter's training block (.ft = Boxing / Conditioning / Strength).
    Sarsha's block renders as .sp, not .ft, so hers is untouched. Mia gets her own scheme. ---- */
