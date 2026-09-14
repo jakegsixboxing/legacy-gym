@@ -138,7 +138,15 @@ var C={
  ay6:{id:"ay6",n:"Floor-to-ceiling ball · jabs",tag:"Timing and hand position"},
  ay7:{id:"ay7",n:"High-volume jabs · wrecking ball",tag:"Volume — elbows in, hand home"},
  aySlip1:{id:"aySlip1",n:"Slip line · round 1",tag:"5:00 · arm & foot defence, controlled head and trunk",fixed:300},
- aySlip2:{id:"aySlip2",n:"Slip line · round 2",tag:"5:00 · clean punches, no big leans or pulls",fixed:300}
+ aySlip2:{id:"aySlip2",n:"Slip line · round 2",tag:"5:00 · clean punches, no big leans or pulls",fixed:300},
+ mpSlip1:{id:"mpSlip1",n:"Double slip line · defence only",tag:"Head and foot defence — no punches"},
+ mpSlip2:{id:"mpSlip2",n:"Double slip line · defence only",tag:"Same again — clean, controlled, no punches"},
+ mpSlip3:{id:"mpSlip3",n:"Double slip line · straight punches",tag:"Straights with the same defensive actions"},
+ mpSlip4:{id:"mpSlip4",n:"Double slip line · straight punches",tag:"Same again — hold the structure"},
+ mpSlip5:{id:"mpSlip5",n:"Double slip line · open",tag:"Any punches you like on the line"},
+ mpSpeed:{id:"mpSpeed",n:"Speedball",tag:"Rhythm and hand speed"},
+ mpFtc:{id:"mpFtc",n:"Floor-to-ceiling ball",tag:"Timing, accuracy, hands home"},
+ mpWreck:{id:"mpWreck",n:"Wrecking ball",tag:"Footwork · defence · second-phase attacks"}
 };
 var _bf=window.byoFind;
 window.byoFind=function(id){return C[id]||(_bf?_bf.apply(this,arguments):null);};
