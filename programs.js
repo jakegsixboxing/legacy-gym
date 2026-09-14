@@ -10,6 +10,13 @@ var RUNNERS={
  "e4d86ca0-b371-4e3d-a343-8603175b1034":"Ayrton",
  "43126c8e-efe2-484e-bd52-d05c55548b6d":"Sunnie",
  "40ee586b-3970-4961-9858-7c8ed91a8c76":"Arian"};
+/* Block 1 (4 weeks from Mon 14 Sep). Sarsha runs the full block: boxing 6 days a week
+   (Mon & Wed are doubles), road work Mon/Wed/Fri, S&C Tue/Thu. The other four are on the
+   running block only until Jake writes their boxing in. */
+var SECN={box:"Boxing",con:"Road work",str:"Strength"};
+var PLAN={"2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139":{box:24,con:12,str:8}};
+function planFor(uid){return PLAN[uid]||{con:12};}
+function planTotal(pl){return Object.keys(pl).reduce(function(a,k){return a+pl[k];},0);}
 var PV={tab:"roster",sub:"every",runs:null,loading:false};
 function me(){try{return (profile&&profile.id)||null;}catch(e){return null;}}
 function isJake(){return me()===JAKE;}
@@ -46,7 +53,7 @@ document.head.appendChild(css);
 
 async function loadRuns(){
   if(PV.loading||PV.runs!==null)return;PV.loading=true;
-  try{var r=await sb.from("fighter_sessions").select("user_id,section,week,weekday,points,time_secs,title,created_at").eq("block",1).eq("section","con");
+  try{var r=await sb.from("fighter_sessions").select("user_id,section,week,weekday,points,time_secs,title,created_at").eq("block",1);
     PV.runs=r.error?[]:(r.data||[]);}catch(e){PV.runs=[];}
   PV.loading=false;redraw();
 }
@@ -81,22 +88,28 @@ function progCard(p){
    '<div class="s">'+(nx?'Next '+fmtD(nx.date):(!sess.length?'No days scheduled':late?(late+' session'+(late===1?'':'s')+' missed · block finished'):'All sessions done'))+'</div></button>';
 }
 function runCard(uid){
+  var pl=planFor(uid),tot=planTotal(pl);
   var rows=(PV.runs||[]).filter(function(r){return r.user_id===uid;});
-  var done=rows.filter(function(r){return (r.points||0)>0;}).length,pts=rows.reduce(function(a,r){return a+(r.points||0);},0);
-  var last=rows.slice().sort(function(a,b){return String(a.created_at)<String(b.created_at)?1:-1;})[0];
-  var pct=Math.round(done/12*100);
+  var done=rows.filter(function(r){return (r.points||0)>0&&pl[r.section];}).length;
+  var pts=rows.reduce(function(a,r){return a+(r.points||0);},0);
+  var pct=tot?Math.round(done/tot*100):0;
+  var breakdown=Object.keys(pl).map(function(k){
+    var d=rows.filter(function(r){return r.section===k&&(r.points||0)>0;}).length;
+    return SECN[k]+" "+d+"/"+pl[k];
+  }).join(" · ");
+  var full=Object.keys(pl).length>1;
   return '<button class="pvCard" onclick="openCoachFighterView(\''+uid+'\')">'+
    '<div class="pvRow"><div style="flex:1;min-width:0"><div class="k">'+esc(RUNNERS[uid])+(done?'':' <span class="pvChip">Nothing logged</span>')+'</div>'+
-   '<div class="nm">Running block · 4 weeks</div>'+
-   '<div class="s">Mon run · Wed oval sprints · Fri run'+(last?' · last: '+esc(last.title||"")+'':'')+'</div></div>'+
-   '<div class="rt">'+done+'<small>of 12</small></div></div>'+
+   '<div class="nm">'+(full?'Block 1 · 4 weeks':'Running block · 4 weeks')+'</div>'+
+   '<div class="s">'+esc(breakdown)+'</div></div>'+
+   '<div class="rt">'+done+'<small>of '+tot+'</small></div></div>'+
    '<div class="bar"><i style="width:'+pct+'%"></i></div>'+
-   '<div class="s">'+pts+' point'+(pts===1?'':'s')+' banked</div></button>';
+   '<div class="s">'+(full?'Boxing 6 days a week (Mon &amp; Wed doubles) · road work Mon/Wed/Fri · S&amp;C Tue/Thu · ':'Mon run · Wed oval sprints · Fri run · ')+pts+' point'+(pts===1?'':'s')+' banked</div></button>';
 }
 function programsHtml(){
   var all=[];try{all=(sc2.allPrograms||[]).slice();}catch(e){}
   all.sort(function(a,b){var n=nameOf(a.user_id).localeCompare(nameOf(b.user_id));return n||(String(b.created_at)<String(a.created_at)?-1:1);});
-  var h='<div class="secTitle">Running block <span style="color:var(--muted);font-weight:600;letter-spacing:1px;font-size:11px">'+Object.keys(RUNNERS).length+' fighters</span></div>';
+  var h='<div class="secTitle">Blocks <span style="color:var(--muted);font-weight:600;letter-spacing:1px;font-size:11px">'+Object.keys(RUNNERS).length+' fighters</span></div>';
   if(!isJake())h+='<div class="pvNone">Running-block times are private to each fighter and Jake.</div>';
   else if(PV.runs===null)h+='<div class="pvNone">Loading logged sessions…</div>';
   else h+=Object.keys(RUNNERS).map(runCard).join("");
