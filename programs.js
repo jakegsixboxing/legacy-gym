@@ -10,7 +10,7 @@ var RUNNERS={
  "e4d86ca0-b371-4e3d-a343-8603175b1034":"Ayrton",
  "43126c8e-efe2-484e-bd52-d05c55548b6d":"Sunnie",
  "40ee586b-3970-4961-9858-7c8ed91a8c76":"Arian"};
-var PV={tab:"roster",runs:null,loading:false};
+var PV={tab:"roster",sub:"every",runs:null,loading:false};
 function me(){try{return (profile&&profile.id)||null;}catch(e){return null;}}
 function isJake(){return me()===JAKE;}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
@@ -37,7 +37,11 @@ var css=document.createElement("style");css.textContent=
  ".pvRow .rt small{display:block;font-family:Montserrat,Inter,sans-serif;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:800;margin-top:3px}"+
  ".pvNone{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px;color:var(--muted);font-size:12.5px;line-height:1.5}"+
  ".pvChip{display:inline-block;font-size:9px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;padding:3px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted);margin-left:6px}"+
- ".pvChip.ok{border-color:#1f4a30;color:#8fe3b0}.pvChip.due{border-color:#5a4a22;color:#F1D27A}.pvChip.late{border-color:#5a2a2a;color:#ff9c9c}";
+ ".pvChip.ok{border-color:#1f4a30;color:#8fe3b0}.pvChip.due{border-color:#5a4a22;color:#F1D27A}.pvChip.late{border-color:#5a2a2a;color:#ff9c9c}"+
+ ".pvSub{display:flex;gap:8px;margin:0 0 12px}"+
+ ".pvSub button{flex:1;padding:9px 4px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;cursor:pointer}"+
+ ".pvSub button.on{border-color:var(--gold);color:var(--gold);background:color-mix(in srgb,var(--gold) 8%,transparent)}"+
+ ".pvSub button i{font-style:normal;opacity:.65;margin-left:5px}";
 document.head.appendChild(css);
 
 async function loadRuns(){
@@ -49,6 +53,18 @@ async function loadRuns(){
 function redraw(){try{if(coachViewId)renderCoachFighterView();else renderSparringClub();}catch(e){}}
 window.pvGo=function(t){PV.tab=t;if(t==="programs"&&PV.runs===null&&isJake())loadRuns();redraw();};
 
+window.pvSub=function(t){PV.sub=t;redraw();};
+function progUidSet(){
+  var s={};
+  try{(sc2.allPrograms||[]).forEach(function(p){s[p.user_id]=1;});}catch(e){}
+  Object.keys(RUNNERS).forEach(function(u){s[u]=1;});
+  return s;
+}
+function subTabsHtml(nE,nP){
+  return '<div class="pvSub">'+
+   '<button class="'+(PV.sub==="every"?"on":"")+'" onclick="pvSub(\'every\')">Everyday <i>'+nE+'</i></button>'+
+   '<button class="'+(PV.sub==="prog"?"on":"")+'" onclick="pvSub(\'prog\')">Programmed <i>'+nP+'</i></button></div>';
+}
 function progCard(p){
   var sess=p.sessions||[],done=sess.filter(function(s){return s.done;}).length,pct=sess.length?Math.round(done/sess.length*100):0;
   var t=today();var nx=sess.find(function(s){return !s.done&&s.date>=t;});
@@ -93,6 +109,16 @@ window.sc2RosterHtml=function(){
   var tabs='<div class="pvTabs"><button class="'+(PV.tab==="roster"?"on":"")+'" onclick="pvGo(\'roster\')">Fighters<small>Profiles &amp; workloads</small></button>'+
    '<button class="'+(PV.tab==="programs"?"on":"")+'" onclick="pvGo(\'programs\')">All Programs<small>Everyone, one screen</small></button></div>';
   if(PV.tab==="programs")return tabs+programsHtml();
-  return tabs+(_roster?_roster.apply(this,arguments):"");
+  var full=[];try{full=sc2.roster||[];}catch(e){}
+  var self=null;try{self=session.user.id;}catch(e){}
+  var S=progUidSet();
+  var vis=full.filter(function(b){return b.user_id!==self;});
+  var nP=vis.filter(function(b){return !!S[b.user_id];}).length, nE=vis.length-nP;
+  var want=full.filter(function(b){return PV.sub==="prog"?!!S[b.user_id]:!S[b.user_id];});
+  var html="";
+  try{sc2.roster=want;html=_roster?_roster.apply(this,arguments):"";}
+  catch(e){html="";}
+  finally{try{sc2.roster=full;}catch(e){}}
+  return tabs+subTabsHtml(nE,nP)+html;
 };
 })();
