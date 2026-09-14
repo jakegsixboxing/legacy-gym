@@ -7,9 +7,11 @@
 var UIDS={
  "3d4ab64d-24b1-450c-ad25-bad5a91fe789":"Jaxson",
  "e4d86ca0-b371-4e3d-a343-8603175b1034":"Ayrton",
- "43126c8e-efe2-484e-bd52-d05c55548b6d":"Sunny",
+ "43126c8e-efe2-484e-bd52-d05c55548b6d":"Sunnie",
  "40ee586b-3970-4961-9858-7c8ed91a8c76":"Arian"};
 var BLOCK={n:1,label:"Block 1",weeks:4,start:"2026-09-14"};
+/* his name is Sunnie, not Sonnie */
+try{(TRAINING_TAB_FIGHTERS||[]).forEach(function(f){if(f.uid==="43126c8e-efe2-484e-bd52-d05c55548b6d")f.firstName="Sunnie";});}catch(e){}
 var ROAD={
  1:{1:{h:"6 km comfortable",kind:"run",km:6,f:"Comfortable the whole way. Conversation pace — this is the base for the block."},
     3:{h:"Oval sprints · 8 × 100 m",kind:"sprint",reps:8,f:"8 × 100 m sprints with a 100 m jog between each. Time runs from the first sprint to the end of the last jog."},
@@ -146,7 +148,24 @@ var C={
  mpSlip5:{id:"mpSlip5",n:"Double slip line · open",tag:"Any punches you like on the line"},
  mpSpeed:{id:"mpSpeed",n:"Speedball",tag:"Rhythm and hand speed"},
  mpFtc:{id:"mpFtc",n:"Floor-to-ceiling ball",tag:"Timing, accuracy, hands home"},
- mpWreck:{id:"mpWreck",n:"Wrecking ball",tag:"Footwork · defence · second-phase attacks"}
+ mpWreck:{id:"mpWreck",n:"Wrecking ball",tag:"Footwork · defence · second-phase attacks"},
+ ayShadow10:{id:"ayShadow10",n:"Shadow boxing · mirror",tag:"10 minutes straight · hand position, head and trunk control",fixed:600},
+ ayFore:{id:"ayFore",n:"Forefoot bag · straight punches",tag:"Straights only — stay on the forefoot"},
+ ayCombo:{id:"ayCombo",n:"Build combinations",tag:"Set them up off the straights"},
+ ayLevel:{id:"ayLevel",n:"Level changes",tag:"Change levels, stay covered"},
+ ayOpen:{id:"ayOpen",n:"Open round",tag:"Put it together"},
+ suShadow10:{id:"suShadow10",n:"Shadow boxing · mirror",tag:"10 minutes straight · combinations off the straights",fixed:600},
+ suFore:{id:"suFore",n:"Forefoot bag · straight shots",tag:"Straights only — stay on the forefoot"},
+ suCombo:{id:"suCombo",n:"Build combinations · 3, 4 and 5 punches",tag:"All off the straight shots"},
+ suInside:{id:"suInside",n:"Bent-arm punches on the inside",tag:"Stay in range — don’t break range"},
+ suOpen:{id:"suOpen",n:"Open round",tag:"Put everything together"},
+ suRing10:{id:"suRing10",n:"Shadow boxing · in the ring",tag:"10 minutes straight · ring position and angles",fixed:600},
+ suWallStr:{id:"suWallStr",n:"Wall bag · level changes + straights",tag:"Drop the level, straight shots"},
+ suWallBent:{id:"suWallBent",n:"Wall bag · level changes + bent arm",tag:"Straight and bent-arm punches"},
+ suWallOpen:{id:"suWallOpen",n:"Wall bag · open round",tag:"Everything, off the level change"},
+ suFtcJab:{id:"suFtcJab",n:"Floor-to-ceiling ball · jab only",tag:"Timing on the jab"},
+ suFtcStr:{id:"suFtcStr",n:"Floor-to-ceiling ball · straight shots",tag:"Straights, hands home"},
+ suFtcOpen:{id:"suFtcOpen",n:"Floor-to-ceiling ball · open",tag:"Open work on the ball"}
 };
 var _bf=window.byoFind;
 window.byoFind=function(id){return C[id]||(_bf?_bf.apply(this,arguments):null);};
