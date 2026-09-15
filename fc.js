@@ -596,3 +596,212 @@ var _go=window.go;window.go=function(v){if(view==="fcrun"&&v!=="fcrun")stopRun()
 ["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){injectCard();if(!FC.loaded&&session)load();};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,30);return r;};});
 setTimeout(function(){if(view==="home")injectCard();},800);
 })();
+
+/*__FCINFO__ ==========================================================
+   Fight Club Info Night — home-screen takeover.
+   Additive block. Self-expiring: does nothing before 16 Sep 2026 09:00
+   or after 21:00 the same night, so it can be left in place.
+   Delete from this comment to the matching })(); to roll back.
+   ==================================================================== */
+(function(){
+  var EVENT = "fc-info-2026-09-16";
+  var START = new Date(2026,8,16, 9,0,0,0).getTime();   /* 9:00am  16 Sep */
+  var DOORS = new Date(2026,8,16,18,45,0,0).getTime();  /* 6:45pm  16 Sep */
+  var END   = new Date(2026,8,16,21,0,0,0).getTime();   /* 9:00pm  16 Sep */
+  if (Date.now() >= END) return;
+
+  var S = { count:null, mine:false, asked:false, busy:false };
+  var timer = null;
+
+  function liveNow(){ var n = Date.now(); return n >= START && n < END; }
+  function EH(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function prof(){ try { return (typeof profile !== "undefined" && profile) ? profile : null; } catch(e){ return null; } }
+
+  var st = document.createElement("style");
+  st.id = "fcInfoCss";
+  st.textContent =
+  '@keyframes fcInfoPulse{'
+  + '0%,100%{border-color:#c9a44c;box-shadow:0 0 0 0 rgba(201,164,76,.55),0 0 26px 2px rgba(201,164,76,.32),0 12px 34px rgba(0,0,0,.55)}'
+  + '45%{border-color:#FF2D87;box-shadow:0 0 0 8px rgba(255,45,135,0),0 0 30px 3px rgba(255,45,135,.42),0 12px 34px rgba(0,0,0,.55)}'
+  + '50%{border-color:#FF2D87;box-shadow:0 0 0 0 rgba(255,45,135,.55),0 0 30px 3px rgba(255,45,135,.42),0 12px 34px rgba(0,0,0,.55)}'
+  + '95%{border-color:#c9a44c;box-shadow:0 0 0 8px rgba(201,164,76,0),0 0 26px 2px rgba(201,164,76,.32),0 12px 34px rgba(0,0,0,.55)}}'
+  + '@keyframes fcInfoChip{0%,100%{background:#c9a44c;color:#161307}50%{background:#FF2D87;color:#fff}}'
+  + '@keyframes fcInfoBump{0%{transform:scale(1)}28%{transform:scale(1.45);color:#FF2D87}100%{transform:scale(1)}}'
+  + '#fcInfoAlert{position:relative;overflow:hidden;border-radius:18px;margin-bottom:16px;border:2.5px solid #c9a44c;'
+  + 'background:#121214;animation:fcInfoPulse 3.2s ease-in-out infinite}'
+  + '#fcInfoAlert .cap{height:5px;background:linear-gradient(90deg,#c9a44c 0 50%,#FF2D87 50% 100%)}'
+  + '#fcInfoAlert .in{padding:17px 17px 18px}'
+  + '#fcInfoAlert .chip{display:inline-flex;align-items:center;gap:7px;font-family:Oswald,sans-serif;font-size:11px;'
+  + 'letter-spacing:3px;text-transform:uppercase;font-weight:600;color:#161307;background:#c9a44c;padding:5px 11px;'
+  + 'border-radius:999px;animation:fcInfoChip 3.2s ease-in-out infinite}'
+  + '#fcInfoAlert .ttl{font-family:Oswald,sans-serif;font-weight:700;font-size:29px;line-height:1.02;text-transform:uppercase;'
+  + 'color:#fff;margin:11px 0 0;letter-spacing:.5px}'
+  + '#fcInfoAlert .ttl em{font-style:normal;display:block;font-size:19px;color:#9a9891;font-weight:500;margin-top:5px;letter-spacing:1px}'
+  + '#fcInfoAlert .when{display:flex;gap:9px;margin-top:13px;flex-wrap:wrap}'
+  + '#fcInfoAlert .when span{font-size:12px;font-weight:600;color:#e8e2d2;background:rgba(255,255,255,.05);'
+  + 'border:1px solid #26262b;border-radius:8px;padding:6px 10px}'
+  + '#fcInfoAlert .sts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}'
+  + '#fcInfoAlert .st{border:1.5px solid #26262b;border-radius:11px;padding:10px 11px;background:rgba(255,255,255,.02)}'
+  + '#fcInfoAlert .st.w{border-color:#FF2D87}#fcInfoAlert .st.m{border-color:#c9a44c}'
+  + '#fcInfoAlert .st .k{font-family:Oswald,sans-serif;font-size:13px;letter-spacing:1.4px;font-weight:600}'
+  + '#fcInfoAlert .st.w .k{color:#FF2D87}#fcInfoAlert .st.m .k{color:#c9a44c}'
+  + '#fcInfoAlert .st .v{font-size:11.5px;color:#9a9891;margin-top:3px;line-height:1.4}'
+  + '#fcInfoAlert .going{display:flex;align-items:center;gap:11px;margin-top:13px;background:rgba(0,0,0,.38);'
+  + 'border:1px solid #26262b;border-radius:10px;padding:9px 12px}'
+  + '#fcInfoAlert .going .n{font-family:Oswald,sans-serif;font-size:20px;color:#fff;font-weight:700;'
+  + 'font-variant-numeric:tabular-nums;line-height:1;display:inline-block}'
+  + '#fcInfoAlert .going.bump .n{animation:fcInfoBump .7s cubic-bezier(.34,1.56,.64,1)}'
+  + '#fcInfoAlert .going .t{font-size:12px;color:#9a9891;line-height:1.35}'
+  + '#fcInfoAlert .cdl{display:flex;align-items:center;gap:8px;margin-top:15px;font-family:Oswald,sans-serif;'
+  + 'font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:#9a9891;font-weight:500}'
+  + '#fcInfoAlert .cdl:after{content:"";flex:1;height:1px;background:#26262b}'
+  + '#fcInfoAlert .cd{display:flex;gap:7px;margin-top:8px}'
+  + '#fcInfoAlert .cd div{flex:1;background:rgba(0,0,0,.4);border:1px solid #26262b;border-radius:10px;padding:8px 4px;text-align:center}'
+  + '#fcInfoAlert .cd .n{font-family:Oswald,sans-serif;font-size:21px;font-weight:700;color:#f2f0eb;'
+  + 'font-variant-numeric:tabular-nums;line-height:1}'
+  + '#fcInfoAlert .cd .l{font-size:8px;letter-spacing:1.6px;text-transform:uppercase;color:#6e6b74;margin-top:3px}'
+  + '#fcInfoAlert .ease{margin-top:14px;border:1px solid #26262b;border-left:3px solid #FF2D87;border-radius:10px;'
+  + 'background:rgba(255,255,255,.035);padding:12px 13px;font-size:13px;line-height:1.5;color:#e8e2d2}'
+  + '#fcInfoAlert .ease b{color:#fff;font-weight:700}'
+  + '#fcInfoAlert .cta{display:block;width:100%;margin-top:12px;border:0;border-radius:11px;padding:14px;cursor:pointer;'
+  + 'font-family:Oswald,sans-serif;font-size:14.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:600;'
+  + 'background:#c9a44c;color:#161307;animation:fcInfoChip 3.2s ease-in-out infinite}'
+  + '#fcInfoAlert .cta[disabled]{animation:none;background:#1d2a20;color:#4bc97a;border:1px solid #2c4433;cursor:default}'
+  + '#fcInfoAlert .foot{margin-top:10px;font-size:11px;color:#6e6b74;text-align:center}'
+  + '@media (prefers-reduced-motion:reduce){#fcInfoAlert,#fcInfoAlert .chip,#fcInfoAlert .cta{animation:none!important}'
+  + '#fcInfoAlert{border-color:#FF2D87}}';
+  try { document.head.appendChild(st); } catch(e){}
+
+  function cdParts(){
+    var ms = DOORS - Date.now();
+    if (ms <= 0) return { h:"00", m:"00", s:"00", started:true };
+    var t = Math.floor(ms/1000);
+    function p(n){ n = String(n); return n.length < 2 ? "0"+n : n; }
+    return { h:p(Math.floor(t/3600)), m:p(Math.floor(t%3600/60)), s:p(t%60), started:false };
+  }
+
+  function goingLine(){
+    if (S.count === null) return '<span class="t">Loading who’s going…</span>';
+    return '<span class="t"><span class="n">' + S.count + '</span> going'
+         + (S.mine ? ' &nbsp;·&nbsp; <b style="color:#4bc97a">You’re on the list</b>' : '') + '</span>';
+  }
+
+  function html(){
+    var c = cdParts();
+    return '<div id="fcInfoAlert">'
+    + '<div class="cap"></div><div class="in">'
+    + '<span class="chip">' + (c.started ? "Happening now" : "Tonight") + '</span>'
+    + '<div class="ttl">Fight Club<br>Info Night<em>Women’s &amp; Men’s · 10 week camp</em></div>'
+    + '<div class="when"><span>Tonight, 6:45pm</span><span>At the gym</span><span>Free</span></div>'
+    + '<div class="sts">'
+    +   '<div class="st w"><div class="k">Women’s</div><div class="v">Own sessions, own coaches, same camp.</div></div>'
+    +   '<div class="st m"><div class="k">Men’s</div><div class="v">Every fitness level. No experience needed.</div></div>'
+    + '</div>'
+    + '<div class="going">' + goingLine() + '</div>'
+    + '<div class="cdl">' + (c.started ? "Started — come on in" : "Starts 6:45pm tonight") + '</div>'
+    + '<div class="cd">'
+    +   '<div><div class="n">'+c.h+'</div><div class="l">Hrs</div></div>'
+    +   '<div><div class="n">'+c.m+'</div><div class="l">Min</div></div>'
+    +   '<div><div class="n">'+c.s+'</div><div class="l">Sec</div></div>'
+    + '</div>'
+    + '<div class="ease"><b>No pressure to fight.</b> Come along, have a listen, ask whatever you want — and decide after. '
+    + 'Plenty do the ten weeks and never step in the ring.</div>'
+    + (S.mine
+        ? '<button class="cta" disabled>✓ You’re on the list</button>'
+        : '<button class="cta" onclick="fcInfoRsvp()">Save me a spot</button>')
+    + '<div class="foot">Free · everyone welcome · nothing to sign tonight</div>'
+    + '</div></div>';
+  }
+
+  /* ---- data ---- */
+  async function load(){
+    if (S.asked || typeof sb === "undefined" || !sb) return;
+    S.asked = true;
+    try {
+      var r = await sb.from("info_night_rsvps").select("email").eq("event_key", EVENT);
+      if (!r.error) {
+        var seen = {}, n = 0;
+        (r.data || []).forEach(function(x){
+          var k = (x.email || "").trim().toLowerCase();
+          if (!k) { n++; return; }
+          if (!seen[k]) { seen[k] = 1; n++; }
+        });
+        S.count = n;
+        var p = prof(), me = p && p.email ? String(p.email).trim().toLowerCase() : "";
+        S.mine = !!me && !!seen[me];
+      }
+    } catch(e){}
+    paint();
+  }
+
+  window.fcInfoRsvp = async function(){
+    if (S.busy || S.mine) return;
+    var p = prof();
+    if (!p) { try { toast("Sign in first"); } catch(e){} return; }
+    S.busy = true;
+    try {
+      var nm = [p.first_name, p.last_name].filter(Boolean).join(" ").trim() || p.name || "Member";
+      var r = await sb.from("info_night_rsvps").insert({
+        event_key: EVENT, full_name: nm,
+        mobile: p.phone || null, email: p.email || null,
+        source: "app"
+      });
+      if (r && r.error) { try { toast("Couldn’t save — see you there anyway"); } catch(e){} S.busy = false; return; }
+      S.mine = true;
+      if (S.count !== null) S.count++;
+      try { toast("You’re on the list — see you at 6:45"); } catch(e){}
+      paint(true);
+    } catch(e){ try { toast("Couldn’t save — see you there anyway"); } catch(e2){} }
+    S.busy = false;
+  };
+
+  /* ---- paint ---- */
+  function hideOthers(main){
+    ["#springBanner", "#timetableCountdown", ".t10banner", ".revcard"].forEach(function(sel){
+      main.querySelectorAll(sel).forEach(function(el){ el.style.display = "none"; });
+    });
+    main.querySelectorAll(".notice").forEach(function(el){
+      if (!el.closest("#fcInfoAlert")) el.style.display = "none";
+    });
+  }
+
+  function paint(bump){
+    var main = document.getElementById("main");
+    if (!main) return;
+    var onHome = true;
+    try { onHome = (typeof view === "undefined") || view === "home"; } catch(e){}
+    var old = document.getElementById("fcInfoAlert");
+    if (!onHome || !liveNow()) { if (old) old.remove(); return; }
+    if (old) old.remove();
+    hideOthers(main);
+    main.insertAdjacentHTML("afterbegin", html());
+    if (bump) {
+      var g = document.querySelector("#fcInfoAlert .going");
+      if (g) { g.classList.add("bump"); setTimeout(function(){ g.classList.remove("bump"); }, 1500); }
+    }
+    if (!S.asked) load();
+    if (!timer) timer = setInterval(tick, 1000);
+  }
+
+  function tick(){
+    var el = document.getElementById("fcInfoAlert");
+    if (!el) return;
+    if (!liveNow()) { el.remove(); return; }
+    var c = cdParts(), n = el.querySelectorAll(".cd .n");
+    if (n.length === 3) { n[0].textContent = c.h; n[1].textContent = c.m; n[2].textContent = c.s; }
+  }
+
+  /* ---- hook home render, same pattern as the card above ---- */
+  ["renderHome"].forEach(function(fn){
+    if (typeof window[fn] !== "function") return;
+    var o = window[fn];
+    window[fn] = function(){
+      var r = o.apply(this, arguments);
+      var after = function(){ try { paint(); } catch(e){} };
+      if (r && typeof r.then === "function") r.then(after); else setTimeout(after, 40);
+      return r;
+    };
+  });
+  setTimeout(function(){ try { if (typeof view === "undefined" || view === "home") paint(); } catch(e){} }, 900);
+})();
