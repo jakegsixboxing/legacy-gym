@@ -782,11 +782,30 @@ setTimeout(function(){if(view==="home")injectCard();},800);
     }
     if (!S.asked) load();
     if (!timer) timer = setInterval(tick, 1000);
+    arm();
+  }
+
+  /* self-heal: if anything wipes the banner while it should be showing, put it back */
+  var mo = null, moT = null;
+  function heal(){
+    try {
+      var onHome = (typeof view === "undefined") || view === "home";
+      if (onHome && liveNow() && !document.getElementById("fcInfoAlert")) paint();
+    } catch(e){}
+  }
+  function arm(){
+    if (mo) return;
+    var m = document.getElementById("main"); if (!m) return;
+    mo = new MutationObserver(function(){
+      if (moT) return;
+      moT = setTimeout(function(){ moT = null; heal(); }, 150);
+    });
+    mo.observe(m, { childList:true });
   }
 
   function tick(){
     var el = document.getElementById("fcInfoAlert");
-    if (!el) return;
+    if (!el) { heal(); return; }
     if (!liveNow()) { el.remove(); return; }
     var c = cdParts(), n = el.querySelectorAll(".cd .n");
     if (n.length === 3) { n[0].textContent = c.h; n[1].textContent = c.m; n[2].textContent = c.s; }
@@ -803,5 +822,6 @@ setTimeout(function(){if(view==="home")injectCard();},800);
       return r;
     };
   });
-  setTimeout(function(){ try { if (typeof view === "undefined" || view === "home") paint(); } catch(e){} }, 900);
+  setTimeout(function(){ try { if (typeof view === "undefined" || view === "home") paint(); arm(); } catch(e){} }, 900);
+  if (!timer) timer = setInterval(tick, 1000);   /* keeps healing even if the first paint never ran */
 })();
