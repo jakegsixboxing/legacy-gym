@@ -627,6 +627,12 @@ setTimeout(function(){if(view==="home")injectCard();},800);
   + '50%{border-color:#FF2D87;box-shadow:0 0 0 0 rgba(255,45,135,.55),0 0 30px 3px rgba(255,45,135,.42),0 12px 34px rgba(0,0,0,.55)}'
   + '95%{border-color:#c9a44c;box-shadow:0 0 0 8px rgba(201,164,76,0),0 0 26px 2px rgba(201,164,76,.32),0 12px 34px rgba(0,0,0,.55)}}'
   + '@keyframes fcInfoChip{0%,100%{background:#c9a44c;color:#161307}50%{background:#FF2D87;color:#fff}}'
+  + '@keyframes fcInfoTonight{0%,100%{color:#c9a44c;transform:scale(1);text-shadow:0 0 14px rgba(201,164,76,.55)}'
+  + '50%{color:#FF2D87;transform:scale(1.14);text-shadow:0 0 30px rgba(255,45,135,.85),0 0 60px rgba(255,45,135,.35)}}'
+  + '#fcInfoAlert .tonight{display:inline-block;font-family:Oswald,sans-serif;font-weight:700;font-size:50px;line-height:.95;'
+  + 'letter-spacing:5px;text-transform:uppercase;color:#c9a44c;transform-origin:left center;'
+  + 'animation:fcInfoTonight 1.6s ease-in-out infinite;will-change:transform}'
+  + '#fcInfoAlert .tonight.now{font-size:34px;letter-spacing:3px}'
   + '@keyframes fcInfoBump{0%{transform:scale(1)}28%{transform:scale(1.45);color:#FF2D87}100%{transform:scale(1)}}'
   + '#fcInfoAlert{position:relative;overflow:hidden;border-radius:18px;margin-bottom:16px;border:2.5px solid #c9a44c;'
   + 'background:#121214;animation:fcInfoPulse 3.2s ease-in-out infinite}'
@@ -636,7 +642,7 @@ setTimeout(function(){if(view==="home")injectCard();},800);
   + 'letter-spacing:3px;text-transform:uppercase;font-weight:600;color:#161307;background:#c9a44c;padding:5px 11px;'
   + 'border-radius:999px;animation:fcInfoChip 3.2s ease-in-out infinite}'
   + '#fcInfoAlert .ttl{font-family:Oswald,sans-serif;font-weight:700;font-size:29px;line-height:1.02;text-transform:uppercase;'
-  + 'color:#fff;margin:11px 0 0;letter-spacing:.5px}'
+  + 'color:#fff;margin:9px 0 0;letter-spacing:.5px}'
   + '#fcInfoAlert .ttl em{font-style:normal;display:block;font-size:19px;color:#9a9891;font-weight:500;margin-top:5px;letter-spacing:1px}'
   + '#fcInfoAlert .when{display:flex;gap:9px;margin-top:13px;flex-wrap:wrap}'
   + '#fcInfoAlert .when span{font-size:12px;font-weight:600;color:#e8e2d2;background:rgba(255,255,255,.05);'
@@ -669,7 +675,7 @@ setTimeout(function(){if(view==="home")injectCard();},800);
   + 'background:#c9a44c;color:#161307;animation:fcInfoChip 3.2s ease-in-out infinite}'
   + '#fcInfoAlert .cta[disabled]{animation:none;background:#1d2a20;color:#4bc97a;border:1px solid #2c4433;cursor:default}'
   + '#fcInfoAlert .foot{margin-top:10px;font-size:11px;color:#6e6b74;text-align:center}'
-  + '@media (prefers-reduced-motion:reduce){#fcInfoAlert,#fcInfoAlert .chip,#fcInfoAlert .cta{animation:none!important}'
+  + '@media (prefers-reduced-motion:reduce){#fcInfoAlert,#fcInfoAlert .chip,#fcInfoAlert .cta,#fcInfoAlert .tonight{animation:none!important}#fcInfoAlert .tonight{color:#FF2D87}'
   + '#fcInfoAlert{border-color:#FF2D87}}';
   try { document.head.appendChild(st); } catch(e){}
 
@@ -691,7 +697,7 @@ setTimeout(function(){if(view==="home")injectCard();},800);
     var c = cdParts();
     return '<div id="fcInfoAlert">'
     + '<div class="cap"></div><div class="in">'
-    + '<span class="chip">' + (c.started ? "Happening now" : "Tonight") + '</span>'
+    + (c.started ? '<div class="tonight now">Happening now</div>' : '<div class="tonight">Tonight</div>')
     + '<div class="ttl">Fight Club<br>Info Night<em>Women’s &amp; Men’s · 10 week camp</em></div>'
     + '<div class="when"><span>Tonight, 6:45pm</span><span>At the gym</span><span>Free</span></div>'
     + '<div class="sts">'
