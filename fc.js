@@ -835,11 +835,10 @@ setTimeout(function(){if(view==="home")injectCard();},800);
 /*__NFLTALLY__*/
 /* Legacy Gym · NFL tipping season ladder · 16 Sep 2026
    The Leaderboard tab used to show one week at a time. This makes it a season ladder:
-   every week's points (1 per correct tip, +5 for a perfect week) carry over and keep adding.
-   Reads nfl_games + nfl_tips for every week; nothing is written. */
+   every week's points (1 per correct tip, +5 for a perfect week) carry over and keep adding. Read-only. */
 (function(){
 "use strict";
-var CACHE=null, AT=0, LOADING=false;
+var CACHE=null, AT=0, LOADING=false, WANT=false;
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
 async function load(){
   if(LOADING)return;LOADING=true;
@@ -847,16 +846,19 @@ async function load(){
     var r=await Promise.all([
       sb.from("nfl_games").select("id,week,winner"),
       sb.from("nfl_tips").select("user_id,week,game_id,pick"),
-      sb.from("nfl_weeks").select("week,title").order("week")
+      sb.from("nfl_weeks").select("week,title,active").order("week"),
+      sb.rpc("nfl_tipper_names"),
+      sb.from("nfl_confirms").select("user_id,week")
     ]);
-    CACHE={games:r[0].data||[],tips:r[1].data||[],weeks:r[2].data||[]};AT=Date.now();
-  }catch(e){CACHE={games:[],tips:[],weeks:[]};AT=Date.now();}
+    CACHE={games:r[0].data||[],tips:r[1].data||[],weeks:r[2].data||[],profiles:r[3].data||[],confirms:r[4].data||[]};AT=Date.now();
+  }catch(e){CACHE={games:[],tips:[],weeks:[],profiles:[],confirms:[]};AT=Date.now();}
   LOADING=false;
-  try{if(view==="social"&&tcTab==="board"&&typeof tcRender==="function")tcRender();}catch(e){}
+  if(WANT)paint();
 }
+function curWeek(){var a=CACHE.weeks.filter(function(w){return w.active;});return a.length?a[a.length-1]:(CACHE.weeks[CACHE.weeks.length-1]||{week:0,title:"This week"});}
 function seasonBoard(){
-  var g=CACHE.games,t=CACHE.tips,weeks=CACHE.weeks;
-  var win={},perWeek={};                       /* winner by game, games+scored counts by week */
+  var g=CACHE.games,t=CACHE.tips,weeks=CACHE.weeks,cw=curWeek();
+  var win={},perWeek={};
   g.forEach(function(x){win[x.id]=x.winner||null;if(!perWeek[x.week])perWeek[x.week]={n:0,done:0};perWeek[x.week].n++;if(x.winner)perWeek[x.week].done++;});
   var U={};
   t.forEach(function(x){
@@ -865,8 +867,9 @@ function seasonBoard(){
     u.wk[x.week].tip++;u.tip++;
     if(win[x.game_id]&&x.pick===win[x.game_id]){u.wk[x.week].c++;u.c++;}
   });
-  var nameOf={};(tcData.profiles||[]).forEach(function(p){nameOf[p.id]=((p.first_name||"")+" "+(p.last_name||"")).trim()||"Member";});
-  var wkList=weeks.map(function(w){return w.week;});if(!wkList.length)wkList=Object.keys(perWeek).map(Number).sort();
+  var nameOf={};CACHE.profiles.forEach(function(p){nameOf[p.id]=((p.first_name||"")+" "+(p.last_name||"")).trim()||"Member";});
+  var conf={};CACHE.confirms.forEach(function(c){if(c.week===cw.week)conf[c.user_id]=true;});
+  var wkList=weeks.map(function(w){return w.week;});
   var rows=Object.keys(U).map(function(uid){
     var u=U[uid],pts=0,perf=0,chips=[];
     wkList.forEach(function(w){
@@ -880,29 +883,39 @@ function seasonBoard(){
   });
   rows.sort(function(a,b){return b.pts-a.pts||b.c-a.c||a.name.localeCompare(b.name);});
   if(!rows.length)return '<div class="card"><p>No tips in yet — be the first. Head to the Tip tab and pick your winners.</p></div>';
-  var meId=session.user.id, cur=tcData.week.week, curScored=(perWeek[cur]||{}).done>0;
+  var meId=(session&&session.user&&session.user.id)||null, curScored=(perWeek[cw.week]||{}).done>0;
   var h='<div class="secTitle" style="margin-top:0">Season Leaderboard</div>'+
-   '<p style="color:var(--muted);font-size:12.5px;margin:0 0 12px">Every week counts — 1 point per correct tip, +5 for a perfect week. '+(curScored?'':esc(tcData.week.title)+' points land as results come in.')+'</p>';
+   '<p style="color:var(--muted);font-size:12.5px;margin:0 0 12px">Every week counts — 1 point per correct tip, +5 for a perfect week. '+(curScored?'':esc(cw.title)+' points land as results come in.')+'</p>';
   rows.forEach(function(r,i){
     var pos=i+1;var ini=r.name==="Member"?"?":r.name.split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase();
     var ch=r.chips.map(function(c){return '<i class="nlWk '+c.cls+'">Wk'+c.w+' <b>'+c.txt+'</b></i>';}).join("");
     h+='<div class="tcLb '+(r.uid===meId?"me ":"")+(pos<=3?"t"+pos:"")+'"><span class="pos">'+pos+'</span>'+
        '<span class="av">'+(r.uid===meId?"★":ini)+'</span>'+
-       '<span class="nm"><b>'+esc(r.name)+(r.perf?' 🏆'+(r.perf>1?'×'+r.perf:''):'')+'</b><span>'+r.c+' correct · '+r.tip+' tipped'+(typeof tcConfirmed==="function"&&tcConfirmed(r.uid)?' <span class="tcLbConf">· locked in ✓</span>':'')+'</span><span class="nlWks">'+ch+'</span></span>'+
+       '<span class="nm"><b>'+esc(r.name)+(r.perf?' 🏆'+(r.perf>1?'×'+r.perf:''):'')+'</b><span>'+r.c+' correct · '+r.tip+' tipped'+(conf[r.uid]?' <span class="tcLbConf">· locked in ✓</span>':'')+'</span><span class="nlWks">'+ch+'</span></span>'+
        '<span class="tot"><b>'+r.pts+'</b><small>PTS</small></span></div>';
   });
   return h;
 }
+/* the board lives after the tab strip inside .tcWrap — swap that part for the season ladder */
+function paint(){
+  if(!WANT)return;
+  var wrap=document.querySelector("#main .tcWrap"),tabs=wrap&&wrap.querySelector(".tcTabs");if(!wrap||!tabs)return;
+  var on=tabs.querySelector("button.on");if(!on||!/leaderboard/i.test(on.textContent))return;
+  var box=wrap.querySelector(".nlBoard");
+  if(!box){while(tabs.nextSibling)wrap.removeChild(tabs.nextSibling);box=document.createElement("div");box.className="nlBoard";wrap.appendChild(box);}
+  box.innerHTML=CACHE?seasonBoard():'<div class="card"><p>Loading the season ladder…</p></div>';
+}
 var css=document.createElement("style");css.textContent=
  ".nlWks{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}.nlWk{font-style:normal;font-size:10px;letter-spacing:.5px;color:var(--muted);border:1px solid #2a2a2e;border-radius:6px;padding:2px 6px}.nlWk b{color:#fff;font-weight:800}.nlWk.pend b{color:var(--muted)}.nlWk.off{opacity:.45}.nlWk.off b{color:var(--muted)}";
 document.head.appendChild(css);
-var _orig=window.tcBoardHtml;
-window.tcBoardHtml=function(){
-  if(!tcData)return _orig?_orig.apply(this,arguments):"";
-  if(!CACHE||Date.now()-AT>60000){load();}
-  if(!CACHE)return '<div class="card"><p>Loading the season ladder…</p></div>';
-  try{return seasonBoard();}catch(e){return _orig?_orig.apply(this,arguments):"";}
+var _go=window.tcGo;
+window.tcGo=function(t){
+  WANT=(t==="board");
+  var r=_go?_go.apply(this,arguments):undefined;
+  if(WANT){if(!CACHE||Date.now()-AT>60000)load();paint();setTimeout(paint,60);}
+  return r;
 };
-/* new tips / results should refresh the ladder next time it's opened */
+/* tips and results change the ladder: refresh next time it's opened */
 ["tcPick","tcSetWin","tcAddGame"].forEach(function(fn){var o=window[fn];if(typeof o!=="function")return;window[fn]=function(){var r=o.apply(this,arguments);AT=0;return r;};});
+var _goView=window.go;if(typeof _goView==="function"){window.go=function(v){WANT=false;return _goView.apply(this,arguments);};}
 })();
