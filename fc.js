@@ -919,3 +919,246 @@ window.tcGo=function(t){
 ["tcPick","tcSetWin","tcAddGame"].forEach(function(fn){var o=window[fn];if(typeof o!=="function")return;window[fn]=function(){var r=o.apply(this,arguments);AT=0;return r;};});
 var _goView=window.go;if(typeof _goView==="function"){window.go=function(v){WANT=false;return _goView.apply(this,arguments);};}
 })();
+
+/*__FCTRACK__*/
+/* Legacy Gym · Fight Club tracker · 16 Sep 2026
+   Every fighter's Progress tab gets the four trackers from the info-night board — Weight, Attendance, Running,
+   Sparring — as live neon charts, each with its own log form. Camp tab gets the Mon / Tue / Wed training plan.
+   Fighters write their own weigh-ins, attendance, runs and sparring rounds; every save re-draws the charts. */
+(function(){
+"use strict";
+var N={gold:"#FFC857",cyan:"#19E6FF",green:"#39FF88",pink:"#FF2D87",red:"#FF4D4D",orange:"#FF9F1C",blue:"#19B8FF",white:"#FFFFFF",grid:"#26262E",muted:"#8e8a90",ink:"#0A0A0B"};
+var MILES=[{n:10,l:"Recovery day"},{n:20,l:"Recovery weekend"},{n:30,l:"Legacy apparel"},{n:50,l:"Recovery week"},{n:80,l:"Fight singlet"}];
+var W=10, DAYS=["Mon","Tue","Wed"], ST={attWeek:null,sparN:4,sparLvl:"Technical"};
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function T(m){try{toast(m);}catch(e){}}
+function me(){try{return (session&&session.user&&session.user.id)||null;}catch(e){return null;}}
+function staff(){try{return !!(profile&&(profile.is_staff||profile.is_coach||profile.is_manager))||["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"].indexOf(me())>=0;}catch(e){return false;}}
+function pd(s){var p=String(s).slice(0,10).split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function campStart(){return pd((FC.camp&&FC.camp.start_date)||"2026-10-12");}
+function weekOf(d){var n=Math.floor((d-campStart())/864e5);return n<0?0:Math.min(W,Math.floor(n/7)+1);}
+function CW(){return weekOf(new Date());}
+function wkClamp(d){return Math.max(1,weekOf(d));}
+function sessDate(w,d){var x=new Date(campStart());x.setDate(x.getDate()+(w-1)*7+d);return x;}
+function fmtD(s){return pd(s).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});}
+function byId(id){return (FC.F||[]).find(function(f){return f.id===id;})||null;}
+function fighter(){if(!staff())return FC.me;var id=FC.tab==="progress"?(FC.pfid||FC.fid):FC.fid;return id?byId(id):null;}
+function mine(f){return !!(f&&FC.me&&f.id===FC.me.id);}
+
+/* ---------- data ---------- */
+function wiRows(f){return (FC.wi||[]).filter(function(r){return r.fighter_id===f.id&&r.weight_kg!=null;}).sort(function(a,b){return a.week-b.week;});}
+function attGrid(f){var g=[];for(var w=1;w<=W;w++){var row=[null,null,null,null];(FC.att||[]).forEach(function(r){if(r.fighter_id===f.id&&r.week===w&&r.day>=0&&r.day<=3)row[r.day]=r.attended?1:0;});g.push(row);}return g;}
+function kmWeeks(f){var k=[];for(var i=0;i<W;i++)k.push(0);(FC.runs||[]).forEach(function(r){if(r.fighter_id!==f.id)return;var w=wkClamp(pd(r.run_date));k[w-1]=+(k[w-1]+Number(r.km||0)).toFixed(1);});return k;}
+function runsOf(f){return (FC.runs||[]).filter(function(r){return r.fighter_id===f.id;}).sort(function(a,b){return a.run_date<b.run_date?1:-1;});}
+function roundsOf(f){return (FC.rounds||[]).filter(function(r){return r.fighter_id===f.id;});}
+function rdWeeks(f){var k=[];for(var i=0;i<W;i++)k.push(0);roundsOf(f).forEach(function(r){k[wkClamp(pd(r.night_date))-1]++;});return k;}
+function nights(f){var m={};roundsOf(f).forEach(function(r){var k=r.night_date;if(!m[k])m[k]={d:k,n:0,opp:r.opponent_id,lvl:r.level,note:null,own:true,ids:[]};m[k].n++;m[k].ids.push(r.id);if(r.note&&!m[k].note)m[k].note=r.note;if(r.created_by!==me())m[k].own=false;});return Object.values(m).sort(function(a,b){return a.d<b.d?1:-1;});}
+function cum(a){var s=0;return a.map(function(v){s+=v;return s;});}
+function lastWk(f){var w=Math.max(1,CW());wiRows(f).forEach(function(r){w=Math.max(w,r.week);});kmWeeks(f).forEach(function(v,i){if(v>0)w=Math.max(w,i+1);});rdWeeks(f).forEach(function(v,i){if(v>0)w=Math.max(w,i+1);});return Math.min(W,w);}
+
+/* ---------- svg helpers (strings) ---------- */
+var uid=0;
+function defs(color){var id="fct"+(++uid);return {id:id,glow:"url(#"+id+"g)",grad:"url(#"+id+"a)",html:'<defs><filter id="'+id+'g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b1"/><feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b2"/><feMerge><feMergeNode in="b2"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="'+id+'a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+color+'" stop-opacity=".35"/><stop offset="1" stop-color="'+color+'" stop-opacity="0"/></linearGradient></defs>'};}
+function frame(vw,vh,p){return {x0:p.l,x1:vw-p.r,y0:p.t,y1:vh-p.b,w:vw-p.l-p.r,h:vh-p.t-p.b};}
+function xAt(f,i){return f.x0+(f.w/(W-1))*i;}
+function tx(x,y,s,cls,a){return '<text x="'+x+'" y="'+y+'" class="'+(cls||"")+'" text-anchor="'+(a||"start")+'">'+E(s)+'</text>';}
+function gridLines(f,ticks,fmt){var s="";ticks.forEach(function(t){var y=f.y0+f.h*(1-t.t);s+='<line x1="'+f.x0+'" x2="'+f.x1+'" y1="'+y+'" y2="'+y+'" class="gl"/>'+tx(f.x0-10,y+4,fmt(t.v),"ax","end");});for(var i=0;i<W;i++)s+=tx(xAt(f,i),f.y1+24,"W"+(i+1),"ax","middle");return s;}
+function neon(d,color,glow,w){w=w||3.5;return '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="'+(w*2.2)+'" opacity=".28" filter="'+glow+'" stroke-linejoin="round" stroke-linecap="round"/><path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="'+w+'" stroke-linejoin="round" stroke-linecap="round"/>';}
+function dot(x,y,c,big){return '<circle cx="'+x+'" cy="'+y+'" r="'+(big?8:5)+'" fill="'+N.ink+'" stroke="'+c+'" stroke-width="'+(big?3:2.5)+'"/>'+(big?'<circle cx="'+x+'" cy="'+y+'" r="3" fill="'+c+'"/>':'');}
+function nice(v){return Math.round(v*2)/2;}
+
+/* ---------- WEIGHT ---------- */
+function chartWeight(f){
+  var g=defs(N.gold),fr=frame(600,260,{l:56,r:96,t:26,b:38}),rows=wiRows(f),tgt=f.fight_weight_kg?Number(f.fight_weight_kg):null;
+  var vals=rows.map(function(r){return Number(r.weight_kg);});if(!vals.length&&f.weight_kg)vals=[Number(f.weight_kg)];
+  var all=vals.concat(tgt?[tgt]:[]);if(!all.length)all=[70];
+  var lo=nice(Math.min.apply(null,all)-1.5),hi=nice(Math.max.apply(null,all)+1.5);if(hi-lo<4){hi=lo+4;}
+  var sy=function(v){return fr.y0+fr.h*(1-(v-lo)/(hi-lo));};
+  var ticks=[];for(var k=0;k<=4;k++){var v=lo+(hi-lo)*k/4;ticks.push({v:Math.round(v*10)/10,t:k/4});}
+  var s='<svg class="fctc" viewBox="0 0 600 260">'+g.html+gridLines(fr,ticks,function(v){return v+" kg";});
+  if(tgt){s+='<rect x="'+fr.x0+'" y="'+sy(tgt+0.3)+'" width="'+fr.w+'" height="'+(sy(tgt-0.3)-sy(tgt+0.3))+'" fill="'+N.green+'" opacity=".08" rx="3"/><line x1="'+fr.x0+'" x2="'+fr.x1+'" y1="'+sy(tgt)+'" y2="'+sy(tgt)+'" stroke="'+N.green+'" stroke-dasharray="6 7" stroke-width="1.5" opacity=".9"/>'+tx(fr.x1+10,sy(tgt)+4,"target "+tgt.toFixed(1),"ax green");}
+  var pts=rows.map(function(r){return [xAt(fr,Math.min(W,Math.max(1,r.week))-1),sy(Number(r.weight_kg))];});
+  if(!pts.length&&f.weight_kg)pts=[[xAt(fr,0),sy(Number(f.weight_kg))]];
+  if(pts.length){var d="M"+pts.map(function(p){return p[0]+","+p[1];}).join(" L");
+    if(pts.length>1)s+='<path d="'+d+' L'+pts[pts.length-1][0]+','+fr.y1+' L'+pts[0][0]+','+fr.y1+' Z" fill="'+g.grad+'"/>'+neon(d,N.gold,g.glow,3.5);
+    pts.forEach(function(p,i){s+=dot(p[0],p[1],N.gold,i===pts.length-1);});
+    var last=pts[pts.length-1],lv=vals[vals.length-1];
+    s+='<g><rect x="'+(last[0]-44)+'" y="'+(last[1]-44)+'" width="88" height="28" rx="7" fill="'+N.gold+'" filter="'+g.glow+'" opacity=".95"/>'+tx(last[0],last[1]-24,lv.toFixed(1)+" kg","popt","middle")+'</g>';
+    if(vals.length>1){var delta=lv-vals[0];s+=tx(fr.x1+10,last[1]+4,(delta>0?"+":"")+delta.toFixed(1)+" kg","ax "+(delta<=0?"green":"red"));}
+  }
+  return s+'</svg>';
+}
+/* ---------- RUNNING ---------- */
+function chartRun(f){
+  var g=defs(N.cyan),fr=frame(600,260,{l:56,r:96,t:26,b:38}),k=kmWeeks(f),wk=lastWk(f),c=cum(k),tgt=Number((FC.camp&&FC.camp.km_target)||10);
+  var maxK=Math.max(tgt+5,Math.ceil(Math.max.apply(null,k.concat([0]))/5)*5+5),maxC=Math.max(60,Math.ceil((c[wk-1]||0)/40)*40+40);
+  var sy=function(v){return fr.y0+fr.h*(1-v/maxK);},sc=function(v){return fr.y0+fr.h*(1-v/maxC);};
+  var ticks=[];for(var q=0;q<=4;q++)ticks.push({v:Math.round(maxK*q/4),t:q/4});
+  var s='<svg class="fctc" viewBox="0 0 600 260">'+g.html+gridLines(fr,ticks,function(v){return v+" km";});
+  [0.33,0.66,1].forEach(function(p){s+=tx(fr.x1+12,sc(maxC*p)+4,Math.round(maxC*p),"ax white");});s+=tx(fr.x1+12,fr.y0-8,"camp total","ax white");
+  s+='<line x1="'+fr.x0+'" x2="'+fr.x1+'" y1="'+sy(tgt)+'" y2="'+sy(tgt)+'" stroke="'+N.cyan+'" stroke-dasharray="4 5" stroke-width="1.2" opacity=".55"/>'+tx(fr.x0+4,sy(tgt)-5,tgt+" km/wk minimum","ax cyan");
+  var bw=fr.w/(W-1)*0.5;
+  for(var i=0;i<W;i++){var x=xAt(fr,i)-bw/2;
+    if(i<wk){var h=fr.y1-sy(k[i]);if(k[i]>0){s+='<rect x="'+x+'" y="'+(fr.y1-h)+'" width="'+bw+'" height="'+h+'" rx="5" fill="'+N.cyan+'" opacity=".14"/><rect x="'+x+'" y="'+(fr.y1-h)+'" width="'+bw+'" height="'+h+'" rx="5" fill="none" stroke="'+N.cyan+'" stroke-width="2.2" filter="'+g.glow+'" opacity=".95"/><rect x="'+x+'" y="'+(fr.y1-h)+'" width="'+bw+'" height="'+h+'" rx="5" fill="none" stroke="'+N.cyan+'" stroke-width="2"/>'+tx(xAt(fr,i),sy(k[i])-9,k[i],"val cyan","middle");}
+      else s+='<rect x="'+x+'" y="'+(fr.y1-4)+'" width="'+bw+'" height="4" rx="2" fill="'+N.red+'" opacity=".5"/>';}
+    else s+='<rect x="'+x+'" y="'+(fr.y1-4)+'" width="'+bw+'" height="4" rx="2" fill="'+N.grid+'"/>';}
+  var pts=[];for(var j=0;j<wk;j++)pts.push([xAt(fr,j),sc(c[j])]);
+  if(pts.length>1&&c[wk-1]>0){var d="M"+pts.map(function(p){return p[0]+","+p[1];}).join(" L");s+=neon(d,N.white,g.glow,2.5);}
+  if(c[wk-1]>0){var l=pts[pts.length-1];s+=dot(l[0],l[1],N.white,true)+tx(l[0]+12,l[1]-10,c[wk-1]+" km","val white");}
+  return s+'</svg>';
+}
+/* ---------- ATTENDANCE ---------- */
+function chartAtt(f){
+  var g=defs(N.green),vw=600,vh=260,left=40,right=170,top=34,bottom=36,a=attGrid(f),wk=Math.max(1,CW()),today=new Date();today.setHours(23,59,59,0);
+  var cw=(vw-left-right)/W,gap=6,cellW=cw-gap,rh=(vh-top-bottom-30)/3;
+  var have=0,could=0,streak=0,best=0,sat=0;
+  for(var i=0;i<W;i++){for(var r=0;r<3;r++){var past=sessDate(i+1,r)<=today&&CW()>=1;if(!past)continue;could++;if(a[i][r]===1){streak++;best=Math.max(best,streak);have++;}else streak=0;}if(a[i][3]===1)sat++;}
+  var s='<svg class="fctc" viewBox="0 0 '+vw+' '+vh+'">'+g.html+tx(left-8,top-14,"Sat","ax","end");
+  DAYS.forEach(function(r,k){s+=tx(left-8,top+rh*k+rh/2+4,r,"ax","end");});
+  for(var i2=0;i2<W;i2++){var x=left+cw*i2+gap/2,on=CW()>=1&&i2<wk;
+    if(a[i2][3]===1)s+='<circle cx="'+(x+cellW/2)+'" cy="'+(top-16)+'" r="5" fill="'+N.gold+'" filter="'+g.glow+'"/>';else s+='<circle cx="'+(x+cellW/2)+'" cy="'+(top-16)+'" r="4" fill="none" stroke="'+(on?N.grid:"#1c1c22")+'" stroke-width="1.5"/>';
+    for(var r2=0;r2<3;r2++){var y=top+rh*r2+3,h=rh-6,v=a[i2][r2],past=CW()>=1&&sessDate(i2+1,r2)<=today,cx=x+cellW/2,cy=y+h/2;
+      if(v===1)s+='<rect x="'+x+'" y="'+y+'" width="'+cellW+'" height="'+h+'" rx="6" fill="'+N.green+'" opacity=".16"/><rect x="'+x+'" y="'+y+'" width="'+cellW+'" height="'+h+'" rx="6" fill="none" stroke="'+N.green+'" stroke-width="2" filter="'+g.glow+'" opacity=".9"/><rect x="'+x+'" y="'+y+'" width="'+cellW+'" height="'+h+'" rx="6" fill="none" stroke="'+N.green+'" stroke-width="1.8"/><path d="M'+(cx-6)+','+cy+' L'+(cx-2)+','+(cy+4)+' L'+(cx+6)+','+(cy-5)+'" fill="none" stroke="'+N.green+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      else if(v===0)s+='<rect x="'+x+'" y="'+y+'" width="'+cellW+'" height="'+h+'" rx="6" fill="'+N.red+'" opacity=".10"/><rect x="'+x+'" y="'+y+'" width="'+cellW+'" height="'+h+'" rx="6" fill="none" stroke="'+N.red+'" stroke-width="2" filter="'+g.glow+'" opacity=".85"/><path d="M'+(cx-5)+','+(cy-5)+' L'+(cx+5)+','+(cy+5)+' M'+(cx+5)+','+(cy-5)+' L'+(cx-5)+','+(cy+5)+'" stroke="'+N.red+'" stroke-width="2.5" stroke-linecap="round"/>';
+      else s+='<rect x="'+x+'" y="'+y+'" width="'+cellW+'" height="'+h+'" rx="6" fill="none" stroke="'+(past?"#3a3a44":"#1e1e25")+'" stroke-width="1.5" stroke-dasharray="3 4"/>';}
+    s+=tx(x+cellW/2,vh-12,"W"+(i2+1),"ax","middle");}
+  var pct=could?Math.round(have/could*100):0,cx3=vw-right/2,cy3=vh/2-14,R=40,circ=2*Math.PI*R;
+  s+='<circle cx="'+cx3+'" cy="'+cy3+'" r="'+R+'" fill="none" stroke="'+N.grid+'" stroke-width="9"/><circle cx="'+cx3+'" cy="'+cy3+'" r="'+R+'" fill="none" stroke="'+N.green+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+circ+'" stroke-dashoffset="'+(circ*(1-pct/100))+'" transform="rotate(-90 '+cx3+' '+cy3+')" filter="'+g.glow+'" opacity=".55"/><circle cx="'+cx3+'" cy="'+cy3+'" r="'+R+'" fill="none" stroke="'+N.green+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+circ+'" stroke-dashoffset="'+(circ*(1-pct/100))+'" transform="rotate(-90 '+cx3+' '+cy3+')"/>'+tx(cx3,cy3+9,pct+"%","pct","middle")+tx(cx3,cy3+R+24,have+" of "+could+" sessions","ax white","middle")+tx(cx3,cy3+R+42,"streak "+streak+" · best "+best+" · +"+sat+" Sat","ax","middle");
+  return s+'</svg>';
+}
+/* ---------- SPARRING ---------- */
+function chartSpar(f){
+  var g=defs(N.pink),fr=frame(600,280,{l:56,r:170,t:26,b:38}),k=rdWeeks(f),c=cum(k),wk=lastWk(f),cur=c[wk-1]||0,max=Math.max(90,Math.ceil(cur/20)*20+20);
+  var sy=function(v){return fr.y0+fr.h*(1-v/max);};
+  var ticks=[];for(var q=0;q<=4;q++)ticks.push({v:Math.round(max*q/4),t:q/4});
+  var s='<svg class="fctc" viewBox="0 0 600 280">'+g.html+gridLines(fr,ticks,function(v){return v;});
+  MILES.forEach(function(m){var y=sy(m.n),hit=cur>=m.n;s+='<line x1="'+fr.x0+'" x2="'+fr.x1+'" y1="'+y+'" y2="'+y+'" stroke="'+(hit?N.gold:N.grid)+'" stroke-width="'+(hit?1.6:1)+'" '+(hit?'filter="'+g.glow+'"':'stroke-dasharray="4 6"')+'/><rect x="'+(fr.x1+12)+'" y="'+(y-14)+'" width="150" height="28" rx="8" fill="'+(hit?N.gold:"none")+'" stroke="'+(hit?N.gold:N.grid)+'" stroke-width="1.5" '+(hit?'filter="'+g.glow+'"':'')+'/>'+tx(fr.x1+22,y+5,m.n+"  "+m.l,hit?"flagt dark":"flagt");});
+  var pts=[[fr.x0,sy(0)]];for(var i=0;i<wk;i++){var x=xAt(fr,i),x2=i<W-1?xAt(fr,i+1):fr.x1;pts.push([x,sy(c[i])]);pts.push([Math.min(x2,fr.x1),sy(c[i])]);}
+  if(cur>0){var d="M"+pts.map(function(p){return p[0]+","+p[1];}).join(" L");s+='<path d="'+d+' L'+pts[pts.length-1][0]+','+fr.y1+' L'+fr.x0+','+fr.y1+' Z" fill="'+g.grad+'"/>'+neon(d,N.pink,g.glow,3.5);
+    for(var j=0;j<wk;j++)if(k[j]>0)s+=tx(xAt(fr,j)+(fr.w/(W-1))/2,sy(c[j])-9,"+"+k[j],"val pink","middle");
+    s+=dot(pts[pts.length-1][0],pts[pts.length-1][1],N.pink,true);}
+  return s+'</svg>';
+}
+
+/* ---------- cards ---------- */
+function head(col,title,big,unit,sub){return '<div class="fctH" style="--c:'+col+'"><div class="k">'+title+'</div><div class="b">'+big+'<small>'+unit+'</small></div>'+(sub?'<div class="s">'+sub+'</div>':'')+'</div>';}
+function weightCard(f){
+  var rows=wiRows(f),cur=rows.length?Number(rows[rows.length-1].weight_kg):(f.weight_kg?Number(f.weight_kg):null),w=Math.max(1,CW()),tgt=f.fight_weight_kg?Number(f.fight_weight_kg):null;
+  var sub=rows.length>1?((Number(rows[rows.length-1].weight_kg)-Number(rows[0].weight_kg)).toFixed(1).replace(/^(-?)/,function(m){return m==="-"?"−":"+";})+" kg since week "+rows[0].week):(tgt?"fight weight "+tgt+" kg":"first weigh-in sets the line");
+  var h='<div class="card fct" data-fct="wt">'+head(N.gold,"Weight",cur!=null?cur.toFixed(1):"—"," kg",sub)+chartWeight(f);
+  if(mine(f)){var ex=rows.find(function(r){return r.week===w;});h+='<div class="fctF"><label>Weigh-in · week '+w+(ex?' · logged '+Number(ex.weight_kg).toFixed(1)+' kg':'')+'</label><div class="row"><input class="txt" inputmode="decimal" id="fctWt" placeholder="'+(cur!=null?cur.toFixed(1):"e.g. 72.4")+'"><button class="sm gold" onclick="fctSaveWt()">Save</button></div><p>Same scales, same time each week. Only you, Jake and Ali see this.</p></div>';}
+  return h+'</div>';
+}
+function attCard(f){
+  var a=attGrid(f),cw=CW(),have=0;a.forEach(function(r){for(var d=0;d<3;d++)if(r[d]===1)have++;});
+  var h='<div class="card fct" data-fct="att">'+head(N.green,"Attendance",have," sessions","Mon · Tue · Wed 6:45 pm · Saturday sparring optional")+chartAtt(f);
+  if(mine(f)){
+    if(cw<1)h+='<div class="fctF"><p>Attendance starts <b>Mon '+campStart().getDate()+' '+campStart().toLocaleDateString("en-AU",{month:"short"})+'</b>. Tick each session off here as you do it.</p></div>';
+    else{var sw=ST.attWeek||cw;if(sw>cw)sw=cw;var chips='';for(var i=1;i<=cw;i++)chips+='<button class="chip'+(i===sw?' on':'')+'" onclick="fctAttWeek('+i+')">Wk '+i+'</button>';
+      h+='<div class="fctF"><label>Tick your sessions</label><div class="chips">'+chips+'</div>';
+      for(var d=0;d<4;d++){var dt=d<3?sessDate(sw,d):sessDate(sw,5),v=a[sw-1][d],lbl=d<3?DAYS[d]:"Sat";
+        h+='<div class="fctA"><div class="d"><b>'+E(lbl)+'</b><small>'+dt.getDate()+' '+dt.toLocaleDateString("en-AU",{month:"short"})+(d===3?' · optional':'')+'</small></div><button class="tk'+(v===1?' on':'')+'" onclick="fctAtt('+sw+','+d+',true)">✓ Trained</button><button class="tk miss'+(v===0?' on':'')+'" onclick="fctAtt('+sw+','+d+',false)">✗ Missed</button></div>';}
+      h+='<p>Tap again to change it. Coaches see the same grid.</p></div>';}
+  }
+  return h+'</div>';
+}
+function runCard(f){
+  var k=kmWeeks(f),tot=+k.reduce(function(a,b){return a+b;},0).toFixed(1),best=Math.max.apply(null,k.concat([0])),rs=runsOf(f);
+  var h='<div class="card fct" data-fct="run">'+head(N.cyan,"Running",tot," km this camp",best>0?"best week "+best+" km · "+((FC.camp&&FC.camp.km_target)||10)+" km a week is the minimum":"log every run — km and time")+chartRun(f);
+  if(mine(f)){h+='<div class="fctF"><label>Log a run</label><div class="row"><input class="txt" inputmode="decimal" id="fctKm" placeholder="km"><input class="txt" id="fctTm" placeholder="time mm:ss"><input class="txt" type="date" id="fctRd" value="'+iso(new Date())+'"></div><button class="sm gold" style="margin-top:8px" onclick="fctSaveRun()">Add run</button></div>';}
+  if(rs.length){h+='<div class="fctL">'+rs.slice(0,6).map(function(r){var pace=r.time_text&&Number(r.km)>0?paceOf(r.time_text,Number(r.km)):"";return '<div><span><b>'+Number(r.km).toFixed(1)+' km</b> '+(r.time_text?E(r.time_text):'')+(pace?' · '+pace+' /km':'')+'</span><span>'+fmtD(r.run_date)+(mine(f)?' <a onclick="fctDelRun('+r.id+')">remove</a>':'')+'</span></div>';}).join("")+'</div>';}
+  return h+'</div>';
+}
+function paceOf(t,km){var p=String(t).split(":").map(Number);if(p.some(isNaN))return "";var s=p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:p[0]*60;var ps=s/km;return Math.floor(ps/60)+":"+String(Math.round(ps%60)).padStart(2,"0");}
+function sparCard(f){
+  var rounds=roundsOf(f).length,ns=nights(f),next=MILES.find(function(m){return rounds<m.n;});
+  var h='<div class="card fct" data-fct="spar">'+head(N.pink,"Sparring",rounds," rounds",next?(next.n-rounds)+" more to "+next.l.toLowerCase():"every reward unlocked")+chartSpar(f);
+  if(mine(f)){var opts='<option value="">Opponent…</option>'+(FC.F||[]).filter(function(x){return x.id!==f.id;}).map(function(x){return '<option value="'+x.id+'">'+E((x.first_name||"")+" "+(x.last_name||""))+'</option>';}).join("")+'<option value="out">Outside gym / other</option>';
+    h+='<div class="fctF"><label>Log sparring</label><div class="row"><input class="txt" type="date" id="fctSd" value="'+iso(new Date())+'"><select class="txt" id="fctSo">'+opts+'</select></div><div class="row" style="margin-top:6px"><div class="stp"><button onclick="fctSparN(-1)">−</button><b id="fctSn">'+ST.sparN+'</b><small>rounds</small><button onclick="fctSparN(1)">+</button></div><div class="seg"><button class="'+(ST.sparLvl==="Technical"?"on":"")+'" onclick="fctSparLvl(\'Technical\')">Technical</button><button class="'+(ST.sparLvl==="Open"?"on":"")+'" onclick="fctSparLvl(\'Open\')">Open</button></div></div><input class="txt" id="fctSnote" style="margin-top:6px" placeholder="How it went (optional)"><button class="sm gold" style="margin-top:8px" onclick="fctSaveSpar()">Bank the rounds</button><p>Rounds count toward rewards: 10 recovery day · 20 recovery weekend · 30 Legacy apparel · 50 recovery week · 80 fight singlet.</p></div>';}
+  if(ns.length){h+='<div class="fctL">'+ns.slice(0,8).map(function(n){var o=n.opp?byId(n.opp):null;return '<div><span><b>'+n.n+' rds</b> · '+(o?E(o.first_name+" "+(o.last_name||"")[0]+"."):"outside gym")+' · '+E(n.lvl||"")+(n.note?' <i>“'+E(n.note)+'”</i>':'')+'</span><span>'+fmtD(n.d)+(mine(f)&&n.own?' <a onclick="fctDelNight(\''+n.d+'\')">remove</a>':'')+'</span></div>';}).join("")+'</div>';}
+  return h+'</div>';
+}
+function trackerHtml(f){return '<div class="fctT"><div class="k">Track your training</div><div class="s">'+(mine(f)?"Log it the day you do it — every graph updates the moment you save.":E(f.first_name)+"'s camp, live.")+'</div></div>'+weightCard(f)+attCard(f)+runCard(f)+sparCard(f);}
+
+/* ---------- training plan (Camp tab) ---------- */
+var PLAN=[
+ {d:"Monday",t:"Tech sparring & drills",rows:[["6:45","Warm-up","10","all"],["6:55","Shadow","10","all"],["7:05","Tech sparring","30","split"],["7:35","Drills","20","split"],["7:55","Conditioning","15–20","all"]],end:"8:15"},
+ {d:"Tuesday",t:"Skills & drills · Fight Club only",rows:[["6:45","Warm-up","10","all"],["6:55","Shadow","10","all"],["7:05","Skills & drills · focus, footwork, defence, ring IQ","30","split"],["7:35","Bag & partner drills","30","all"],["8:05","Conditioning","10","all"]],end:"8:15"},
+ {d:"Wednesday",t:"Open sparring · every ring live",rows:[["6:45","Warm-up · prepare for contact, mobility","10","all"],["6:55","Shadow rounds · 4 × 2 min","10","all"],["7:05","Open sparring · matched at your level","40","split"],["7:45","All-level sparring · mix & match","20","all"],["8:05","Bag conditioning · 6 rounds + 5 min gut work","≈20","all"]],end:"8:25"}];
+function planHtml(){
+  return '<div class="card fct fctP" data-fct="plan"><div class="row"><h3 style="margin:0">Your training week</h3><span class="tag g">Mon · Tue · Wed 6:45 pm</span></div><p class="lg"><i style="--c:'+N.green+'"></i>All levels together <i style="--c:'+N.orange+'"></i>Novice <i style="--c:'+N.blue+'"></i>Experienced <i style="--c:'+N.pink+'"></i>Girls</p>'+
+   PLAN.map(function(p){return '<div class="day"><div class="dh"><b>'+p.d+'</b><span>'+p.t+'</span></div>'+p.rows.map(function(r){return '<div class="pr '+r[3]+'"><span class="t">'+r[0]+'</span><span class="n">'+E(r[1])+'</span><span class="m">'+r[2]+' min</span><span class="dots">'+(r[3]==="split"?'<i style="--c:'+N.orange+'"></i><i style="--c:'+N.blue+'"></i><i style="--c:'+N.pink+'"></i>':'<i style="--c:'+N.green+'"></i>')+'</span></div>';}).join("")+'<div class="pe">Done '+p.end+'</div></div>';}).join("")+
+   '<p style="margin-top:8px">Your coach places you in a ring for the split blocks. Saturday sparring is optional and counts toward your rounds.</p></div>';
+}
+
+/* ---------- actions ---------- */
+function refresh(){try{if(typeof window.fcxSub==="function")window.fcxSub(FC.sub);else enhance(true);}catch(e){enhance(true);}}
+window.fctSaveWt=async function(){var f=FC.me,w=Math.max(1,CW()),wt=parseFloat((document.getElementById("fctWt")||{}).value);if(!(wt>30&&wt<250)){T("Enter your weight in kg");return;}
+  var r=await sb.from("fc_weighins").upsert({camp:"fc2026",fighter_id:f.id,week:w,weight_kg:wt},{onConflict:"camp,fighter_id,week"}).select().maybeSingle();if(r.error){T("Couldn't save — "+r.error.message);return;}
+  FC.wi=(FC.wi||[]).filter(function(x){return !(x.fighter_id===f.id&&x.week===w);});FC.wi.push(r.data);T("Weight logged ✓");refresh();};
+window.fctAttWeek=function(w){ST.attWeek=w;refresh();};
+window.fctAtt=async function(w,d,on){var f=FC.me;var cur=(FC.att||[]).find(function(x){return x.fighter_id===f.id&&x.week===w&&x.day===d;});
+  var val=cur&&((cur.attended&&on)||(!cur.attended&&!on))?null:on;   /* tap the lit button again to clear */
+  var dt=d<3?sessDate(w,d):sessDate(w,5);
+  if(val===null){if(cur){var del=await sb.from("fc_attendance").delete().eq("id",cur.id);if(del.error){/* no delete policy for fighters: fall back to leaving it */}else{FC.att=FC.att.filter(function(x){return x.id!==cur.id;});refresh();return;}}return;}
+  var r=await sb.from("fc_attendance").upsert({camp:"fc2026",fighter_id:f.id,week:w,day:d,attended:val,session_date:iso(dt),logged_by:me()},{onConflict:"camp,fighter_id,week,day"}).select().maybeSingle();if(r.error){T("Couldn't save — "+r.error.message);return;}
+  FC.att=(FC.att||[]).filter(function(x){return !(x.fighter_id===f.id&&x.week===w&&x.day===d);});FC.att.push(r.data);T(val?"Session banked ✓":"Marked missed");refresh();};
+window.fctSaveRun=async function(){var f=FC.me,km=parseFloat((document.getElementById("fctKm")||{}).value),t=((document.getElementById("fctTm")||{}).value||"").trim(),d=(document.getElementById("fctRd")||{}).value||iso(new Date());if(!(km>0)){T("How many km?");return;}
+  if(t&&!/^\d{1,2}:\d{2}(:\d{2})?$/.test(t)){T("Time as mm:ss (e.g. 31:40)");return;}
+  var r=await sb.from("fc_runs").insert({camp:"fc2026",fighter_id:f.id,run_date:d,km:km,time_text:t||null}).select().maybeSingle();if(r.error){T("Couldn't save — "+r.error.message);return;}FC.runs=(FC.runs||[]).concat([r.data]);T(km+" km added ✓");refresh();};
+window.fctDelRun=async function(id){var r=await sb.from("fc_runs").delete().eq("id",id);if(r.error){T("Couldn't remove");return;}FC.runs=FC.runs.filter(function(x){return x.id!==id;});refresh();};
+window.fctSparN=function(dx){ST.sparN=Math.max(1,Math.min(20,ST.sparN+dx));var b=document.getElementById("fctSn");if(b)b.textContent=ST.sparN;};
+window.fctSparLvl=function(l){ST.sparLvl=l;document.querySelectorAll(".fct .seg button").forEach(function(b){b.classList.toggle("on",b.textContent===l);});};
+window.fctSaveSpar=async function(){var f=FC.me,d=(document.getElementById("fctSd")||{}).value||iso(new Date()),o=(document.getElementById("fctSo")||{}).value||"",note=((document.getElementById("fctSnote")||{}).value||"").trim(),n=ST.sparN;
+  if(!o){T("Who did you spar?");return;}
+  var ex=roundsOf(f).filter(function(r){return r.night_date===d;});
+  if(ex.some(function(r){return r.created_by!==me();})){T("Jake already logged that night — ask him to change it");return;}
+  if(ex.length){var del=await sb.from("fc_spar_rounds").delete().eq("fighter_id",f.id).eq("night_date",d);if(del.error){T("Couldn't replace that night");return;}FC.rounds=FC.rounds.filter(function(r){return !(r.fighter_id===f.id&&r.night_date===d);});}
+  var rows=[];for(var i=1;i<=n;i++)rows.push({camp:"fc2026",fighter_id:f.id,night_date:d,round_no:i,opponent_id:o==="out"?null:o,level:ST.sparLvl,note:i===1&&note?note:null,created_by:me()});
+  var r=await sb.from("fc_spar_rounds").insert(rows).select();if(r.error){T("Couldn't save — "+r.error.message);return;}
+  FC.rounds=(FC.rounds||[]).concat(r.data||[]);var tot=roundsOf(f).length,hit=MILES.find(function(m){return tot>=m.n&&tot-n<m.n;});T(hit?tot+" rounds — "+hit.l+" unlocked 🔥":n+" rounds banked ✓ ("+tot+" total)");refresh();};
+window.fctDelNight=async function(d){var f=FC.me;var r=await sb.from("fc_spar_rounds").delete().eq("fighter_id",f.id).eq("night_date",d);if(r.error){T("Couldn't remove");return;}FC.rounds=FC.rounds.filter(function(x){return !(x.fighter_id===f.id&&x.night_date===d);});refresh();};
+
+/* ---------- inject ---------- */
+var css=document.createElement("style");css.textContent=
+ ".fctT{margin:4px 0 12px}.fctT .k{font-family:Oswald,sans-serif;font-size:22px;letter-spacing:1px;text-transform:uppercase;color:#fff}.fctT .s{font-size:12px;color:#9a9891;margin-top:2px}"+
+ ".fct .fctH{display:flex;flex-direction:column;margin-bottom:6px}.fct .fctH .k{font-family:Oswald,sans-serif;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--c);text-shadow:0 0 12px var(--c)}.fct .fctH .b{font-family:Oswald,sans-serif;font-size:40px;line-height:1;color:#fff;margin-top:4px}.fct .fctH .b small{font-size:15px;color:var(--c);margin-left:5px}.fct .fctH .s{font-size:11.5px;color:#9a9891;margin-top:4px}"+
+ ".fctc{display:block;width:100%;height:auto;margin:6px 0 4px}.fctc .gl{stroke:#26262E;stroke-width:1}.fctc .ax{fill:#8e8a90;font-size:12px;font-weight:700;font-family:Montserrat,sans-serif}.fctc .ax.green{fill:#39FF88}.fctc .ax.red{fill:#FF4D4D}.fctc .ax.cyan{fill:#19E6FF}.fctc .ax.white{fill:#fff}.fctc .val{fill:#EBE9EA;font-size:12px;font-weight:700;font-family:Montserrat,sans-serif}.fctc .val.white{fill:#fff}.fctc .val.pink{fill:#FF2D87}.fctc .val.cyan{fill:#19E6FF}.fctc .popt{fill:#0a0a0b;font-size:13px;font-weight:800;font-family:Montserrat,sans-serif}.fctc .pct{fill:#fff;font-family:Oswald,sans-serif;font-size:26px;font-weight:700}.fctc .flagt{fill:#8e8a90;font-size:12px;font-weight:700;font-family:Montserrat,sans-serif}.fctc .flagt.dark{fill:#0a0a0b}"+
+ ".fctF{margin-top:10px;border-top:1px solid #26262e;padding-top:10px}.fctF label{display:block;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#9a9891;margin-bottom:6px}.fctF .row{display:flex;gap:6px;align-items:center}.fctF .row .txt{flex:1;min-width:0}.fctF p{font-size:11px;color:#9a9891;margin-top:8px}.fctF .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.fctF .chip{border:1px solid #2a2a2e;background:#141416;color:#9a9891;border-radius:8px;padding:5px 9px;font-size:11px;font-weight:800}.fctF .chip.on{border-color:#39FF88;color:#39FF88}"+
+ ".fctA{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid #1e1e22}.fctA .d b{font-family:Oswald,sans-serif;font-size:15px;color:#fff}.fctA .d small{display:block;font-size:10px;color:#9a9891}.fctA .tk{border:1.5px solid #2a2a2e;background:#141416;color:#9a9891;border-radius:9px;padding:8px 10px;font-size:11px;font-weight:800;letter-spacing:.5px}.fctA .tk.on{border-color:#39FF88;color:#0a0a0b;background:#39FF88;box-shadow:0 0 12px rgba(57,255,136,.5)}.fctA .tk.miss.on{border-color:#FF4D4D;background:#FF4D4D;box-shadow:0 0 12px rgba(255,77,77,.5)}"+
+ ".fct .stp{display:flex;align-items:center;gap:8px;border:1px solid #2a2a2e;border-radius:10px;padding:4px 6px;background:#141416}.fct .stp button{width:30px;height:30px;border-radius:8px;border:0;background:#26262e;color:#fff;font-size:18px;font-weight:800}.fct .stp b{font-family:Oswald,sans-serif;font-size:22px;color:#fff;min-width:26px;text-align:center}.fct .stp small{font-size:10px;color:#9a9891;letter-spacing:1px;text-transform:uppercase}"+
+ ".fct .seg{display:flex;flex:1;border:1px solid #2a2a2e;border-radius:10px;overflow:hidden}.fct .seg button{flex:1;padding:9px 4px;border:0;background:#141416;color:#9a9891;font-size:11px;font-weight:800}.fct .seg button.on{background:#FF2D87;color:#fff}"+
+ ".fctL{margin-top:8px}.fctL>div{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:6px 0;border-top:1px solid #1e1e22;color:#d8d3c6}.fctL b{color:#fff}.fctL i{color:#9a9891}.fctL span:last-child{color:#9a9891;white-space:nowrap}.fctL a{color:#ff7a7a;margin-left:6px;cursor:pointer;font-weight:700}"+
+ ".fct select.txt{appearance:none}.fct input[type=date].txt{min-width:120px}.sm.gold{background:linear-gradient(178deg,#F6D97C,#C9962A);color:#141005;border:0;font-weight:800}"+
+ ".fctP .lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:#9a9891;margin:6px 0 4px;align-items:center}.fctP .lg i,.fctP .dots i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c);margin-right:5px;vertical-align:middle}.fctP .dots i{margin:0 0 0 3px}"+
+ ".fctP .day{margin-top:10px;border:1px solid #26262e;border-radius:12px;padding:10px 12px;background:#0f0f11}.fctP .dh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}.fctP .dh b{font-family:Oswald,sans-serif;font-size:17px;letter-spacing:1px;text-transform:uppercase;color:#F1D27A}.fctP .dh span{font-size:10.5px;color:#9a9891;text-align:right}"+
+ ".fctP .pr{display:grid;grid-template-columns:38px 1fr auto auto;gap:6px;align-items:center;padding:5px 0;border-top:1px solid #1a1a1e;font-size:12px}.fctP .pr .t{font-family:Oswald,sans-serif;color:#fff}.fctP .pr .n{color:#e8e4da}.fctP .pr .m{color:#9a9891;font-size:10.5px;white-space:nowrap}.fctP .pr.split .n{color:#fff;font-weight:700}.fctP .pe{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#9a9891;margin-top:6px;text-align:right}";
+document.head.appendChild(css);
+
+function enhance(force){
+  try{
+    if(view!=="fc"||!window.FC||!FC.loaded)return;
+    var box=document.querySelector("#main .fcx");if(!box)return;
+    var f=fighter();
+    if(FC.tab==="progress"&&f){
+      if(box.querySelector('[data-fct="wt"]')&&!force)return;
+      var old=box.querySelectorAll(".card.gph");if(!old.length){var have=box.querySelector('[data-fct="wt"]');if(!have)return;}
+      box.querySelectorAll(".fctT,.card.fct[data-fct]").forEach(function(n){n.remove();});
+      var w=document.createElement("div");w.innerHTML=trackerHtml(f);
+      var anchor=old.length?old[0]:box.querySelector(".card");
+      var frag=document.createDocumentFragment();while(w.firstChild)frag.appendChild(w.firstChild);
+      if(anchor)anchor.parentNode.insertBefore(frag,anchor);else box.appendChild(frag);
+      old.forEach(function(n){n.remove();});
+    }else if(!staff()&&FC.tab==="camp"&&FC.me){
+      if(box.querySelector('[data-fct="plan"]'))return;
+      var hero=box.querySelector(".hero");var d=document.createElement("div");d.innerHTML=planHtml();
+      if(hero)hero.insertAdjacentElement("afterend",d.firstChild);else box.appendChild(d.firstChild);
+    }
+  }catch(e){console.warn("fctrack",e);}
+}
+["fcxSet","fcxSub","fcxOpen","FC_attSel"].forEach(function(fn){var o=window[fn];if(typeof o!=="function")return;window[fn]=function(){var r=o.apply(this,arguments);try{enhance();setTimeout(enhance,40);}catch(e){}return r;};});
+["fcxCheckin","fcxAddRun"].forEach(function(fn){var o=window[fn];if(typeof o!=="function")return;window[fn]=function(){var r=o.apply(this,arguments);if(r&&r.then)r.then(function(){enhance(true);});return r;};});
+try{var mo=new MutationObserver(function(){try{enhance();}catch(e){}});var mainEl=document.getElementById("main");if(mainEl)mo.observe(mainEl,{childList:true});}catch(e){}
+try{enhance();}catch(e){}
+})();
