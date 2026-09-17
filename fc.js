@@ -1444,3 +1444,197 @@ async function boot(){if(booted||!me())return;booted=true;await load();paint();
 ["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){try{if(booted)paint();else boot();}catch(e){}};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,40);return r;};});
 var tries=0,iv=setInterval(function(){tries++;if(me()){clearInterval(iv);boot();}else if(tries>40)clearInterval(iv);},500);
 })();
+
+/*__MYSESSIONS__ =======================================================
+   My booked sessions + Add to calendar.
+   • One list of everything the member is booked into — classes, sparring,
+     PT, recovery, Fight Club camp sessions, social events, the NRL party —
+     read live from the booking tables (nothing is copied).
+   • "Add to calendar" on every row and after every booking confirmation:
+     Apple / Google / Outlook / Other. Apple + Other use /api/ics.
+   Additive: hooks attendClass, krBook, socialIn and nrlAttend after they
+   finish. Booking screens themselves are untouched.
+   ==================================================================== */
+(function(){
+"use strict";
+var GYM="Legacy Gym, Kincumber NSW 2251", APP="https://legacygym-app.vercel.app", HORIZON_DAYS=70;
+var CAT={class:{l:"Class",c:"#F1D27A"},spar:{l:"Sparring",c:"#FF2D87"},pt:{l:"Personal training",c:"#19E6FF"},recovery:{l:"Recovery",c:"#39FF88"},fc:{l:"Fight Club",c:"#FF9F1C"},event:{l:"Event",c:"#3f86ff"}};
+var S={list:null,at:0,loading:null};
+function me(){try{return (session&&session.user&&session.user.id)||null;}catch(e){return null;}}
+function onHome(){try{return (typeof view==="undefined")||view==="home";}catch(e){return true;}}
+function T(m){try{toast(m);}catch(e){}}
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function pad(n){return String(n).padStart(2,"0");}
+function pd(s){var p=String(s).slice(0,10).split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
+function iso(x){return x.getFullYear()+"-"+pad(x.getMonth()+1)+"-"+pad(x.getDate());}
+function mk(dateStr,min){var x=pd(dateStr);x.setMinutes(min);return x;}
+function tm(x){var h=x.getHours(),m=x.getMinutes();return (h%12||12)+(m?":"+pad(m):"")+(h<12?"am":"pm");}
+var DN=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],MN=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function dayLabel(x){var t=new Date();t.setHours(0,0,0,0);var d=Math.round((new Date(x.getFullYear(),x.getMonth(),x.getDate())-t)/864e5);return (d===0?"Today · ":d===1?"Tomorrow · ":"")+DN[x.getDay()]+" "+x.getDate()+" "+MN[x.getMonth()];}
+function parseTime(t){ /* "18:00" | "6:00 PM" | "6pm" */
+  var s=String(t||"").trim(),m=s.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);if(!m)return null;var h=+m[1],mi=+(m[2]||0);
+  if(m[3]){var ap=m[3].toLowerCase();if(ap==="pm"&&h<12)h+=12;if(ap==="am"&&h===12)h=0;}return h*60+mi;
+}
+function stamp(x){return x.getFullYear()+pad(x.getMonth()+1)+pad(x.getDate())+"T"+pad(x.getHours())+pad(x.getMinutes())+"00";}
+
+/* ---------- read everything the member is booked into ---------- */
+async function load(force){
+  if(!me()||typeof sb==="undefined")return [];
+  if(S.list&&!force&&Date.now()-S.at<45000)return S.list;
+  if(S.loading)return S.loading;
+  S.loading=(async function(){
+    var today=iso(new Date()),lim=new Date();lim.setDate(lim.getDate()+HORIZON_DAYS);var limS=iso(lim),uid=me(),out=[];
+    var r=await Promise.all([
+      sb.from("class_regs").select("id,class_name,class_date,class_time").eq("user_id",uid).gte("class_date",today).lte("class_date",limS),
+      sb.from("bookings").select("id,facility,date,slot_min").eq("user_id",uid).gte("date",today).lte("date",limS),
+      sb.from("pt_bookings").select("id,ref,coach,session_date,start_min,duration_min,session_type,status").eq("user_id",uid).eq("status","booked").gte("session_date",today).lte("session_date",limS),
+      sb.from("social_rsvps").select("event_id").eq("user_id",uid),
+      sb.from("event_rsvps").select("event_key,status,guests").eq("user_id",uid).eq("status","attending"),
+      sb.from("fc_fighters").select("id,first_name,status").eq("user_id",uid).eq("camp","fc2026").eq("status","active").maybeSingle()
+    ]);
+    (r[0].data||[]).forEach(function(c){var m=parseTime(c.class_time);if(m==null)return;var sp=/sparring/i.test(c.class_name),s=mk(c.class_date,m),e=mk(c.class_date,m+(sp?75:60));
+      out.push({id:"class-"+c.id,cat:sp?"spar":"class",title:c.class_name,start:s,end:e,coach:null,note:"Class booking · Legacy Gym"});});
+    var KR={sauna1:"Sauna One",sauna2:"Sauna Two"};
+    (r[1].data||[]).forEach(function(b){var s=mk(b.date,b.slot_min),e=mk(b.date,b.slot_min+45);out.push({id:"rec-"+b.id,cat:"recovery",title:"Recovery · "+(KR[b.facility]||b.facility),start:s,end:e,coach:null,note:"45-minute recovery booking · bring a towel and thongs"});});
+    (r[2].data||[]).forEach(function(p){var s=mk(p.session_date,p.start_min),e=mk(p.session_date,p.start_min+(p.duration_min||30));out.push({id:"pt-"+p.id,cat:"pt",title:(p.duration_min||30)+"-min PT with "+p.coach,start:s,end:e,coach:p.coach,note:"Personal training · ref "+(p.ref||"")});});
+    var evIds=(r[3].data||[]).map(function(x){return x.event_id;});
+    if(evIds.length){var se=await sb.from("social_events").select("id,title,event_date,event_time,location,details").in("id",evIds).gte("event_date",today);
+      (se.data||[]).forEach(function(v){var m=parseTime(v.event_time);if(m==null)m=18*60;var s=mk(v.event_date,m),e=mk(v.event_date,m+180);out.push({id:"soc-"+v.id,cat:"event",title:v.title,start:s,end:e,coach:null,loc:v.location||null,note:v.details||"Legacy Gym social event"});});}
+    (r[4].data||[]).forEach(function(x){if(x.event_key==="nrl-gf-2026"){var s=new Date(2026,9,4,14,0),e=new Date(2026,9,4,18,30);if(e<new Date())return;out.push({id:"ev-nrl-gf-2026",cat:"event",title:"NRL Grand Final Party"+(x.guests?" · +"+x.guests:""),start:s,end:e,coach:null,note:"NRL Grand Final Party at Legacy Gym. Food, drinks, music and the game live on the big screen. Friends & family welcome — jerseys a must."});}});
+    if(r[5].data){var camp=new Date(2026,9,12),seen=0;for(var w=0;w<10;w++)[[1,"Monday · tech sparring & drills",90],[2,"Tuesday · skills & drills",90],[3,"Wednesday · open sparring",100]].forEach(function(dd){var s=new Date(camp);s.setDate(camp.getDate()+w*7+(dd[0]-1));s.setHours(18,45,0,0);var e=new Date(s);e.setMinutes(e.getMinutes()+dd[2]);if(e<new Date()||s>lim)return;
+      out.push({id:"fc-w"+(w+1)+"d"+dd[0],cat:"fc",title:"Fight Club · "+dd[1].split(" · ")[1],start:s,end:e,coach:"Jake",note:"Fight Club 2026 · week "+(w+1)+" of 10 · "+dd[1],series:{byday:["MO","TU","WE"][dd[0]-1],count:10,first:seen++===0}});});}
+    out=out.filter(function(x){return x.end>new Date();}).sort(function(a,b){return a.start-b.start;});
+    S.list=out;S.at=Date.now();S.loading=null;return out;
+  })();
+  return S.loading;
+}
+
+/* ---------- calendar layer ---------- */
+function calEvent(b,series){
+  return {uid:"legacy-"+b.id.replace(/-w\d+d(\d)$/,series?"-series-d$1":"")+"@legacygym.net",title:b.title+" — Legacy Gym",start:b.start,end:b.end,loc:b.loc||GYM,
+    desc:(b.note||"")+"\n\nManage in the Legacy app: "+APP,rrule:series&&b.series?"FREQ=WEEKLY;COUNT="+b.series.count+";BYDAY="+b.series.byday:null};
+}
+function icsUrl(ev){var p=new URLSearchParams({t:ev.title,s:stamp(ev.start),e:stamp(ev.end),l:ev.loc,d:ev.desc,u:ev.uid});if(ev.rrule)p.set("r",ev.rrule);return "/api/ics?"+p.toString();}
+function gUrl(ev){var p=new URLSearchParams({action:"TEMPLATE",text:ev.title,dates:stamp(ev.start)+"/"+stamp(ev.end),ctz:"Australia/Sydney",details:ev.desc,location:ev.loc});if(ev.rrule)p.set("recur","RRULE:"+ev.rrule);return "https://calendar.google.com/calendar/render?"+p.toString();}
+function oUrl(ev){var f=function(x){return x.getFullYear()+"-"+pad(x.getMonth()+1)+"-"+pad(x.getDate())+"T"+pad(x.getHours())+":"+pad(x.getMinutes())+":00";};var p=new URLSearchParams({path:"/calendar/action/compose",rru:"addevent",subject:ev.title,startdt:f(ev.start),enddt:f(ev.end),location:ev.loc,body:ev.desc});return "https://outlook.live.com/calendar/0/deeplink/compose?"+p.toString();}
+function platform(){var u=navigator.userAgent||"";if(/iPhone|iPad|iPod/.test(u)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1))return "ios";if(/Android/.test(u))return "android";if(/Mac/.test(u))return "mac";if(/Windows/.test(u))return "win";return "other";}
+
+/* ---------- styles ---------- */
+var css=document.createElement("style");css.textContent=
+ '#msTile{border:1px solid #26262e;border-radius:16px;background:#141416;padding:14px;margin-bottom:14px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}'
++'#msTile .k{font-size:8.5px;letter-spacing:2px;font-weight:800;color:#F1D27A;text-transform:uppercase}#msTile .t{font-family:Oswald,sans-serif;font-weight:700;font-size:20px;color:#fff;margin-top:4px;line-height:1}#msTile .s{font-size:12px;color:#cfcbc2;margin-top:4px}#msTile .s b{color:#fff}'
++'#msTile .n{font-family:Oswald,sans-serif;font-size:34px;color:#F1D27A;line-height:1;text-align:center}#msTile .n small{display:block;font-family:Montserrat,sans-serif;font-size:7.5px;letter-spacing:1.5px;font-weight:800;color:#9a9891;margin-top:3px}'
++'.msPage{position:fixed;inset:0;z-index:9002;background:#0b0b0c;overflow:auto;-webkit-overflow-scrolling:touch;transform:translateX(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);padding:calc(16px + env(safe-area-inset-top)) 0 60px}'
++'.msPage.on{transform:none}.msPage .in{max-width:520px;margin:0 auto;padding:0 18px}'
++'.msPage .hd{display:flex;align-items:center;gap:12px}.msPage .back{font-size:10px;font-weight:800;letter-spacing:2px;color:#fff;background:#1a1a1e;padding:9px 11px;border-radius:8px;border:1px solid #2e2e36;cursor:pointer;font-family:inherit}'
++'.msPage h1{margin:14px 0 0;font-family:Oswald,sans-serif;font-weight:700;font-size:28px;line-height:1;color:#fff}.msPage .sub{color:#9a9891;font-size:12px;margin-top:6px;line-height:1.5}'
++'.msDay{margin-top:18px}.msDay .dh{display:flex;align-items:center;gap:8px;font-family:Oswald,sans-serif;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;color:#fff}.msDay .dh:after{content:"";flex:1;height:1px;background:#26262e}'
++'.msRow{display:grid;grid-template-columns:62px 1fr auto;gap:10px;align-items:center;margin-top:8px;background:#141416;border:1px solid #26262e;border-left:3px solid var(--c);border-radius:12px;padding:11px 12px}'
++'.msRow .tm{font-family:Oswald,sans-serif;font-size:16px;color:#fff;line-height:1}.msRow .tm small{display:block;font-size:9px;color:#9a9891;margin-top:3px;font-family:Montserrat,sans-serif;font-weight:700}'
++'.msRow .t{font-weight:700;font-size:13px;color:#fff;line-height:1.2}.msRow .m{font-size:10.5px;color:#9a9891;margin-top:3px}'
++'.msRow button{border:1px solid rgba(241,210,122,.5);background:transparent;color:#F1D27A;font-size:8.5px;letter-spacing:1.2px;font-weight:800;text-transform:uppercase;padding:8px 9px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap}'
++'.msEmpty{margin-top:14px;padding:18px;border:1px dashed #26262e;border-radius:12px;color:#6e6b74;font-size:12px;text-align:center;line-height:1.5}'
++'#msDim{position:fixed;inset:0;z-index:9010;background:rgba(0,0,0,.74);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .3s}#msDim.on{opacity:1}'
++'#msSheet{position:fixed;left:0;right:0;bottom:0;z-index:9011;margin:0 auto;max-width:480px;max-height:calc(100% - 80px);overflow:auto;background:#111114;border:1px solid #2a2a31;border-bottom:0;border-radius:22px 22px 0 0;padding:14px 18px calc(22px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .42s cubic-bezier(.2,.9,.25,1)}#msSheet.on{transform:none}'
++'#msSheet .grab{width:38px;height:4px;border-radius:2px;background:#2e2e36;margin:0 auto 12px}'
++'#msSheet .k{font-size:9px;letter-spacing:2.2px;font-weight:800;color:#F1D27A;text-transform:uppercase}#msSheet h2{margin:4px 0 0;font-family:Oswald,sans-serif;font-weight:700;font-size:20px;line-height:1.05;color:#fff}#msSheet .sub{color:#9a9891;font-size:12px;margin-top:6px;line-height:1.5}'
++'#msSheet .done{border:1.5px solid #39FF88;background:#0d1a12;border-radius:14px;padding:12px 14px;margin-bottom:12px}#msSheet .done b{display:block;font-family:Oswald,sans-serif;font-size:18px;color:#39FF88}#msSheet .done span{display:block;font-size:12px;color:#cfe9d6;margin-top:3px;line-height:1.4}'
++'.msOpts{display:flex;flex-direction:column;gap:8px;margin-top:12px}.msOpt{display:flex;align-items:center;gap:12px;background:#141416;border:1px solid #26262e;border-radius:12px;padding:12px 14px;color:#fff;text-align:left;width:100%;cursor:pointer;font-family:inherit}.msOpt.rec{border-color:rgba(241,210,122,.6)}'
++'.msOpt .ic{width:36px;height:36px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px}.msOpt .ap{background:#fff;color:#111}.msOpt .go{background:#fff;color:#1a73e8}.msOpt .ou{background:#0f6cbd;color:#fff}.msOpt .ot{background:#26262e;color:#fff}'
++'.msOpt b{display:block;font-size:13px}.msOpt small{display:block;font-size:10.5px;color:#9a9891;margin-top:2px}.msOpt .tag{margin-left:auto;font-size:8px;letter-spacing:1.5px;font-weight:800;color:#141005;background:#F1D27A;padding:4px 7px;border-radius:5px;white-space:nowrap}'
++'.msSeries{display:flex;gap:8px;margin-top:10px}.msSeries button{flex:1;border:1.5px solid #26262e;background:#0f0f11;border-radius:10px;padding:10px 6px;color:#9a9891;text-align:center;cursor:pointer;font-family:inherit}.msSeries button b{display:block;font-family:Oswald,sans-serif;font-size:15px;color:#fff}.msSeries button small{display:block;font-size:8px;letter-spacing:1.2px;font-weight:800;margin-top:2px;text-transform:uppercase}.msSeries button.on{border-color:#F1D27A;background:linear-gradient(178deg,#F6D97C,#C9962A)}.msSeries button.on b,.msSeries button.on small{color:#141005}'
++'#msSheet .ghost{display:block;width:100%;margin-top:10px;border-radius:12px;padding:12px;text-align:center;font-weight:800;font-size:11px;letter-spacing:2px;text-transform:uppercase;border:1px solid #26262e;background:transparent;color:#9a9891;cursor:pointer;font-family:inherit}'
++'#msSheet .note{margin-top:10px;font-size:10.5px;color:#6e6b74;line-height:1.45}';
+document.head.appendChild(css);
+
+/* ---------- home tile ---------- */
+function tileHtml(list){
+  var n=list.length,nx=list[0];
+  return '<div id="msTile" onclick="msOpen()"><div><span class="k">My booked sessions</span><div class="t">'+(n?n+" coming up":"Nothing booked yet")+'</div><div class="s">'+(nx?'Next: <b>'+E(nx.title)+'</b> · '+dayLabel(nx.start).replace("Today · ","today ").replace("Tomorrow · ","tomorrow ")+' '+tm(nx.start):'Book a class, PT or recovery and it shows up here.')+'</div></div><div class="n">'+n+'<small>Booked</small></div></div>';
+}
+async function paintTile(){
+  var main=document.getElementById("main");if(!main||!onHome()||!me())return;
+  var list=await load();if(!onHome())return;
+  var old=document.getElementById("msTile"),h=tileHtml(list);
+  if(old){old.outerHTML=h;return;}
+  var after=document.getElementById("nrlTile");
+  if(after)after.insertAdjacentHTML("afterend",h);else main.insertAdjacentHTML("afterbegin",h);
+}
+
+/* ---------- full list page ---------- */
+function rowHtml(b){var c=CAT[b.cat];return '<div class="msRow" style="--c:'+c.c+'"><div class="tm">'+tm(b.start)+'<small>to '+tm(b.end)+'</small></div><div><div class="t">'+E(b.title)+'</div><div class="m">'+c.l+(b.coach&&b.cat!=="pt"?' · '+E(b.coach):'')+' · Legacy Gym</div></div><button onclick="msCal(\''+b.id+'\')">+ Calendar</button></div>';}
+function pageHtml(list){
+  var h='<div class="in"><div class="hd"><button class="back" onclick="msClose()">‹ Back</button></div><h1>My booked sessions</h1><div class="sub">Everything you\'re booked into, soonest first. Tap + Calendar to put any of them in your phone\'s calendar.</div>';
+  if(!list.length)h+='<div class="msEmpty">Nothing booked in the next '+HORIZON_DAYS+' days.<br>Classes, PT, recovery, sparring and events all land here the moment you book.</div>';
+  var last="";list.forEach(function(b){var d=iso(b.start);if(d!==last){last=d;h+='<div class="msDay"><div class="dh">'+dayLabel(b.start)+'</div>';}h+=rowHtml(b);});
+  return h+'</div>';
+}
+window.msOpen=async function(){
+  var p=document.getElementById("msPage");if(p)p.remove();
+  p=document.createElement("div");p.id="msPage";p.className="msPage";p.innerHTML='<div class="in"><div class="hd"><button class="back" onclick="msClose()">‹ Back</button></div><h1>My booked sessions</h1><div class="sub">Loading…</div></div>';
+  document.body.appendChild(p);requestAnimationFrame(function(){requestAnimationFrame(function(){p.classList.add("on");});});
+  var list=await load(true);p.innerHTML=pageHtml(list);
+};
+window.msClose=function(){var p=document.getElementById("msPage");if(!p)return;p.classList.remove("on");setTimeout(function(){p.remove();},420);};
+
+/* ---------- add-to-calendar sheet ---------- */
+var CUR=null,SERIES=true;
+function byId(id){return (S.list||[]).concat(EXTRA).filter(function(x){return x.id===id;})[0];}
+var EXTRA=[];
+function sheetHtml(b,justBooked){
+  var p=platform(),opts=[
+   {k:"apple",ic:"ap",t:"",b:"Apple Calendar",s:p==="ios"?"Opens Calendar on this iPhone":"Calendar file (.ics)"},
+   {k:"google",ic:"go",t:"G",b:"Google Calendar",s:"Opens Google Calendar pre-filled"},
+   {k:"outlook",ic:"ou",t:"O",b:"Outlook",s:"Opens Outlook pre-filled"},
+   {k:"other",ic:"ot",t:"⋯",b:"Other calendar",s:"Standard .ics file — any calendar app"}];
+  var order={ios:["apple","google","outlook","other"],mac:["apple","google","outlook","other"],android:["google","outlook","apple","other"],win:["outlook","google","apple","other"],other:["google","apple","outlook","other"]}[p];
+  opts.sort(function(a,c){return order.indexOf(a.k)-order.indexOf(c.k);});
+  var h='<div class="grab"></div>';
+  if(justBooked)h+='<div class="done"><b>'+E(justBooked)+'</b><span>'+E(b.title)+' · '+dayLabel(b.start)+' · '+tm(b.start)+' – '+tm(b.end)+'</span></div>';
+  h+='<span class="k">Add to calendar</span><h2>'+E(b.title)+'</h2><div class="sub">'+dayLabel(b.start)+' · '+tm(b.start)+' – '+tm(b.end)+' · Legacy Gym, Kincumber</div>';
+  if(b.series)h+='<div class="msSeries"><button class="'+(SERIES?"on":"")+'" onclick="msSeries(true)"><b>Whole camp</b><small>Every '+DN[b.start.getDay()]+' · 10 weeks</small></button><button class="'+(SERIES?"":"on")+'" onclick="msSeries(false)"><b>Just this one</b><small>Single session</small></button></div>';
+  h+='<div class="msOpts">'+opts.map(function(o,i){return '<button class="msOpt'+(i===0?" rec":"")+'" onclick="msAdd(\''+o.k+'\')"><span class="ic '+o.ic+'">'+(o.ic==="ap"?'<svg width="18" height="18" viewBox="0 0 24 24" fill="#111"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.8 1.3 10.3.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9-.1 0-2.7-1-2.7-4.2zM13.9 5c.7-.9 1.2-2.1 1-3.3-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.2 1.2.1 2.3-.6 3.1-1.5z"/></svg>':o.t)+'</span><span><b>'+o.b+'</b><small>'+o.s+'</small></span>'+(i===0?'<span class="tag">Your phone</span>':'')+'</button>';}).join("")+'</div>';
+  h+='<button class="ghost" onclick="msSheetClose()">Not now</button><div class="note">Goes in with the time, location and a reminder an hour before. Your booking is already confirmed either way.</div>';
+  return h;
+}
+function openSheet(b,justBooked){
+  CUR=b;SERIES=!!b.series;
+  var d=document.getElementById("msDim"),s=document.getElementById("msSheet");
+  if(!d){d=document.createElement("div");d.id="msDim";d.onclick=msSheetClose;document.body.appendChild(d);}
+  if(!s){s=document.createElement("div");s.id="msSheet";document.body.appendChild(s);}
+  s.innerHTML=sheetHtml(b,justBooked);s.scrollTop=0;
+  requestAnimationFrame(function(){requestAnimationFrame(function(){d.classList.add("on");s.classList.add("on");});});
+}
+window.msSheetClose=function(){var d=document.getElementById("msDim"),s=document.getElementById("msSheet");if(d)d.classList.remove("on");if(s)s.classList.remove("on");};
+window.msSeries=function(v){SERIES=v;var s=document.getElementById("msSheet");if(s&&CUR)s.innerHTML=sheetHtml(CUR);};
+window.msCal=function(id){var b=byId(id);if(b)openSheet(b);};
+window.msAdd=function(k){
+  if(!CUR)return;var ev=calEvent(CUR,SERIES&&!!CUR.series),label={apple:"Apple Calendar",google:"Google Calendar",outlook:"Outlook",other:"your calendar"}[k];
+  if(k==="google")window.open(gUrl(ev),"_blank");
+  else if(k==="outlook")window.open(oUrl(ev),"_blank");
+  else if(platform()==="ios"||platform()==="mac")window.location.href=icsUrl(ev);      /* Safari/PWA hands text/calendar to Calendar */
+  else window.open(icsUrl(ev)+"&dl=1","_blank");
+  T("Sent to "+label+" ✓");setTimeout(msSheetClose,400);
+};
+
+/* ---------- after a booking succeeds, offer the calendar ---------- */
+function offer(b,msg){EXTRA=[b];openSheet(b,msg);S.at=0;paintTile();}
+function wrap(fn,after){var o=window[fn];if(typeof o!=="function")return;window[fn]=function(){var args=arguments,r=o.apply(this,args);var go=function(){try{after.apply(null,args);}catch(e){}};if(r&&r.then)r.then(go,function(){});else setTimeout(go,50);return r;};}
+setTimeout(function(){
+  wrap("attendClass",async function(date,time,name){var m=parseTime(time);if(m==null)return;var q=await sb.from("class_regs").select("id").eq("user_id",me()).eq("class_date",date).eq("class_time",time).maybeSingle();if(!q.data)return;
+    var sp=/sparring/i.test(name);offer({id:"class-"+q.data.id,cat:sp?"spar":"class",title:name,start:mk(date,m),end:mk(date,m+(sp?75:60)),note:"Class booking · Legacy Gym"},"You're booked in");});
+  wrap("krBook",async function(fac,dateIso,t){var q=await sb.from("bookings").select("id").eq("user_id",me()).eq("date",dateIso).eq("slot_min",t).maybeSingle();if(!q.data)return;
+    var KR={sauna1:"Sauna One",sauna2:"Sauna Two"};offer({id:"rec-"+q.data.id,cat:"recovery",title:"Recovery · "+(KR[fac]||fac),start:mk(dateIso,t),end:mk(dateIso,t+45),note:"45-minute recovery booking"},"Booked");});
+  wrap("socialIn",async function(id){var q=await sb.from("social_rsvps").select("id").eq("user_id",me()).eq("event_id",id).maybeSingle();if(!q.data)return;var v=await sb.from("social_events").select("*").eq("id",id).maybeSingle();if(!v.data)return;
+    var m=parseTime(v.data.event_time);if(m==null)m=18*60;offer({id:"soc-"+id,cat:"event",title:v.data.title,start:mk(v.data.event_date,m),end:mk(v.data.event_date,m+180),loc:v.data.location||null,note:v.data.details||"Legacy Gym social event"},"You're on the list");});
+  wrap("nrlAttend",async function(){var q=await sb.from("event_rsvps").select("guests").eq("user_id",me()).eq("event_key","nrl-gf-2026").eq("status","attending").maybeSingle();if(!q.data)return;
+    offer({id:"ev-nrl-gf-2026",cat:"event",title:"NRL Grand Final Party"+(q.data.guests?" · +"+q.data.guests:""),start:new Date(2026,9,4,14,0),end:new Date(2026,9,4,18,30),note:"NRL Grand Final Party at Legacy Gym. Food, drinks, music and the game live on the big screen. Friends & family welcome — jerseys a must."},"You're attending");});
+},1500);
+
+/* ---------- boot ---------- */
+var moT=null,booted=false;
+function heal(){try{if(onHome()&&me()&&!document.getElementById("msTile"))paintTile();}catch(e){}}
+function boot(){if(booted||!me())return;booted=true;paintTile();var m=document.getElementById("main");if(m)new MutationObserver(function(){if(moT)return;moT=setTimeout(function(){moT=null;heal();},200);}).observe(m,{childList:true});}
+["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){try{if(booted)paintTile();else boot();}catch(e){}};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,40);return r;};});
+var tries=0,iv=setInterval(function(){tries++;if(me()){clearInterval(iv);boot();}else if(tries>40)clearInterval(iv);},500);
+})();
