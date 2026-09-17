@@ -1192,6 +1192,8 @@ function popupLive(){return Date.now()<=EV.popupUntil;}
 function firstName(){var p=prof();return (p&&(p.first_name||"")).trim()||"You";}
 function dismissed(){try{return sessionStorage.getItem("nrlNotNow")==="1";}catch(e){return false;}}
 function dismiss(){try{sessionStorage.setItem("nrlNotNow","1");}catch(e){}}
+function answered(){try{return localStorage.getItem("nrlAnswered")==="1";}catch(e){return false;}}
+function markAnswered(){try{localStorage.setItem("nrlAnswered","1");}catch(e){}}
 
 var css=document.createElement("style");css.id="nrlCss";css.textContent=
  '#nrlDim{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.74);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .35s}'
@@ -1238,7 +1240,7 @@ var css=document.createElement("style");css.id="nrlCss";css.textContent=
 +'.nrlCount{text-align:center;font-size:10px;letter-spacing:1px;color:#9a9891;margin-top:14px}'
 /* home tile */
 +'#nrlTile{position:relative;overflow:hidden;border-radius:16px;margin-bottom:14px;border:1.5px solid #c9a44c;background:#111114;cursor:pointer}'
-+'#nrlTile img{display:block;width:100%;height:150px;object-fit:cover;object-position:center 30%}'
++'#nrlTile img{display:block;width:100%;height:150px;object-fit:cover;object-position:center 30%}#nrlTile.slim img{display:none}#nrlTile.slim .bd{padding:11px 14px}#nrlTile.slim .t{font-size:16px;margin-top:4px}#nrlTile.slim .row{margin-top:8px}#nrlTile.slim .row .nrlBtn{padding:9px;font-size:10px}'
 +'#nrlTile .bd{padding:12px 14px 14px}'
 +'#nrlTile .t{font-family:Oswald,sans-serif;font-weight:700;font-size:20px;color:#fff;margin-top:6px;line-height:1}'
 +'#nrlTile .s{font-size:12px;color:#cfcbc2;margin-top:4px}#nrlTile .s b{color:#39FF88}'
@@ -1257,7 +1259,7 @@ async function load(force){
   S.loaded=true;
   try{
     var r=await sb.from("event_rsvps").select("status,guests").eq("event_key",EV.key).eq("user_id",me()).maybeSingle();
-    if(!r.error)S.mine=r.data||null;
+    if(!r.error)S.mine=r.data||null;if(S.mine)markAnswered();
     if(S.mine&&S.mine.status==="attending")S.guests=S.mine.guests;
     var c=await sb.rpc("event_headcount",{p_event:EV.key});
     if(!c.error&&c.data&&c.data.length)S.count=c.data[0];
@@ -1271,7 +1273,7 @@ async function save(status,guests){
     var nm=[p.first_name,p.last_name].filter(Boolean).join(" ").trim()||"Member";
     var r=await sb.from("event_rsvps").upsert({event_key:EV.key,user_id:me(),full_name:nm,email:p.email||null,status:status,guests:status==="attending"?guests:0,updated_at:new Date().toISOString()},{onConflict:"event_key,user_id"}).select("status,guests").maybeSingle();
     if(r.error){T("Couldn't save — try again");S.busy=false;return;}
-    S.mine=r.data;dismiss();
+    S.mine=r.data;dismiss();markAnswered();
     T(status==="attending"?("You're in"+(guests?" · +"+guests:"")+" · Sun 4 Oct"):"No worries — we'll miss you");
     await load(true);
   }catch(e){T("Couldn't save — try again");}
@@ -1360,7 +1362,7 @@ function tileHtml(){
   else if(m&&m.status==="declined")line='Marked can\'t make it · tap to change';
   else line='Sun 4 Oct · front bar · friends &amp; family welcome';
   var cnt=S.count&&S.count.heads?'<span class="cnt">'+S.count.heads+' coming</span>':'';
-  return '<div id="nrlTile" onclick="nrlOpen()"><img src="'+EV.img+'" alt=""><div class="bd"><span class="nrlTag">Members\' event</span><div class="t">NRL Grand Final Party</div><div class="s">'+line+'</div>'
+  return '<div id="nrlTile" class="'+(m?"slim":"")+'" onclick="nrlOpen()"><img src="'+EV.img+'" alt=""><div class="bd"><span class="nrlTag">Members\' event</span><div class="t">NRL Grand Final Party</div><div class="s">'+line+'</div>'
    +'<div class="row"><button class="nrlBtn gold">'+(m?"Event details":"RSVP now")+'</button>'+cnt+'</div></div></div>';
 }
 function paintTile(){
@@ -1381,7 +1383,7 @@ async function boot(){
   if(booted||!me())return;booted=true;
   await load();
   paintTile();arm();
-  if(onHome()&&popupLive()&&!S.mine&&!dismissed())showPopup();
+  if(onHome()&&popupLive()&&!S.mine&&!answered()&&!dismissed())showPopup();
 }
 ["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){try{if(booted)paintTile();else boot();}catch(e){}};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,40);return r;};});
 var tries=0,iv=setInterval(function(){tries++;if(me()){clearInterval(iv);boot();}else if(tries>40)clearInterval(iv);},500);
