@@ -1196,7 +1196,7 @@ function dismiss(){try{sessionStorage.setItem("nrlNotNow","1");}catch(e){}}
 var css=document.createElement("style");css.id="nrlCss";css.textContent=
  '#nrlDim{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.74);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .35s}'
 +'#nrlDim.on{opacity:1}'
-+'#nrlSheet{position:fixed;left:12px;right:12px;bottom:calc(92px + env(safe-area-inset-bottom));max-height:calc(100% - 140px);overflow:auto;z-index:9001;border-radius:22px;background:#111114;border:1px solid #2a2a31;box-shadow:0 30px 80px rgba(0,0,0,.8);transform:translateY(120%);transition:transform .5s cubic-bezier(.34,1.3,.64,1)}'
++'#nrlSheet{position:fixed;left:0;right:0;margin:0 auto;width:calc(100% - 24px);max-width:440px;bottom:calc(92px + env(safe-area-inset-bottom));max-height:calc(100% - 140px);overflow:auto;z-index:9001;border-radius:22px;background:#111114;border:1px solid #2a2a31;box-shadow:0 30px 80px rgba(0,0,0,.8);transform:translateY(120%);transition:transform .5s cubic-bezier(.34,1.3,.64,1)}'
 +'#nrlSheet.on{transform:none}'
 +'#nrlSheet img{display:block;width:100%;height:auto}'
 +'#nrlSheet .bd{padding:14px 18px 18px}'
@@ -1216,7 +1216,7 @@ var css=document.createElement("style");css.id="nrlCss";css.textContent=
 +'.nrlPage .hero img{width:100%;height:100%;object-fit:cover;object-position:top}'
 +'.nrlPage .hero .fade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,11,12,.55),rgba(11,11,12,0) 30%,rgba(11,11,12,0) 70%,#0b0b0c)}'
 +'.nrlPage .back{position:absolute;left:16px;top:calc(18px + env(safe-area-inset-top));font-size:10px;font-weight:800;letter-spacing:2px;color:#fff;background:rgba(0,0,0,.5);padding:8px 11px;border-radius:8px;cursor:pointer;border:0;font-family:inherit}'
-+'.nrlPage .in{padding:0 18px}'
++'.nrlPage .in{padding:0 18px;max-width:520px;margin:0 auto}.nrlPage .hero{max-width:520px;margin:0 auto}'
 +'.nrlChips{display:flex;gap:6px;flex-wrap:wrap;margin-top:-6px}'
 +'.nrlChips span{font-size:8.5px;letter-spacing:1.5px;font-weight:800;color:#F1D27A;border:1px solid rgba(241,210,122,.45);border-radius:6px;padding:5px 8px;text-transform:uppercase}'
 +'.nrlPage h1{margin:12px 0 0;font-family:Oswald,sans-serif;font-weight:700;font-size:30px;line-height:1;color:#fff}'
@@ -1359,7 +1359,7 @@ function tileHtml(){
   if(m&&m.status==="attending")line='<b>You\'re in'+(m.guests?' +'+m.guests:'')+'</b> · tap to change';
   else if(m&&m.status==="declined")line='Marked can\'t make it · tap to change';
   else line='Sun 4 Oct · front bar · friends &amp; family welcome';
-  var cnt=S.count?'<span class="cnt">'+S.count.heads+' coming</span>':'';
+  var cnt=S.count&&S.count.heads?'<span class="cnt">'+S.count.heads+' coming</span>':'';
   return '<div id="nrlTile" onclick="nrlOpen()"><img src="'+EV.img+'" alt=""><div class="bd"><span class="nrlTag">Members\' event</span><div class="t">NRL Grand Final Party</div><div class="s">'+line+'</div>'
    +'<div class="row"><button class="nrlBtn gold">'+(m?"Event details":"RSVP now")+'</button>'+cnt+'</div></div></div>';
 }
