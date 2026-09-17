@@ -1386,3 +1386,61 @@ async function boot(){
 ["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){try{if(booted)paintTile();else boot();}catch(e){}};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,40);return r;};});
 var tries=0,iv=setInterval(function(){tries++;if(me()){clearInterval(iv);boot();}else if(tries>40)clearInterval(iv);},500);
 })();
+
+/*__NOTICES__ ==========================================================
+   Member notices — a pulsing gold banner at the top of the home screen
+   for anything staff need a member to see (booking time changes etc).
+   Rows live in member_notices; the banner shows until the member taps
+   the button (seen_at) or the notice expires. Reusable for any notice.
+   ==================================================================== */
+(function(){
+"use strict";
+var N={list:null,loaded:false};
+function me(){try{return (session&&session.user&&session.user.id)||null;}catch(e){return null;}}
+function onHome(){try{return (typeof view==="undefined")||view==="home";}catch(e){return true;}}
+function T(m){try{toast(m);}catch(e){}}
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function EM(s){return E(s).replace(/&lt;em&gt;/g,"<em>").replace(/&lt;\/em&gt;/g,"</em>");}  /* allow <em> for the gold word */
+var css=document.createElement("style");css.textContent=
+ '@keyframes mnPulse{0%,100%{border-color:#F1D27A;box-shadow:0 0 0 0 rgba(241,210,122,.6),0 0 26px 2px rgba(241,210,122,.35)}50%{border-color:#fff3c4;box-shadow:0 0 0 7px rgba(241,210,122,0),0 0 40px 6px rgba(241,210,122,.55)}}'
++'@keyframes mnChip{0%,100%{opacity:1}50%{opacity:.45}}'
++'.mnFlash{margin:0 0 12px;border:2.5px solid #F1D27A;border-radius:16px;background:linear-gradient(180deg,#1a1710,#111114);padding:14px;animation:mnPulse 1.6s ease-in-out infinite}'
++'.mnFlash .chip{display:inline-block;font-size:8.5px;letter-spacing:2px;font-weight:800;text-transform:uppercase;color:#141005;background:#F1D27A;padding:5px 9px;border-radius:6px;animation:mnChip 1.6s ease-in-out infinite}'
++'.mnFlash .t{font-family:Oswald,sans-serif;font-weight:700;font-size:20px;color:#fff;margin-top:8px;line-height:1.05}.mnFlash .t em{font-style:normal;color:#F1D27A}'
++'.mnFlash .d{margin-top:8px;display:flex;gap:8px;align-items:center}.mnFlash .d div{flex:1;background:rgba(0,0,0,.4);border:1px solid #2a2a31;border-radius:10px;padding:9px 10px;text-align:center}'
++'.mnFlash .d b{display:block;font-family:Oswald,sans-serif;font-size:22px;color:#fff;line-height:1}.mnFlash .d .was b{color:#6e6b74;text-decoration:line-through}'
++'.mnFlash .d small{display:block;font-size:7.5px;letter-spacing:1.5px;font-weight:800;color:#9a9891;margin-top:4px;text-transform:uppercase}.mnFlash .d .arr{flex:none;color:#F1D27A;font-size:20px;font-weight:800}'
++'.mnFlash p{margin:8px 0 0;font-size:12px;color:#cfcbc2;line-height:1.4}'
++'.mnFlash .btn{display:block;width:100%;margin-top:10px;border-radius:11px;padding:12px;text-align:center;font-weight:800;font-size:11px;letter-spacing:2px;text-transform:uppercase;border:0;background:linear-gradient(178deg,#F6D97C,#C9962A);color:#141005;cursor:pointer;font-family:inherit}'
++'@media (prefers-reduced-motion:reduce){.mnFlash,.mnFlash .chip{animation:none}}';
+document.head.appendChild(css);
+async function load(){
+  if(typeof sb==="undefined"||!sb||!me())return;
+  try{var r=await sb.from("member_notices").select("id,kind,chip,title,was,now,now_label,body,button,expires_at").eq("user_id",me()).is("seen_at",null).order("created_at",{ascending:false});
+    if(!r.error){var t=Date.now();N.list=(r.data||[]).filter(function(n){return !n.expires_at||new Date(n.expires_at).getTime()>t;});N.loaded=true;}}catch(e){}
+}
+function html(n){
+  var h='<div class="mnFlash" data-mn="'+n.id+'">'+(n.chip?'<span class="chip">'+E(n.chip)+'</span>':'')+'<div class="t">'+EM(n.title)+'</div>';
+  if(n.now)h+='<div class="d">'+(n.was?'<div class="was"><b>'+E(n.was)+'</b><small>Was</small></div><div class="arr">→</div>':'')+'<div><b>'+E(n.now)+'</b><small>'+E(n.now_label||"")+'</small></div></div>';
+  if(n.body)h+='<p>'+E(n.body)+'</p>';
+  return h+'<button class="btn" onclick="mnSeen(\''+n.id+'\')">'+E(n.button||"Got it")+'</button></div>';
+}
+function paint(){
+  var main=document.getElementById("main");if(!main)return;
+  main.querySelectorAll(".mnFlash").forEach(function(el){el.remove();});
+  if(!onHome()||!N.list||!N.list.length)return;
+  main.insertAdjacentHTML("afterbegin",N.list.map(html).join(""));
+}
+window.mnSeen=async function(id){
+  N.list=(N.list||[]).filter(function(n){return n.id!==id;});paint();
+  try{await sb.from("member_notices").update({seen_at:new Date().toISOString()}).eq("id",id);}catch(e){}
+  T("Sorted ✓");
+};
+var moT=null;
+function heal(){try{if(onHome()&&N.list&&N.list.length&&!document.querySelector("#main .mnFlash"))paint();}catch(e){}}
+var booted=false;
+async function boot(){if(booted||!me())return;booted=true;await load();paint();
+  var m=document.getElementById("main");if(m)new MutationObserver(function(){if(moT)return;moT=setTimeout(function(){moT=null;heal();},150);}).observe(m,{childList:true});}
+["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){try{if(booted)paint();else boot();}catch(e){}};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,40);return r;};});
+var tries=0,iv=setInterval(function(){tries++;if(me()){clearInterval(iv);boot();}else if(tries>40)clearInterval(iv);},500);
+})();
