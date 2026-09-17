@@ -1261,7 +1261,7 @@ async function load(force){
     if(S.mine&&S.mine.status==="attending")S.guests=S.mine.guests;
     var c=await sb.rpc("event_headcount",{p_event:EV.key});
     if(!c.error&&c.data&&c.data.length)S.count=c.data[0];
-    if(staff()){var l=await sb.from("event_rsvps").select("full_name,email,status,guests,updated_at").eq("event_key",EV.key).order("updated_at",{ascending:false});if(!l.error)S.list=l.data||[];}
+    if(staff()){var l=await sb.from("event_rsvps").select("full_name,email,status,guests,updated_at").eq("event_key",EV.key).order("updated_at",{ascending:false});var q=await sb.from("event_rsvps_public").select("full_name,mobile,guests,created_at").eq("event_key",EV.key).order("created_at",{ascending:false});S.list=(l.error?[]:(l.data||[])).concat(q.error?[]:(q.data||[]).map(function(x){return {full_name:x.full_name,mobile:x.mobile,status:"attending",guests:x.guests,link:true};}));}
   }catch(e){}
 }
 async function save(status,guests){
@@ -1327,9 +1327,9 @@ function staffHtml(){
   if(!staff())return "";
   var l=S.list||[],att=l.filter(function(x){return x.status==="attending";}),no=l.filter(function(x){return x.status!=="attending";});
   var heads=att.reduce(function(a,x){return a+1+(x.guests||0);},0);
-  var h='<div class="nrlList"><div class="nrlChips" style="margin-top:18px"><span>Jake &amp; Alison only</span></div>'
+  var h='<div class="nrlList"><div class="nrlChips" style="margin-top:18px"><span>Jake &amp; Alison only</span><span onclick="event.stopPropagation();navigator.clipboard&&navigator.clipboard.writeText(\'https://legacygym-app.vercel.app/nrl-party\');toast&&toast(\'Link copied\')" style="cursor:pointer">Copy public link</span></div>'
    +'<div class="hd"><div><b>'+att.length+'</b><small>Members in</small></div><div><b>'+heads+'</b><small>Total heads</small></div><div><b>'+no.length+'</b><small>Can\'t make it</small></div></div>';
-  att.forEach(function(x){h+='<div class="r"><span>'+E(x.full_name||x.email||"Member")+'</span><b>'+(x.guests?"+"+x.guests:"just them")+'</b></div>';});
+  att.forEach(function(x){h+='<div class="r"><span>'+E(x.full_name||x.email||"Member")+(x.link?' <small style="color:#6e6b74">via link'+(x.mobile?' · '+E(x.mobile):'')+'</small>':'')+'</span><b>'+(x.guests?"+"+x.guests:"just them")+'</b></div>';});
   no.forEach(function(x){h+='<div class="r no"><span>'+E(x.full_name||x.email||"Member")+'</span><span>can\'t make it</span></div>';});
   if(!l.length)h+='<div class="r no"><span>No RSVPs yet</span></div>';
   return h+'</div>';

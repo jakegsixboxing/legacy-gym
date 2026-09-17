@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en-AU"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NRL Grand Final Party · Legacy Gym</title>
+<meta name="description" content="Sunday 4 October at Legacy Gym Kincumber — big screen, drinks, food, music and the footy live. Friends & family welcome. RSVP here.">
+<meta property="og:title" content="NRL Grand Final Party · Legacy Gym">
+<meta property="og:description" content="Sunday 4 October · front bar, Legacy Gym. Big screen, drinks, food, music and the footy live. Friends & family welcome — RSVP here.">
+<meta property="og:image" content="https://legacygym-app.vercel.app/nrl-party.jpg">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0c;--card:#141416;--line:#26262e;--gold:#F1D27A;--muted:#9a9891;--bone:#EBE9EA}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--bone);font-family:Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:520px;margin:0 auto;padding-bottom:60px}
+.hero{position:relative;height:340px;overflow:hidden}
+.hero img{width:100%;height:100%;object-fit:cover;object-position:top}
+.hero .fade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,11,12,.5),rgba(11,11,12,0) 30%,rgba(11,11,12,0) 65%,var(--bg))}
+.brand{position:absolute;left:18px;top:18px;font-family:Oswald,sans-serif;font-weight:700;font-size:12px;letter-spacing:3px;color:#fff;background:rgba(0,0,0,.5);padding:7px 10px;border-radius:8px}
+.brand small{color:var(--gold);font-weight:500;margin-left:6px}
+.in{padding:0 18px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:-6px}
+.chips span{font-size:8.5px;letter-spacing:1.5px;font-weight:800;color:var(--gold);border:1px solid rgba(241,210,122,.45);border-radius:6px;padding:5px 8px;text-transform:uppercase}
+h1{margin:12px 0 0;font-family:Oswald,sans-serif;font-weight:700;font-size:32px;line-height:1;color:#fff}
+h1 em{font-style:normal;color:var(--gold)}
+.when{margin-top:8px;font-family:Oswald,sans-serif;font-weight:500;font-size:14px;letter-spacing:2px;text-transform:uppercase;color:#fff}
+.when b{color:var(--gold)}
+p{margin:10px 0 0;font-size:13.5px;line-height:1.55;color:#cfcbc2}p b{color:#fff}
+.box{margin:18px 0 0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 14px}
+.k{font-size:8.5px;letter-spacing:2px;font-weight:800;color:var(--gold);text-transform:uppercase}
+.q{font-family:Oswald,sans-serif;font-size:19px;color:#fff;margin-top:4px}
+label{display:block;margin-top:12px;font-size:9px;letter-spacing:1.5px;font-weight:800;color:var(--muted);text-transform:uppercase}
+input{width:100%;margin-top:5px;background:#0f0f11;border:1.5px solid var(--line);border-radius:10px;padding:13px 12px;color:#fff;font:600 15px Montserrat,sans-serif;outline:none}
+input:focus{border-color:var(--gold)}
+.seg{display:flex;gap:6px;margin-top:8px}
+.seg button{flex:1;border:1.5px solid var(--line);background:#0f0f11;border-radius:10px;padding:11px 4px;text-align:center;font-family:Oswald,sans-serif;font-size:17px;color:var(--muted);cursor:pointer}
+.seg button small{display:block;font-family:Montserrat,sans-serif;font-size:7.5px;letter-spacing:1.5px;font-weight:800;margin-top:2px}
+.seg button.on{border-color:var(--gold);color:#141005;background:linear-gradient(178deg,#F6D97C,#C9962A)}.seg button.on small{color:#3a2a05}
+.btn{display:block;width:100%;margin-top:14px;border-radius:12px;padding:15px;text-align:center;font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase;border:0;cursor:pointer;font-family:inherit;background:linear-gradient(178deg,#F6D97C,#C9962A);color:#141005;box-shadow:0 8px 24px rgba(201,150,42,.35)}
+.btn[disabled]{opacity:.6}
+.done{display:none;margin-top:6px;border:1.5px solid #39FF88;background:#0d1a12;border-radius:12px;padding:14px}
+.done b{display:block;font-family:Oswald,sans-serif;font-size:20px;color:#39FF88}.done span{font-size:12px;color:#cfe9d6;line-height:1.5}
+.err{display:none;margin-top:10px;font-size:12px;color:#ff8a8a}
+.count{text-align:center;font-size:10.5px;letter-spacing:1px;color:var(--muted);margin-top:14px}
+.app{margin-top:18px;border:1px solid var(--line);border-radius:14px;padding:14px;background:#0f0f11}
+.app b{display:block;font-family:Oswald,sans-serif;font-size:17px;color:#fff}.app span{font-size:12px;color:var(--muted);line-height:1.5;display:block;margin-top:4px}
+.app a{display:inline-block;margin-top:10px;color:var(--gold);font-weight:800;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;border:1px solid rgba(241,210,122,.5);padding:9px 12px;border-radius:8px}
+.foot{margin-top:24px;text-align:center;font-size:10px;letter-spacing:1px;color:#6e6b74}
+</style></head><body>
+<div class="wrap">
+  <div class="hero"><img src="/nrl-party.jpg" alt="NRL Grand Final Party at Legacy Gym"><div class="fade"></div><div class="brand">LEGACY GYM<small>KINCUMBER</small></div></div>
+  <div class="in">
+    <div class="chips"><span>Live on the big screen</span><span>Friends &amp; family</span><span>Jerseys a must</span></div>
+    <h1>NRL Grand Final <em>Party</em></h1>
+    <div class="when">Sunday 4 October · <b>Front bar, Legacy Gym</b></div>
+    <p>We're decking out the front bar for a full footy-themed afternoon. <b>The big bar area opened up, the big screen on, drinks, food, music and the footy live.</b></p>
+    <p>A great afternoon for members, friends and family to come together before we kick into a massive final 10 weeks of the year. <b>Footy jerseys from all teams are a must.</b></p>
+
+    <div class="box" id="form">
+      <div class="k">RSVP · so we know numbers</div>
+      <div class="q">I'm attending — and I'm bringing…</div>
+      <div class="seg" id="seg"><button type="button" onclick="pick(0)">Just me<small>1 head</small></button><button type="button" class="on" onclick="pick(1)">+1<small>2 heads</small></button><button type="button" onclick="pick(2)">+2<small>3 heads</small></button></div>
+      <label>Your name</label><input id="nm" autocomplete="name" placeholder="First and last name">
+      <label>Mobile</label><input id="mb" type="tel" autocomplete="tel" inputmode="tel" placeholder="04xx xxx xxx">
+      <label>Email (optional)</label><input id="em" type="email" autocomplete="email" placeholder="you@email.com">
+      <button class="btn" id="go" onclick="send()">I'm attending ✓</button>
+      <div class="err" id="err"></div>
+      <div class="done" id="done"><b>You're in!</b><span id="donetxt"></span></div>
+    </div>
+    <div class="count" id="count"></div>
+
+    <div class="app"><b>Got the Legacy app?</b><span>Members can RSVP in the app — it pops up on your home screen — and that's where your bookings, challenges and Fight Club live too.</span><a href="https://legacygym-app.vercel.app/">Open the app ›</a></div>
+    <div class="foot">Legacy Gym Central Coast · Kincumber</div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+var sb=supabase.createClient("https://jyslqxepodrseyhoppce.supabase.co","sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we");
+var EVENT="nrl-gf-2026",guests=1;
+function pick(n){guests=n;[...document.getElementById('seg').children].forEach(function(b,i){b.classList.toggle('on',i===n);});}
+function show(id,on){document.getElementById(id).style.display=on?'block':'none';}
+async function count(){try{var r=await sb.rpc('event_headcount',{p_event:EVENT});if(!r.error&&r.data&&r.data[0]&&r.data[0].heads>0)document.getElementById('count').textContent=r.data[0].heads+' coming so far';}catch(e){}}
+async function send(){
+  var nm=document.getElementById('nm').value.trim(),mb=document.getElementById('mb').value.replace(/[^\d+]/g,''),em=document.getElementById('em').value.trim();
+  var err=document.getElementById('err');show('err',false);
+  if(nm.length<2){err.textContent='Pop your name in first.';show('err',true);return;}
+  if(mb.length<8){err.textContent='We need a mobile number so we can reach you if anything changes.';show('err',true);return;}
+  var b=document.getElementById('go');b.disabled=true;b.textContent='Saving…';
+  var r=await sb.from('event_rsvps_public').insert({event_key:EVENT,full_name:nm,mobile:mb,email:em||null,guests:guests,source:'link'});
+  if(r.error){b.disabled=false;b.textContent="I'm attending ✓";
+    if(/duplicate|unique/i.test(r.error.message)){err.textContent="That mobile's already on the list — you're in. Message the gym if your numbers change.";}
+    else err.textContent="Couldn't save — try again in a sec.";show('err',true);return;}
+  b.style.display='none';document.getElementById('donetxt').textContent=nm.split(' ')[0]+(guests?' +'+guests:'')+' · see you Sunday 4 Oct at the front bar. Jerseys on.';show('done',true);
+  try{localStorage.setItem('nrlRsvp',JSON.stringify({nm:nm,g:guests}));}catch(e){}
+  count();
+}
+try{var prev=JSON.parse(localStorage.getItem('nrlRsvp')||'null');if(prev){document.getElementById('go').style.display='none';document.getElementById('donetxt').textContent=prev.nm.split(' ')[0]+(prev.g?' +'+prev.g:'')+" · you're already on the list for Sunday 4 Oct.";show('done',true);}}catch(e){}
+count();
+</script>
+</body></html>
