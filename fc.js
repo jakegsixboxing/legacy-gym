@@ -1162,3 +1162,227 @@ function enhance(force){
 try{var mo=new MutationObserver(function(){try{enhance();}catch(e){}});var mainEl=document.getElementById("main");if(mainEl)mo.observe(mainEl,{childList:true});}catch(e){}
 try{enhance();}catch(e){}
 })();
+
+/*__NRLPARTY__ ========================================================
+   NRL Grand Final Party — home-screen popup + RSVP (Sun 4 Oct 2026).
+   Additive block. Popup runs for 7 days (to 24 Sep 23:59), the home tile
+   and RSVP page stay until the night of the party, then it all goes quiet.
+   Delete from this comment to the matching })(); to roll back.
+   ==================================================================== */
+(function(){
+"use strict";
+var EV={
+  key:"nrl-gf-2026",
+  title:"NRL Grand Final Party",
+  when:"Sunday 4 October",
+  where:"Front bar, Legacy Gym",
+  img:"/nrl-party.jpg",
+  popupUntil:new Date(2026,8,24,23,59,59).getTime(),   /* 7 days of pop-ups */
+  ends:new Date(2026,9,4,23,59,59).getTime()            /* party night */
+};
+if(Date.now()>EV.ends)return;
+var S={mine:null,count:null,loaded:false,busy:false,guests:1,list:null};
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function T(m){try{toast(m);}catch(e){}}
+function prof(){try{return (typeof profile!=="undefined"&&profile)?profile:null;}catch(e){return null;}}
+function me(){try{return (session&&session.user&&session.user.id)||null;}catch(e){return null;}}
+function staff(){try{var p=prof();return !!(p&&(p.is_staff||p.is_coach||p.is_manager));}catch(e){return false;}}
+function onHome(){try{return (typeof view==="undefined")||view==="home";}catch(e){return true;}}
+function popupLive(){return Date.now()<=EV.popupUntil;}
+function firstName(){var p=prof();return (p&&(p.first_name||"")).trim()||"You";}
+function dismissed(){try{return sessionStorage.getItem("nrlNotNow")==="1";}catch(e){return false;}}
+function dismiss(){try{sessionStorage.setItem("nrlNotNow","1");}catch(e){}}
+
+var css=document.createElement("style");css.id="nrlCss";css.textContent=
+ '#nrlDim{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.74);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .35s}'
++'#nrlDim.on{opacity:1}'
++'#nrlSheet{position:fixed;left:12px;right:12px;bottom:calc(92px + env(safe-area-inset-bottom));max-height:calc(100% - 140px);overflow:auto;z-index:9001;border-radius:22px;background:#111114;border:1px solid #2a2a31;box-shadow:0 30px 80px rgba(0,0,0,.8);transform:translateY(120%);transition:transform .5s cubic-bezier(.34,1.3,.64,1)}'
++'#nrlSheet.on{transform:none}'
++'#nrlSheet img{display:block;width:100%;height:auto}'
++'#nrlSheet .bd{padding:14px 18px 18px}'
++'.nrlTag{display:inline-block;font-size:9px;letter-spacing:2px;font-weight:800;text-transform:uppercase;color:#141005;background:linear-gradient(178deg,#F6D97C,#C9962A);padding:5px 9px;border-radius:6px}'
++'#nrlSheet h2{margin:10px 0 0;font-family:Oswald,sans-serif;font-weight:700;font-size:24px;line-height:1.05;color:#fff}'
++'#nrlSheet h2 em,.nrlPage h1 em{font-style:normal;color:#F1D27A}'
++'#nrlSheet p{margin:6px 0 0;font-size:13px;color:#cfcbc2;line-height:1.4}'
++'.nrlBtn{display:block;width:100%;border-radius:12px;padding:14px;text-align:center;font-weight:800;font-size:12px;letter-spacing:2px;text-transform:uppercase;border:0;cursor:pointer;font-family:inherit}'
++'.nrlBtn.gold{background:linear-gradient(178deg,#F6D97C,#C9962A);color:#141005;box-shadow:0 8px 24px rgba(201,150,42,.35)}'
++'.nrlBtn.ghost{background:transparent;color:#9a9891;border:1px solid #26262e}'
++'#nrlSheet .btns{margin-top:14px;display:flex;flex-direction:column;gap:8px}'
++'#nrlSheet .note{margin-top:10px;text-align:center;font-size:9.5px;letter-spacing:1px;color:#6e6b74}'
+/* page */
++'.nrlPage{position:fixed;inset:0;z-index:9002;background:#0b0b0c;overflow:auto;-webkit-overflow-scrolling:touch;transform:translateX(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);padding-bottom:40px}'
++'.nrlPage.on{transform:none}'
++'.nrlPage .hero{position:relative;height:300px;overflow:hidden}'
++'.nrlPage .hero img{width:100%;height:100%;object-fit:cover;object-position:top}'
++'.nrlPage .hero .fade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,11,12,.55),rgba(11,11,12,0) 30%,rgba(11,11,12,0) 70%,#0b0b0c)}'
++'.nrlPage .back{position:absolute;left:16px;top:calc(18px + env(safe-area-inset-top));font-size:10px;font-weight:800;letter-spacing:2px;color:#fff;background:rgba(0,0,0,.5);padding:8px 11px;border-radius:8px;cursor:pointer;border:0;font-family:inherit}'
++'.nrlPage .in{padding:0 18px}'
++'.nrlChips{display:flex;gap:6px;flex-wrap:wrap;margin-top:-6px}'
++'.nrlChips span{font-size:8.5px;letter-spacing:1.5px;font-weight:800;color:#F1D27A;border:1px solid rgba(241,210,122,.45);border-radius:6px;padding:5px 8px;text-transform:uppercase}'
++'.nrlPage h1{margin:12px 0 0;font-family:Oswald,sans-serif;font-weight:700;font-size:30px;line-height:1;color:#fff}'
++'.nrlPage .when{margin-top:8px;font-family:Oswald,sans-serif;font-weight:500;font-size:14px;letter-spacing:2px;text-transform:uppercase;color:#fff}'
++'.nrlPage .when b{color:#F1D27A}'
++'.nrlPage p{margin:10px 0 0;font-size:13px;line-height:1.5;color:#cfcbc2}.nrlPage p b{color:#fff}'
++'.nrlRsvp{margin:16px 0 0;background:#141416;border:1px solid #26262e;border-radius:14px;padding:14px}'
++'.nrlRsvp .k{font-size:8.5px;letter-spacing:2px;font-weight:800;color:#F1D27A;text-transform:uppercase}'
++'.nrlRsvp .q{font-family:Oswald,sans-serif;font-size:18px;color:#fff;margin-top:4px}'
++'.nrlSeg{display:flex;gap:6px;margin-top:10px}'
++'.nrlSeg button{flex:1;border:1.5px solid #26262e;background:#0f0f11;border-radius:10px;padding:10px 4px;text-align:center;font-family:Oswald,sans-serif;font-size:16px;color:#9a9891;cursor:pointer}'
++'.nrlSeg button small{display:block;font-family:Montserrat,Barlow,sans-serif;font-size:7.5px;letter-spacing:1.5px;font-weight:800;margin-top:2px}'
++'.nrlSeg button.on{border-color:#F1D27A;color:#141005;background:linear-gradient(178deg,#F6D97C,#C9962A)}.nrlSeg button.on small{color:#3a2a05}'
++'.nrlRsvp .nrlBtn{margin-top:10px}'
++'.nrlRsvp .cant{margin-top:10px;text-align:center;font-size:10px;letter-spacing:1px;color:#9a9891;text-decoration:underline;cursor:pointer;background:none;border:0;width:100%;font-family:inherit}'
++'.nrlDone{margin-top:6px;border:1.5px solid #39FF88;background:#0d1a12;border-radius:12px;padding:12px 14px}'
++'.nrlDone b{display:block;font-family:Oswald,sans-serif;font-size:18px;color:#39FF88}.nrlDone span{font-size:11.5px;color:#cfe9d6}'
++'.nrlDone.no{border-color:#3a3a44;background:#141416}.nrlDone.no b{color:#cfcbc2}'
++'.nrlCount{text-align:center;font-size:10px;letter-spacing:1px;color:#9a9891;margin-top:14px}'
+/* home tile */
++'#nrlTile{position:relative;overflow:hidden;border-radius:16px;margin-bottom:14px;border:1.5px solid #c9a44c;background:#111114;cursor:pointer}'
++'#nrlTile img{display:block;width:100%;height:150px;object-fit:cover;object-position:center 30%}'
++'#nrlTile .bd{padding:12px 14px 14px}'
++'#nrlTile .t{font-family:Oswald,sans-serif;font-weight:700;font-size:20px;color:#fff;margin-top:6px;line-height:1}'
++'#nrlTile .s{font-size:12px;color:#cfcbc2;margin-top:4px}#nrlTile .s b{color:#39FF88}'
++'#nrlTile .row{display:flex;gap:8px;align-items:center;margin-top:10px}'
++'#nrlTile .row .nrlBtn{flex:1;padding:11px}'
++'#nrlTile .cnt{font-family:Oswald,sans-serif;font-size:13px;letter-spacing:1px;color:#F1D27A;white-space:nowrap}'
+/* staff list */
++'.nrlList{margin-top:14px}.nrlList .r{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid #1e1e22;font-size:13px;color:#e8e2d2}.nrlList .r b{color:#F1D27A;font-family:Oswald,sans-serif}.nrlList .r.no{color:#6e6b74}'
++'.nrlList .hd{display:flex;gap:8px;margin:14px 0 6px}.nrlList .hd div{flex:1;background:#141416;border:1px solid #26262e;border-radius:12px;padding:12px 6px;text-align:center}.nrlList .hd b{font-family:Oswald,sans-serif;font-size:24px;color:#F1D27A}.nrlList .hd small{display:block;font-size:7.5px;letter-spacing:1.5px;font-weight:800;color:#9a9891;margin-top:3px;text-transform:uppercase}';
+document.head.appendChild(css);
+
+/* ---------- data ---------- */
+async function load(force){
+  if(S.loaded&&!force)return;
+  if(typeof sb==="undefined"||!sb||!me())return;
+  S.loaded=true;
+  try{
+    var r=await sb.from("event_rsvps").select("status,guests").eq("event_key",EV.key).eq("user_id",me()).maybeSingle();
+    if(!r.error)S.mine=r.data||null;
+    if(S.mine&&S.mine.status==="attending")S.guests=S.mine.guests;
+    var c=await sb.rpc("event_headcount",{p_event:EV.key});
+    if(!c.error&&c.data&&c.data.length)S.count=c.data[0];
+    if(staff()){var l=await sb.from("event_rsvps").select("full_name,email,status,guests,updated_at").eq("event_key",EV.key).order("updated_at",{ascending:false});if(!l.error)S.list=l.data||[];}
+  }catch(e){}
+}
+async function save(status,guests){
+  if(S.busy)return;var p=prof();if(!p||!me()){T("Sign in first");return;}
+  S.busy=true;
+  try{
+    var nm=[p.first_name,p.last_name].filter(Boolean).join(" ").trim()||"Member";
+    var r=await sb.from("event_rsvps").upsert({event_key:EV.key,user_id:me(),full_name:nm,email:p.email||null,status:status,guests:status==="attending"?guests:0,updated_at:new Date().toISOString()},{onConflict:"event_key,user_id"}).select("status,guests").maybeSingle();
+    if(r.error){T("Couldn't save — try again");S.busy=false;return;}
+    S.mine=r.data;dismiss();
+    T(status==="attending"?("You're in"+(guests?" · +"+guests:"")+" · Sun 4 Oct"):"No worries — we'll miss you");
+    await load(true);
+  }catch(e){T("Couldn't save — try again");}
+  S.busy=false;paintPage();paintTile();
+}
+
+/* ---------- popup ---------- */
+function showPopup(){
+  if(document.getElementById("nrlSheet"))return;
+  var d=document.createElement("div");d.id="nrlDim";d.onclick=notNow;
+  var s=document.createElement("div");s.id="nrlSheet";
+  s.innerHTML='<img src="'+EV.img+'" alt=""><div class="bd"><span class="nrlTag">Sun 4 Oct · Front bar</span>'
+   +'<h2>Are you coming to the <em>NRL Grand Final Party?</em></h2>'
+   +'<p>Big screen, drinks, food, music and the footy live. Members, friends &amp; family welcome — jerseys a must.</p>'
+   +'<div class="btns"><button class="nrlBtn gold" onclick="nrlOpen()">Yes — tell me more</button><button class="nrlBtn ghost" onclick="nrlNotNow()">Not now</button></div>'
+   +'<div class="note">We\'ll ask again next time you open the app · gone after Sun 4 Oct</div></div>';
+  document.body.appendChild(d);document.body.appendChild(s);
+  requestAnimationFrame(function(){requestAnimationFrame(function(){d.classList.add("on");s.classList.add("on");});});
+}
+function closePopup(){
+  var d=document.getElementById("nrlDim"),s=document.getElementById("nrlSheet");
+  if(d)d.classList.remove("on");if(s)s.classList.remove("on");
+  setTimeout(function(){if(d)d.remove();if(s)s.remove();},450);
+}
+function notNow(){dismiss();closePopup();}
+window.nrlNotNow=notNow;
+
+/* ---------- page ---------- */
+function bodyHtml(){
+  return '<p>We\'re decking out the front bar for a full footy-themed afternoon. <b>The big bar area opened up, the big screen on, drinks, food, music and the footy live.</b></p>'
+   +'<p>A great afternoon for members, friends and family to come together before we kick into a massive final 10 weeks of the year. <b>Footy jerseys from all teams are a must.</b></p>';
+}
+function rsvpHtml(){
+  var m=S.mine,g=S.guests;
+  var seg='<div class="nrlSeg">'+[0,1,2].map(function(n){return '<button class="'+(g===n?"on":"")+'" onclick="nrlGuests('+n+')">'+(n?"+"+n:"Just me")+'<small>'+(n+1)+(n?" heads":" head")+'</small></button>';}).join("")+'</div>';
+  var h='<div class="nrlRsvp"><div class="k">RSVP · so we know numbers</div>';
+  if(m&&m.status==="attending"){
+    h+='<div class="q">You\'re attending'+(m.guests?' · +'+m.guests:'')+'</div>'+seg
+      +'<div class="nrlDone"><b>You\'re in — '+E(firstName())+(m.guests?' +'+m.guests:'')+'</b><span>See you Sunday 4 Oct. Change your plus-ones above, or tap below if plans change.</span></div>'
+      +(g!==m.guests?'<button class="nrlBtn gold" onclick="nrlAttend()">Update to '+(g?"+"+g:"just me")+'</button>':'')
+      +'<button class="cant" onclick="nrlDecline()">Can\'t make it any more</button>';
+  }else if(m&&m.status==="declined"){
+    h+='<div class="q">Changed your mind?</div>'+seg+'<button class="nrlBtn gold" onclick="nrlAttend()">I\'m attending ✓</button>'
+      +'<div class="nrlDone no" style="margin-top:10px"><b>Marked as can\'t make it</b><span>No worries — you can jump back in any time.</span></div>';
+  }else{
+    h+='<div class="q">I\'m attending — and I\'m bringing…</div>'+seg+'<button class="nrlBtn gold" onclick="nrlAttend()">I\'m attending ✓</button><button class="cant" onclick="nrlDecline()">Can\'t make it</button>';
+  }
+  h+='</div>';
+  if(S.count)h+='<div class="nrlCount">'+S.count.members+' attending so far · '+S.count.heads+' heads with plus-ones</div>';
+  return h;
+}
+function staffHtml(){
+  if(!staff())return "";
+  var l=S.list||[],att=l.filter(function(x){return x.status==="attending";}),no=l.filter(function(x){return x.status!=="attending";});
+  var heads=att.reduce(function(a,x){return a+1+(x.guests||0);},0);
+  var h='<div class="nrlList"><div class="nrlChips" style="margin-top:18px"><span>Jake &amp; Alison only</span></div>'
+   +'<div class="hd"><div><b>'+att.length+'</b><small>Members in</small></div><div><b>'+heads+'</b><small>Total heads</small></div><div><b>'+no.length+'</b><small>Can\'t make it</small></div></div>';
+  att.forEach(function(x){h+='<div class="r"><span>'+E(x.full_name||x.email||"Member")+'</span><b>'+(x.guests?"+"+x.guests:"just them")+'</b></div>';});
+  no.forEach(function(x){h+='<div class="r no"><span>'+E(x.full_name||x.email||"Member")+'</span><span>can\'t make it</span></div>';});
+  if(!l.length)h+='<div class="r no"><span>No RSVPs yet</span></div>';
+  return h+'</div>';
+}
+function pageHtml(){
+  return '<div class="hero"><img src="'+EV.img+'" alt=""><div class="fade"></div><button class="back" onclick="nrlClose()">‹ Home</button></div>'
+   +'<div class="in"><div class="nrlChips"><span>Live on the big screen</span><span>Friends &amp; family</span><span>Jerseys a must</span></div>'
+   +'<h1>NRL Grand Final <em>Party</em></h1><div class="when">'+EV.when+' · <b>'+EV.where+'</b></div>'+bodyHtml()
+   +'<div id="nrlRsvpBox">'+rsvpHtml()+'</div>'+staffHtml()+'</div>';
+}
+function paintPage(){var p=document.getElementById("nrlPage");if(!p)return;var b=p.querySelector("#nrlRsvpBox");if(b)b.innerHTML=rsvpHtml();var l=p.querySelector(".nrlList");if(l)l.outerHTML=staffHtml();}
+window.nrlOpen=async function(){
+  closePopup();
+  var p=document.getElementById("nrlPage");if(p)p.remove();
+  p=document.createElement("div");p.id="nrlPage";p.className="nrlPage";p.innerHTML=pageHtml();document.body.appendChild(p);
+  requestAnimationFrame(function(){requestAnimationFrame(function(){p.classList.add("on");});});
+  await load();paintPage();
+};
+window.nrlClose=function(){var p=document.getElementById("nrlPage");if(!p)return;p.classList.remove("on");setTimeout(function(){p.remove();},420);paintTile();};
+window.nrlGuests=function(n){S.guests=n;paintPage();};
+window.nrlAttend=function(){save("attending",S.guests);};
+window.nrlDecline=function(){save("declined",0);};
+
+/* ---------- home tile ---------- */
+function tileHtml(){
+  var m=S.mine,line;
+  if(m&&m.status==="attending")line='<b>You\'re in'+(m.guests?' +'+m.guests:'')+'</b> · tap to change';
+  else if(m&&m.status==="declined")line='Marked can\'t make it · tap to change';
+  else line='Sun 4 Oct · front bar · friends &amp; family welcome';
+  var cnt=S.count?'<span class="cnt">'+S.count.heads+' coming</span>':'';
+  return '<div id="nrlTile" onclick="nrlOpen()"><img src="'+EV.img+'" alt=""><div class="bd"><span class="nrlTag">Members\' event</span><div class="t">NRL Grand Final Party</div><div class="s">'+line+'</div>'
+   +'<div class="row"><button class="nrlBtn gold">'+(m?"Event details":"RSVP now")+'</button>'+cnt+'</div></div></div>';
+}
+function paintTile(){
+  var main=document.getElementById("main");if(!main)return;
+  var old=document.getElementById("nrlTile");
+  if(!onHome()){if(old)old.remove();return;}
+  var h=tileHtml();
+  if(old){old.outerHTML=h;return;}
+  main.insertAdjacentHTML("afterbegin",h);
+}
+var moT=null;
+function heal(){try{if(onHome()&&!document.getElementById("nrlTile"))paintTile();}catch(e){}}
+function arm(){var m=document.getElementById("main");if(!m)return;new MutationObserver(function(){if(moT)return;moT=setTimeout(function(){moT=null;heal();},150);}).observe(m,{childList:true});}
+
+/* ---------- boot ---------- */
+var booted=false;
+async function boot(){
+  if(booted||!me())return;booted=true;
+  await load();
+  paintTile();arm();
+  if(onHome()&&popupLive()&&!S.mine&&!dismissed())showPopup();
+}
+["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){try{if(booted)paintTile();else boot();}catch(e){}};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,40);return r;};});
+var tries=0,iv=setInterval(function(){tries++;if(me()){clearInterval(iv);boot();}else if(tries>40)clearInterval(iv);},500);
+})();
