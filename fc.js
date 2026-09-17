@@ -1640,3 +1640,76 @@ function boot(){if(booted||!me())return;booted=true;paintTile();var m=document.g
 ["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){try{if(booted)paintTile();else boot();}catch(e){}};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,40);return r;};});
 var tries=0,iv=setInterval(function(){tries++;if(me()){clearInterval(iv);boot();}else if(tries>40)clearInterval(iv);},500);
 })();
+
+/*__SARSHAFRI__ ========================================================
+   Sarsha · Friday programmed boxing session (Block 1, all 4 weeks).
+   Fills the "Programmed boxing session · built by Jake" slot with the
+   bag circuit Jake set on 18 Sep: 2-minute rounds, 30 seconds between,
+   plus a round timer. Additive — patches the Friday panel when it renders.
+   ==================================================================== */
+(function(){
+"use strict";
+var WORK=120, REST=30;
+var PLAN=[
+ {n:"Skip",d:"Warm-up",secs:300,rounds:1,warm:true},
+ {n:"Straight mirror shadow",d:"Warm-up · straights only, watch the mirror",secs:300,rounds:1,warm:true},
+ {n:"Wrecking ball",d:"Bent-arm punches",rounds:3},
+ {n:"4-foot heavy bag",d:"Open work",rounds:3},
+ {n:"Jumbo bag",d:"Setting up power punches",rounds:3},
+ {n:"Slip bag",d:"Slip and return",rounds:3},
+ {n:"Speed ball",d:"Rhythm and hand speed",rounds:3},
+ {n:"ABC",d:"Combinations",rounds:2},
+ {n:"Gut work",d:"Finisher",secs:300,rounds:1,warm:true}
+];
+var TOTAL=PLAN.reduce(function(a,p){return a+(p.secs||WORK)*p.rounds;},0), ROUNDS=PLAN.filter(function(p){return !p.warm;}).reduce(function(a,p){return a+p.rounds;},0);
+var STEPS=[];PLAN.forEach(function(p,pi){for(var r=1;r<=p.rounds;r++){STEPS.push({pi:pi,r:r,kind:"work",secs:p.secs||WORK});if(!(pi===PLAN.length-1&&r===p.rounds))STEPS.push({pi:pi,r:r,kind:"rest",secs:REST});}});
+var css=document.createElement("style");css.textContent=
+ '.friPlan{margin-top:12px}.friPlan .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.friPlan .hd b{font-family:Oswald,sans-serif;font-size:15px;letter-spacing:1px;text-transform:uppercase;color:#fff}.friPlan .hd span{font-size:11px;color:#9a9891}'
++'.friPlan .st{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #1e1e22}.friPlan .st:last-child{border:0}'
++'.friPlan .st .i{font-family:Oswald,sans-serif;font-size:15px;color:var(--c,#39FF88)}.friPlan .st .n{font-weight:700;font-size:13.5px;color:#fff}.friPlan .st .d{font-size:11.5px;color:#9a9891;margin-top:2px}'
++'.friPlan .st .r{font-family:Oswald,sans-serif;font-size:14px;color:#fff;white-space:nowrap;text-align:right}.friPlan .st .r small{display:block;font-family:Montserrat,sans-serif;font-size:9px;color:#9a9891;letter-spacing:1px;text-transform:uppercase}'
++'.friPlan .st.now{background:rgba(57,255,136,.08);margin:0 -8px;padding:9px 8px;border-radius:10px;border-bottom-color:transparent}'
++'.friPlan .rule{margin-top:10px;font-size:11.5px;color:#d8d3c6;border:1px dashed #3a3a44;border-radius:10px;padding:9px 12px;line-height:1.45}.friPlan .rule b{color:#fff}'
++'.friTimer{margin-top:12px;border:1.5px solid var(--c,#39FF88);border-radius:14px;padding:14px;text-align:center;background:#0f0f11}'
++'.friTimer .ph{font-size:10px;letter-spacing:2px;font-weight:800;text-transform:uppercase;color:#9a9891}.friTimer .ph.work{color:var(--c,#39FF88)}.friTimer .ph.rest{color:#F1D27A}'
++'.friTimer .big{font-family:Oswald,sans-serif;font-size:58px;line-height:1;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums}.friTimer .big.rest{color:#F1D27A}'
++'.friTimer .cur{font-weight:700;font-size:14px;color:#fff;margin-top:6px}.friTimer .cur small{display:block;font-weight:600;font-size:11px;color:#9a9891;margin-top:2px}'
++'.friTimer .ctl{display:flex;gap:8px;margin-top:12px}.friTimer button{flex:1;border-radius:11px;padding:12px;border:0;font-weight:800;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;font-family:inherit}'
++'.friTimer .go{background:var(--c,#39FF88);color:#08130c}.friTimer .alt{background:#1a1a1e;color:#fff;border:1px solid #2e2e36}';
+document.head.appendChild(css);
+function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+function E(x){return String(x==null?"":x).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+var T={i:-1,left:0,run:false,iv:null};
+function planHtml(){
+  var cur=T.i>=0?STEPS[Math.min(T.i,STEPS.length-1)].pi:-1;
+  return '<div class="friPlan"><div class="hd"><b>Friday bag circuit</b><span>'+ROUNDS+' × 2-min rounds · 30 s between · about '+Math.round((TOTAL+REST*(STEPS.length/2))/60)+' min</span></div>'
+   +PLAN.map(function(p,i){return '<div class="st'+(i===cur?" now":"")+'"><div class="i">'+(i+1)+'</div><div><div class="n">'+E(p.n)+'</div><div class="d">'+E(p.d)+'</div></div><div class="r">'+(p.warm?fmt(p.secs)+'<small>straight</small>':p.rounds+' × 2:00<small>30 s rest</small>')+'</div></div>';}).join("")
+   +'<div class="rule"><b>Every round is 2 minutes. 30 seconds between rounds — no more.</b> Warm-ups and gut work run straight through. Same session every Friday for the rest of this block.</div>'
+   +timerHtml()+'</div>';
+}
+function timerHtml(){
+  if(T.i<0)return '<div class="friTimer" id="friTimer"><div class="ph">Round timer</div><div class="big">'+fmt(WORK)+'</div><div class="cur">2:00 work · 0:30 rest<small>Runs the whole circuit, station by station. Beeps at every change.</small></div><div class="ctl"><button class="go" onclick="friStart()">Start session</button></div></div>';
+  if(T.i>=STEPS.length)return '<div class="friTimer" id="friTimer"><div class="ph work">Done</div><div class="big">✓</div><div class="cur">Circuit complete<small>Tick the session off above so it counts.</small></div><div class="ctl"><button class="alt" onclick="friReset()">Reset</button></div></div>';
+  var s=STEPS[T.i],p=PLAN[s.pi],rest=s.kind==="rest",nx=STEPS[T.i+1];
+  return '<div class="friTimer" id="friTimer"><div class="ph '+(rest?"rest":"work")+'">'+(rest?"Rest":(p.warm?"Warm-up":"Round "+s.r+" of "+p.rounds))+'</div><div class="big '+(rest?"rest":"")+'">'+fmt(T.left)+'</div>'
+   +'<div class="cur">'+(rest?"Next: "+E(PLAN[nx.pi].n)+(PLAN[nx.pi].rounds>1?" · round "+nx.r:""):E(p.n))+'<small>'+(rest?"30 seconds. Gloves back on.":E(p.d))+'</small></div>'
+   +'<div class="ctl"><button class="alt" onclick="friPause()">'+(T.run?"Pause":"Resume")+'</button><button class="alt" onclick="friSkip()">Skip ›</button><button class="alt" onclick="friReset()">Reset</button></div></div>';
+}
+function beep(n){try{var ac=beep.ac||(beep.ac=new (window.AudioContext||window.webkitAudioContext)());for(var i=0;i<n;i++){var o=ac.createOscillator(),g=ac.createGain();o.frequency.value=n>1?1100:800;g.gain.value=.25;o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+i*.28);o.stop(ac.currentTime+i*.28+.18);}}catch(e){}try{navigator.vibrate&&navigator.vibrate(n>1?[200,100,200,100,200]:200);}catch(e){}}
+function repaint(){var host=document.querySelector(".friPlan");if(host)host.outerHTML=planHtml();}
+function tick(){if(!T.run)return;T.left--;if(T.left<=0){T.i++;if(T.i>=STEPS.length){T.run=false;clearInterval(T.iv);beep(3);repaint();return;}T.left=STEPS[T.i].secs;beep(STEPS[T.i].kind==="work"?2:1);repaint();return;}var b=document.querySelector("#friTimer .big");if(b)b.textContent=fmt(T.left);}
+window.friStart=function(){T.i=0;T.left=STEPS[0].secs;T.run=true;clearInterval(T.iv);T.iv=setInterval(tick,1000);beep(2);repaint();};
+window.friPause=function(){T.run=!T.run;repaint();};
+window.friSkip=function(){T.i++;if(T.i>=STEPS.length){T.run=false;clearInterval(T.iv);}else T.left=STEPS[T.i].secs;repaint();};
+window.friReset=function(){T.i=-1;T.run=false;clearInterval(T.iv);repaint();};
+/* patch the Friday panel whenever it renders */
+function patch(){
+  var sess=document.querySelector("#main .sp .sess");if(!sess||sess.dataset.fri)return;
+  var h3=sess.querySelector("h3");if(!h3||!/programmed boxing session/i.test(h3.textContent))return;
+  sess.dataset.fri="1";
+  var f=sess.querySelector(".focus");if(f)f.innerHTML='<b>Jake\'s focus</b>Bag circuit — warm up properly, then work every station like it\'s a round. Bent arms on the wrecking ball, open work on the 4-footer, set up the power shots on the jumbo. 30 seconds between rounds and that\'s it.';
+  sess.insertAdjacentHTML("beforeend",planHtml());
+}
+var moT=null;new MutationObserver(function(){if(moT)return;moT=setTimeout(function(){moT=null;try{patch();}catch(e){}},80);}).observe(document.documentElement,{childList:true,subtree:true});
+try{patch();}catch(e){}
+})();
