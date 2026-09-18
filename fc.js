@@ -1457,7 +1457,8 @@ window.mnSeen=async function(id){
   T("Sorted ✓");
 };
 var moT=null;
-function heal(){try{if(onHome()&&N.list&&N.list.length&&!document.querySelector("#main .mnFlash"))paint();}catch(e){}}
+function hoist(){var m=document.getElementById("main");if(!m)return;var els=[].slice.call(m.querySelectorAll(":scope > .mnFlash"));if(!els.length)return;if(m.firstElementChild===els[0]&&els.every(function(el,i){return m.children[i]===el;}))return;els.reverse().forEach(function(el){m.insertBefore(el,m.firstChild);});}
+function heal(){try{if(onHome()&&N.list&&N.list.length&&!document.querySelector("#main .mnFlash"))paint();else hoist();}catch(e){}}
 var booted=false;
 async function boot(){if(booted||!me())return;booted=true;await load();paint();
   var m=document.getElementById("main");if(m)new MutationObserver(function(){if(moT)return;moT=setTimeout(function(){moT=null;heal();},150);}).observe(m,{childList:true});}
