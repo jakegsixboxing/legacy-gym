@@ -6,7 +6,7 @@ var WHO=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8
 function staff(){return !!(session&&session.user&&WHO.indexOf(session.user.id)>=0);}
 var E=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
 var T=function(m){try{toast(m);}catch(e){}};
-var FC={camp:null,me:null,F:null,att:[],wi:[],runs:[],sess:[],pairs:[],rounds:[],vids:[],vnotes:[],notes:[],chk:[],cnotes:[],loaded:false,loading:null,
+var FC={camp:null,me:null,F:null,att:[],wi:[],runs:[],sess:[],pairs:[],rounds:[],vids:[],vnotes:[],notes:[],chk:[],cnotes:[],proam:[],loaded:false,loading:null,
  tab:"camp",fid:null,sub:"tape",sparSub:"board",buildStep:"list",attSel:null,sparSel:0,vsel:null,
  build:{fid:null,len:180,rest:30,list:[],name:"",note:"",due:""},m:{a:null,b:null,rounds:3,lvl:"Technical",night:null},run:null,timer:null,cd:null};
 window.FC=FC;
@@ -166,8 +166,9 @@ function load(force){
           sb.from("fc_video_notes").select("*").order("t_sec"),
           sb.from("fc_notes").select("*").eq("camp","fc2026").order("created_at",{ascending:false}).limit(30),
           sb.from("fc_checklist").select("*").eq("camp","fc2026"),
-          sb.from("fc_coach_notes").select("*").order("created_at",{ascending:false})]);
-        FC.F=r[0].data||[];FC.att=r[1].data||[];FC.wi=r[2].data||[];FC.runs=r[3].data||[];FC.sess=r[4].data||[];FC.pairs=r[5].data||[];FC.rounds=r[6].data||[];FC.vids=r[7].data||[];FC.vnotes=r[8].data||[];FC.notes=r[9].data||[];FC.chk=r[10].data||[];FC.cnotes=r[11].data||[];
+          sb.from("fc_coach_notes").select("*").order("created_at",{ascending:false}),
+          sb.from("fc_proam").select("*").eq("camp","fc2026").order("full_name")]);
+        FC.proam=r[12].data||[];FC.F=r[0].data||[];FC.att=r[1].data||[];FC.wi=r[2].data||[];FC.runs=r[3].data||[];FC.sess=r[4].data||[];FC.pairs=r[5].data||[];FC.rounds=r[6].data||[];FC.vids=r[7].data||[];FC.vnotes=r[8].data||[];FC.notes=r[9].data||[];FC.chk=r[10].data||[];FC.cnotes=r[11].data||[];
         FC.me=null;
       }else{
         var lk=await sb.rpc("fc_link_me");var myId=lk.data||null;
@@ -246,7 +247,7 @@ function renderFC(){
   var main=$("main");
   if(!FC.loaded){main.innerHTML='<div class="fcx"><button class="back" onclick="go(\'home\')">‹ Home</button><div class="card"><p>Loading Fight Club…</p></div></div>';load().then(function(){if(view==="fc")renderFC();});return;}
   if(!canEnter()){go("home");return;}
-  var tabs=staff()?[["fighters","Fighters"],["progress","Progress"],["train","Extra Training"],["spar","Sparring"],["camp","Camp"]]:[["camp","Camp"],["progress","Progress"],["spar","Sparring"],["fight","Fight Night"]];
+  var tabs=staff()?[["fighters","Fighters"],["proam","ProAm"],["progress","Progress"],["train","Extra Training"],["spar","Sparring"],["camp","Camp"]]:[["camp","Camp"],["progress","Progress"],["spar","Sparring"],["fight","Fight Night"]];
   var w=WEEK();
   var newVid=!staff()&&FC.me&&vidsOf(FC.me).some(function(v){return !v.seen_at;});
   var html='<div class="fcx"><button class="back" onclick="go(\'home\')">‹ Home</button>'+
@@ -254,7 +255,7 @@ function renderFC(){
    '<div class="pills">'+tabs.map(function(t){return '<button class="'+(FC.tab===t[0]?"on":"")+'" onclick="fcxSet(\'tab\',\''+t[0]+'\')">'+t[1]+(t[0]==="spar"&&newVid?'<span class="dot"></span>':'')+'</button>';}).join("")+'</div>';
   var body="";
   try{
-    if(staff()){body=FC.tab==="fighters"?fightersHtml():FC.tab==="progress"?progressStaffHtml():FC.tab==="train"?trainHtml():FC.tab==="spar"?sparStaffHtml():campStaffHtml();}
+    if(staff()){body=FC.tab==="fighters"?fightersHtml():FC.tab==="proam"?proamHtml():FC.tab==="progress"?progressStaffHtml():FC.tab==="train"?trainHtml():FC.tab==="spar"?sparStaffHtml():campStaffHtml();}
     else{body=FC.tab==="camp"?campHtml():FC.tab==="progress"?progressHtml():FC.tab==="spar"?sparHtml():fightHtml();}
   }catch(e){console.error(e);body='<div class="card"><p>Something went wrong loading this bit. Pull down to refresh.</p></div>';}
   main.innerHTML=html+body+'</div>';
@@ -516,6 +517,20 @@ window.fcxSaveF=async function(fid){function v(id){var el=$(id);return el?el.val
   if(up.opponent_id){var o=byId(up.opponent_id);if(o&&o.opponent_id!==fid){await sb.from("fc_fighters").update({opponent_id:fid}).eq("id",o.id);o.opponent_id=fid;}}
   FC.sub="tape";T("Saved");R();};
 window.fcxRemoveF=async function(fid){if(!confirm("Remove this fighter from the camp?"))return;await sb.from("fc_fighters").update({status:"removed"}).eq("id",fid);FC.F=FC.F.filter(function(x){return x.id!==fid;});FC.fid=null;R();};
+/* ========== STAFF · PRO-AM ========== */
+function proamHtml(){
+  var L=FC.proam||[];
+  var rows=L.map(function(x){var ini=(x.full_name||"?").split(/\s+/).map(function(w){return w[0]||"";}).join("").slice(0,2).toUpperCase();var ph=(x.phone||"").replace(/\D/g,"");
+    return '<div class="fr" style="cursor:default"><div class="av">'+E(ini)+'</div><div class="n"><b>'+E(x.full_name)+'</b><span>'+(x.phone?'<a href="sms:'+E(ph)+'" style="color:inherit;text-decoration:none">'+E(x.phone.replace(/^(\d{4})(\d{3})(\d{3})$/,"$1 $2 $3"))+'</a>':'no number')+(x.suburb?' · '+E(x.suburb):'')+(x.note?' · '+E(x.note):'')+'</span></div>'+(x.phone?'<a class="sm" href="tel:'+E(ph)+'" style="text-decoration:none;margin-right:6px">Call</a>':'')+'<button class="sm" onclick="fcxProamDel(\''+x.id+'\')">×</button></div>';}).join("");
+  return '<div class="card" style="padding:10px 14px"><div class="row"><span style="font-size:12px;color:#9a9891">'+L.length+' on the Pro-Am list</span><button class="sm" onclick="fcxProamAdd()">+ Add name</button></div></div>'+
+   '<div class="card" id="fcxProam">'+(rows||'<p style="padding:8px 0">No one on the list yet.</p>')+'</div>'+
+   '<p style="font-size:11px;padding:8px 4px 0;color:#9a9891">Only you and Ali see this tab. Tap a number to text, Call to ring. When someone signs up, add them from the Fighters tab and take them off here.</p>';
+}
+window.fcxProamAdd=async function(){var n=prompt("Name");if(!n)return;var ph=prompt("Mobile — optional")||null;var sub=prompt("Suburb — optional")||null;
+  var r=await sb.from("fc_proam").insert({camp:"fc2026",full_name:n.trim(),phone:ph,suburb:sub,source:"app"}).select().maybeSingle();if(r.error){T("Couldn't add");return;}FC.proam.push(r.data);FC.proam.sort(function(a,b){return (a.full_name||"").localeCompare(b.full_name||"");});T("Added");R();};
+window.fcxProamDel=async function(id){var x=(FC.proam||[]).filter(function(y){return y.id===id;})[0];if(!x||!confirm("Take "+x.full_name+" off the Pro-Am list?"))return;
+  var r=await sb.from("fc_proam").delete().eq("id",id);if(r.error){T("Couldn't remove");return;}FC.proam=FC.proam.filter(function(y){return y.id!==id;});T("Removed");R();};
+
 /* ========== STAFF · EXTRA TRAINING ========== */
 function sessRow(s){var f=byId(s.fighter_id),n=(s.items||[]).length,pct=n?Math.round(s.done_rounds/n*100):0;return '<button class="sess" onclick="'+(staff()?'fcxDelSess('+s.id+')':'fcxRun('+s.id+')')+'"><div class="av" style="width:34px;height:34px;font-size:11px">'+(s.done_rounds>=n&&n?'✓':n)+'</div><div class="n"><b>'+E(s.name)+'</b><span>'+(staff()&&f?E(f.first_name)+' · ':'')+n+' rounds'+(s.due_date?' · by '+fmtD(s.due_date):'')+'</span><div class="prog"><i style="width:'+pct+'%"></i></div></div><span class="tag '+(s.done_rounds>=n&&n?'ok':s.done_rounds?'g':'')+'">'+(s.done_rounds>=n&&n?'Done':s.done_rounds?s.done_rounds+'/'+n:'New')+'</span></button>';}
 window.fcxDelSess=async function(id){if(!confirm("Remove this session?"))return;await sb.from("fc_sessions").delete().eq("id",id);FC.sess=FC.sess.filter(function(s){return s.id!==id;});R();};
