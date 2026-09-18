@@ -1414,14 +1414,23 @@ var css=document.createElement("style");css.textContent=
 +'.mnFlash .d small{display:block;font-size:7.5px;letter-spacing:1.5px;font-weight:800;color:#9a9891;margin-top:4px;text-transform:uppercase}.mnFlash .d .arr{flex:none;color:#F1D27A;font-size:20px;font-weight:800}'
 +'.mnFlash p{margin:8px 0 0;font-size:12px;color:#cfcbc2;line-height:1.4}'
 +'.mnFlash .btn{display:block;width:100%;margin-top:10px;border-radius:11px;padding:12px;text-align:center;font-weight:800;font-size:11px;letter-spacing:2px;text-transform:uppercase;border:0;background:linear-gradient(178deg,#F6D97C,#C9962A);color:#141005;cursor:pointer;font-family:inherit}'
++'.mnMsg{cursor:pointer;display:grid;grid-template-columns:48px 1fr auto;gap:12px;align-items:center;padding:16px 14px}.mnMsg .av{width:48px;height:48px;border-radius:50%;background:linear-gradient(178deg,#F6D97C,#C9962A);color:#141005;font-family:Oswald,sans-serif;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center}.mnMsg .t{font-size:22px}.mnMsg .s{font-size:12px;color:#cfcbc2;margin-top:3px}.mnMsg .go{font-size:9px;letter-spacing:1.5px;font-weight:800;text-transform:uppercase;color:#141005;background:#F1D27A;padding:9px 11px;border-radius:8px;white-space:nowrap}.mnMsg.read{animation:none;border-color:#c9a44c}.mnMsg.read .chip{animation:none}.mnMsg.read .go{background:#1a1a1e;color:#F1D27A;border:1px solid rgba(241,210,122,.5)}'
++'.mnPage{position:fixed;inset:0;z-index:9020;background:#0b0b0c;overflow:auto;-webkit-overflow-scrolling:touch;transform:translateX(100%);transition:transform .4s cubic-bezier(.2,.8,.2,1);padding:calc(16px + env(safe-area-inset-top)) 0 60px}.mnPage.on{transform:none}.mnPage .in{max-width:520px;margin:0 auto;padding:0 18px}'
++'.mnPage .back{font-size:10px;font-weight:800;letter-spacing:2px;color:#fff;background:#1a1a1e;padding:9px 11px;border-radius:8px;border:1px solid #2e2e36;cursor:pointer;font-family:inherit}'
++'.mnPage .from{display:flex;align-items:center;gap:12px;margin-top:16px}.mnPage .from .av{width:46px;height:46px;border-radius:50%;background:linear-gradient(178deg,#F6D97C,#C9962A);color:#141005;font-family:Oswald,sans-serif;font-weight:700;font-size:17px;display:flex;align-items:center;justify-content:center}.mnPage .from b{display:block;font-size:14px;color:#fff}.mnPage .from small{display:block;font-size:10.5px;color:#9a9891;margin-top:2px}'
++'.mnPage .k{margin-top:18px;font-size:8.5px;letter-spacing:2px;font-weight:800;text-transform:uppercase;color:#F1D27A}.mnPage h1{font-family:Oswald,sans-serif;font-weight:700;font-size:28px;line-height:1;color:#fff;margin:4px 0 0}.mnPage h1 em{font-style:normal;color:#F1D27A}.mnPage .lead{margin-top:10px;font-size:13px;line-height:1.5;color:#cfcbc2}'
++'.mnPage .foc{margin-top:14px;background:#141416;border:1px solid #26262e;border-left:3px solid #F1D27A;border-radius:12px;padding:12px 14px}.mnPage .foc .n{font-size:8px;letter-spacing:2px;font-weight:800;text-transform:uppercase;color:#F1D27A}.mnPage .foc b{display:block;font-family:Oswald,sans-serif;font-size:17px;color:#fff;margin-top:4px;line-height:1.1}.mnPage .foc p{margin:6px 0 0;font-size:12.5px;line-height:1.5;color:#cfcbc2}'
++'.mnPage .line{margin-top:14px;border:1.5px solid #F1D27A;border-radius:12px;padding:12px 14px;background:#1a1710;text-align:center}.mnPage .line b{display:block;font-family:Oswald,sans-serif;font-size:18px;color:#F1D27A;line-height:1.15}.mnPage .line span{display:block;font-size:11px;color:#cfcbc2;margin-top:4px}'
++'.mnPage .btn{display:block;width:100%;margin-top:14px;border-radius:11px;padding:13px;text-align:center;font-weight:800;font-size:11px;letter-spacing:2px;text-transform:uppercase;border:0;background:linear-gradient(178deg,#F6D97C,#C9962A);color:#141005;cursor:pointer;font-family:inherit}.mnPage .btn.done{background:#0d1a12;color:#39FF88;border:1.5px solid #39FF88}'
 +'@media (prefers-reduced-motion:reduce){.mnFlash,.mnFlash .chip{animation:none}}';
 document.head.appendChild(css);
 async function load(){
   if(typeof sb==="undefined"||!sb||!me())return;
-  try{var r=await sb.from("member_notices").select("id,kind,chip,title,was,now,now_label,body,button,expires_at").eq("user_id",me()).is("seen_at",null).order("created_at",{ascending:false});
+  try{var r=await sb.from("member_notices").select("id,kind,chip,title,was,now,now_label,body,button,expires_at,data,read_at,seen_at").eq("user_id",me()).or("seen_at.is.null,kind.eq.message").order("created_at",{ascending:false});
     if(!r.error){var t=Date.now();N.list=(r.data||[]).filter(function(n){return !n.expires_at||new Date(n.expires_at).getTime()>t;});N.loaded=true;}}catch(e){}
 }
 function html(n){
+  if(n.kind==="message"){var d=n.data||{};return '<div class="mnFlash mnMsg'+(n.read_at?" read":"")+'" data-mn="'+n.id+'" onclick="mnOpen(\''+n.id+'\')"><div class="av">'+E((d.from||"J").charAt(0))+'</div><div><span class="chip">'+E(n.chip||"Message from Jake")+'</span><div class="t">'+EM(n.title||"You have a message")+'</div><div class="s">'+E(n.body||"")+'</div></div><span class="go">'+(n.read_at?"Read ✓":"Open")+'</span></div>';}
   var h='<div class="mnFlash" data-mn="'+n.id+'">'+(n.chip?'<span class="chip">'+E(n.chip)+'</span>':'')+'<div class="t">'+EM(n.title)+'</div>';
   if(n.now)h+='<div class="d">'+(n.was?'<div class="was"><b>'+E(n.was)+'</b><small>Was</small></div><div class="arr">→</div>':'')+'<div><b>'+E(n.now)+'</b><small>'+E(n.now_label||"")+'</small></div></div>';
   if(n.body)h+='<p>'+E(n.body)+'</p>';
@@ -1433,6 +1442,15 @@ function paint(){
   if(!onHome()||!N.list||!N.list.length)return;
   main.insertAdjacentHTML("afterbegin",N.list.map(html).join(""));
 }
+function pageHtml(n){var d=n.data||{},f=d.focus||[];
+  return '<div class="in"><button class="back" onclick="mnClose()">‹ Home</button><div class="from"><div class="av">'+E((d.from||"J").charAt(0))+'</div><div><b>'+E(d.from||"Jake")+'</b><small>'+E(d.when||"")+'</small></div></div>'
+   +'<div class="k">'+E(d.kicker||"Your focus tonight")+'</div><h1>'+EM(d.headline||"")+'</h1>'+(d.lead?'<div class="lead">'+E(d.lead)+'</div>':'')
+   +f.map(function(x,i){return '<div class="foc"><div class="n">Focus '+(i+1)+'</div><b>'+E(x.t)+'</b><p>'+E(x.p)+'</p></div>';}).join("")
+   +(d.bottom?'<div class="line"><b>'+E(d.bottom)+'</b>'+(d.bottom_sub?'<span>'+E(d.bottom_sub)+'</span>':'')+'</div>':'')
+   +'<button class="btn'+(n.read_at?" done":"")+'" onclick="mnRead(\''+n.id+'\')">'+(n.read_at?"Got it ✓":E(d.button||"Got it, Jake ✓"))+'</button></div>';}
+window.mnOpen=function(id){var n=(N.list||[]).filter(function(x){return x.id===id;})[0];if(!n)return;var p=document.getElementById("mnPage");if(p)p.remove();p=document.createElement("div");p.id="mnPage";p.className="mnPage";p.innerHTML=pageHtml(n);document.body.appendChild(p);requestAnimationFrame(function(){requestAnimationFrame(function(){p.classList.add("on");});});};
+window.mnClose=function(){var p=document.getElementById("mnPage");if(!p)return;p.classList.remove("on");setTimeout(function(){p.remove();},420);paint();};
+window.mnRead=async function(id){var n=(N.list||[]).filter(function(x){return x.id===id;})[0];if(n&&!n.read_at){n.read_at=new Date().toISOString();try{await sb.from("member_notices").update({read_at:n.read_at,seen_at:n.read_at}).eq("id",id);}catch(e){}}T("Jake knows you've read it ✓");mnClose();};
 window.mnSeen=async function(id){
   N.list=(N.list||[]).filter(function(n){return n.id!==id;});paint();
   try{await sb.from("member_notices").update({seen_at:new Date().toISOString()}).eq("id",id);}catch(e){}
