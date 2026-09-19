@@ -9286,6 +9286,9 @@ try{ if(typeof HOME_CARDS!=="undefined"){ for(var i=0;i<HOME_CARDS.length;i++){ 
 var tcTab="tip"; var tcData=null;
 
 function tcLocked(){ return !!(tcData&&tcData.week.lock_at&&new Date()>=new Date(tcData.week.lock_at)); }
+/* each game locks at its own kickoff (kickoff_at); games with no kickoff_at fall back to the week lock */
+function tcGameLocked(g){ if(!g)return tcLocked(); if(g.winner)return true; if(g.kickoff_at)return new Date()>=new Date(g.kickoff_at); return tcLocked(); }
+function tcOpenGames(){ return tcData?tcData.games.filter(function(g){return !tcGameLocked(g);}):[]; }
 function tcMyTips(){ var m={}; if(!tcData)return m; var uid=session.user.id; tcData.tips.forEach(function(t){ if(t.user_id===uid)m[t.game_id]=t.pick; }); return m; }
 function tcConfirmed(uid){ if(!tcData||!tcData.confirms)return false; uid=uid||session.user.id; return tcData.confirms.some(function(c){return c.user_id===uid;}); }
 
@@ -9317,7 +9320,7 @@ function tcRender(){
   if(isStaff)tabs.push(["manage","Manage"]);
   var h='<button class="backBtn" onclick="go(\'home\')">‹ Back To Home</button>';
   h+='<div class="tcHero"><div class="turf"></div><div class="in">'+tcHelmet(false)+
-     '<div class="mid"><span class="k">'+esc(tcData.week.title)+' · '+tcData.games.length+' Games</span><span class="t">Legacy NFL <b>Tipping</b></span><span class="k">'+(tcLocked()?"Tips locked — results in":"Pick ’em &amp; lock ’em in")+'</span></div>'+
+     '<div class="mid"><span class="k">'+esc(tcData.week.title)+' · '+tcData.games.length+' Games</span><span class="t">Legacy NFL <b>Tipping</b></span><span class="k">'+(tcLocked()?"Tips locked — results in":(tcOpenGames().length<tcData.games.length?"Tips open until each game kicks off":"Pick ’em &amp; lock ’em in"))+'</span></div>'+
      tcHelmet(true)+'</div></div>';
   h+='<div class="tcTabs">'+tabs.map(function(t){return '<button class="'+(tcTab===t[0]?"on":"")+'" onclick="tcGo(\''+t[0]+'\')">'+t[1]+'</button>';}).join("")+'</div>';
   if(tcTab==="tip")h+=tcTipHtml();
@@ -9338,18 +9341,19 @@ function tcPanel(code,side,klass,gid,locked){
 function tcTipHtml(){
   var locked=tcLocked(); var mine=tcMyTips(); var conf=tcConfirmed();
   var n=0; tcData.games.forEach(function(g){if(mine[g.id])n++;});
-  var total=tcData.games.length; var allTipped=total>0&&n===total; var togo=total-n;
-  var stTxt = locked?"Locked — results are in" : (conf?("Confirmed ✓ · "+n+" of "+total+" locked in"):("Open · "+n+" of "+total+" tipped"));
+  var total=tcData.games.length; var openG=tcOpenGames(); var openN=0; openG.forEach(function(g){if(mine[g.id])openN++;}); var allTipped=openG.length>0&&openN===openG.length; var togo=openG.length-openN;
+  var stTxt = locked?"Locked — results are in" : (conf?("Confirmed ✓ · "+n+" of "+total+" locked in"):("Open · "+n+" of "+total+" tipped"+(openG.length<total?" · "+(total-openG.length)+" started":"")));
   var stCls = locked?"lock" : (conf?"conf":"open");
   var h='<div class="tcRnd"><div><b>'+esc(tcData.week.title)+'</b><div class="st '+stCls+'">'+stTxt+'</div></div></div>';
   var frozen = locked||conf;
   tcData.games.forEach(function(g){
     var m=mine[g.id]; var w=g.winner;
     function cls(code){ if(w){ if(code===w)return "correct"; if(code===m&&m!==w)return "wrong"; return "miss"; } return code===m?"sel":""; }
-    var meta = w ? (m?(m===w?'<span class="ok">✓ +1</span>':'<span class="no">✗ 0</span>'):'<span class="no">no tip</span>') : (m?'Tipped '+m:'Tap a team');
+    var gl=tcGameLocked(g);
+    var meta = w ? (m?(m===w?'<span class="ok">✓ +1</span>':'<span class="no">✗ 0</span>'):'<span class="no">no tip</span>') : (gl?(m?'Tipped '+m+' · started':'<span class="no">Started — no tip</span>'):(m?'Tipped '+m:'Tap a team'));
     var mid = w?'<span>FT</span><span class="ft">'+w+'</span>':'<span>@</span>';
-    h+='<div class="tcMatch"><div class="tcRow">'+tcPanel(g.home,"home",cls(g.home),g.id,frozen||!!w)+
-       '<div class="tcVs">'+mid+'</div>'+tcPanel(g.away,"away",cls(g.away),g.id,frozen||!!w)+
+    h+='<div class="tcMatch"><div class="tcRow">'+tcPanel(g.home,"home",cls(g.home),g.id,frozen||gl)+
+       '<div class="tcVs">'+mid+'</div>'+tcPanel(g.away,"away",cls(g.away),g.id,frozen||gl)+
        '</div><div class="tcMeta"><span>'+esc(g.kickoff||"")+'</span><span>'+meta+'</span></div></div>';
   });
   // ---- confirm bar ----
@@ -9359,19 +9363,20 @@ function tcTipHtml(){
     h+='<div class="tcDone">✓ Your tips are confirmed &amp; locked in. Good luck!</div>'+
        '<button class="tcEdit" onclick="tcEditTips()">Need to change something? Re-open my tips</button>';
   } else {
-    h+='<p class="tcHint">Your picks are saved as you go — hit <b>Confirm Tips</b> to lock them in as final.</p>';
+    h+='<p class="tcHint">Your picks are saved as you go — hit <b>Confirm Tips</b> to lock them in as final. Each game stays open until it kicks off.</p>';
     if(allTipped){
-      h+='<button class="tcConfirm" onclick="tcConfirmTips()">Confirm Tips · Lock In All '+total+'</button>';
+      h+='<button class="tcConfirm" onclick="tcConfirmTips()">Confirm Tips · Lock In All '+openG.length+'</button>';
     } else {
-      h+='<button class="tcConfirm dis" disabled>Tip all '+total+' games to confirm · '+togo+' to go</button>';
+      h+='<button class="tcConfirm dis" disabled>Tip all '+openG.length+' open games to confirm · '+togo+' to go</button>';
     }
   }
   return h;
 }
 window.tcPick=async function(gid,code){
   if(tcLocked()){toast("Tips are locked for this week.");return;}
-  if(tcConfirmed()){toast("Your tips are confirmed. Re-open them to make a change.");return;}
   var g=tcData.games.find(function(x){return x.id===gid;}); if(g&&g.winner){return;}
+  if(tcGameLocked(g)){toast("That game has already kicked off — tips are closed for it.");return;}
+  if(tcConfirmed()){toast("Your tips are confirmed. Re-open them to make a change.");return;}
   var uid=session.user.id;
   var ex=tcData.tips.find(function(t){return t.user_id===uid&&t.game_id===gid;});
   if(ex)ex.pick=code; else tcData.tips.push({user_id:uid,game_id:gid,week:tcData.week.week,pick:code});
@@ -9381,8 +9386,8 @@ window.tcPick=async function(gid,code){
 };
 window.tcConfirmTips=async function(){
   if(tcLocked()){toast("Tips are already locked for this week.");return;}
-  var mine=tcMyTips(); var n=0; tcData.games.forEach(function(g){if(mine[g.id])n++;});
-  if(n<tcData.games.length){toast("Tip every game before you confirm.");return;}
+  var mine=tcMyTips(); var openG=tcOpenGames(); var n=0; openG.forEach(function(g){if(mine[g.id])n++;});
+  if(n<openG.length){toast("Tip every open game before you confirm.");return;}
   var uid=session.user.id;
   tcData.confirms.push({user_id:uid,week:tcData.week.week}); tcRender(); window.scrollTo(0,0);
   var r=await sb.from("nfl_confirms").upsert({user_id:uid,week:tcData.week.week,confirmed_at:new Date().toISOString()},{onConflict:"user_id,week"});
