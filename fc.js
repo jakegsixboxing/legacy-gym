@@ -614,15 +614,15 @@ setTimeout(function(){if(view==="home")injectCard();},800);
 
 /*__FCINFO__ ==========================================================
    Fight Club Info Night — home-screen takeover.
-   Additive block. Self-expiring: does nothing before 16 Sep 2026 09:00
+   Additive block. Self-expiring: does nothing before 1 Oct 2026 09:00 (Last Call info night)
    or after 21:00 the same night, so it can be left in place.
    Delete from this comment to the matching })(); to roll back.
    ==================================================================== */
 (function(){
-  var EVENT = "fc-info-2026-09-16";
-  var START = new Date(2026,8,16, 9,0,0,0).getTime();   /* 9:00am  16 Sep */
-  var DOORS = new Date(2026,8,16,18,45,0,0).getTime();  /* 6:45pm  16 Sep */
-  var END   = new Date(2026,8,16,21,0,0,0).getTime();   /* 9:00pm  16 Sep */
+  var EVENT = "fc-info-2026-10-01";
+  var START = new Date(2026,9,1, 9,0,0,0).getTime();    /* 9:00am  1 Oct */
+  var DOORS = new Date(2026,9,1,18,45,0,0).getTime();   /* 6:45pm  1 Oct */
+  var END   = new Date(2026,9,1,21,0,0,0).getTime();    /* 9:00pm  1 Oct */
   if (Date.now() >= END) return;
 
   var S = { count:null, mine:false, asked:false, busy:false };

@@ -10284,7 +10284,7 @@ var _pt=window.miaTimerPaint;window.miaTimerPaint=function(){_pt();var ph=docume
 <script>
 /*__INFO_NIGHT__*/
 (function(){
-var EVENT="fc-info-2026-09-16";
+var EVENT="fc-info-2026-10-01"; var PREV_EVENT="fc-info-2026-09-16"; var STAFF_EMAILS=["jakegsixboxing@gmail.com","alisonmcala@gmail.com","sarsha.mcgurk@gmail.com","sarsha03@icloud.com"];
 function jake(){try{return !!(profile&&profile.id===JAKE_UID)}catch(e){return false}}
 var css=document.createElement("style");css.textContent=`
 #inHomeBtn{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px;border-radius:14px;padding:14px 16px;margin:-6px 0 16px;cursor:pointer;border:1px solid var(--line);background:linear-gradient(160deg,#15130c,#0d0c08);color:var(--text)}
@@ -10306,25 +10306,44 @@ var css=document.createElement("style");css.textContent=`
 #inOverlay .tools{display:flex;gap:8px;margin-bottom:12px}
 #inOverlay .tools button{flex:1;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase}
 `;document.head.appendChild(css);
-var IN={rows:null};
-async function load(){var r=await sb.from("info_night_rsvps").select("*").eq("event_key",EVENT).order("created_at",{ascending:false});IN.rows=r.error?[]:(r.data||[]);return IN.rows;}
+var IN={rows:null,prev:null,noreg:null};
+function norm9(m){return String(m||"").replace(/\D/g,"").slice(-9);}
+async function load(){
+  var r=await sb.from("info_night_rsvps").select("*").eq("event_key",EVENT).order("created_at",{ascending:false});IN.rows=r.error?[]:(r.data||[]);
+  /* last time's list — who came to the 16 Sep night (or registered) and never joined the camp */
+  var p=await sb.from("info_night_rsvps").select("*").eq("event_key",PREV_EVENT).order("created_at",{ascending:true});var prev=p.error?[]:(p.data||[]);
+  var f=await sb.from("fc_fighters").select("first_name,last_name,email,phone,status").eq("camp","fc2026");var fs=f.error?[]:(f.data||[]);
+  var inCamp={};fs.forEach(function(x){if(x.status!=="active")return;if(x.email)inCamp["e:"+String(x.email).toLowerCase().trim()]=1;if(x.phone)inCamp["m:"+norm9(x.phone)]=1;inCamp["n:"+String((x.first_name||"")+" "+(x.last_name||"")).toLowerCase().replace(/\s+/g," ").trim()]=1;});
+  var nowKeys={};IN.rows.forEach(function(x){if(x.email)nowKeys["e:"+String(x.email).toLowerCase().trim()]=1;if(x.mobile)nowKeys["m:"+norm9(x.mobile)]=1;});
+  var seen={};IN.noreg=prev.filter(function(x){
+    var e="e:"+String(x.email||"").toLowerCase().trim(),m="m:"+norm9(x.mobile),n="n:"+String(x.full_name||"").toLowerCase().replace(/\s+/g," ").trim();
+    if(STAFF_EMAILS.indexOf(String(x.email||"").toLowerCase().trim())>=0)return false;
+    if(inCamp[e]||inCamp[m]||inCamp[n])return false;      /* joined the camp — done */
+    if(nowKeys[e]||nowKeys[m])return false;               /* already re-registered for this one */
+    var k=(x.mobile?m:e);if(seen[k])return false;seen[k]=1; /* de-dupe repeat sign-ups */
+    return true;});
+  IN.prev=prev;return IN.rows;}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
 function fmt(d){try{return new Date(d).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})}catch(e){return d}}
 function render(){
   var o=document.getElementById("inOverlay");if(!o)return;var rows=IN.rows||[];
   var att=rows.filter(function(r){return r.attended}).length, meta=rows.filter(function(r){return r.source==="meta"}).length;
-  o.innerHTML=`<div class="hd"><button class="back" onclick="inClose()">‹ Back</button><h2>Info night · Wed 16 Sep</h2><button class="x" onclick="inClose()">✕</button></div>
+  o.innerHTML=`<div class="hd"><button class="back" onclick="inClose()">‹ Back</button><h2>Info night · Thu 1 Oct</h2><button class="x" onclick="inClose()">✕</button></div>
   <div class="kp"><div><b>${rows.length}</b><span>Registered</span></div><div><b>${meta}</b><span>From the ad</span></div><div><b>${att}</b><span>Turned up</span></div></div>
+  <div class="tools" style="margin-bottom:14px"><button class="${IN.tab!=="noreg"?"on":""}" style="${IN.tab!=="noreg"?"border-color:var(--gold);color:var(--gold)":""}" onclick="inTab('new')">New regos · ${rows.length}</button><button class="${IN.tab==="noreg"?"on":""}" style="${IN.tab==="noreg"?"border-color:var(--gold);color:var(--gold)":""}" onclick="inTab('noreg')">Didn't register last time · ${(IN.noreg||[]).length}</button></div>
   <div class="tools"><button onclick="inCopy()">Copy list</button><button onclick="inSms()">Text everyone</button><button onclick="inReload()">Refresh</button></div>
-  ${rows.length?rows.map(function(r){return `<div class="r ${r.attended?'on':''}"><div style="min-width:0;flex:1"><div class="n">${esc(r.full_name)}</div><div class="s">${esc(r.suburb)} · ${esc(r.mobile)} · ${esc(r.email)}<br>${fmt(r.created_at)}${r.source?" · via "+esc(r.source):""}</div><div style="display:flex;gap:6px;margin-top:8px"><a href="tel:${esc(r.mobile)}">Call</a><a href="sms:${esc(r.mobile)}">Text</a></div></div><button class="att" onclick="inAtt('${r.id}',${r.attended?'false':'true'})">${r.attended?'Here ✓':'Here?'}</button></div>`}).join(""):`<div class="r"><div class="s">No registrations yet. Share legacygym.net/pages/fight-club-info-night — website sign-ups show "via website", the ad shows "via meta".</div></div>`}<div class="bot"><button onclick="inClose()">‹ Back to Home</button></div>`;
+  ${IN.tab==="noreg"?noregHtml():rows.length?rows.map(function(r){return `<div class="r ${r.attended?'on':''}"><div style="min-width:0;flex:1"><div class="n">${esc(r.full_name)}</div><div class="s">${esc(r.suburb)} · ${esc(r.mobile)} · ${esc(r.email)}<br>${fmt(r.created_at)}${r.source?" · via "+esc(r.source):""}</div><div style="display:flex;gap:6px;margin-top:8px"><a href="tel:${esc(r.mobile)}">Call</a><a href="sms:${esc(r.mobile)}">Text</a></div></div><button class="att" onclick="inAtt('${r.id}',${r.attended?'false':'true'})">${r.attended?'Here ✓':'Here?'}</button></div>`}).join(""):`<div class="r"><div class="s">No registrations yet for Thu 1 Oct. Share legacygym.net/pages/fight-club-info-night — website sign-ups show "via website", the ad shows "via meta".</div></div>`}<div class="bot"><button onclick="inClose()">‹ Back to Home</button></div>`;
 }
+function noregHtml(){var L=IN.noreg||[];if(!L.length)return `<div class="r"><div class="s">Everyone from the 16 Sep night has either joined the camp or re-registered. Nice.</div></div>`;
+  return `<div class="r" style="border-color:#4a3a1a"><div class="s">Came through the 16 Sep info night (${(IN.prev||[]).length} sign-ups) but never joined the camp and haven\'t registered for 1 Oct. Worth a call.</div></div>`+L.map(function(r){return `<div class="r"><div style="min-width:0;flex:1"><div class="n">${esc(r.full_name)}</div><div class="s">${esc(r.suburb)} · ${esc(r.mobile)} · ${esc(r.email)}<br>${fmt(r.created_at)}${r.source?" · via "+esc(r.source):""}${r.attended?" · <span style=\'color:#4bc97a\'>was there</span>":""}</div><div style="display:flex;gap:6px;margin-top:8px"><a href="tel:${esc(r.mobile)}">Call</a><a href="sms:${esc(r.mobile)}">Text</a></div></div></div>`}).join("");}
+window.inTab=function(t){IN.tab=t;render();};
 window.inOpen=async function(){var o=document.createElement("div");o.id="inOverlay";o.innerHTML='<div class="hd"><button class="back" onclick="inClose()">‹ Back</button><h2>Info night</h2><button class="x" onclick="inClose()">✕</button></div><div class="r"><div class="s">Loading…</div></div>';document.body.appendChild(o);try{history.pushState({inOverlay:1},"");}catch(e){}await load();render();};
 window.addEventListener("popstate",function(){var o=document.getElementById("inOverlay");if(o){o.remove();}});
 window.inClose=function(){var o=document.getElementById("inOverlay");if(o){o.remove();try{if(history.state&&history.state.inOverlay)history.back();}catch(e){}}};
 window.inReload=async function(){await load();render();};
 window.inAtt=async function(id,v){await sb.from("info_night_rsvps").update({attended:v}).eq("id",id);await load();render();};
-window.inCopy=function(){var t=(IN.rows||[]).map(function(r){return [r.full_name,r.mobile,r.email,r.suburb,r.source||"",r.attended?"attended":""].join("\t")}).join("\n");navigator.clipboard&&navigator.clipboard.writeText("Name\tMobile\tEmail\tSuburb\tSource\tAttended\n"+t).then(function(){toast("List copied — paste into Sheets")});};
-window.inSms=function(){var nums=(IN.rows||[]).map(function(r){return r.mobile}).filter(Boolean);if(!nums.length){toast("No numbers yet");return;}location.href="sms:"+nums.join(",");};
+window.inCopy=function(){var t=(IN.tab==="noreg"?(IN.noreg||[]):(IN.rows||[])).map(function(r){return [r.full_name,r.mobile,r.email,r.suburb,r.source||"",r.attended?"attended":""].join("\t")}).join("\n");navigator.clipboard&&navigator.clipboard.writeText("Name\tMobile\tEmail\tSuburb\tSource\tAttended\n"+t).then(function(){toast("List copied — paste into Sheets")});};
+window.inSms=function(){var nums=(IN.tab==="noreg"?(IN.noreg||[]):(IN.rows||[])).map(function(r){return r.mobile}).filter(Boolean);if(!nums.length){toast("No numbers yet");return;}location.href="sms:"+nums.join(",");};
 if(typeof window.renderHome==="function"){var _rh=window.renderHome;window.renderHome=function(){var r=_rh.apply(this,arguments);try{if(jake()&&view==="home"&&!document.getElementById("inHomeBtn")){var m=$("main");var anchor=document.getElementById("tbjHomeBtn")||m.querySelector(".homeCard");var b=document.createElement("button");b.id="inHomeBtn";b.setAttribute("onclick","inOpen()");b.innerHTML='<span><div style="font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold)">Coach Only · Fight Club</div><div style="font-family:Oswald,sans-serif;font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Info Night RSVPs <span id="inCount" style="color:var(--gold)"></span></div></span><span style="font-size:22px;color:var(--gold)">›</span>';if(anchor)m.insertBefore(b,anchor.nextSibling);else m.appendChild(b);load().then(function(rows){var c=document.getElementById("inCount");if(c)c.textContent="· "+rows.length;});}}catch(e){}return r;};}
 })();
 
