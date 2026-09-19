@@ -1409,6 +1409,7 @@ var tries=0,iv=setInterval(function(){tries++;if(me()){clearInterval(iv);boot();
    for anything staff need a member to see (booking time changes etc).
    Rows live in member_notices; the banner shows until the member taps
    the button (seen_at) or the notice expires. Reusable for any notice.
+   data.url → the button becomes a link (invoice / pay now) with a quiet "hide" button under it.
    ==================================================================== */
 (function(){
 "use strict";
@@ -1449,6 +1450,8 @@ function html(n){
   var h='<div class="mnFlash" data-mn="'+n.id+'">'+(n.chip?'<span class="chip">'+E(n.chip)+'</span>':'')+'<div class="t">'+EM(n.title)+'</div>';
   if(n.now)h+='<div class="d">'+(n.was?'<div class="was"><b>'+E(n.was)+'</b><small>Was</small></div><div class="arr">→</div>':'')+'<div><b>'+E(n.now)+'</b><small>'+E(n.now_label||"")+'</small></div></div>';
   if(n.body)h+='<p>'+E(n.body)+'</p>';
+  var d=n.data||{};
+  if(d.url)return h+'<a class="btn" href="'+E(d.url)+'" target="_blank" rel="noopener" style="text-decoration:none">'+E(n.button||"Pay now")+'</a><button class="btn" style="margin-top:6px;background:none;color:#9a9891;border:1px solid #2e2e36;padding:9px" onclick="mnSeen(\''+n.id+'\')">'+E(d.dismiss||"Done — hide this")+'</button></div>';
   return h+'<button class="btn" onclick="mnSeen(\''+n.id+'\')">'+E(n.button||"Got it")+'</button></div>';
 }
 function paint(){
