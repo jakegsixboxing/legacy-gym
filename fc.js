@@ -1451,7 +1451,7 @@ function html(n){
   if(n.now)h+='<div class="d">'+(n.was?'<div class="was"><b>'+E(n.was)+'</b><small>Was</small></div><div class="arr">→</div>':'')+'<div><b>'+E(n.now)+'</b><small>'+E(n.now_label||"")+'</small></div></div>';
   if(n.body)h+='<p>'+E(n.body)+'</p>';
   var d=n.data||{};
-  if(d.url)return h+'<a class="btn" href="'+E(d.url)+'" target="_blank" rel="noopener" style="text-decoration:none">'+E(n.button||"Pay now")+'</a><button class="btn" style="margin-top:6px;background:none;color:#9a9891;border:1px solid #2e2e36;padding:9px" onclick="mnSeen(\''+n.id+'\')">'+E(d.dismiss||"Done — hide this")+'</button></div>';
+  if(d.url)return h+'<a class="btn" href="'+E(d.url)+'" target="_blank" rel="noopener" style="text-decoration:none">'+E(n.button||"Pay now")+'</a>'+(d.no_dismiss?'':'<button class="btn" style="margin-top:6px;background:none;color:#9a9891;border:1px solid #2e2e36;padding:9px" onclick="mnSeen(\''+n.id+'\')">'+E(d.dismiss||"Done — hide this")+'</button>')+'</div>';
   return h+'<button class="btn" onclick="mnSeen(\''+n.id+'\')">'+E(n.button||"Got it")+'</button></div>';
 }
 function paint(){
