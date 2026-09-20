@@ -257,6 +257,12 @@
   .toast.show{opacity:1; transform:translateX(-50%)}
 
   .adminvw{padding:20px 20px 28px}
+  .apayrow{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .apaid{font-family:Oswald,sans-serif;font-weight:600;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+  .apaid.on{color:#0c1a0f;background:#4caf66}
+  .apaid.off{color:#fff;background:#c0392b}
+  .apaybtn{margin-left:auto;font-family:Oswald,sans-serif;font-weight:600;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#141005;background:linear-gradient(160deg,#e0be6a,#b8923e);border:0;border-radius:9px;padding:7px 12px;cursor:pointer}
+  .apaybtn.undo{background:transparent;color:var(--muted);border:1px solid var(--line)}
   .adhead{margin-bottom:16px}
   .adh{font-family:Anton,sans-serif; font-size:26px; letter-spacing:.01em}
   .adsub{font-size:11px; letter-spacing:.05em; color:var(--muted); margin-top:4px}
@@ -998,16 +1004,30 @@
     var sorted=bookings.slice().sort(function(a,b){ return dtOf(a)-dtOf(b); }), h='';
     sorted.forEach(function(bk){
       var du=DUR[bk.durIdx], rl=recLabelOf(bk);
+      var paidBadge = bk.paid
+        ? '<span class="apaid on">PAID'+(bk.payMethod?' · '+esc(bk.payMethod):'')+'</span>'
+        : '<span class="apaid off">UNPAID</span>';
+      var payBtn = bk.paid
+        ? '<button class="apaybtn undo" onclick="ptPaid(\''+bk.id+'\',false)">Mark unpaid</button>'
+        : '<button class="apaybtn" onclick="ptPaid(\''+bk.id+'\',true)">Mark paid</button>';
       h+='<div class="acard">'
         +'<div class="atop"><b>'+esc(bk.name)+'</b><span class="aref">'+bk.ref+'</span></div>'
         +'<div class="ameta">'+dayStr(bk.date)+' · '+fmt(bk.start)+'–'+fmt(bk.start+du.m)+' · '+du.label+' · $'+bk.total+(rl?' · +'+rl:'')+'</div>'
         +((bk.mobile||bk.email)?'<div class="acontact">'+esc([bk.mobile,bk.email].filter(Boolean).join(' · '))+'</div>':'')
         +(bk.focus&&bk.focus.length?'<div class="afocus">Focus: '+esc(bk.focus.join(', '))+'</div>':'')
         +(bk.note?'<div class="anote">“'+esc(bk.note)+'”</div>':'')
+        +'<div class="apayrow">'+paidBadge+payBtn+'</div>'
         +'</div>';
     });
     list.innerHTML=h;
   }
+  window.ptPaid=async function(id, makePaid){
+    var patch = makePaid ? { paid_at:new Date().toISOString(), payment_method:'manual' } : { paid_at:null, payment_method:null };
+    var r=await sb.from('pt_bookings').update(patch).eq('id',id);
+    if(r.error){ toast(r.error.message||'Could not update'); return; }
+    toast(makePaid?'Marked paid ✓':'Marked unpaid');
+    await reloadData(); renderAdmin();
+  };
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
   // ---- toast ----
@@ -1029,7 +1049,7 @@
       var dt=parseDate(r.session_date);
       var b={ id:r.id, ref:r.ref, date:dt, start:r.start_min, durIdx:di, focus:r.focus||[], note:r.note||'',
         ice:r.addon_ice, sauna:r.addon_sauna, total:r.total, name:r.member_name, mobile:r.member_mobile||'',
-        email:r.member_email||'', mine:(r.user_id===uid), status:r.status };
+        email:r.member_email||'', mine:(r.user_id===uid), status:r.status, paid:!!r.paid_at, payMethod:r.payment_method||'' };
       if(r.status==='booked'){
         bookings.push(b);
         events.push({type:'book', name:r.member_name, ref:r.ref, date:dt, start:r.start_min, durIdx:di, charge:0, ts:new Date(r.created_at).getTime()});
