@@ -533,8 +533,8 @@
   <div class="confirm" id="confirm">
     <div class="cwrap">
       <div class="tick"><svg viewBox="0 0 40 40"><path d="M10 21 L17 28 L30 12"/></svg></div>
-      <h2>YOU'RE BOOKED</h2>
-      <div class="cmsg">Locked in with <span class="cName">Jake</span>. Your details and notes go straight through, and you'll get a reminder before your session. See you at Legacy.</div>
+      <h2 id="tkHead">YOU'RE BOOKED</h2>
+      <div class="cmsg" id="tkMsg">Locked in with <span class="cName">Jake</span>. Your details and notes go straight through, and you'll get a reminder before your session. See you at Legacy.</div>
       <div class="ticket">
         <div class="cover">
           <div class="rf" id="tkRef">LG-0000</div>
@@ -799,7 +799,9 @@
       session_type:du.key, price:du.price, addon_ice:state.ice, addon_sauna:state.sauna, recovery_price:recoveryPrice(),
       total:tot, focus:state.focus.slice(), note:state.note.trim(), member_name:state.name.trim(),
       member_age:(parseInt(state.age,10)||null), member_mobile:state.mobile.trim(), member_email:state.email.trim(),
-      signature:sig, status:'booked', slot_start:localTs(dt,state.start), slot_end:localTs(dt,state.start+du.m) };
+      signature:sig, status:(COACH==='Jake'?'hold':'booked'), slot_start:localTs(dt,state.start), slot_end:localTs(dt,state.start+du.m) };
+    // Jake's sessions are payment-first: create a 20-minute HOLD, only locked in when Shopify confirms payment.
+    if(COACH==='Jake'){ row.hold_expires_at=new Date(Date.now()+20*60000).toISOString(); }
     var ref=null, lastErr=null;
     for(var attempt=0; attempt<3 && !ref; attempt++){
       row.ref='LG-'+Math.random().toString(36).slice(2,6).toUpperCase();
@@ -831,12 +833,18 @@
     document.getElementById('tkPrice').textContent='$'+tot;
     var PAY_LINKS={60:'https://www.legacygym.net/cart/48187482341527:1',90:'https://www.legacygym.net/cart/48187483652247:1',140:'https://www.legacygym.net/cart/48187495383191:1'};
     var payBtn=document.getElementById('payBtn'), tkPay=document.getElementById('tkPay');
+    var tkHead=document.getElementById('tkHead'), tkMsg=document.getElementById('tkMsg');
     if(COACH==='Jake'){
-      var payLink=PAY_LINKS[du.price];
+      var base=PAY_LINKS[du.price];
+      var payLink=base ? base+'?note='+encodeURIComponent(ref)+'&attributes[booking_ref]='+encodeURIComponent(ref)+'&attributes[coach]=Jake' : '';
+      tkHead.textContent='SPOT ON HOLD';
+      tkMsg.innerHTML='Your spot with <span class="cName">Jake</span> is <b>held for 20 minutes</b>. Tap <b>Pay now</b> to lock it in \u2014 your session isn\u2019t confirmed until payment is complete.';
       tkPay.textContent='Card \u00b7 pay now to lock it in';
       if(payLink){ payBtn.href=payLink; payBtn.textContent='PAY NOW \u00b7 $'+du.price+(rl?'  (recovery add-on paid at the gym)':''); payBtn.style.display='block'; }
       else { payBtn.style.display='none'; }
     } else {
+      tkHead.textContent='YOU\u2019RE BOOKED';
+      tkMsg.innerHTML='Locked in with <span class="cName">'+COACH+'</span>. Your details and notes go straight through, and you\u2019ll get a reminder before your session. See you at Legacy.';
       tkPay.textContent='Cash \u00b7 direct to '+COACH+' before your session';
       payBtn.style.display='none';
     }
