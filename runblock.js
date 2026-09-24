@@ -1,4 +1,4 @@
-/* Legacy Gym · running block add-on · 13 Sep 2026
+/* Legacy Gym · running block add-on · 13 Sep 2026 · Brent Thursday drills + per-round rest override 24 Sep 2026
    Sarsha's 4-week conditioning block (Mon run / Wed oval sprints / Fri run), assigned to more fighters.
    Lands in the Conditioning tab of "[Name]'s Training" (Boxing › Sparring Club). Logs go to fighter_sessions
    (section "con", block 1) — visible to the fighter and Jake only. */
@@ -186,7 +186,23 @@ var C={
  dgRing4:{id:"dgRing4",n:"Open shadow",tag:"In the ring"},
  dgWallSw:{id:"dgWallSw",n:"Wall bag · straight shots",tag:"Switch punching"},
  dgWallBent:{id:"dgWallBent",n:"Wall bag · bent-arm punching",tag:"All inside work · shift attacks"},
- dgWallOpen:{id:"dgWallOpen",n:"Wall bag · open round",tag:"Everything you have"}
+ dgWallOpen:{id:"dgWallOpen",n:"Wall bag · open round",tag:"Everything you have"},
+ /* Brent · Thursday session (24 Sep 2026). restAfter = the break that follows this round, in seconds; restLabel = what the clock says during it. */
+ bmSh1:{id:"bmSh1",n:"Shadow · backhand start",tag:"Start every attack off the back hand — build combinations"},
+ bmSh2:{id:"bmSh2",n:"Shadow · defence + counters",tag:"Defensive actions into counter punches"},
+ bmSh3:{id:"bmSh3",n:"Shadow · bent-arm punching",tag:"Inside to mid-range"},
+ bmSh4:{id:"bmSh4",n:"Shadow · open",tag:"Put it together"},
+ bmSh5:{id:"bmSh5",n:"Shadow · open",tag:"Last shadow round — gloves on straight after",restAfter:90,restLabel:"GLOVES ON"},
+ bmBg1:{id:"bmBg1",n:"Bag · doubling the jab",tag:"Double jab everywhere"},
+ bmBg2:{id:"bmBg2",n:"Bag · double jab into combinations",tag:"Build off the double jab"},
+ bmBg3:{id:"bmBg3",n:"Bag · bent-arm punches",tag:"Build combinations off the bent arm"},
+ bmBg4:{id:"bmBg4",n:"Bag · inside work",tag:"Short punches, close range"},
+ bmBg5:{id:"bmBg5",n:"Bag · open",tag:"Everything on the bag"},
+ bmBg6:{id:"bmBg6",n:"Bag · open",tag:"Last bag round — gloves off straight after",restAfter:60,restLabel:"GLOVES OFF"},
+ bmSl1:{id:"bmSl1",n:"Slip line · defence only",tag:"Defensive actions only — no punches"},
+ bmSl2:{id:"bmSl2",n:"Slip line · defence + straights",tag:"Defensive actions with straight punches"},
+ bmSl3:{id:"bmSl3",n:"Slip line · open",tag:"Open work on the line"},
+ bmGut:{id:"bmGut",n:"Gut work",tag:"5:00 straight through — finish",fixed:300}
 };
 /* ---- Section colour coding on every fighter's training block (.ft = Boxing / Conditioning / Strength).
    Sarsha's block renders as .sp, not .ft, so hers is untouched. Mia gets her own scheme. ---- */
@@ -205,4 +221,31 @@ var scss=document.createElement("style");scss.textContent=
 document.head.appendChild(scss);
 var _bf=window.byoFind;
 window.byoFind=function(id){return C[id]||(_bf?_bf.apply(this,arguments):null);};
+/* Per-round rest override: a drill with restAfter (seconds) replaces the standard break that follows it
+   (e.g. Brent's 90 s gloves-on window, 60 s gloves-off). Installed after every other add-on has loaded so it
+   has the final say over timer.js's automatic 60 s glove window. */
+function rbInstall(){
+  function restFor(id,std){var it=byoFind(id);return (it&&it.restAfter)?it.restAfter:std;}
+  var _bp=window.byoPhases;
+  if(typeof _bp==="function")window.byoPhases=function(){
+    var p=_bp.apply(this,arguments);
+    try{var list=(window.byo&&byo.list)||[],ri=0;
+      for(var i=0;i<p.length;i++){if(!p[i].br)continue;var it=byoFind(list[ri]),nx=byoFind(list[ri+1]);ri++;
+        if(it&&it.restAfter){p[i].s=it.restAfter;if(it.restLabel)p[i].b=it.restLabel;
+          p[i].sm=it.restAfter+" seconds"+(p[i].gl?" to glove up":it.restLabel?" — "+it.restLabel.toLowerCase():"")+" · then Round "+(ri+1)+" of "+list.length+" — "+(nx?nx.n:"");}}
+    }catch(e){}
+    return p;};
+  var _bt=window.byoTotal;
+  if(typeof _bt==="function")window.byoTotal=function(){var t=0,L=(window.byo&&byo.list)||[];L.forEach(function(id,i){var it=byoFind(id);if(!it)return;t+=byoRoundLen(it);if(i<L.length-1)t+=restFor(id,byo.rest);});return t;};
+  var _st=window.sc2Total;
+  if(typeof _st==="function")window.sc2Total=function(list,set){
+    var std=(set&&set.rest)||30,G=null;try{G=lgTimerGloves(list);}catch(e){}
+    var t=0;list.forEach(function(id,i){var it=byoFind(id);if(!it)return;t+=sc2RoundLen(it,set);
+      if(i<list.length-1){var r=restFor(id,std);
+        /* train.js adds (60 - rest) on top for each automatic glove window — take it off here so the total stays exact */
+        if(it.restAfter&&G&&G[i+1]&&!G[i])r-=Math.max(0,60-std);
+        t+=r;}});
+    return t;};
+}
+if(document.readyState==="complete")rbInstall();else window.addEventListener("load",rbInstall);
 })();
