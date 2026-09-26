@@ -126,7 +126,7 @@ function pd(s){var p=String(s).slice(0,10).split("-");return new Date(+p[0],+p[1
 function fmtD(s){return pd(s).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});}
 function campStart(){return pd((FC.camp&&FC.camp.start_date)||"2026-10-12");}
 function fightDate(){return pd((FC.camp&&FC.camp.fight_date)||"2026-12-19");}
-function opensAt(){return new Date((FC.camp&&FC.camp.opens_at)||"2026-09-25T16:00:00+10:00");}
+function opensAt(){return new Date((FC.camp&&FC.camp.opens_at)||"2026-09-30T18:00:00+10:00");}
 function isOpen(){return Date.now()>=opensAt().getTime();}
 function weekOf(d){var n=Math.floor((d-campStart())/864e5);return n<0?0:Math.min(10,Math.floor(n/7)+1);}
 function WEEK(){return weekOf(new Date());}
@@ -152,6 +152,7 @@ function load(force){
   FC.loading=(async function(){
     try{
       var c=await sb.from("fc_camps").select("*").eq("key","fc2026").maybeSingle();FC.camp=c.data||null;
+      try{var oc=document.getElementById("fcxCard");if(oc&&view==="home"){oc.remove();injectCard();}}catch(e){} /* re-draw the home card once the real opens_at is known (26 Sep 2026) */
       if(!session||!session.user){FC.loaded=true;return;}
       if(staff()){
         var r=await Promise.all([
