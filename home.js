@@ -1,6 +1,6 @@
 /* Legacy Gym · home layout add-on · 26 Sep 2026
    Re-lays the Home screen so everything fits on one screen:
-   greeting + tally → "Next up" strip → two big tiles (Classes, Book a Coach) → Fight Club strip → 2×2 small tiles.
+   greeting + tally → "Next up" strip → two big tiles (Classes, Book a Coach) → 2×2 small tiles → Fight Club strip.
    Moves the existing cards around; deletes nothing. Remove this script tag to go back to the old list. */
 (function(){
 "use strict";
@@ -35,6 +35,9 @@ css.textContent=
  ".lghNext .s{font-size:9.5px;color:#c9c6be;margin-top:1px}"+
  ".lghNext .a{margin-left:auto;font-size:10px;font-weight:600;color:var(--gold);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;flex:none}"+
  ".lghPair{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px}"+
+ ".lghPair .homeCard,.lghGrid .homeCard{border:1.5px solid var(--gold)}"+
+ "#lgh2 .homeCard.smGold{border:1.5px solid var(--gold)!important;animation:none!important;box-shadow:none!important}"+
+ ".lghGrid .homeCard:last-child:nth-child(odd){grid-column:1/-1}"+
  ".lghPair .homeCard{margin:0;min-height:158px;padding:14px 12px 12px}"+
  ".lghPair .homeCard::before{top:18px;bottom:18px}"+
  ".lghPair .homeCard::after{top:10px;right:12px;transform:none;font-size:24px}"+
@@ -43,7 +46,7 @@ css.textContent=
  ".lghPair .hcSub{font-size:9.5px;margin-top:5px;padding-right:0;line-height:1.4}"+
  ".lghFaces{display:flex;margin-top:7px}"+
  ".lghFaces i{width:20px;height:20px;border-radius:50%;background:#1d1d1d;border:1.5px solid var(--gold);margin-right:-6px;font-family:'Oswald',sans-serif;font-size:7.5px;font-weight:700;color:#e5c46b;display:flex;align-items:center;justify-content:center;font-style:normal;letter-spacing:.3px}"+
- ".lghFc{margin-bottom:11px}"+
+ ".lghFc{margin:0 0 14px}"+
  ".lghFc .fcxCard{margin:0;min-height:0;padding:11px 14px;display:grid;grid-template-columns:1fr auto;column-gap:12px;align-items:center}"+
  ".lghFc .fcxCard .k{font-size:7.5px;letter-spacing:2px;margin-bottom:0;grid-column:1}"+
  ".lghFc .fcxCard .t{font-size:19px;line-height:1;margin-top:2px;grid-column:1}"+
@@ -53,7 +56,7 @@ css.textContent=
  ".lghFc .fcxCard .cd b{font-size:16px}"+
  ".lghFc .fcxCard .cd small{font-size:6px;letter-spacing:1px;margin-top:2px}"+
  ".lghFc .fcxCard .lock{display:none}"+
- ".lghGrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px}"+
+ ".lghGrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px}"+
  ".lghGrid .homeCard{margin:0;min-height:92px;padding:12px 12px 10px}"+
  ".lghGrid .homeCard::before{top:16px;bottom:16px}"+
  ".lghGrid .homeCard::after{top:9px;right:12px;transform:none;font-size:20px}"+
@@ -119,7 +122,7 @@ function build(){
   if(!root){
     if(!first)return;
     root=document.createElement("div");root.id="lgh2";
-    root.innerHTML=nextHtml()+'<div class="lghPair"></div><div class="lghFc"></div><div class="lghGrid"></div>';
+    root.innerHTML=nextHtml()+'<div class="lghPair"></div><div class="lghGrid"></div><div class="lghFc"></div>';
     first.insertAdjacentElement("beforebegin",root);
   }
   var pair=root.querySelector(".lghPair"),fc=root.querySelector(".lghFc"),grid=root.querySelector(".lghGrid");
