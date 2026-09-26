@@ -370,6 +370,16 @@
           <div class="chbtns"><button class="chbook" onclick="location.href='/pt-joe'">Book Joe</button></div>
         </div>
       </div>
+      <div class="chcard">
+        <a class="shot" href="/pt-alison"><img src="/alison-card.jpg" alt="Coach Alison"></a>
+        <div class="chinfo">
+          <div class="chname">ALISON</div>
+          <div class="chrole">Head of Strength &middot; S&amp;C</div>
+          <div class="chprice">45 min $75 &middot; 2-on-1 $110</div>
+          <div class="chwhen">Mon &amp; Wed 6:30pm &middot; Tue arvo &middot; Sat morning</div>
+          <div class="chbtns"><button class="chbook" onclick="location.href='/pt-alison'">Book Alison</button></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -589,6 +599,14 @@
         {key:"30",   m:30, label:"30 Min", sub:"1-on-1", price:60, badge:"Most popular"},
         {key:"50",   m:50, label:"50 Min", sub:"1-on-1", price:85},
         {key:"2on1", m:50, label:"2-on-1", sub:"With a partner", price:110, wide:true, foci:["Partner Drills","Technical Sparring","Sparring"]}
+      ] },
+    alison:{ db:"Alison", name:"Alison", init:"A", role:"Head of Strength \u00b7 1-on-1 PT",
+      pay:{75:'https://www.legacygym.net/cart/67637741060247:1',110:'https://www.legacygym.net/cart/67637472592023:1'},
+      win:{ 1:{starts:[1110]}, 2:{starts:[990,1050]}, 3:{starts:[1110]}, 6:{starts:[450,630]} },
+      hint:"Mon & Wed 6:30pm \u00b7 Tue 4:30 & 5:30pm \u00b7 Sat 7:30 & 10:30am. The next week opens every Friday.",
+      dur:[
+        {key:"45",   m:45, label:"45 Min", sub:"1-on-1 \u00b7 Strength & Conditioning", price:75, badge:"Most popular", foci:["Strength","Conditioning","Technique","Fight Prep","Women's Strength"]},
+        {key:"2on1", m:45, label:"2-on-1", sub:"Two people \u00b7 $55 each", price:110, wide:true, foci:["Strength","Conditioning","Technique","Partner Session"]}
       ] },
     sarsha:{ db:"Sarsha", name:"Sarsha", init:"S", role:"Pro Boxer \u00b7 Coach",
       win:{ 2:{starts:[420,480,540,900]}, 4:{starts:[420,480,540,900]}, 5:{starts:[435,480]} },
@@ -827,8 +845,9 @@
     document.getElementById('tkPrice').textContent='$'+tot;
     var PAY_LINKS={60:'https://www.legacygym.net/cart/48187482341527:1',90:'https://www.legacygym.net/cart/48187483652247:1',140:'https://www.legacygym.net/cart/48187495383191:1'};
     var payBtn=document.getElementById('payBtn'), tkPay=document.getElementById('tkPay');
-    if(COACH==='Jake'){
-      var payLink=PAY_LINKS[du.price];
+    if(C.pay||COACH==='Jake'){
+      var payLink=(C.pay||PAY_LINKS)[du.price];
+      if(C.pay&&payLink){ payLink+='?note='+encodeURIComponent(ref)+'&attributes[booking_ref]='+encodeURIComponent(ref)+'&attributes[coach]='+encodeURIComponent(COACH); }
       tkPay.textContent='Card \u00b7 pay now to lock it in';
       if(payLink){ payBtn.href=payLink; payBtn.textContent='PAY NOW \u00b7 $'+du.price+(rl?'  (recovery add-on paid at the gym)':''); payBtn.style.display='block'; }
       else { payBtn.style.display='none'; }
@@ -846,7 +865,7 @@
     notifyStaff('New PT booking — '+C.name, state.name.trim()+' — '+dayStr(dt)+' '+fmt(state.start)+' ('+du.label+') · $'+tot);
     notifyCoach('booking',{ ref:ref, member:state.name.trim(), mobile:state.mobile.trim(), email:state.email.trim(),
       when:dayStr(dt)+' '+fmt(state.start)+' – '+fmt(state.start+du.m), dur:du.label+' ('+du.sub+')', total:tot,
-      focus:state.focus.join(', '), note:state.note.trim() });
+      focus:state.focus.join(', '), note:state.note.trim(), pay:(C.pay?'card':'cash') });
     document.getElementById('confirm').classList.add('show');
     document.getElementById('prog').style.width='100%';
     cta.disabled=false;
@@ -1118,7 +1137,7 @@
             name:"", age:"", mobile:"", email:"", sig:false, agree:false };
     [].forEach.call(document.querySelectorAll('.cName'),function(n){ n.textContent=C.name; });
     var pp=document.getElementById('payPolicy');
-    if(pp){ if(key==='jake'){ pp.innerHTML='All of Jake\u2019s sessions are <b>paid by card at the time of booking</b> through the secure Legacy checkout (card, Apple Pay or Google Pay). Your session is not locked in until payment is complete. Recovery add-ons are paid at the gym.'; }
+    if(pp){ if(key==='jake'||cfg.pay){ pp.innerHTML='All of '+cfg.name+'\u2019s sessions are <b>paid by card at the time of booking</b> through the secure Legacy checkout (card, Apple Pay or Google Pay). Your session is not locked in until payment is complete. Recovery add-ons are paid at the gym.'; }
     else { pp.innerHTML='All sessions are paid in <b>cash</b>, prior to your session commencing.<br><br>'+C.name+' runs personal training as an <b>independent business</b> within Legacy Gym \u2014 bookings are made here, but payment and any additional enquiries go directly through '+C.name+'.'; } }
 
     document.getElementById('cBigName').textContent=C.name.toUpperCase();

@@ -26,6 +26,18 @@
     {
       "source": "/coaches-sarsha",
       "destination": "/pt-sarsha"
+    },
+    {
+      "source": "/alison-preview",
+      "destination": "/alison"
+    },
+    {
+      "source": "/book-pt-alison",
+      "destination": "/pt-alison"
+    },
+    {
+      "source": "/coaches-alison",
+      "destination": "/pt-alison"
     }
   ]
 }
