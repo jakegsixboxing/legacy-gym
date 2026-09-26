@@ -421,7 +421,7 @@
         <div class="role" id="cRole">Head Coach · 1-on-1 PT</div>
         <div class="chips">
           <div class="pill"><span class="dot"></span> Taking bookings</div>
-          <div class="pill alt">From <b>$60</b></div>
+          <div class="pill alt">From <b id="cFrom">$60</b></div>
           <a class="pill alt" href="javascript:void(0)" onclick="showChooser()" style="text-decoration:none">All coaches ›</a>
         </div>
       </div>
@@ -1147,6 +1147,7 @@
     document.getElementById('cBigName').textContent=C.name.toUpperCase();
     document.getElementById('cInit').textContent=C.init;
     document.getElementById('cRole').textContent=C.role;
+    var cf=document.getElementById('cFrom'); if(cf&&C.dur&&C.dur.length){ cf.textContent='$'+Math.min.apply(null,C.dur.map(function(d){return d.price;})); }
     document.getElementById('dayNote').textContent=C.hint;
     document.getElementById('note').value='';
     ['fName','fAge','fMobile','fEmail'].forEach(function(id){ document.getElementById(id).value=''; });
