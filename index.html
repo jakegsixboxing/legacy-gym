@@ -752,7 +752,7 @@ function render(){
   if(view==="mvm")return renderMvM();
   if(view==="hyrox")return renderHyrox();
   if(view==="board")return renderLeaderboard();
-  if(view==="blokes")return renderBlokes();
+  if(view==="blokes"){view="boxing";boxSub="sparring";renderNav();return renderBoxing();} /* Local Blokes retired — send to Sparring Club */
   if(view==="setup")return renderSetup();
   if(view==="nutrition")return renderNutrition();
   if(view==="shop")return renderShop();
@@ -780,7 +780,7 @@ const HUB_EXTRA=[
  {id:"mvm",kicker:"Head To Head",title:"Member vs Member",sub:"The battles, the records and the bragging rights.",img:"cardio"}
 ];
 const TRAIN_IDS=["classes","timetable","boxing","coaches","weights","hyrox"];
-const COMPETE_IDS=["cardio","mvm","board","social","blokes"];
+const COMPETE_IDS=["cardio","mvm","board","social"];
 function renderTrain(){
  $("main").innerHTML=`
   <div class="homeWelcome"><div class="hwKicker">Book In &amp; Get To Work</div><div class="hwTitle">Train.</div></div>
@@ -810,9 +810,8 @@ const HOME_CARDS=[
  {id:"hyrox",kicker:"Race Yourself Fitter",title:"HYROX",sub:"Full sessions, every station, smart training built on real coaching — all trackable, all worth points.",hyroxLogo:true},
  {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:"leaderboard"},
  {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"social"},
- {id:"shop",kicker:"Official Store",title:"Shop Apparel",sub:"Hoodies, tees & gear straight from our store — spend your credit here.",img:"shopmerch"},
- {id:"blokes",kicker:"Invitation Only",title:"Local Blokes — Heavyweight Club",sub:"Members only. VIP access.",lb:true}
-]; /* Nutrition card removed 30 Aug — restore when the nutrition coach feature is built */
+ {id:"shop",kicker:"Official Store",title:"Shop Apparel",sub:"Hoodies, tees & gear straight from our store — spend your credit here.",img:"shopmerch"}
+]; /* Local Blokes card removed 26 Sep 2026 — program finished; former Blokes now have Sparring Club (is_fighter) */ /* Nutrition card removed 30 Aug — restore when the nutrition coach feature is built */
 function _stepNum(s){return parseInt(String(s).replace(/[^0-9]/g,''),10)||0;}
 function _kmNum(s){return parseFloat(String(s).replace(/[^0-9.]/g,''))||0;}
 function myDoneChallengeRefs(){if(!session||!ptsData.events)return new Set();const uid=session.user.id;return new Set(ptsData.events.filter(e=>e.user_id===uid&&e.kind==="challenge").map(e=>e.ref));}
@@ -1974,7 +1973,6 @@ function lvlCardHtml(pts,big){
     <div class="lvlShine"></div></div>`;
 }
 const MEMBERSHIPS=[
-  {n:"Local Blokes",d:"The Heavyweight Program crew — full access"},
   {n:"Sparring Club / Fight Club / Amateur / Pro",d:"Fighters — classes + the Sparring Club"},
   {n:"Fitness Club",d:"All classes + the full gym floor"},
   {n:"Open Gym",d:"Gym floor access — no classes"}];
@@ -7189,9 +7187,9 @@ const CLASS_SCHEDULE_OLD=[
   {d:6,t:"08:00",n:"Boxing"},{d:6,t:"09:00",n:"Strength & Conditioning"}
 ];
 const TIMETABLE_NEW=[
-  {d:1,t:"05:15",n:"Boxing",cat:"box"},{d:1,t:"06:15",n:"Boxing",cat:"box"},{d:1,t:"16:30",n:"Junior Boxing",cat:"jnr"},{d:1,t:"17:00",n:"‘GRUNT’ S&C",cat:"snc"},{d:1,t:"18:00",n:"Boxing",cat:"box"},{d:1,t:"18:45",n:"Sparring & Drills",cat:"spar"},{d:1,t:"19:45",n:"Local Blokes",cat:"blokes"},
+  {d:1,t:"05:15",n:"Boxing",cat:"box"},{d:1,t:"06:15",n:"Boxing",cat:"box"},{d:1,t:"16:30",n:"Junior Boxing",cat:"jnr"},{d:1,t:"17:00",n:"‘GRUNT’ S&C",cat:"snc"},{d:1,t:"18:00",n:"Boxing",cat:"box"},{d:1,t:"18:45",n:"Sparring & Drills",cat:"spar"},
   {d:2,t:"05:15",n:"‘GRUNT’ S&C",cat:"snc"},{d:2,t:"06:15",n:"‘GRUNT’ S&C",cat:"snc"},{d:2,t:"16:30",n:"Juniors Strength & Con",cat:"jnr"},{d:2,t:"17:00",n:"Boxing",cat:"box"},{d:2,t:"18:00",n:"‘GRUNT’ S&C",cat:"snc"},
-  {d:3,t:"05:15",n:"Boxing",cat:"box"},{d:3,t:"06:15",n:"Boxing",cat:"box"},{d:3,t:"16:30",n:"Junior Boxing",cat:"jnr"},{d:3,t:"17:00",n:"‘GRUNT’ S&C",cat:"snc"},{d:3,t:"18:00",n:"Boxing",cat:"box"},{d:3,t:"18:45",n:"Sparring & Drills",cat:"spar"},{d:3,t:"19:45",n:"Local Blokes",cat:"blokes"},
+  {d:3,t:"05:15",n:"Boxing",cat:"box"},{d:3,t:"06:15",n:"Boxing",cat:"box"},{d:3,t:"16:30",n:"Junior Boxing",cat:"jnr"},{d:3,t:"17:00",n:"‘GRUNT’ S&C",cat:"snc"},{d:3,t:"18:00",n:"Boxing",cat:"box"},{d:3,t:"18:45",n:"Sparring & Drills",cat:"spar"},
   {d:4,t:"05:15",n:"‘GRUNT’ S&C",cat:"snc"},{d:4,t:"06:15",n:"‘GRUNT’ S&C",cat:"snc"},{d:4,t:"16:30",n:"Juniors Strength & Con",cat:"jnr"},{d:4,t:"17:00",n:"Boxing",cat:"box"},{d:4,t:"18:00",n:"‘GRUNT’ S&C",cat:"snc"},
   {d:5,t:"05:15",n:"Boxing",cat:"box"},{d:5,t:"16:30",n:"Junior Boxing & Con",cat:"jnr"},{d:5,t:"18:00",n:"Boxing",cat:"box"},
   {d:6,t:"07:30",n:"Boxing",cat:"box"},{d:6,t:"08:30",n:"‘GRUNT’ S&C",cat:"snc"}
@@ -7234,7 +7232,7 @@ async function renderTimetable(){
     <button class="btnGold" style="margin-bottom:14px" onclick="go('classes')">Register For A Class — Next 2 Days</button>
     <div class="secTitle">Timetable — From Monday 20 July</div>
     ${timetableGridHtml()}
-    <p style="color:var(--muted);font-size:11.5px;margin-top:2px;line-height:1.5">Junior sessions (ages 8–14) run through the front desk, not this app. Local Blokes has its own booking flow in the Local Blokes tab.</p>
+    <p style="color:var(--muted);font-size:11.5px;margin-top:2px;line-height:1.5">Junior sessions (ages 8–14) run through the front desk, not this app.</p>
     <div class="card"><h3>Gym Floor Staffed Hours</h3><ul style="margin-top:8px"><li>Mon – Thu: 5:15am – 7:45am</li><li>Mon – Fri: 4:00pm – 7:00pm</li><li>Saturday: 8:00am – 11:00am</li></ul></div>`;
 }
 function refreshClassReg(){
