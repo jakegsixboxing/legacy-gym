@@ -125,6 +125,28 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 
 /* ---- Spring Challenge attention banner (home screen, additive) ---- */
 .springBanner{position:relative;overflow:hidden;border-radius:18px;margin-bottom:16px;border:2.5px solid var(--gold);background:linear-gradient(180deg,rgba(8,8,10,.35) 0%,rgba(8,8,10,.82) 55%,rgba(8,8,10,.97) 100%),url('https://jyslqxepodrseyhoppce.supabase.co/storage/v1/object/public/member-photos/15a011b9-e222-45f0-8eb9-d5338da935d1/event-1784971699613.jpg') center 22%/cover no-repeat,#0d0d0d;animation:springFlash 1.15s ease-in-out infinite}
+/* ---- School holiday timetable notice (home, flashing) ---- */
+.hnBanner{position:relative;border:2.5px solid var(--gold);border-radius:18px;padding:18px 18px 16px;margin-bottom:16px;background:linear-gradient(180deg,rgba(201,164,76,.16),rgba(8,8,10,.96));animation:hnFlash 1.3s ease-in-out infinite}
+@keyframes hnFlash{0%,100%{box-shadow:0 0 0 0 rgba(255,221,128,.8),0 10px 30px rgba(0,0,0,.5);border-color:var(--gold)}50%{box-shadow:0 0 0 10px rgba(255,221,128,0),0 10px 30px rgba(0,0,0,.5);border-color:#fff1c2}}
+.hnKick{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--gold)}
+.hnKick b{background:var(--gold);color:#161307;font-size:9.5px;letter-spacing:1.5px;padding:4px 8px;border-radius:999px;animation:hnBlink 1s steps(2,start) infinite}
+@keyframes hnBlink{to{visibility:hidden}}
+.hnTitle{font-size:22px;line-height:1.05;font-weight:900;text-transform:uppercase;letter-spacing:.5px;margin-top:10px;color:#fff}
+.hnBody{font-size:13px;line-height:1.55;color:#e8e2d2;margin-top:8px}
+.hnGrid{margin-top:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:rgba(0,0,0,.35)}
+.hnRow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid var(--line);text-align:left}
+.hnRow:first-child{border-top:none}
+.hnRow.no{background:rgba(229,72,77,.12)}
+.hnDay{font-weight:900;font-size:13px;letter-spacing:1px;text-transform:uppercase;flex:1}
+.hnDay small{display:block;font-weight:500;font-size:10.5px;color:var(--muted);letter-spacing:0;text-transform:none;margin-top:2px}
+.hnPill{white-space:nowrap;font-size:9.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:5px 9px;border-radius:999px}
+.hnPill.ok{background:rgba(61,190,122,.15);color:#3dbe7a;border:1px solid rgba(61,190,122,.45)}
+.hnPill.no{background:rgba(229,72,77,.18);color:#ff7a7e;border:1px solid rgba(229,72,77,.5)}
+.hnT4{margin-top:12px;border:1px solid #4a3c17;border-radius:12px;padding:11px 12px;background:rgba(201,164,76,.08);text-align:left}
+.hnStrip{position:relative;display:flex;align-items:center;gap:10px;border:2px solid var(--gold);border-radius:14px;padding:11px 14px;margin-bottom:14px;background:rgba(201,164,76,.12);animation:hnFlash 1.3s ease-in-out infinite;cursor:pointer;text-align:left}
+.hnStrip .dot{width:10px;height:10px;border-radius:50%;background:#ff4d55;flex:none;animation:hnBlink 1s steps(2,start) infinite}
+.hnStrip .txt{font-size:12.5px;font-weight:800;letter-spacing:.5px;color:#fff;line-height:1.35}
+.hnStrip .txt span{display:block;font-weight:500;font-size:11px;color:var(--muted);letter-spacing:0}
 @keyframes springFlash{0%,100%{box-shadow:0 0 0 0 rgba(255,221,128,.75),0 10px 30px rgba(0,0,0,.5);border-color:var(--gold)}50%{box-shadow:0 0 0 9px rgba(255,221,128,0),0 10px 30px rgba(0,0,0,.5);border-color:#ffe9a8}}
 .springDismiss{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.45);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;z-index:3;cursor:pointer}
 .springInner{position:relative;z-index:2;padding:18px 18px 20px}
@@ -849,6 +871,7 @@ function renderHome(){
   checkNewPT();
   $("main").innerHTML=`
     ${ptAlertHtml()}
+    ${holidayNoticeHtml()}
     ${winnerBannerHtml()}
     ${springBannerHtml()}
     ${announcementBannerHtml()}
@@ -1425,6 +1448,7 @@ function upcomingClasses48(){
     if(day>horizon&&off>0)break;
     const dow=day.getDay();
     if(CLASS_TAKEOVER.date&&isoDateLocal(day)===CLASS_TAKEOVER.date)continue;
+    if(classDayClosed(isoDateLocal(day))){const s0=new Date(day);s0.setHours(5,0,0,0);if(s0<=horizon)out.push({closed:true,d:dow,t:"05:00",n:"",start:s0,date:isoDateLocal(day),off});continue;}
     scheduleForDate(day).filter(c=>c.d===dow).forEach(c=>{
       const [h,m]=c.t.split(":").map(Number);
       const start=new Date(day);start.setHours(h,m,0,0);
@@ -1520,6 +1544,7 @@ async function renderClasses(){
       const lbl=c.off===0?"Today":c.off===1?"Tomorrow":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(c.date+"T12:00:00").getDay()];
       html+=`<div class="secTitle">${lbl?lbl+" — ":""}${fmtDateAU(c.date)}</div>`;
     }
+    if(c.closed){html+=`<div class="card" style="border-color:#7a2a2e;background:linear-gradient(180deg,rgba(229,72,77,.14),rgba(8,8,10,.9))"><div style="font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#ff7a7e">School holidays</div><h3 style="font-size:17px;margin-top:4px">No classes today</h3><p style="margin-top:6px;color:var(--muted)">Fridays are off over the break (2 &amp; 9 Oct). Every other day runs as normal &mdash; Saturday classes are on as usual.</p></div>`;return;}
     const these=regs.filter(r=>r.class_date===c.date&&r.class_time===c.t);
     const mine=these.find(r=>r.user_id===session.user.id);
     const myWaitRow=myWait.find(w=>w.class_date===c.date&&w.class_time===c.t);
@@ -2376,6 +2401,33 @@ function startSpringCountdown(){
     if(!$("springCd")){clearInterval(window.__springInterval);return;}
     renderSpringCountdownTick();
   },1000);
+}
+/* ---- School holiday timetable notice + Friday class closures (Term 3 break 2026) ----
+   Self-expiring: banner shows until HOLIDAY_NOTICE.until, closed dates drop out of the
+   booking list automatically. Delete this block after 12 Oct 2026. */
+const HOLIDAY_NOTICE={until:"2026-10-09",closed:{"2026-10-02":1,"2026-10-09":1}};
+const HN_KEY="lg_hn_t3_2026_ack";
+function holidayNoticeActive(){return isoDateLocal(new Date())<=HOLIDAY_NOTICE.until;}
+function classDayClosed(dateStr){return !!HOLIDAY_NOTICE.closed[dateStr];}
+function holidayNoticeHtml(){
+  if(!holidayNoticeActive())return"";
+  if(localStorage.getItem(HN_KEY)&&!window.__hnOpen){
+    return `<div class="hnStrip" onclick="window.__hnOpen=true;renderHome()"><div class="dot"></div><div class="txt">School holidays: no classes Fri 2 Oct &amp; Fri 9 Oct<span>Everything else runs as normal · tap for details</span></div></div>`;
+  }
+  return `<div class="hnBanner" id="hnBanner">
+    <div class="hnKick">Gym notice <b>School holidays</b></div>
+    <div class="hnTitle">No classes on Fridays<br>2 Oct &amp; 9 Oct</div>
+    <div class="hnBody">We've decided <b>not</b> to run a reduced holiday timetable this time. The only change over the two weeks (Mon 28 Sep &rarr; Fri 9 Oct) is <b>no classes on Fridays</b> &mdash; everything else runs exactly as it does now, so keep booking as normal.</div>
+    <div class="hnGrid">
+      <div class="hnRow"><div class="hnDay">Mon &ndash; Thu<small>All boxing, S&amp;C, skills &amp; sparring classes</small></div><span class="hnPill ok">No changes</span></div>
+      <div class="hnRow no"><div class="hnDay">Friday<small>Fri 2 Oct &amp; Fri 9 Oct</small></div><span class="hnPill no">No classes</span></div>
+      <div class="hnRow"><div class="hnDay">Saturday<small>All classes</small></div><span class="hnPill ok">No changes</span></div>
+      <div class="hnRow"><div class="hnDay">Gym floor<small>Swipe access 3am &ndash; 11pm</small></div><span class="hnPill ok">Open 7 days</span></div>
+    </div>
+    <div class="hnT4"><div class="hnKick">Coming up</div><div style="font-weight:900;font-size:15px;text-transform:uppercase;margin-top:4px">Term 4 timetable &middot; Mon 12 Oct</div><div style="font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.45">The new timetable is about to go live in the app. We'll drop a notice here the moment it's up.</div></div>
+    <button class="btnGold" style="margin-top:14px" onclick="localStorage.setItem(HN_KEY,'1');window.__hnOpen=false;renderHome()">Got it</button>
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:10px">Jake &amp; Ali &middot; Legacy Gym Kincumber</div>
+  </div>`;
 }
 /* ---- Staff Announcement Bar ---- */
 let ANN;
@@ -7145,7 +7197,7 @@ const TIMETABLE_NEW=[
   {d:6,t:"07:30",n:"Boxing",cat:"box"},{d:6,t:"08:30",n:"‘GRUNT’ S&C",cat:"snc"}
 ];
 const CLASS_SCHEDULE_NEW=TIMETABLE_NEW.filter(c=>c.cat!=="jnr"&&c.cat!=="blokes").map(c=>({d:c.d,t:c.t,n:c.n}));
-function scheduleForDate(day){return isoDateLocal(day)>=CAMP3_START?CLASS_SCHEDULE_NEW:CLASS_SCHEDULE_OLD;}
+function scheduleForDate(day){if(classDayClosed(isoDateLocal(day)))return[];return isoDateLocal(day)>=CAMP3_START?CLASS_SCHEDULE_NEW:CLASS_SCHEDULE_OLD;}
 const REG_WINDOW_H=24;
 function upcomingClasses(){
   const now=new Date(),out=[];
@@ -7177,6 +7229,7 @@ function timetableGridHtml(){
 }
 async function renderTimetable(){
   $("main").innerHTML=`
+    ${holidayNoticeActive()?`<div class="notice" style="border-color:#ff7a7e;background:rgba(229,72,77,.12)"><b>School holidays (28 Sep &ndash; 9 Oct):</b> no classes on Friday 2 Oct or Friday 9 Oct. Every other class runs as normal. Term 4 timetable goes live Mon 12 Oct.</div>`:""}
     <div class="notice"><b>This is the current timetable.</b> Anything already booked in for this week runs on the current schedule as normal.</div>
     <button class="btnGold" style="margin-bottom:14px" onclick="go('classes')">Register For A Class — Next 2 Days</button>
     <div class="secTitle">Timetable — From Monday 20 July</div>
