@@ -51,6 +51,8 @@ css.textContent=
  ".lghFc .fcxCard .k{font-size:7.5px;letter-spacing:2px;margin-bottom:0;grid-column:1}"+
  ".lghFc .fcxCard .t{font-size:19px;line-height:1;margin-top:2px;grid-column:1}"+
  ".lghFc .fcxCard .s{font-size:9px;margin-top:3px;padding-right:0;line-height:1.35;grid-column:1;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}"+
+ ".lghFc .fcxCard .lghCdWrap{grid-column:2;grid-row:1/4;display:flex;flex-direction:column;align-items:center;gap:4px}"+
+ ".lghFc .fcxCard .lghOpens{font-size:7px;font-weight:800;letter-spacing:2px;color:#F1D27A;text-transform:uppercase}"+
  ".lghFc .fcxCard .cd{grid-column:2;grid-row:1/4;margin:0;gap:5px}"+
  ".lghFc .fcxCard .cd div{min-width:34px;padding:4px 3px}"+
  ".lghFc .fcxCard .cd b{font-size:16px}"+
@@ -130,6 +132,7 @@ function build(){
   var co=card(m,"coaches");
   if(co&&!co.querySelector(".lghFaces")){var f=document.createElement("div");f.className="lghFaces";f.innerHTML=COACH_INITS.map(function(i){return "<i>"+i+"</i>";}).join("");co.appendChild(f);}
   var fcx=document.getElementById("fcxCard");if(fcx&&fcx.parentNode!==fc)fc.appendChild(fcx);
+  if(fcx&&!fcx.querySelector(".lghCdWrap")){var cd=fcx.querySelector(".cd");if(cd){var w=document.createElement("div");w.className="lghCdWrap";w.innerHTML='<div class="lghOpens">App opens in</div>';cd.parentNode.insertBefore(w,cd);w.appendChild(cd);}}
   SMALL.forEach(function(id){var c=card(m,id);if(c&&c.parentNode!==grid)grid.appendChild(c);});
   /* anything else still sitting loose in main (e.g. Staff Room) joins the grid */
   Array.prototype.slice.call(m.children).forEach(function(el){if(el.classList&&el.classList.contains("homeCard"))grid.appendChild(el);});
