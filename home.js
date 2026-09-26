@@ -1,6 +1,6 @@
 /* Legacy Gym · home layout add-on · 26 Sep 2026
    Re-lays the Home screen so everything fits on one screen:
-   greeting + tally → "Next up" strip → two big tiles (Classes, Book a Coach) → 2×2 small tiles → Fight Club strip.
+   greeting + tally → two big tiles (Classes, Book a Coach) → 2×2 small tiles → Fight Club strip.
    Moves the existing cards around; deletes nothing. Remove this script tag to go back to the old list. */
 (function(){
 "use strict";
@@ -124,7 +124,7 @@ function build(){
   if(!root){
     if(!first)return;
     root=document.createElement("div");root.id="lgh2";
-    root.innerHTML=nextHtml()+'<div class="lghPair"></div><div class="lghGrid"></div><div class="lghFc"></div>';
+    root.innerHTML='<div class="lghPair"></div><div class="lghGrid"></div><div class="lghFc"></div>'; /* Next up strip removed 26 Sep 2026 at Jake's request */
     first.insertAdjacentElement("beforebegin",root);
   }
   var pair=root.querySelector(".lghPair"),fc=root.querySelector(".lghFc"),grid=root.querySelector(".lghGrid");
@@ -136,7 +136,6 @@ function build(){
   SMALL.forEach(function(id){var c=card(m,id);if(c&&c.parentNode!==grid)grid.appendChild(c);});
   /* anything else still sitting loose in main (e.g. Staff Room) joins the grid */
   Array.prototype.slice.call(m.children).forEach(function(el){if(el.classList&&el.classList.contains("homeCard"))grid.appendChild(el);});
-  loadNext();
 }
 var _render=window.renderHome;
 window.renderHome=function(){var r=_render.apply(this,arguments);try{build();setTimeout(build,80);setTimeout(build,450);setTimeout(build,1200);}catch(e){}return r;};
