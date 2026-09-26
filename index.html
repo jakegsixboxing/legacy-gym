@@ -125,6 +125,46 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 
 /* ---- Spring Challenge attention banner (home screen, additive) ---- */
 .springBanner{position:relative;overflow:hidden;border-radius:18px;margin-bottom:16px;border:2.5px solid var(--gold);background:linear-gradient(180deg,rgba(8,8,10,.35) 0%,rgba(8,8,10,.82) 55%,rgba(8,8,10,.97) 100%),url('https://jyslqxepodrseyhoppce.supabase.co/storage/v1/object/public/member-photos/15a011b9-e222-45f0-8eb9-d5338da935d1/event-1784971699613.jpg') center 22%/cover no-repeat,#0d0d0d;animation:springFlash 1.15s ease-in-out infinite}
+/* ---- Class booking screen v2 (26 Sep 2026) ---- */
+.cbHero{border-radius:18px;padding:16px;background:linear-gradient(135deg,#1c1608,#0e0e0e);border:1px solid #4a3c17;margin-bottom:12px;position:relative;overflow:hidden;text-align:left}
+.cbHero:after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:rgba(201,162,74,.12)}
+.cbHero .k{font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--gold)}
+.cbHero .t{font-family:Oswald,sans-serif;font-weight:700;font-size:26px;line-height:1;text-transform:uppercase;margin-top:6px;color:#fff}
+.cbHero .s{font-size:11.5px;color:#cfcfcf;margin-top:6px;line-height:1.45}
+.cbGoal{display:flex;gap:6px;margin-top:12px}.cbGoal i{flex:1;height:8px;border-radius:4px;background:#2a2a2a}.cbGoal i.d{background:var(--gold)}
+.cbHero .g{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.cbHero.done{border-color:var(--ok);background:linear-gradient(135deg,#0d1f14,#0e0e0e)}.cbHero.done .k{color:var(--ok)}
+.cbDays{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.cbDays::-webkit-scrollbar{display:none}
+.cbDay{flex:1 0 46px;text-align:center;padding:8px 0 7px;border-radius:12px;border:1px solid var(--line);background:#101010;color:var(--text);cursor:pointer;font-family:inherit}
+.cbDay b{display:block;font-family:Oswald,sans-serif;font-weight:700;font-size:15px}.cbDay small{font-size:7.5px;font-weight:800;letter-spacing:2px;color:var(--muted)}
+.cbDay .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);margin:4px auto 0;opacity:0}.cbDay.has .dot{opacity:1}
+.cbDay.on{background:var(--gold);border-color:var(--gold);color:#111}.cbDay.on small{color:#4a3a10}.cbDay.on .dot{background:#111}.cbDay.off{opacity:.4}
+.cbStats{display:flex;gap:8px;margin-bottom:6px}.cbStats div{flex:1;background:var(--card,#121212);border:1px solid var(--line);border-radius:12px;padding:9px 10px;text-align:left}
+.cbStats b{display:block;font-family:Oswald,sans-serif;font-weight:700;font-size:18px;color:#fff}.cbStats small{font-size:7.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.cbSec{font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin:14px 0 4px;display:flex;justify-content:space-between}
+.cbSess{position:relative;border-radius:16px;overflow:hidden;margin-top:10px;background:var(--card,#121212);border:1px solid var(--line);text-align:left}
+.cbSess.mine{border-color:var(--ok);box-shadow:0 0 0 3px rgba(61,190,122,.10)}
+.cbSess .bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:#e0a458}.cbSess.snc .bar{background:var(--gold)}.cbSess.spar .bar{background:#d9704a}
+.cbSess .in{padding:12px 12px 12px 16px}
+.cbRow{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.cbTm{font-family:Oswald,sans-serif;font-weight:700;font-size:22px;line-height:1;color:#fff}.cbTm small{display:block;font-family:Montserrat,Inter,sans-serif;font-size:8px;font-weight:800;letter-spacing:2px;color:var(--muted);margin-top:3px}
+.cbBadge{font-size:8px;font-weight:800;letter-spacing:1.5px;padding:4px 7px;border-radius:20px;border:1px solid;text-transform:uppercase;white-space:nowrap}
+.cbBadge.pt{background:#1f1a0b;border-color:#4a3c17;color:#e5c46b}.cbBadge.hot{background:#2a1010;border-color:#6b2b2b;color:#ff7a7e}.cbBadge.ok{background:rgba(61,190,122,.12);border-color:rgba(61,190,122,.4);color:var(--ok)}
+.cbNm{font-family:Oswald,sans-serif;font-weight:700;font-size:17px;line-height:1.05;text-transform:uppercase;margin-top:6px;color:#fff}
+.cbCat{font-size:8px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-top:5px;color:#e0a458}.cbSess.snc .cbCat{color:var(--gold)}.cbSess.spar .cbCat{color:#d9704a}
+.cbWho{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:10.5px;font-weight:600;color:var(--muted);min-height:22px}.cbWho b{color:#fff}
+.cbAvs{display:flex;flex:none}.cbAvs i{width:22px;height:22px;border-radius:50%;border:2px solid #121212;margin-left:-6px;font-family:Oswald,sans-serif;font-weight:700;font-size:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-style:normal;background:#444}
+.cbAvs i:first-child{margin-left:0}.cbAvs i.me{background:var(--ok);color:#062}
+.cbCap{height:4px;background:#222;border-radius:3px;margin-top:10px;overflow:hidden}.cbCap i{display:block;height:100%;background:var(--gold);border-radius:3px}
+.cbBook{margin-top:10px;display:flex;gap:8px;align-items:center}
+.cbBtn{flex:1;text-align:center;background:var(--gold);color:#111;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:12px;border-radius:10px;border:0;cursor:pointer;font-family:inherit}
+.cbBtn.in{background:transparent;border:1.5px solid var(--ok);color:var(--ok)}.cbBtn.wait{background:transparent;border:1.5px solid #3a3a3a;color:#ddd}.cbBtn.onwait{background:transparent;border:1.5px solid var(--gold);color:#e5c46b}
+.cbMate{width:44px;height:40px;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;background:#0e0e0e;cursor:pointer;color:#fff;flex:none}
+.cbHint{font-size:10.5px;color:var(--muted);margin-top:10px;text-align:center;line-height:1.4}
+.cbClosed{margin-top:10px;border-radius:16px;border:1px solid #7a2a2e;background:linear-gradient(180deg,rgba(229,72,77,.14),rgba(8,8,10,.9));padding:16px;text-align:left}
+.cbClosed .k{font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#ff7a7e}.cbClosed h3{font-family:Oswald,sans-serif;font-size:18px;text-transform:uppercase;margin-top:4px}.cbClosed p{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+.cbEmpty{margin-top:10px;border-radius:16px;border:1px solid var(--line);background:var(--card,#121212);padding:14px;font-size:12px;color:var(--muted);line-height:1.5;text-align:left}
+.cbTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 /* ---- School holiday timetable notice (home, flashing) ---- */
 .hnBanner{position:relative;border:2.5px solid var(--gold);border-radius:18px;padding:18px 18px 16px;margin-bottom:16px;background:linear-gradient(180deg,rgba(201,164,76,.16),rgba(8,8,10,.96));animation:hnFlash 1.3s ease-in-out infinite}
 @keyframes hnFlash{0%,100%{box-shadow:0 0 0 0 rgba(255,221,128,.8),0 10px 30px rgba(0,0,0,.5);border-color:var(--gold)}50%{box-shadow:0 0 0 10px rgba(255,221,128,0),0 10px 30px rgba(0,0,0,.5);border-color:#fff1c2}}
@@ -1472,13 +1512,10 @@ async function renderClasses(){
     return;
   }
   $("main").innerHTML=`
-    <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
-    <div class="hero" style="${bgStyle('boxing',.55)}">
-      <div class="heroKicker">This Week's Timetable</div>
-      <div class="heroTitle">Book In For Classes</div>
-      <div class="heroText">The full week's timetable opens every Sunday at 7 AM. Tap a class and you're booked — the coaches see exactly who's coming. Sparring bookings carry your fight profile straight onto the list.</div>
-    </div>
+    <div class="cbTop"><button class="backBtn" style="margin:0" onclick="go('home')">‹ Home</button><button id="smWeek" class="btnLink" style="width:auto;margin:0;padding:6px 10px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800" onclick="go('timetable')">Full timetable ›</button></div>
+    <div class="secTitle" style="margin-top:6px">Book in · this week</div>
     <div id="classList"><div class="loadingDots">Loading upcoming classes…</div></div>`;
+  if(!ptsData.loaded){try{await loadWorld();}catch(e){}}
   const cls=upcomingClasses48();
   const dates=[...new Set(cls.map(c=>c.date))];
   const now=new Date();
@@ -1506,72 +1543,106 @@ async function renderClasses(){
     if(!takeoverEv)return"";
     const ph=takeoverEv.photo_url?`<img src="${takeoverEv.photo_url}${takeoverEv.photo_url.includes("?")?"&":"?"}width=800" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block" alt="">`:"";
     return `<div class="secTitle">Saturday — ${fmtDateAU(CLASS_TAKEOVER.date)}</div>
-    <div class="card" style="padding:0;overflow:hidden;border-color:var(--gold)">
-      ${ph}
-      <div style="padding:16px 16px 18px">
-        <div style="font-size:10.5px;font-weight:900;letter-spacing:3px;color:var(--gold)">NO REGULAR CLASSES \u2014 EVENT DAY</div>
-        <h3 style="font-size:20px;margin-top:8px;line-height:1.25">${esc(takeoverEv.title||"Team Challenge")}</h3>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
-          <span class="pill" style="border-color:var(--gold);color:var(--gold)">${CLASS_TAKEOVER.start} \u2013 ${CLASS_TAKEOVER.finish}</span>
-          ${takeoverEv.location?`<span class="pill">${esc(takeoverEv.location)}</span>`:""}
-        </div>
-        ${takeoverEv.details?`<p style="margin-top:12px;line-height:1.6;color:var(--muted)">${esc(takeoverEv.details)}</p>`:""}
-        <p style="margin-top:12px;line-height:1.6;color:var(--muted)">Saturday\u2019s Boxing and \u2018GRUNT\u2019 S&amp;C are off this week \u2014 we\u2019re all in on this instead.</p>
-        <button class="btnGold" style="margin-top:14px" onclick="go('social')">See Details &amp; Put Your Name Down \u203a</button>
-      </div>
-    </div>`;
+    <div class="card" style="padding:0;overflow:hidden;border-color:var(--gold)">${ph}<div style="padding:16px 16px 18px"><div style="font-size:10.5px;font-weight:900;letter-spacing:3px;color:var(--gold)">NO REGULAR CLASSES \u2014 EVENT DAY</div><h3 style="font-size:20px;margin-top:6px">${esc(takeoverEv.title||"")}</h3><p style="margin-top:8px;color:var(--muted)">${esc(takeoverEv.blurb||takeoverEv.description||"")}</p><button class="btnGold" style="margin-top:14px" onclick="go('social')">See The Event ›</button></div></div>`;
   }
+  /* ---- my week: goal, streak, points, rank, usual slot ---- */
+  const uid=session.user.id;
+  const wkStart=weekKey(now);const wkEndD=new Date(wkStart+"T12:00:00");wkEndD.setDate(wkEndD.getDate()+6);const wkEnd=isoDateLocal(wkEndD);
+  let myWeekRegs=[];
+  try{const r=await sb.from("class_regs").select("class_date,class_time").eq("user_id",uid).gte("class_date",wkStart).lte("class_date",wkEnd);myWeekRegs=r.data||[];}catch(e){}
+  const weekN=myWeekRegs.length,GOAL=4;
+  const streak=(typeof myStreakWeeks==="function")?myStreakWeeks():0;
+  const pts=(typeof myPoints==="function")?myPoints():0;
+  let rank=null;try{const tot={};ptsData.events.forEach(e=>{tot[e.user_id]=(tot[e.user_id]||0)+e.points;});const order=Object.keys(tot).sort((a,b)=>tot[b]-tot[a]);const i=order.indexOf(uid);if(i>=0)rank=i+1;}catch(e){}
+  const usualCount={};[...claimedRefs].forEach(r=>{const m=/^class:(\d{4}-\d{2}-\d{2}):(\d{2}:\d{2})$/.exec(r);if(!m)return;const k=new Date(m[1]+"T12:00:00").getDay()+"@"+m[2];usualCount[k]=(usualCount[k]||0)+1;});
+  let usual=null;Object.keys(usualCount).forEach(k=>{if(!usual||usualCount[k]>usualCount[usual])usual=k;});if(usual&&usualCount[usual]<3)usual=null;
+  const heroT=weekN>=GOAL?"Week goal hit. \ud83d\udd25":weekN===0?"Nothing booked yet.":weekN+" booked. Go for "+GOAL+"?";
+  const usualTxt=usual?" Your usual is "+["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][+usual.split("@")[0]]+" "+fmtClassTime(usual.split("@")[1]).toLowerCase().replace(" ","")+".":"";
+  const heroS=weekN>=GOAL?"That's the bonus point in the bag once you've claimed them. Every extra class is another point.":weekN===0?"Pick a day, tap a class, you're in. Four in a week banks a bonus point.":"Four classes in a week banks a bonus point. You're "+(GOAL-weekN)+" away."+usualTxt;
+  html+=`<div class="cbHero${weekN>=GOAL?" done":""}"><div class="k">${weekN>=GOAL?"Goal hit":"My week"} \u00b7 ${fmtDateAU(wkStart)} \u2192 ${fmtDateAU(wkEnd)}</div><div class="t">${heroT}</div><div class="s">${heroS}</div><div class="cbGoal">${[0,1,2,3].map(i=>`<i class="${i<weekN?"d":""}"></i>`).join("")}</div><div class="g">\ud83d\udd25 ${streak}-week streak \u00b7 ${pts.toLocaleString()} pts${rank?" \u00b7 Rank #"+rank:""}</div></div>`;
+  /* ---- claim points (unchanged flow, new home) ---- */
   if(doneRegs.length){
-    html+=`<div class="secTitle">Claim Your Class Points</div>`;
+    html+=`<div class="cbSec"><span>Claim your class points</span></div>`;
     doneRegs.forEach(r=>{
       const ref="class:"+r.class_date+":"+r.class_time;
-      html+=`<div class="card" style="border-color:var(--gold-dim)">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
-          <h3 style="font-size:15px">${esc(r.class_name)}</h3>
-          <span style="font-size:12px;color:var(--muted);flex-shrink:0">${fmtDateAU(r.class_date)} · ${fmtClassTime(r.class_time)}</span>
-        </div>
-        ${claimedRefs.has(ref)?`<p style="margin-top:10px;font-weight:900;letter-spacing:2px;color:var(--ok);font-size:12px">POINT BANKED ✓</p>`
-          :`<button class="btnGold" style="margin-top:12px" onclick="submitClassPoint('${r.class_date}','${r.class_time}')">Submit Class — Claim 1 Point</button>`}
-      </div>`;
+      html+=`<div class="card" style="border-color:var(--gold-dim);margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h3 style="font-size:15px">${esc(r.class_name)}</h3><span style="font-size:12px;color:var(--muted);flex-shrink:0">${fmtDateAU(r.class_date)} \u00b7 ${fmtClassTime(r.class_time)}</span></div>
+        ${claimedRefs.has(ref)?`<p style="margin-top:10px;font-weight:900;letter-spacing:2px;color:var(--ok);font-size:12px">POINT BANKED \u2713</p>`:`<button class="btnGold" style="margin-top:12px" onclick="submitClassPoint('${r.class_date}','${r.class_time}')">Submit Class \u2014 Claim 1 Point</button>`}</div>`;
     });
   }
-  let lastDate="";
-  cls.forEach(c=>{
-    if(!takeoverDone&&CLASS_TAKEOVER.date&&c.date>CLASS_TAKEOVER.date){takeoverDone=true;html+=takeoverHtml();}
-    if(c.date!==lastDate){
-      lastDate=c.date;
-      const lbl=c.off===0?"Today":c.off===1?"Tomorrow":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date(c.date+"T12:00:00").getDay()];
-      html+=`<div class="secTitle">${lbl?lbl+" — ":""}${fmtDateAU(c.date)}</div>`;
-    }
-    if(c.closed){html+=`<div class="card" style="border-color:#7a2a2e;background:linear-gradient(180deg,rgba(229,72,77,.14),rgba(8,8,10,.9))"><div style="font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#ff7a7e">School holidays</div><h3 style="font-size:17px;margin-top:4px">No classes today</h3><p style="margin-top:6px;color:var(--muted)">Fridays are off over the break (2 &amp; 9 Oct). Every other day runs as normal &mdash; Saturday classes are on as usual.</p></div>`;return;}
-    const these=regs.filter(r=>r.class_date===c.date&&r.class_time===c.t);
-    const mine=these.find(r=>r.user_id===session.user.id);
-    const myWaitRow=myWait.find(w=>w.class_date===c.date&&w.class_time===c.t);
-    const full=these.length>=CLASS_CAPACITY;
-    const isAM=parseInt(c.t.split(":")[0])<12;
-    html+=`<div class="card" style="${isAM?"background:#0a0a0b;border-color:#2f2f34;color:#ffffff":"background:#f4f4f2;border-color:#d8d8d4;color:#131313"}">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
-        <h3 style="font-size:17px;color:inherit">${esc(c.n)}</h3>
-        <span style="color:inherit;font-weight:800;font-size:14px;flex-shrink:0">${fmtClassTime(c.t)}</span>
-      </div>
-      <p style="margin-top:6px;color:inherit"><b style="color:inherit">${these.length} attending</b>${full?" · FULL":""}${these.length?": "+these.map(r=>esc(r.name)).join(", "):""}</p>
-      ${mine?`<button class="btnLink" style="border-color:var(--ok);color:var(--ok);margin-top:12px" onclick="unattendClass('${c.date}','${c.t}','${esc(c.n)}')">BOOKED IN ✓</button>
-      <p style="margin-top:8px;font-size:11px;color:inherit;opacity:.75;text-align:center">Can no longer attend? Please tap above to remove yourself so the coaches know.</p>`
-      :full?(myWaitRow?`<button class="btnLink" style="border-color:var(--gold);color:var(--gold);margin-top:12px" onclick="leaveWaitlist('${c.date}','${c.t}')">ON THE WAITLIST — TAP TO LEAVE</button>`
-        :`<button class="btnGold" style="margin-top:12px" onclick="joinWaitlist('${c.date}','${c.t}','${esc(c.n)}')">Class Full — Join Waitlist</button>`)
-            :`<button class="btnGold" style="margin-top:12px" onclick="attendClass('${c.date}','${c.t}','${esc(c.n)}')">Book Me In</button>`}
-    </div>`;
-  });
+  /* ---- day strip ---- */
+  const horizon=bookingHorizon();
+  const dayList=[];
+  for(let off=0;off<=13;off++){const day=new Date(now);day.setDate(day.getDate()+off);if(day>horizon&&off>0)break;const ds=isoDateLocal(day);dayList.push({date:ds,dow:day.getDay(),off,closed:classDayClosed(ds),items:cls.filter(c=>c.date===ds&&!c.closed)});}
+  const bookedDates=new Set(regs.filter(r=>r.user_id===uid).map(r=>r.class_date));
+  if(!window.__cbSel||!dayList.some(d=>d.date===window.__cbSel)){const first=dayList.find(d=>d.items.length)||dayList[0];window.__cbSel=first?first.date:d0;}
+  const sel=dayList.find(d=>d.date===window.__cbSel)||dayList[0];
+  const DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  html+=`<div class="cbDays">${dayList.map(d=>`<button class="cbDay${d.date===sel.date?" on":""}${(d.closed||(d.dow===0&&!d.items.length))?" off":""}${bookedDates.has(d.date)?" has":""}" onclick="window.__cbSel='${d.date}';renderClasses()"><small>${DN[d.dow].toUpperCase()}</small><b>${+d.date.slice(8)}</b><div class="dot"></div></button>`).join("")}</div>`;
+  html+=`<div class="cbStats"><div><b>\ud83d\udd25 ${streak}</b><small>Week streak</small></div><div><b>${weekN} of ${GOAL}</b><small>Weekly goal</small></div><div><b>${pts.toLocaleString()}</b><small>Legacy pts</small></div></div>`;
+  /* ---- the day's sessions ---- */
+  const lbl=sel.off===0?"Today":sel.off===1?"Tomorrow":DN[sel.dow];
+  if(sel.closed){
+    html+=`<div class="cbSec"><span>${lbl} \u2014 ${fmtDateAU(sel.date)}</span></div><div class="cbClosed"><div class="k">School holidays</div><h3>No classes today</h3><p>Fridays are off over the break (2 &amp; 9 Oct). Every other day runs as normal \u2014 Saturday classes are on as usual.</p></div>`;
+  }else if(!sel.items.length){
+    html+=`<div class="cbSec"><span>${lbl} \u2014 ${fmtDateAU(sel.date)}</span></div><div class="cbEmpty">${sel.dow===0?"No classes on Sundays \u2014 the gym floor is open on your swipe. The full week opens for booking every Sunday at 7am.":"Nothing left to book on this day."}</div>`;
+  }else{
+    const myToday=sel.items.filter(c=>regs.some(r=>r.class_date===c.date&&r.class_time===c.t&&r.user_id===uid)).length;
+    html+=`<div class="cbSec"><span>${lbl} \u2014 ${fmtDateAU(sel.date)} \u00b7 ${sel.items.length} session${sel.items.length===1?"":"s"}</span><span>${myToday} booked</span></div>`;
+    const COLS=["#5a3d1c","#2f4f7a","#6b2b2b","#2c5a3c","#4a3b6b","#555","#7a4a1c","#1f5a5a"];
+    const ini=n=>String(n||"?").trim().split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
+    const hsh=t=>{let h=0;for(const ch of String(t))h=(h*31+ch.charCodeAt(0))>>>0;return h;};
+    sel.items.forEach(c=>{
+      const these=regs.filter(r=>r.class_date===c.date&&r.class_time===c.t);
+      const mine=these.find(r=>r.user_id===uid);
+      const others=these.filter(r=>r.user_id!==uid);
+      const myWaitRow=myWait.find(w=>w.class_date===c.date&&w.class_time===c.t);
+      const full=these.length>=CLASS_CAPACITY;
+      const cat=/sparring/i.test(c.n)?"spar":/s&c|grunt|strength/i.test(c.n)?"snc":"box";
+      const catLbl=cat==="spar"?"Fighters only \u00b7 Sparring Club":cat==="snc"?"Strength &amp; Conditioning":"Boxing \u00b7 All levels";
+      const isUsual=usual&&usual===(c.d+"@"+c.t);
+      const pct=Math.min(100,Math.round(these.length/20*100));
+      const badge=mine?`<span class="cbBadge ok">Booked \u2713</span>`:full?`<span class="cbBadge hot">Full</span>`:these.length>=12?`<span class="cbBadge hot">\ud83d\udd25 Filling</span>`:isUsual?`<span class="cbBadge pt">Your usual</span>`:`<span class="cbBadge pt">+1 pt</span>`;
+      const tm=fmtClassTime(c.t).split(" ");
+      const shown=others.slice(0,4);
+      const first=n=>String(n||"").trim().split(/\s+/)[0];
+      const who=mine?`<b>You</b>${others.length?", "+esc(first(others[0].name))+(others.length>1?" + "+(others.length-1)+" going":" going"):" \u2014 first in!"}`:others.length?`<b>${others.slice(0,2).map(r=>esc(first(r.name))).join(", ")}</b>${others.length>2?" + "+(others.length-2)+" going":" going"}`:`<span>Be the first in.</span>`;
+      const shareTxt=encodeURIComponent("Free class pass at Legacy Gym Kincumber \u2014 come do "+c.n+" with me "+fmtDateAU(c.date)+" "+fmtClassTime(c.t)+". Grab it here: https://www.legacygym.net/pages/start-your-free-trial");
+      html+=`<div class="cbSess ${cat}${mine?" mine":""}"><div class="bar"></div><div class="in">
+        <div class="cbRow"><div class="cbTm">${tm[0]}<small>${tm[1]} \u00b7 45 MIN</small></div>${badge}</div>
+        <div class="cbNm">${esc(c.n)}</div><div class="cbCat">${catLbl}</div>
+        <div class="cbWho"><div class="cbAvs">${mine?`<i class="me">ME</i>`:""}${shown.map(r=>`<i style="background:${COLS[hsh(r.name)%COLS.length]}">${ini(r.name)}</i>`).join("")}</div><span>${who}</span></div>
+        <div class="cbCap"><i style="width:${pct}%"></i></div>
+        <div class="cbBook">${mine?`<button class="cbBtn in" onclick="unattendClass('${c.date}','${c.t}','${esc(c.n)}')">You're in \u2713 \u00b7 tap to pull out</button>`
+          :full?(myWaitRow?`<button class="cbBtn onwait" onclick="leaveWaitlist('${c.date}','${c.t}')">On the waitlist \u00b7 tap to leave</button>`:`<button class="cbBtn wait" onclick="joinWaitlist('${c.date}','${c.t}','${esc(c.n)}')">Class full \u2014 join waitlist</button>`)
+          :`<button class="cbBtn" onclick="attendClass('${c.date}','${c.t}','${esc(c.n)}')">Book me in</button>`}<button class="cbMate" title="Bring a mate" onclick="cbBringMate('${shareTxt}')">\ud83d\udc65</button></div>
+      </div></div>`;
+    });
+    html+=`<div class="cbHint">Tap \ud83d\udc65 to send a mate a free class pass for that session.</div>`;
+  }
   if(!takeoverDone&&CLASS_TAKEOVER.date&&d0<=CLASS_TAKEOVER.date){takeoverDone=true;html+=takeoverHtml();}
-  if(!cls.length&&!takeoverDone)html+='<div class="card"><p>No classes in the next two days — check the full weekly timetable below.</p></div>';
-  html+=`<button class="btnLink" style="margin-top:6px" onclick="go('timetable')">See The Full Weekly Timetable ›</button>`;
   c2.innerHTML=html;
 }
 
 async function submitClassPoint(date,time){
   const ok=await awardPoints("class","class:"+date+":"+time,1);
-  toast(ok?"Class submitted — 1 point on the board!":"Couldn't submit — try again.");
+  let bonus=false;
+  if(ok){
+    /* Weekly goal: 4 claimed classes in one Mon–Sun week banks a bonus point (added 26 Sep 2026) */
+    try{
+      const wk=weekKey(new Date(date+"T12:00:00"));const e=new Date(wk+"T12:00:00");e.setDate(e.getDate()+6);
+      const {data}=await sb.from("points_events").select("ref").eq("user_id",session.user.id).eq("kind","class");
+      const n=(data||[]).filter(r=>{const m=/^class:(\d{4}-\d{2}-\d{2}):/.exec(r.ref);return m&&m[1]>=wk&&m[1]<=isoDateLocal(e);}).length;
+      if(n>=4)bonus=await awardPoints("bonus","weekgoal:"+wk,1);
+    }catch(e){}
+  }
+  toast(!ok?"Couldn't submit — try again.":bonus?"That's 4 this week — class point + weekly bonus banked! 🔥":"Class submitted — 1 point on the board!");
   renderClasses();
+}
+function cbBringMate(encoded){
+  const text=decodeURIComponent(encoded);
+  if(navigator.share){navigator.share({text}).catch(()=>{});return;}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(()=>toast("Copied — paste it to your mate."),()=>toast(text));return;}
+  toast(text);
 }
 
 /* ---- Build Your Own Session ---- */
