@@ -586,6 +586,7 @@
   var COACHES={
     jake:{ db:"Jake", name:"Jake", init:"J", role:"Head Coach \u00b7 1-on-1 PT",
       win:{ 1:{o:990,c:1110}, 2:{o:990,c:1110}, 3:{o:990,c:1110}, 6:{o:510,c:630} },
+      winDate:{ "2026-10-03":{o:480,c:570} }, /* Sat 3 Oct: 8:00 & 8:30 only, closed from 9:30 */
       hint:"Mon, Tue & Wed 4:30\u20136:30pm \u00b7 Sat 8:30\u201310:30am. The next week opens every Friday.",
       dur:[
         {key:"30",   m:30, label:"30 Min", sub:"1-on-1", price:60, badge:"Most popular"},
@@ -650,7 +651,7 @@
     var st=[]; for(var t=w.o;t+L<=w.c;t+=GRID) st.push(t); return st;
   }
   function openings(dt,L){
-    var w=WIN[dt.getDay()], booked=bookedIntervals(dt), out=[];
+    var w=(C&&C.winDate&&C.winDate[isoDate(dt)])||WIN[dt.getDay()], booked=bookedIntervals(dt), out=[];
     var isToday=(dt.toDateString()===new Date().toDateString()), nowMin=new Date().getHours()*60+new Date().getMinutes();
     startsFor(w,L).forEach(function(t){
       var past=isToday&&t<=nowMin, busy=false;
