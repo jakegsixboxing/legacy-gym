@@ -1181,7 +1181,7 @@ try{enhance();}catch(e){}
 
 /*__NRLPARTY__ ========================================================
    NRL Grand Final Party — home-screen popup + RSVP (Sun 4 Oct 2026).
-   Additive block. Popup runs for 7 days (to 24 Sep 23:59), the home tile
+   Additive block. Knights-colours splash pops every app open Mon 28 - Wed 30 Sep, the home tile
    and RSVP page stay until the night of the party, then it all goes quiet.
    Delete from this comment to the matching })(); to roll back.
    ==================================================================== */
@@ -1190,14 +1190,14 @@ try{enhance();}catch(e){}
 var EV={
   key:"nrl-gf-2026",
   title:"NRL Grand Final Party",
-  when:"Sunday 4 October",
+  when:"Sunday 4 October · from 4pm",
   where:"Front bar, Legacy Gym",
   img:"/nrl-party.jpg",
-  popupUntil:new Date(2026,8,24,23,59,59).getTime(),   /* 7 days of pop-ups */
+  popupUntil:new Date(2026,8,30,23,59,59).getTime(),   /* pops every app open Mon 28 - Wed 30 Sep */
   ends:new Date(2026,9,4,23,59,59).getTime()            /* party night */
 };
 if(Date.now()>EV.ends)return;
-var S={mine:null,count:null,loaded:false,busy:false,guests:1,list:null};
+var S={mine:null,count:null,loaded:false,busy:false,guests:0,list:null};
 function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function T(m){try{toast(m);}catch(e){}}
 function prof(){try{return (typeof profile!=="undefined"&&profile)?profile:null;}catch(e){return null;}}
@@ -1265,7 +1265,8 @@ var css=document.createElement("style");css.id="nrlCss";css.textContent=
 +'#nrlTile .cnt{font-family:Oswald,sans-serif;font-size:13px;letter-spacing:1px;color:#F1D27A;white-space:nowrap}'
 /* staff list */
 +'.nrlList{margin-top:14px}.nrlList .r{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid #1e1e22;font-size:13px;color:#e8e2d2}.nrlList .r b{color:#F1D27A;font-family:Oswald,sans-serif}.nrlList .r.no{color:#6e6b74}'
-+'.nrlList .hd{display:flex;gap:8px;margin:14px 0 6px}.nrlList .hd div{flex:1;background:#141416;border:1px solid #26262e;border-radius:12px;padding:12px 6px;text-align:center}.nrlList .hd b{font-family:Oswald,sans-serif;font-size:24px;color:#F1D27A}.nrlList .hd small{display:block;font-size:7.5px;letter-spacing:1.5px;font-weight:800;color:#9a9891;margin-top:3px;text-transform:uppercase}';
++'.nrlList .hd{display:flex;gap:8px;margin:14px 0 6px}.nrlList .hd div{flex:1;background:#141416;border:1px solid #26262e;border-radius:12px;padding:12px 6px;text-align:center}.nrlList .hd b{font-family:Oswald,sans-serif;font-size:24px;color:#F1D27A}.nrlList .hd small{display:block;font-size:7.5px;letter-spacing:1.5px;font-weight:800;color:#9a9891;margin-top:3px;text-transform:uppercase}'
+/* Knights colours · 28 Sep */+'#nrlDim{background:rgba(2,4,10,.82);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}'+'#nrlSheet{top:calc(54px + env(safe-area-inset-top));bottom:calc(98px + env(safe-area-inset-bottom));max-height:none;width:calc(100% - 20px);max-width:460px;border-radius:24px;background:#070b14;border:1.5px solid #fff;box-shadow:0 0 10px #fff,0 0 30px #2f7bff,0 0 60px rgba(228,0,43,.55),inset 0 0 30px rgba(228,0,43,.25);transform:translateY(112%) scale(.96);transition:transform .55s cubic-bezier(.34,1.25,.64,1)}'+'#nrlSheet.on{transform:none}'+'#nrlSheet .hero{position:relative;height:190px;overflow:hidden}#nrlSheet .hero img{width:100%;height:100%;object-fit:cover;object-position:center 0;display:block}'+'#nrlSheet .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(47,123,255,.35),transparent 35%,rgba(7,11,20,.55) 62%,#070b14 88%)}'+'#nrlSheet .hero .rw{position:absolute;left:0;right:0;top:0;height:5px;background:linear-gradient(90deg,#e4002b 0 33%,#fff 33% 66%,#2f7bff 66%);box-shadow:0 0 12px rgba(255,255,255,.7);z-index:2}'+'#nrlSheet .x{position:absolute;right:12px;top:14px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.5);color:#fff;font:700 14px Montserrat,sans-serif;cursor:pointer;z-index:2}'+'#nrlSheet .bd{padding:0 18px 18px;margin-top:-28px;position:relative}'+'.nrlKick{font-size:8.5px;letter-spacing:2.5px;font-weight:800;text-transform:uppercase;color:#7fb1ff;text-shadow:0 0 8px #2f7bff}'+'#nrlSheet h2{font-size:38px;line-height:.92;text-transform:uppercase;letter-spacing:.5px;margin-top:6px;text-shadow:0 0 6px #fff,0 0 18px #e4002b,0 0 40px #e4002b;animation:nrlFlick 5s infinite}'+'@keyframes nrlFlick{0%,93%,100%{opacity:1}94%{opacity:.55}95%{opacity:1}97%{opacity:.75}}'+'#nrlSheet h2 em,.nrlPage h1 em{color:#fff;text-shadow:0 0 6px #fff,0 0 18px #2f7bff,0 0 40px #2f7bff}'+'#nrlSheet .when{margin-top:10px;font-family:Oswald,sans-serif;font-weight:500;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#fff}'+'#nrlSheet .when b,.nrlPage .when b{color:#ff4d6a;text-shadow:0 0 8px #e4002b}'+'#nrlSheet .nrlChips{margin-top:10px}.nrlChips span{color:#fff;border-color:rgba(127,177,255,.6);box-shadow:0 0 8px rgba(47,123,255,.4)}'+'#nrlSheet p{font-size:12.5px;color:#cfd6e6;margin-top:10px;line-height:1.5}#nrlSheet p b,.nrlPage p b{color:#fff}'+'.nrlTag{color:#fff;background:#e4002b;box-shadow:0 0 10px #e4002b}'+'.nrlBtn.gold{background:linear-gradient(90deg,#2f7bff,#e4002b);color:#fff;box-shadow:0 0 6px #2f7bff,0 0 14px rgba(228,0,43,.7)}'+'.nrlRsvp{background:linear-gradient(180deg,#0b1220,#070b14);border:1.5px solid #2f7bff;box-shadow:0 0 12px rgba(47,123,255,.45),inset 0 0 18px rgba(228,0,43,.18)}'+'.nrlRsvp .k{color:#ff4d6a;text-shadow:0 0 8px #e4002b}.nrlRsvp .q{text-transform:uppercase;font-size:19px}'+'.nrlSeg button{background:#050810;border-color:#22304a;color:#9fb0cc;padding:9px 2px}'+'.nrlSeg button.on{border-color:#fff;color:#fff;background:linear-gradient(180deg,#0b2e5b,#3a0410);box-shadow:0 0 10px #2f7bff,0 0 4px #fff}.nrlSeg button.on small{color:#fff}'+'.nrlRsvp .cant,.nrlCount{color:#9fb0cc}.nrlDone{box-shadow:0 0 12px rgba(57,255,136,.35);background:#07140d}'+'#nrlSheet .note{color:#5f6d86;text-transform:uppercase;font-weight:600;font-size:8.5px;letter-spacing:1px}'+'#nrlTile{border:1.5px solid #fff;background:#070b14;box-shadow:0 0 8px #fff,0 0 22px #2f7bff,inset 0 0 22px rgba(228,0,43,.35)}'+'#nrlTile img{object-position:center 0}#nrlTile .t{text-transform:uppercase;text-shadow:0 0 6px #fff,0 0 16px #e4002b;font-size:22px}#nrlTile .s{color:#cfd6e6}#nrlTile .cnt{color:#7fb1ff;text-shadow:0 0 8px #2f7bff}'+'.nrlPage{background:#05070d}.nrlPage h1{text-shadow:0 0 6px #fff,0 0 18px #e4002b}.nrlPage .when b{color:#ff4d6a}'+'@media (prefers-reduced-motion:reduce){#nrlSheet h2{animation:none}}';
 document.head.appendChild(css);
 
 /* ---------- data ---------- */
@@ -1290,10 +1291,11 @@ async function save(status,guests){
     var r=await sb.from("event_rsvps").upsert({event_key:EV.key,user_id:me(),full_name:nm,email:p.email||null,status:status,guests:status==="attending"?guests:0,updated_at:new Date().toISOString()},{onConflict:"event_key,user_id"}).select("status,guests").maybeSingle();
     if(r.error){T("Couldn't save — try again");S.busy=false;return;}
     S.mine=r.data;dismiss();markAnswered();
-    T(status==="attending"?("You're in"+(guests?" · +"+guests:"")+" · Sun 4 Oct"):"No worries — we'll miss you");
+    T(status==="attending"?("You're in"+(guests?" · +"+guests:"")+" · Sun 4 Oct, doors 4pm"):"No worries, we'll miss you");
     await load(true);
   }catch(e){T("Couldn't save — try again");}
   S.busy=false;paintPage();paintTile();
+  if(document.getElementById("nrlSheet"))setTimeout(closePopup,900);
 }
 
 /* ---------- popup ---------- */
@@ -1301,11 +1303,11 @@ function showPopup(){
   if(document.getElementById("nrlSheet"))return;
   var d=document.createElement("div");d.id="nrlDim";d.onclick=notNow;
   var s=document.createElement("div");s.id="nrlSheet";
-  s.innerHTML='<img src="'+EV.img+'" alt=""><div class="bd"><span class="nrlTag">Sun 4 Oct · Front bar</span>'
-   +'<h2>Are you coming to the <em>NRL Grand Final Party?</em></h2>'
-   +'<p>Big screen, drinks, food, music and the footy live. Members, friends &amp; family welcome — jerseys a must.</p>'
-   +'<div class="btns"><button class="nrlBtn gold" onclick="nrlOpen()">Yes — tell me more</button><button class="nrlBtn ghost" onclick="nrlNotNow()">Not now</button></div>'
-   +'<div class="note">We\'ll ask again next time you open the app · gone after Sun 4 Oct</div></div>';
+  s.innerHTML='<div class="hero"><div class="rw"></div><img src="'+EV.img+'" alt=""><button class="x" onclick="nrlNotNow()">\u2715</button></div>'
+   +'<div class="bd"><div class="nrlKick">Members\' event · Grand Final week</div><h2>NRL Grand Final <em>Party</em></h2>'
+   +'<div class="when">Sunday 4 October · <b>from 4pm</b> · Front bar, Legacy Gym</div>'+chipsHtml()+bodyHtml()
+   +'<div id="nrlRsvpBoxP">'+rsvpHtml()+'</div>'
+   +'<div class="note">Pops up when you open the app until Wed 30 Sep · gone after Sun 4 Oct</div></div>';
   document.body.appendChild(d);document.body.appendChild(s);
   requestAnimationFrame(function(){requestAnimationFrame(function(){d.classList.add("on");s.classList.add("on");});});
 }
@@ -1318,24 +1320,26 @@ function notNow(){dismiss();closePopup();}
 window.nrlNotNow=notNow;
 
 /* ---------- page ---------- */
+function chipsHtml(){return '<div class="nrlChips"><span>Doors 4pm · Women\'s GF</span><span>Free BBQ</span><span>BYO drinks</span><span>Friends &amp; family</span><span>Jerseys a must</span></div>';}
 function bodyHtml(){
-  return '<p>We\'re decking out the front bar for a full footy-themed afternoon. <b>The big bar area opened up, the big screen on, drinks, food, music and the footy live.</b></p>'
-   +'<p>A great afternoon for members, friends and family to come together before we kick into a massive final 10 weeks of the year. <b>Footy jerseys from all teams are a must.</b></p>';
+  return '<p><b>Doors open 4pm for the Women\'s Grand Final, then the big one.</b> We\'re decking out the front bar, big screen on, music up, and the footy live from the first whistle to the last.</p>'
+   +'<p><b>BBQ is on us, free for everyone.</b> Bring your own drinks and we\'ll keep them cold in the fridge behind the bar. Members, friends and family all welcome, and footy jerseys from any team are a must.</p>'
+   +'<p>One last big afternoon together before we kick into a massive final 10 weeks of the year. <b>Come down and celebrate this Sunday.</b></p>';
 }
 function rsvpHtml(){
   var m=S.mine,g=S.guests;
-  var seg='<div class="nrlSeg">'+[0,1,2].map(function(n){return '<button class="'+(g===n?"on":"")+'" onclick="nrlGuests('+n+')">'+(n?"+"+n:"Just me")+'<small>'+(n+1)+(n?" heads":" head")+'</small></button>';}).join("")+'</div>';
+  var seg='<div class="nrlSeg">'+[0,1,2,3].map(function(n){return '<button class="'+(g===n?"on":"")+'" onclick="nrlGuests('+n+')">'+(n?"+"+n:"Just me")+'<small>'+(n?(n===3?"3 or more":n+(n>1?" mates":" mate")):"1 head")+'</small></button>';}).join("")+'</div>';
   var h='<div class="nrlRsvp"><div class="k">RSVP · so we know numbers</div>';
   if(m&&m.status==="attending"){
-    h+='<div class="q">You\'re attending'+(m.guests?' · +'+m.guests:'')+'</div>'+seg
-      +'<div class="nrlDone"><b>You\'re in — '+E(firstName())+(m.guests?' +'+m.guests:'')+'</b><span>See you Sunday 4 Oct. Change your plus-ones above, or tap below if plans change.</span></div>'
+    h+='<div class="q">You\'re in'+(m.guests?' · +'+m.guests:'')+'</div>'
+      +'<div class="nrlDone"><b>See you Sunday, '+E(firstName())+(m.guests?' +'+m.guests:'')+'</b><span>Doors 4pm. Bringing more? Change your plus-ones below.</span></div>'+seg
       +(g!==m.guests?'<button class="nrlBtn gold" onclick="nrlAttend()">Update to '+(g?"+"+g:"just me")+'</button>':'')
       +'<button class="cant" onclick="nrlDecline()">Can\'t make it any more</button>';
   }else if(m&&m.status==="declined"){
-    h+='<div class="q">Changed your mind?</div>'+seg+'<button class="nrlBtn gold" onclick="nrlAttend()">I\'m attending ✓</button>'
+    h+='<div class="q">Changed your mind?</div>'+seg+'<button class="nrlBtn gold" onclick="nrlAttend()">I\'m in ✓</button>'
       +'<div class="nrlDone no" style="margin-top:10px"><b>Marked as can\'t make it</b><span>No worries — you can jump back in any time.</span></div>';
   }else{
-    h+='<div class="q">I\'m attending — and I\'m bringing…</div>'+seg+'<button class="nrlBtn gold" onclick="nrlAttend()">I\'m attending ✓</button><button class="cant" onclick="nrlDecline()">Can\'t make it</button>';
+    h+='<div class="q">Are you coming? Bringing anyone?</div>'+seg+'<button class="nrlBtn gold" onclick="nrlAttend()">I\'m in ✓</button><button class="cant" onclick="nrlDecline()">Can\'t make it</button>';
   }
   h+='</div>';
   if(S.count)h+='<div class="nrlCount">'+S.count.members+' attending so far · '+S.count.heads+' heads with plus-ones</div>';
@@ -1354,11 +1358,11 @@ function staffHtml(){
 }
 function pageHtml(){
   return '<div class="hero"><img src="'+EV.img+'" alt=""><div class="fade"></div><button class="back" onclick="nrlClose()">‹ Home</button></div>'
-   +'<div class="in"><div class="nrlChips"><span>Live on the big screen</span><span>Friends &amp; family</span><span>Jerseys a must</span></div>'
-   +'<h1>NRL Grand Final <em>Party</em></h1><div class="when">'+EV.when+' · <b>'+EV.where+'</b></div>'+bodyHtml()
+   +'<div class="in">'+chipsHtml()
+   +'<h1>NRL Grand Final <em>Party</em></h1><div class="when">Sunday 4 October · <b>from 4pm</b> · '+EV.where+'</div>'+bodyHtml()
    +'<div id="nrlRsvpBox">'+rsvpHtml()+'</div>'+staffHtml()+'</div>';
 }
-function paintPage(){var p=document.getElementById("nrlPage");if(!p)return;var b=p.querySelector("#nrlRsvpBox");if(b)b.innerHTML=rsvpHtml();var l=p.querySelector(".nrlList");if(l)l.outerHTML=staffHtml();}
+function paintPage(){var bp=document.getElementById("nrlRsvpBoxP");if(bp)bp.innerHTML=rsvpHtml();var p=document.getElementById("nrlPage");if(!p)return;var b=p.querySelector("#nrlRsvpBox");if(b)b.innerHTML=rsvpHtml();var l=p.querySelector(".nrlList");if(l)l.outerHTML=staffHtml();}
 window.nrlOpen=async function(){
   closePopup();
   var p=document.getElementById("nrlPage");if(p)p.remove();
@@ -1376,9 +1380,9 @@ function tileHtml(){
   var m=S.mine,line;
   if(m&&m.status==="attending")line='<b>You\'re in'+(m.guests?' +'+m.guests:'')+'</b> · tap to change';
   else if(m&&m.status==="declined")line='Marked can\'t make it · tap to change';
-  else line='Sun 4 Oct · front bar · friends &amp; family welcome';
+  else line='Sun 4 Oct · doors 4pm · free BBQ · BYO drinks';
   var cnt=S.count&&S.count.heads?'<span class="cnt">'+S.count.heads+' coming</span>':'';
-  return '<div id="nrlTile" class="'+(m?"slim":"")+'" onclick="nrlOpen()"><img src="'+EV.img+'" alt=""><div class="bd"><span class="nrlTag">Members\' event</span><div class="t">NRL Grand Final Party</div><div class="s">'+line+'</div>'
+  return '<div id="nrlTile" class="'+(m?"slim":"")+'" onclick="nrlOpen()"><img src="'+EV.img+'" alt=""><div class="bd"><span class="nrlTag">Members\' event · Sun 4 Oct</span><div class="t">NRL Grand Final Party</div><div class="s">'+line+'</div>'
    +'<div class="row"><button class="nrlBtn gold">'+(m?"Event details":"RSVP now")+'</button>'+cnt+'</div></div></div>';
 }
 function paintTile(){
@@ -1399,7 +1403,7 @@ async function boot(){
   if(booted||!me())return;booted=true;
   await load();
   paintTile();arm();
-  if(onHome()&&popupLive()&&!S.mine&&!answered()&&!dismissed())showPopup();
+  if(onHome()&&popupLive()&&!dismissed())showPopup();
 }
 ["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){try{if(booted)paintTile();else boot();}catch(e){}};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,40);return r;};});
 var tries=0,iv=setInterval(function(){tries++;if(me()){clearInterval(iv);boot();}else if(tries>40)clearInterval(iv);},500);
@@ -1540,7 +1544,7 @@ async function load(force){
     var evIds=(r[3].data||[]).map(function(x){return x.event_id;});
     if(evIds.length){var se=await sb.from("social_events").select("id,title,event_date,event_time,location,details").in("id",evIds).gte("event_date",today);
       (se.data||[]).forEach(function(v){var m=parseTime(v.event_time);if(m==null)m=18*60;var s=mk(v.event_date,m),e=mk(v.event_date,m+180);out.push({id:"soc-"+v.id,cat:"event",title:v.title,start:s,end:e,coach:null,loc:v.location||null,note:v.details||"Legacy Gym social event"});});}
-    (r[4].data||[]).forEach(function(x){if(x.event_key==="nrl-gf-2026"){var s=new Date(2026,9,4,14,0),e=new Date(2026,9,4,18,30);if(e<new Date())return;out.push({id:"ev-nrl-gf-2026",cat:"event",title:"NRL Grand Final Party"+(x.guests?" · +"+x.guests:""),start:s,end:e,coach:null,note:"NRL Grand Final Party at Legacy Gym. Food, drinks, music and the game live on the big screen. Friends & family welcome — jerseys a must."});}});
+    (r[4].data||[]).forEach(function(x){if(x.event_key==="nrl-gf-2026"){var s=new Date(2026,9,4,16,0),e=new Date(2026,9,4,22,0);if(e<new Date())return;out.push({id:"ev-nrl-gf-2026",cat:"event",title:"NRL Grand Final Party"+(x.guests?" · +"+x.guests:""),start:s,end:e,coach:null,note:"NRL Grand Final Party at Legacy Gym. Doors 4pm for the Women's GF, then the big one. Free BBQ, BYO drinks (fridge behind the bar), music on, game on. Friends & family welcome, jerseys a must."});}});
     if(r[5].data){var camp=new Date(2026,9,12),seen=0;for(var w=0;w<10;w++)[[1,"Monday · tech sparring & drills",90],[2,"Tuesday · skills & drills",90],[3,"Wednesday · open sparring",100]].forEach(function(dd){var s=new Date(camp);s.setDate(camp.getDate()+w*7+(dd[0]-1));s.setHours(18,45,0,0);var e=new Date(s);e.setMinutes(e.getMinutes()+dd[2]);if(e<new Date()||s>lim)return;
       out.push({id:"fc-w"+(w+1)+"d"+dd[0],cat:"fc",title:"Fight Club · "+dd[1].split(" · ")[1],start:s,end:e,coach:"Jake",note:"Fight Club 2026 · week "+(w+1)+" of 10 · "+dd[1],series:{byday:["MO","TU","WE"][dd[0]-1],count:10,first:seen++===0}});});}
     out=out.filter(function(x){return x.end>new Date();}).sort(function(a,b){return a.start-b.start;});
@@ -1668,7 +1672,7 @@ setTimeout(function(){
   wrap("socialIn",async function(id){var q=await sb.from("social_rsvps").select("id").eq("user_id",me()).eq("event_id",id).maybeSingle();if(!q.data)return;var v=await sb.from("social_events").select("*").eq("id",id).maybeSingle();if(!v.data)return;
     var m=parseTime(v.data.event_time);if(m==null)m=18*60;offer({id:"soc-"+id,cat:"event",title:v.data.title,start:mk(v.data.event_date,m),end:mk(v.data.event_date,m+180),loc:v.data.location||null,note:v.data.details||"Legacy Gym social event"},"You're on the list");});
   wrap("nrlAttend",async function(){var q=await sb.from("event_rsvps").select("guests").eq("user_id",me()).eq("event_key","nrl-gf-2026").eq("status","attending").maybeSingle();if(!q.data)return;
-    offer({id:"ev-nrl-gf-2026",cat:"event",title:"NRL Grand Final Party"+(q.data.guests?" · +"+q.data.guests:""),start:new Date(2026,9,4,14,0),end:new Date(2026,9,4,18,30),note:"NRL Grand Final Party at Legacy Gym. Food, drinks, music and the game live on the big screen. Friends & family welcome — jerseys a must."},"You're attending");});
+    offer({id:"ev-nrl-gf-2026",cat:"event",title:"NRL Grand Final Party"+(q.data.guests?" · +"+q.data.guests:""),start:new Date(2026,9,4,16,0),end:new Date(2026,9,4,22,0),note:"NRL Grand Final Party at Legacy Gym. Doors 4pm for the Women's GF, then the big one. Free BBQ, BYO drinks (fridge behind the bar), music on, game on. Friends & family welcome, jerseys a must."},"You're attending");});
 },1500);
 
 /* ---------- boot ---------- */

@@ -64,8 +64,8 @@ function strip(kind){
 function place(){
   try{
     var m=document.getElementById("main");if(!m)return;
-    if(view==="home"){var root=document.getElementById("lgh2");if(root&&!m.querySelector('.knStrip[data-kn="home"]'))root.insertAdjacentElement("beforebegin",strip("home"));}
-    else if(view==="classes"){var top=m.querySelector(".cbTop");if(top&&!m.querySelector('.knStrip[data-kn="classes"]'))top.insertAdjacentElement("afterend",strip("classes"));}
+    /* home strip removed 28 Sep: the NRL Grand Final Party card carries the Knights look on home */
+    if(view==="classes"){var top=m.querySelector(".cbTop");if(top&&!m.querySelector('.knStrip[data-kn="classes"]'))top.insertAdjacentElement("afterend",strip("classes"));}
   }catch(e){}
 }
 ["renderHome","renderClasses"].forEach(function(fn){var o=window[fn];if(typeof o!=="function")return;window[fn]=function(){var r=o.apply(this,arguments);var after=function(){place();setTimeout(place,120);setTimeout(place,600);};if(r&&typeof r.then==="function")r.then(after);else after();return r;};});
