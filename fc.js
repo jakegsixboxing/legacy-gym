@@ -1111,8 +1111,8 @@ function planHtml(){
 /* ---------- actions ---------- */
 function refresh(){try{if(typeof window.fcxSub==="function")window.fcxSub(FC.sub);else enhance(true);}catch(e){enhance(true);}}
 window.fctSaveWt=async function(){var f=FC.me,w=Math.max(1,CW()),wt=parseFloat((document.getElementById("fctWt")||{}).value);if(!(wt>30&&wt<250)){T("Enter your weight in kg");return;}
-  var r=await sb.from("fc_weighins").upsert({camp:"fc2026",fighter_id:f.id,week:w,weight_kg:wt},{onConflict:"camp,fighter_id,week"}).select().maybeSingle();if(r.error){T("Couldn't save — "+r.error.message);return;}
-  FC.wi=(FC.wi||[]).filter(function(x){return !(x.fighter_id===f.id&&x.week===w);});FC.wi.push(r.data);T("Weight logged ✓");refresh();};
+  var r=await sb.from("fc_weighins").upsert({camp:"fc2026",fighter_id:f.id,week:w,day:0,weight_kg:wt},{onConflict:"camp,fighter_id,week,day"}).select().maybeSingle();if(r.error){T("Couldn't save — "+r.error.message);return;}
+  FC.wi=(FC.wi||[]).filter(function(x){return !(x.fighter_id===f.id&&x.week===w&&(x.day||0)===0);});FC.wi.push(r.data);T("Weight logged ✓");refresh();};
 window.fctAttWeek=function(w){ST.attWeek=w;refresh();};
 window.fctAtt=async function(w,d,on){var f=FC.me;var cur=(FC.att||[]).find(function(x){return x.fighter_id===f.id&&x.week===w&&x.day===d;});
   var val=cur&&((cur.attended&&on)||(!cur.attended&&!on))?null:on;   /* tap the lit button again to clear */
