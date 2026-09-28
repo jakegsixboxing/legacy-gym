@@ -861,7 +861,7 @@ async function load(){
   try{
     var r=await Promise.all([
       sb.from("nfl_games").select("id,week,winner"),
-      sb.from("nfl_tips").select("user_id,week,game_id,pick"),
+      (async function(){var out=[],from=0;for(var i=0;i<30;i++){var q=await sb.from("nfl_tips").select("user_id,week,game_id,pick").order("week").order("game_id").range(from,from+999);if(q.error)break;out=out.concat(q.data||[]);if((q.data||[]).length<1000)break;from+=1000;}return {data:out};})(),
       sb.from("nfl_weeks").select("week,title,active").order("week"),
       sb.rpc("nfl_tipper_names"),
       sb.from("nfl_confirms").select("user_id,week")

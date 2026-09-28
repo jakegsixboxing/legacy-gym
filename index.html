@@ -2110,12 +2110,24 @@ const MVM=[
 const mvmImg=m=>"https://images.unsplash.com/photo-"+m.img+"?auto=format&fit=crop&w=1000&q=70";
 let ptsData={loaded:false,events:[],mprofiles:[],entries:[]};
 let cardioSub="stairs",mvmOpen=null,chatSub="chat",mpEditing=false,mpPhotoUrl=null;
+/* Supabase caps any single select at 1000 rows. points_events passed 1000 on 23 Sep 2026 and the
+   leaderboard silently stopped counting anything newer. sbAll() pages through in 1000s so every row lands. */
+async function sbAll(mk,page){
+  page=page||1000;let out=[],from=0,error=null;
+  for(let i=0;i<50;i++){
+    const r=await mk().range(from,from+page-1);
+    if(r.error){error=r.error;break;}
+    const rows=r.data||[];out=out.concat(rows);
+    if(rows.length<page)break;from+=page;
+  }
+  return {data:out,error};
+}
 async function loadWorld(force){
   if(ptsData.loaded&&!force)return;
   const [ev,mp,ce]=await Promise.all([
-    sb.from("points_events").select("id,user_id,kind,ref,points,created_at"),
+    sbAll(()=>sb.from("points_events").select("id,user_id,kind,ref,points,created_at").order("created_at",{ascending:true})),
     sb.from("member_profiles").select("*"),
-    sb.from("challenge_entries").select("*").order("created_at",{ascending:false}).limit(2000)]);
+    sbAll(()=>sb.from("challenge_entries").select("*").order("created_at",{ascending:false}))]);
   ptsData={loaded:true,events:ev.data||[],mprofiles:mp.data||[],entries:ce.data||[]};
 }
 function myPoints(){return ptsData.events.filter(e=>e.user_id===session.user.id).reduce((a,b)=>a+b.points,0);}
@@ -3975,7 +3987,7 @@ async function loadBlokes(force){
   lbSubscribeRealtime();
   if(lbData.loaded&&!force)return;
   const [lf,ms,dm,gr,gt]=await Promise.all([
-    sb.from("blokes_lifts").select("*").order("created_at",{ascending:false}).limit(20000),
+    sbAll(()=>sb.from("blokes_lifts").select("*").order("created_at",{ascending:false})),
     sb.from("blokes_messages").select("*").order("created_at",{ascending:true}).limit(200),
     sb.from("blokes_dms").select("*").order("created_at",{ascending:true}).limit(500),
     sb.from("golf_registrations").select("*").order("created_at",{ascending:true}),
@@ -10555,7 +10567,7 @@ setTimeout(inject,800);
 
 </script>
 <!-- Road to Christmas 10 Week Challenge removed 26 Sep 2026 (registrations closed at 28; data kept in challenge_regs / challenge_leads) -->
-<script src="/fc.js?v=202609281330"></script>
+<script src="/fc.js?v=202609281500"></script>
 <script src="/simplify.js?v=202609161010"></script>
 <script src="/runblock.js?v=202609161010"></script>
 <script src="/programs.js?v=202609161010"></script>
