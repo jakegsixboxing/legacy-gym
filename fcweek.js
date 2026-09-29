@@ -25,11 +25,12 @@ var SPRINTS=[
  ["3 × ladder 200 / 150 / 100","Games week. Walk back between reps, 3 min between ladders."],
  ["4 × 100 m sharp","Fight week. 3 min walk between. Feel fast, finish fresh."]];
 var MILES=[[10,"Recovery day"],[20,"Recovery weekend"],[30,"Legacy apparel"],[50,"Recovery week"],[80,"Fight singlet"]];
-var ST={view:"week",open:null,roundsN:4,regs:[],claims:[],sprints:[],extrasKey:null,loading:null,wk:null};
+var ST={view:"week",open:null,roundsN:4,regs:[],claims:[],sprints:[],extrasKey:null,loading:null,wk:null,preview:false,pf:null};
+try{ST.preview=localStorage.getItem("fcwPreview")==="1";}catch(e){}
 
 function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function T(m){try{toast(m);}catch(e){}}
-function me(){try{return (session&&session.user&&session.user.id)||null;}catch(e){return null;}}
+function me(){try{if(pv()&&ST.pf)return ST.pf.user_id||null;return (session&&session.user&&session.user.id)||null;}catch(e){return null;}}
 function staff(){try{return WHO.indexOf(me())>=0||!!(profile&&(profile.is_staff||profile.is_coach));}catch(e){return false;}}
 function pd(s){var p=String(s).slice(0,10).split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
 function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -47,7 +48,10 @@ function mmss(sec){return Math.floor(sec/60)+":"+String(Math.round(sec%60)).padS
 function parseTime(s){s=String(s||"").trim();var m;if((m=/^(\d{1,2}):(\d{2})$/.exec(s)))return +m[1]*60+ +m[2];if((m=/^(\d{1,2})[.,](\d{1,2})$/.exec(s)))return +m[1]*60+Math.round(+("0."+m[2])*60);if(/^\d{1,2}$/.test(s))return +s*60;return null;}
 function todayIdx(w){var t=new Date();t.setHours(0,0,0,0);var n=Math.round((t-dayDate(w,0))/864e5);return n<0?-1:n>6?7:n;}
 function phase(w){return w<=0?"Pre-camp":w<=3?"Build":w===4?"Legacy Games":w<=8?"Build 2":w===9?"Legacy Games":"Fight week";}
-function fighter(){var f=fc();return f&&f.me?f.me:null;}
+function pv(){return ST.preview&&staff();}
+function pvList(){var f=fc();return ((f&&f.F)||[]).filter(function(x){return x.status==="active";});}
+function pvPick(){var L=pvList();if(!L.length)return null;var c={};((fc()&&fc().att)||[]).forEach(function(a){c[a.fighter_id]=(c[a.fighter_id]||0)+1;});return L.slice().sort(function(a,b){return (c[b.id]||0)-(c[a.id]||0);})[0];}
+function fighter(){if(pv()){if(!ST.pf)ST.pf=pvPick();return ST.pf;}var f=fc();return f&&f.me?f.me:null;}
 
 /* ---------- data views ---------- */
 function attRow(w,d){var f=fighter();if(!f)return null;return (fc().att||[]).find(function(r){return r.fighter_id===f.id&&r.week===w&&r.day===d;})||null;}
@@ -189,7 +193,9 @@ var css2=document.createElement("style");css2.id="fcwCss2";css2.textContent=
  ".fcwTile .v{font:400 26px/1 Anton,Oswald,sans-serif;color:#fff;text-shadow:0 1px 0 #000,0 0 6px rgba(255,255,255,.25)}.fcwTiles.three .fcwTile .v{font-size:21px}.fcwTile .s{color:#aab6cc}.fcwTile .s b{color:#f4c95d}"+
  ".fcwCard h3{font:400 17px/1 Anton,Oswald,sans-serif;color:#fff;text-shadow:none}.fcwCard p{color:#aab6cc}.fcwCard p b{color:#fff}"+
  ".fcwTg{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff}.fcwTg.r{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff}"+
- ".fcwRing{right:14px;top:8px}";
+ ".fcwRing{right:14px;top:8px}"+
+ ".fcwPrev{display:block;width:100%;margin:-4px 0 12px;background:linear-gradient(180deg,#ffe58a,#f4c95d 45%,#b8860b 55%,#ffd76a);color:#1a1200;border:0;border-radius:10px;padding:12px;font:800 11px Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}"+
+ ".fcwPvBar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px;padding:9px 11px;border:1px dashed rgba(244,201,93,.7);border-radius:8px;background:rgba(0,0,0,.45);font:600 9.5px/1.4 Montserrat,sans-serif;color:#dfe6f2}.fcwPvBar span{flex:1;min-width:160px}.fcwPvBar b{color:#f4c95d}.fcwPvBar button{background:#fff;color:#05070d;border:0;border-radius:999px;padding:7px 11px;font:800 8px Montserrat,sans-serif;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer}";
 document.head.appendChild(css2);
 try{if(!document.getElementById("fcwAnton")){var fl=document.createElement("link");fl.id="fcwAnton";fl.rel="stylesheet";fl.href="https://fonts.googleapis.com/css2?family=Anton&display=swap";document.head.appendChild(fl);}}catch(e){}
 
@@ -309,14 +315,16 @@ function progHtml(w,claims){
 }
 function headHtml(w){
   var f=fighter(),cw=CW(),days=Math.round((fightDate()-new Date())/864e5),prim=[0,1,2].filter(function(i){return attDone(w,i);}).length,snc=[1,3].filter(function(i){var d=iso(dayDate(w,i));return claimed(d,"18:00")||reg(d,"18:00");}).length,bon=(sprintDone(w)?1:0)+(roundsOn(iso(dayDate(w,5)))?1:0)+satClasses(dayDate(w,5)).filter(function(c){return claimed(iso(dayDate(w,5)),c.t);}).length;
-  return '<div class="fcwHd"><div class="rw"></div><div class="row"><div><div class="k">Fight Club 2026 · '+phase(cw)+'</div><h2>'+(cw===0?'Starts <span>'+fd(campStart())+'</span>':'Week <span>'+w+'</span> of 10')+'</h2></div><div class="cd"><b>'+Math.max(0,days)+'</b><small>days to fight night</small></div></div>'
+  var pvb=pv()?'<div class="fcwPvBar"><span>Coach preview · seeing it as <b>'+E((f.first_name||'')+' '+(f.last_name||''))+'</b> · nothing you tap here is saved</span><button onclick="fcwPreviewNext()">Next fighter</button><button onclick="fcwPreview(false)">Exit</button></div>':'';
+  return pvb+'<div class="fcwHd"><div class="rw"></div><div class="row"><div><div class="k">Fight Club 2026 · '+phase(cw)+'</div><h2>'+(cw===0?'Starts <span>'+fd(campStart())+'</span>':'Week <span>'+w+'</span> of 10')+'</h2></div><div class="cd"><b>'+Math.max(0,days)+'</b><small>days to fight night</small></div></div>'
    +'<div class="fcwWk">'+[1,2,3,4,5,6,7,8,9,10].map(function(i){return '<div class="'+(i<cw?"done":i===cw?"now":"")+'"></div>';}).join("")+'</div>'
    +'<div class="fcwCnt"><div class="p"><b>'+prim+'<small>/3</small></b><span>Primary<br>Mon Tue Wed</span></div><div class="r"><b>'+snc+'<small>/2</small></b><span>Strength<br>Tue Thu</span></div><div class="b"><b>'+bon+'</b><span>Bonus<br>extra credit</span></div></div></div>'
    +'<div class="fcwVw"><button class="'+(ST.view==="week"?"on":"")+'" onclick="fcwView(\'week\')">My week</button><button class="'+(ST.view==="prog"?"on":"")+'" onclick="fcwView(\'prog\')">Progress</button></div>';
 }
 
 /* ---------- mount ---------- */
-function active(){try{return view==="fc"&&!staff()&&!!fighter()&&(fc().tab==="camp"||fc().tab==="progress")&&fc().loaded;}catch(e){return false;}}
+function active(){try{return view==="fc"&&(!staff()||ST.preview)&&!!fighter()&&(fc().tab==="camp"||fc().tab==="progress")&&fc().loaded;}catch(e){return false;}}
+function previewBtn(){try{if(!(view==="fc"&&staff()&&!ST.preview&&fc()&&fc().loaded&&fc().tab==="camp"))return;var box=document.querySelector("#main .fcx");if(!box||box.querySelector("#fcwPrev"))return;var pills=box.querySelector(".pills");if(!pills)return;var b=document.createElement("button");b.id="fcwPrev";b.className="fcwPrev";b.textContent="Preview the fighter week tab ›";b.onclick=function(){window.fcwPreview(true);};pills.insertAdjacentElement("afterend",b);}catch(e){}}
 var painting=false;
 async function paint(force){
   if(!active())return;
@@ -336,38 +344,41 @@ async function paint(force){
     wrap.innerHTML='<div data-fct="plan" class="fcwHide"></div><div data-fct="wt" class="fcwHide"></div>'+headHtml(w)+(ST.view==="prog"?progHtml(w,claims):weekHtml(w));
     var inp=document.getElementById("fcwWtIn")||document.getElementById("fcwRunIn");if(inp)try{inp.focus();}catch(e){}
   }catch(e){console.warn("fcweek",e);}
-  painting=false;frameSync();
+  finally{painting=false;}
+  frameSync();
 }
 function frameSync(){try{var on=active()&&!!document.querySelector("#main .fcx #fcw");var pf=document.getElementById("fcwPF");if(on&&!pf){pf=document.createElement("div");pf.id="fcwPF";pf.className="fcwPF";document.body.appendChild(pf);}else if(!on&&pf)pf.parentNode.removeChild(pf);}catch(e){}}
 function repaint(){paint(true);}
 
 /* ---------- actions ---------- */
+window.fcwPreview=function(on){ST.preview=!!on;ST.pf=null;ST.extrasKey=null;ST.regs=[];ST.claims=[];ST.sprints=[];try{localStorage.setItem("fcwPreview",on?"1":"0");}catch(e){}var w=document.getElementById("fcw");if(w)w.parentNode.removeChild(w);var b=document.getElementById("fcwPrev");if(b)b.parentNode.removeChild(b);frameSync();if(on){ST.view="week";repaint();}else{try{fcxSet("tab","camp");}catch(e){}}try{window.scrollTo(0,0);}catch(e){}};
+window.fcwPreviewNext=function(){var L=pvList();if(!L.length)return;var i=L.findIndex(function(x){return ST.pf&&x.id===ST.pf.id;});ST.pf=L[(i+1)%L.length];ST.extrasKey=null;ST.open=null;repaint();};
 window.fcwView=function(v){ST.view=v;ST.open=null;try{window.FC.tab=v==="prog"?"progress":"camp";}catch(e){}repaint();try{window.scrollTo(0,0);}catch(e){}};
 window.fcwOpen=function(k){ST.open=ST.open===k?null:k;repaint();};
 window.fcwRoundsN=function(n){ST.roundsN=n;repaint();};
-window.fcwAtt=async function(w,d,on){
+window.fcwAtt=async function(w,d,on){if(pv()){T("Preview only · nothing saved");return;}
   var f=fighter();if(!f)return;var cur=attRow(w,d);
   if(!on){if(cur){var del=await sb.from("fc_attendance").delete().eq("id",cur.id);if(del.error){T("Couldn't change that");return;}fc().att=fc().att.filter(function(x){return x.id!==cur.id;});}T("Removed");repaint();return;}
   var r=await sb.from("fc_attendance").upsert({camp:CAMP,fighter_id:f.id,week:w,day:d,attended:true,session_date:iso(dayDate(w,d)),logged_by:me()},{onConflict:"camp,fighter_id,week,day"}).select().maybeSingle();
   if(r.error){T("Couldn't save · "+r.error.message);return;}
   fc().att=(fc().att||[]).filter(function(x){return !(x.fighter_id===f.id&&x.week===w&&x.day===d);});fc().att.push(r.data);T("Session banked ✓");repaint();
 };
-window.fcwBook=async function(date,time,name){name=decodeURIComponent(name);try{await attendClass(date,time,name);}catch(e){T("Couldn't book");}ST.extrasKey=null;await loadExtras(ST.wk);repaint();};
-window.fcwUnbook=async function(date,time,name){name=decodeURIComponent(name);try{await unattendClass(date,time,name);}catch(e){T("Couldn't change that");}ST.extrasKey=null;await loadExtras(ST.wk);repaint();};
-window.fcwClaim=async function(date,time){
+window.fcwBook=async function(date,time,name){if(pv()){T("Preview only · nothing saved");return;}name=decodeURIComponent(name);try{await attendClass(date,time,name);}catch(e){T("Couldn't book");}ST.extrasKey=null;await loadExtras(ST.wk);repaint();};
+window.fcwUnbook=async function(date,time,name){if(pv()){T("Preview only · nothing saved");return;}name=decodeURIComponent(name);try{await unattendClass(date,time,name);}catch(e){T("Couldn't change that");}ST.extrasKey=null;await loadExtras(ST.wk);repaint();};
+window.fcwClaim=async function(date,time){if(pv()){T("Preview only · nothing saved");return;}
   var r=await sb.from("points_events").upsert({user_id:me(),kind:"class",ref:"class:"+date+":"+time,points:1},{onConflict:"user_id,kind,ref",ignoreDuplicates:true});
   if(r.error){T("Couldn't submit · try again");return;}
   try{if(window.ptsData)ptsData.loaded=false;}catch(e){}
   ST.claims.push("class:"+date+":"+time);T("Class banked · 1 point on the board");repaint();
 };
-window.fcwSaveWt=async function(w,i){
+window.fcwSaveWt=async function(w,i){if(pv()){T("Preview only · nothing saved");return;}
   var f=fighter(),v=parseFloat((document.getElementById("fcwWtIn")||{}).value);if(!(v>30&&v<250)){T("Type your weight in kg");return;}
   var day=i===3?3:0;
   var r=await sb.from("fc_weighins").upsert({camp:CAMP,fighter_id:f.id,week:w,day:day,weight_kg:v},{onConflict:"camp,fighter_id,week,day"}).select().maybeSingle();
   if(r.error){T("Couldn't save · "+r.error.message);return;}
   fc().wi=(fc().wi||[]).filter(function(x){return !(x.fighter_id===f.id&&x.week===w&&(x.day||0)===day);});fc().wi.push(r.data);ST.open=null;T(v+" kg recorded ✓");repaint();
 };
-window.fcwSaveRun=async function(w,i){
+window.fcwSaveRun=async function(w,i){if(pv()){T("Preview only · nothing saved");return;}
   var f=fighter(),txt=(document.getElementById("fcwRunIn")||{}).value,s=parseTime(txt);if(!s||s<300||s>3600){T("Time as mm:ss, e.g. 14:30");return;}
   var d=iso(dayDate(w,i)),old=run3k(d);
   if(old){await sb.from("fc_runs").delete().eq("id",old.id);fc().runs=fc().runs.filter(function(x){return x.id!==old.id;});}
@@ -375,7 +386,7 @@ window.fcwSaveRun=async function(w,i){
   if(r.error){T("Couldn't save · "+r.error.message);return;}
   fc().runs=(fc().runs||[]).concat([r.data]);ST.open=null;var b=bestRun();T("3 km · "+mmss(s)+(b===s?" · new best 🔥":" ✓"));repaint();
 };
-window.fcwSaveRounds=async function(w,i){
+window.fcwSaveRounds=async function(w,i){if(pv()){T("Preview only · nothing saved");return;}
   var f=fighter(),d=iso(dayDate(w,i)),n=ST.roundsN,ex=(fc().rounds||[]).filter(function(r){return r.fighter_id===f.id&&r.night_date===d;});
   if(ex.some(function(r){return r.created_by!==me();})){T("Jake logged that night · ask him to change it");return;}
   if(ex.length){var del=await sb.from("fc_spar_rounds").delete().eq("fighter_id",f.id).eq("night_date",d);if(del.error){T("Couldn't replace that night");return;}fc().rounds=fc().rounds.filter(function(r){return !(r.fighter_id===f.id&&r.night_date===d);});}
@@ -385,7 +396,7 @@ window.fcwSaveRounds=async function(w,i){
   if(i===2)try{await sb.from("fc_attendance").upsert({camp:CAMP,fighter_id:f.id,week:w,day:2,attended:true,session_date:d,logged_by:me()},{onConflict:"camp,fighter_id,week,day"});fc().att=(fc().att||[]).filter(function(x){return !(x.fighter_id===f.id&&x.week===w&&x.day===2);});fc().att.push({fighter_id:f.id,week:w,day:2,attended:true});}catch(e){}
   ST.open=null;var tot=roundsTotal(),hit=MILES.find(function(m){return tot>=m[0]&&tot-n<m[0];});T(hit?tot+" rounds · "+hit[1]+" unlocked 🔥":n+" rounds banked ✓ ("+tot+" total)");repaint();
 };
-window.fcwSprint=async function(w,on){
+window.fcwSprint=async function(w,on){if(pv()){T("Preview only · nothing saved");return;}
   var f=fighter();if(on){var r=await sb.from("fc_sprints").insert({camp:CAMP,fighter_id:f.id,week:w}).select().maybeSingle();if(r.error&&!/duplicate|unique/i.test(r.error.message)){T("Couldn't save");return;}if(r.data)ST.sprints.push(r.data);else ST.sprints.push({week:w});T("Sprints done ✓");}
   else{await sb.from("fc_sprints").delete().eq("fighter_id",f.id).eq("camp",CAMP).eq("week",w);ST.sprints=ST.sprints.filter(function(s){return s.week!==w;});T("Removed");}
   repaint();
@@ -393,6 +404,6 @@ window.fcwSprint=async function(w,on){
 
 /* ---------- hooks ---------- */
 ["fcxSet"].forEach(function(fn){var o=window[fn];if(typeof o!=="function")return;window[fn]=function(k,v){if(k==="tab"&&(v==="camp"||v==="progress"))ST.view=v==="progress"?"prog":"week";var r=o.apply(this,arguments);try{paint();setTimeout(paint,60);}catch(e){}return r;};});
-try{var mo=new MutationObserver(function(){try{paint();frameSync();}catch(e){}});var mainEl=document.getElementById("main");if(mainEl)mo.observe(mainEl,{childList:true});}catch(e){}
-setInterval(function(){try{paint();frameSync();}catch(e){}},400);
+try{var mo=new MutationObserver(function(){try{paint();frameSync();previewBtn();}catch(e){}});var mainEl=document.getElementById("main");if(mainEl)mo.observe(mainEl,{childList:true});}catch(e){}
+setInterval(function(){try{paint();frameSync();previewBtn();}catch(e){}},400);
 })();
