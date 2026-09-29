@@ -129,7 +129,7 @@ var css=document.createElement("style");css.id="fccCss";css.textContent=
  ".fccCnt span{font-size:6px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;line-height:1.3;color:var(--gold2)}.fccCnt .pts{border-color:var(--gold)}.fccCnt .pts b,.fccCnt .pts span{color:var(--gold)}"+
  ".fccVw{display:flex;gap:4px;margin:12px 0;background:rgba(0,0,0,.6);border:1px solid var(--line);border-radius:12px;padding:4px}"+
  ".fccVw button{flex:1;font-family:Anton,Oswald,sans-serif;font-weight:400;font-size:13px;letter-spacing:1.6px;text-transform:uppercase;padding:9px 2px;border-radius:9px;border:0;background:transparent;color:var(--gold2);cursor:pointer}"+
- ".fccVw button.on{background:"+G+";color:#1a1200}.fccVw.sub{margin:10px 0 6px}.fccVw.sub button{font-size:12px;padding:8px}"+
+ ".fccVw button.on{background:"+G+";color:#1a1200}.fccVw button{white-space:nowrap}.fccVw.sub{margin:10px 0 6px}.fccVw.sub button{font-size:12px;padding:8px}"+
  ".fccTn{padding:11px 13px 12px;margin-bottom:10px;border-width:1.5px;border-color:#d4a94a;box-shadow:0 0 8px rgba(244,201,93,.28)}.fccTn.ok{border-color:#39FF88;box-shadow:0 0 10px rgba(57,255,136,.35)}.fccTn.no{border-color:#e4002b;box-shadow:0 0 10px rgba(228,0,43,.3)}"+
  ".fccTn .k{margin-bottom:8px}.fccTn h3{font-family:Anton,Oswald,sans-serif;font-weight:400;font-size:24px;line-height:1;text-transform:uppercase;color:#fff;margin:2px 0 6px}.fccTn p{font-size:9.5px;line-height:1.5;color:var(--txt);margin:0}.fccTn p b{color:#fff}"+
  ".fccTr{display:flex;align-items:center;gap:10px}.fccTr .tt{font-family:Anton,Oswald,sans-serif;font-weight:400;font-size:34px;line-height:1;color:#fff;flex:none;text-shadow:0 1px 0 #000,0 0 8px rgba(244,201,93,.35)}.fccTr .tt small{font:700 11px Oswald,sans-serif;letter-spacing:1px;color:var(--gold2);margin-left:2px}"+
@@ -291,7 +291,7 @@ function coachHeadHtml(w){
   return '<div class="fccHd"><div class="row"><div><div class="lg" style="background-image:url(\''+LOGO+'\')"></div><div><div class="k">Coach view · '+E(phase(cw))+'</div><h2>'+(cw===0?'Starts <span>'+fd(campStart())+'</span>':'Week <span>'+w+'</span> of 10')+'</h2></div></div><div class="cd"><b>'+Math.max(0,days)+'</b><small>days to fight night</small></div></div>'
    +'<div class="fccWk">'+[1,2,3,4,5,6,7,8,9,10].map(function(i){return '<div class="'+(i<cw?"done":i===cw?"now":"")+'"></div>';}).join("")+'</div>'
    +'<div class="fccCnt"><div><b>'+n+'</b><span>Fighters<br>in camp</span></div><div><b>'+inToday+'</b><span>Logged<br>today</span></div><div class="pts"><b>'+(lead?lead.prim+lead.bonus+lead.runs:0)+'</b><span>Top score<br>'+(lead?E((lead.first_name||'').split(' ')[0]):'nobody yet')+'</span></div></div></div>'
-   +'<div class="fccVw">'+[["today","Today"],["board","Board"]].map(function(v){return '<button class="'+(ST.view===v[0]?"on":"")+'" onclick="fccView(\''+v[0]+'\')">'+v[1]+'</button>';}).join('')+'<button onclick="fccPreview(true)">As a fighter</button><button onclick="fccTools(true)">Coach tools</button></div>';
+   +'<div class="fccVw">'+[["today","Today"],["board","Board"]].map(function(v){return '<button class="'+(ST.view===v[0]?"on":"")+'" onclick="fccView(\''+v[0]+'\')">'+v[1]+'</button>';}).join('')+'<button onclick="fccPreview(true)">Preview</button><button onclick="fccTools(true)">Tools</button></div>';
 }
 function coachTodayHtml(w){
   var d=TD(),h='';
