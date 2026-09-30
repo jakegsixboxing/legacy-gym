@@ -624,6 +624,7 @@ setTimeout(function(){if(view==="home")injectCard();},800);
   var START = new Date(2026,9,1, 9,0,0,0).getTime();    /* 9:00am  1 Oct */
   var DOORS = new Date(2026,9,1,18,45,0,0).getTime();   /* 6:45pm  1 Oct */
   var END   = new Date(2026,9,1,21,0,0,0).getTime();    /* 9:00pm  1 Oct */
+  return; /* info night cancelled 30 Sep, takeover switched off */
   if (Date.now() >= END) return;
 
   var S = { count:null, mine:false, asked:false, busy:false };
