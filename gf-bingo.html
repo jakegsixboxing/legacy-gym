@@ -345,11 +345,11 @@ function cardHtml(){
   if(!S.me)return joinHtml();
   var G=new Game(S.events,S.st),me={no:S.me.card_no,name:S.me.name,card:makeCard(S.me.card_no)},pr=progress(me.card,G),lineSet={};if(pr.line)pr.line.forEach(function(x){lineSet[x]=1;});
   var s='<div class="who"><div><b>'+esc(me.name)+'</b><br><span>Card #'+me.no+' · '+pr.n+' of 24 squares</span></div><div class="st">'+(pr.house?'Full house':pr.lineAt!=null?'Line!':pr.needOne?'One away':'Playing')+'</div></div>';
-  s+='<div class="grid">'+me.card.map(function(id,i){if(id==='FREE')return '<div class="sq free"><b>Grand<br>Final<br>2026</b></div>';var p=BY[id],hit=pr.when[i]!=null,isNew=hit&&!lastHits[id],f=p.player?face(p.player,240):null;return '<div class="sq '+p.t+(hit?' hit':'')+(isNew?' new':'')+(lineSet[i]?' line':'')+(f?' hasface':'')+'">'+(f?'<img class="face" src="'+f+'" alt="" loading="lazy">':'')+'<i>'+esc(p.cat)+'</i><b>'+esc(p.n)+'</b></div>';}).join('')+'</div>';
+  s+='<div class="grid">'+me.card.map(function(id,i){if(id==='FREE')return '<div class="sq free"><b>Grand<br>Final<br>2026</b></div>';var p=BY[id],hit=pr.when[i]!=null,isNew=hit&&!lastHits[id],f=p.player?face(p.player,240):null;return '<div class="sq '+p.t+(hit?' hit':'')+(isNew?' new':'')+(lineSet[i]?' line':'')+(f?' hasface':'')+'">'+(f?'<img class="face" src="'+f+'" alt="">':'')+'<i>'+esc(p.cat)+'</i><b>'+esc(p.n)+'</b></div>';}).join('')+'</div>';
   lastHits={};me.card.forEach(function(id,i){if(pr.when[i]!=null)lastHits[id]=1;});
   s+='<div class="key"><span><i class="h"></i>Happened</span><span><i class="l"></i>Your line</span><span><i></i>Still to come</span></div>';
   if(pr.house)s+='<div class="banner"><b>Full house</b><span>Every square. Go and see Jake.</span></div>';else if(pr.lineAt!=null)s+='<div class="banner"><b>Bingo</b><span>You have a line. Check the big screen to see if you were first.</span></div>';else if(pr.needOne)s+='<div class="banner" style="border-color:#fff;background:var(--panel)"><b style="color:#fff;font-size:26px">One away</b><span>You need: '+esc(BY[pr.needOne].n)+'</span></div>';
-  s+='<div class="sec"><b>The story so far</b><span>'+S.events.filter(function(e){return e.type!=='ht'&&e.type!=='ft';}).length+' events</span></div><div class="tick">'+(S.events.length?S.events.slice().reverse().map(function(e){var f=e.player?face(e.player,80):null;return '<div><span class="m">'+e.min+'′</span>'+(f?'<img src="'+f+'" alt="" loading="lazy">':'<span class="av">'+(e.player?initials(e.player):e.type==='ht'?'HT':'FT')+'</span>')+'<span class="e">'+(e.t==='a'?'':'<span class="chip '+e.t+'">'+TEAMS[e.t].ab+'</span> ')+evText(e)+'</span></div>';}).join(''):'<div><span class="n">Nothing yet. Kick-off is 7:30pm.</span></div>')+'</div>';
+  s+='<div class="sec"><b>The story so far</b><span>'+S.events.filter(function(e){return e.type!=='ht'&&e.type!=='ft';}).length+' events</span></div><div class="tick">'+(S.events.length?S.events.slice().reverse().map(function(e){var f=e.player?face(e.player,80):null;return '<div><span class="m">'+e.min+'′</span>'+(f?'<img src="'+f+'" alt="">':'<span class="av">'+(e.player?initials(e.player):e.type==='ht'?'HT':'FT')+'</span>')+'<span class="e">'+(e.t==='a'?'':'<span class="chip '+e.t+'">'+TEAMS[e.t].ab+'</span> ')+evText(e)+'</span></div>';}).join(''):'<div><span class="n">Nothing yet. Kick-off is 7:30pm.</span></div>')+'</div>';
   return s;
 }
 function screenHtml(){
@@ -367,7 +367,7 @@ function screenHtml(){
   s+='<div class="'+(firstLine?'on':'')+'"><i>First line</i><b>'+(firstLine?esc(firstLine.c.name):'Open')+'</b><small>'+(firstLine?S.events[firstLine.pr.lineAt].min+'′ · '+evText(S.events[firstLine.pr.lineAt]).split(',')[0]:'any row, column or diagonal')+'</small></div>';
   s+='<div class="'+(htLead?'on':'')+'"><i>Half time</i><b>'+(htLead?esc(htLead.c.name):'Open')+'</b><small>'+(htLead?htLead.nht+' squares at the break':'most squares at the break')+'</small></div>';
   s+='<div class="'+(ftLead?'on':'')+'"><i>Full time</i><b>'+(ftLead?esc(ftLead.c.name):'Open')+'</b><small>'+(ftLead?ftLead.pr.n+' squares':'most squares at the siren')+'</small></div></div>';
-  s+='<div class="sec"><b>One square away</b><span>what they need</span></div><div class="need">'+(near.length?near.map(function(r){var sq=BY[r.pr.needOne],f=sq.player?face(sq.player,120):null;return '<div>'+(f?'<img src="'+f+'" alt="" loading="lazy">':'<span class="av">'+(sq.t==='a'?'GF':TEAMS[sq.t].ab)+'</span>')+'<div><b>'+esc(r.c.name)+'</b><span>needs '+esc(sq.n)+'</span></div></div>';}).join(''):'<div><span>Nobody yet.</span></div>')+'</div>';
+  s+='<div class="sec"><b>One square away</b><span>what they need</span></div><div class="need">'+(near.length?near.map(function(r){var sq=BY[r.pr.needOne],f=sq.player?face(sq.player,120):null;return '<div>'+(f?'<img src="'+f+'" alt="">':'<span class="av">'+(sq.t==='a'?'GF':TEAMS[sq.t].ab)+'</span>')+'<div><b>'+esc(r.c.name)+'</b><span>needs '+esc(sq.n)+'</span></div></div>';}).join(''):'<div><span>Nobody yet.</span></div>')+'</div>';
   s+='</div><div>';
   s+='<div class="sec"><b>Leaderboard</b><span>squares hit</span></div><div class="lb">'+(rows.length?rows.slice(0,45).map(function(r,i){return '<div class="lbr'+(r.pr.lineAt!=null?' win':'')+'"><span class="rk">'+(i+1)+'</span><span class="nm">'+esc(r.c.name)+(r.c.me?' <span class="chip a">you</span>':'')+'<small>Card #'+r.c.no+'</small></span><span class="ct">'+r.pr.n+'/24</span><span class="pill '+(r.pr.house?'h':r.pr.lineAt!=null?'l':'')+'">'+(r.pr.house?'House':r.pr.lineAt!=null?'Line '+S.events[r.pr.lineAt].min+'′':'')+'</span></div>';}).join(''):'<div class="lbr"><span></span><span class="nm">No cards yet</span></div>')+'</div>';
   s+='<div class="note">This screen refreshes itself from the live feed every 20 seconds.</div></div></div>';
@@ -377,11 +377,15 @@ function howHtml(){var cats={};POOL.forEach(function(p){(cats[p.cat]=cats[p.cat]
   var s='<div class="rules"><h3>How it plays</h3><p>Everyone gets a <b>5 by 5 card</b> with a free square in the middle. Every card is different, drawn from a pool of <b>'+POOL.length+' things</b> that can happen tonight: who scores, how the goals go, sin bins, send offs and how the game plays out.</p><p><b>It marks itself.</b> The page reads the live match feed every 20 seconds. When someone scores, their face comes up on every screen and every card with their name on it ticks over on its own.</p><p><b>Three prizes.</b> First card to complete any line of five (across, down or diagonal). Most squares at half time. Most squares at the full-time siren. Ties go to the lower card number, so grab your card early.</p><h3>The pool</h3>';
   Object.keys(cats).forEach(function(c){s+='<p><b>'+esc(c)+'</b> ('+cats[c].length+')</p><div class="pool">'+cats[c].map(function(n){return '<span>'+esc(n)+'</span>';}).join('')+'</div>';});
   s+='</div>';return s;}
+var lastKey='';
 function R_(){
   document.getElementById('feed').innerHTML=feedHtml();document.getElementById('src').innerHTML=srcHtml();
   document.getElementById('wrap').classList.toggle('wide',S.view==='screen');
   ['card','screen','how'].forEach(function(v){document.getElementById('v-'+v).hidden=S.view!==v;});
   document.querySelectorAll('.tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.v===S.view);});
+  /* only rebuild the views when something they show has changed, so the photos are not reloaded every tick */
+  var key=S.view+'|'+S.mode+'|'+S.events.map(function(e){return e.key;}).join(',')+'|'+S.st.state+S.st.period+'|'+(S.me?S.me.card_no:'')+'|'+S.cards.length+'|'+S.joinErr+'|'+(S.prefill||'')+'|'+(S.st.gameMin>43?1:0);
+  if(key===lastKey)return;lastKey=key;
   if(S.view==='card'){var active=document.activeElement;if(!(active&&active.id==='jn'))document.getElementById('v-card').innerHTML=cardHtml();}
   if(S.view==='screen')document.getElementById('v-screen').innerHTML=screenHtml();
   if(S.view==='how'&&!document.getElementById('v-how').innerHTML)document.getElementById('v-how').innerHTML=howHtml();
@@ -402,6 +406,7 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('button')
 document.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target&&ev.target.id==='jn')join();});
 /* prefill the name for logged-in members */
 if(sb){sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;S.uid=u.id;return sb.from('profiles').select('first_name,last_name').eq('id',u.id).maybeSingle().then(function(p){if(p&&p.data){S.prefill=((p.data.first_name||'')+' '+(p.data.last_name||'')).trim();if(!S.me)R_();}});}).catch(function(){});}
+Object.keys(HS).forEach(function(n){[240,600].forEach(function(w){var im=new Image();im.src=face(n,w);});});
 loadCards();cardsTimer=setInterval(loadCards,20000);
 setMode('live');
 setInterval(function(){if(S.mode==='live'&&S.view!=='card')R_();},5000);
