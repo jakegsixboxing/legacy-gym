@@ -345,11 +345,12 @@ function applyEvents(events,st){
   S.events=events;S.st=st;
   var G1=new Game(events,st),p1={};cards.forEach(function(c){p1[c.no]=progress(c.card,G1);});
   events.forEach(function(e){if(S.seen[e.key])return;S.seen[e.key]=1;if(firstLoad)return;
-    var ticked=0,lines=[],near=[];cards.forEach(function(c){var a=p0[c.no],b=p1[c.no];if(b.n>a.n)ticked++;if(b.lineAt!=null&&a.lineAt==null)lines.push(c);else if(b.needOne&&b.lineAt==null&&b.n>a.n)near.push(c);});
+    var ticked=0,lines=[],near=[];cards.forEach(function(c){var a=p0[c.no],b=p1[c.no];if(b.n>a.n)ticked++;if(b.lineAt!=null&&a.lineAt==null)lines.push(c);else if(b.needOne&&b.lineAt==null&&b.n>a.n)near.push({name:c.name,needOne:b.needOne});});
     MQ.push({e:e,ticked:ticked,lines:lines,near:near,score:G1.scoreAt(e.seq)});});
   if(!moTimer)nextMoment();
 }
-function nextMoment(){var m=MQ.shift();var box=document.getElementById('mo');if(!m){box.classList.remove('on');moTimer=null;return;}
+function nextMoment(){try{nextMoment_();}catch(e){console.warn('moment',e);var bx=document.getElementById('mo');bx.classList.remove('on');moTimer=null;}}
+function nextMoment_(){var m=MQ.shift();var box=document.getElementById('mo');if(!m){box.classList.remove('on');moTimer=null;return;}
   var e=m.e,lab=e.type==='try'?'Try!':e.type==='conversion'?'Converted':e.type==='penalty goal'?'Penalty goal':e.type==='drop goal'?(e.two?'Two-point field goal':'Field goal'):e.type==='yellow card'?'Sin bin':e.type==='red card'?'Send off!':e.type==='ht'?'Half time':'Full time';
   var f=e.player?face(e.player,600):null;
   var story='';if(m.lines.length)story='<b>'+esc(m.lines[0].name)+(m.lines.length>1?' and '+(m.lines.length-1)+' more':'')+'</b> just got a line!';
@@ -375,7 +376,7 @@ function srcHtml(){var liveOn=S.mode==='live'&&S.st.state==='in';var s='';
   if(S.mode==='sim')s+='<button data-act="pp">'+(S.playing?'Pause':'Play')+'</button><button data-act="new">New game</button>';
   s+='<button data-act="snd">'+(S.sound?'Sound on':'Sound off')+'</button>';return s;}
 var lastHits={};
-function joinHtml(){return '<div class="join"><h2>Grab your card</h2><p>One card each. It’s yours for the night and it fills itself in from the live game.</p><input id="jn" placeholder="Your name" maxlength="40" autocomplete="name" value="'+esc(S.prefill||'')+'"><button class="btn p" data-act="join" style="width:100%;padding:13px">Get my card</button>'+(S.joinErr?'<div class="err">'+esc(S.joinErr)+'</div>':'')+'</div><div class="note">Cards lock at kick-off, 7:30pm. One card per phone.</div>';}
+function joinHtml(){return '<div class="join"><h2>Get your card</h2><p>Type your name, tap the button, done. Your card fills itself in during the game. Keep this page open.</p><input id="jn" placeholder="Your name" maxlength="40" autocomplete="name" value="'+esc(S.prefill||'')+'"><button class="btn p" data-act="join" style="width:100%;padding:13px">Get my card</button>'+(S.joinErr?'<div class="err">'+esc(S.joinErr)+'</div>':'')+'</div><div class="note">Cards lock at kick-off, 7:30pm. One card per phone.</div>';}
 function cardHtml(){
   if(!S.me)return joinHtml();
   var G=new Game(S.events,S.st),me={no:S.me.card_no,name:S.me.name,card:makeCard(S.me.card_no)},pr=progress(me.card,G),lineSet={};if(pr.line)pr.line.forEach(function(x){lineSet[x]=1;});
