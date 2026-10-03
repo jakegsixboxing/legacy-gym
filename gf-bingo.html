@@ -122,6 +122,34 @@ button:focus-visible{outline:2px solid #fff;outline-offset:2px}
 @keyframes up{0%{transform:translateY(24px);opacity:0}100%{transform:none;opacity:1}}
 #mo .x{position:absolute;top:calc(14px + env(safe-area-inset-top,0));right:14px;border:0;background:rgba(0,0,0,.35);color:#fff;border-radius:999px;width:40px;height:40px;font-size:20px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){#mo *,.sq.new{animation:none!important}}
+
+/* official marks, served from the NRL and ESPN image hosts */
+.hero{position:relative;overflow:hidden;border-radius:0 0 26px 26px;background:linear-gradient(100deg,var(--kni) 0 50%,var(--roo) 50% 100%);padding:22px 16px 18px;text-align:center;margin:0 -16px}
+.hero .wm{position:absolute;top:50%;width:min(62vw,420px);opacity:.16;transform:translateY(-50%);pointer-events:none;filter:drop-shadow(0 0 20px rgba(0,0,0,.4))}
+.hero .wm.k{left:-14%}.hero .wm.r{right:-14%}
+.hero .gf{height:44px;display:block;margin:0 auto 10px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+.hero .k{font:800 11px var(--body);letter-spacing:4px;text-transform:uppercase;color:#fff;opacity:.9}
+.hero h1{font:400 52px/.95 var(--display);text-transform:uppercase;letter-spacing:1px;margin-top:6px;text-shadow:0 4px 0 rgba(0,0,0,.35);position:relative}
+.hero .vs{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px;position:relative}
+.hero .vs img{width:64px;height:64px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.5))}
+.hero .vs b{font:400 30px var(--display);opacity:.9}
+.badge{width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.feed .t{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 6px}
+.feed .t .badge{width:36px;height:36px}
+.feed .t div{text-align:center}
+.sq .tb{position:absolute;right:4px;top:4px;width:16px;height:16px;opacity:.9}
+.sq.hasface .tb{display:none}
+#mo .wm{position:absolute;left:50%;top:50%;width:min(130vw,900px);transform:translate(-50%,-50%) rotate(-8deg);opacity:.18;pointer-events:none;animation:wm 1.2s ease-out}
+@keyframes wm{0%{transform:translate(-50%,-50%) rotate(-20deg) scale(.6);opacity:0}100%{transform:translate(-50%,-50%) rotate(-8deg) scale(1);opacity:.18}}
+#mo .gfm{height:34px;margin-bottom:10px;opacity:.95;position:relative}
+.strip{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:12px;font-size:12.5px;color:#dfe6f3}
+.strip img{width:34px;height:34px}
+.cd{font:700 13px var(--head);color:#fff}
+.lbh{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:linear-gradient(100deg,var(--kni) 0 50%,var(--roo) 50% 100%);border-radius:14px 14px 0 0}
+.lbh img{width:44px;height:44px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+.lbh b{font:400 26px var(--display);text-transform:uppercase}
+details.how{margin-top:16px;color:var(--mute);font-size:12.5px;line-height:1.6}
+details.how summary{cursor:pointer;font:800 11px var(--body);letter-spacing:2px;text-transform:uppercase;color:#fff;padding:10px 0}
 .rules{margin-top:22px;color:var(--mute);font-size:12.5px;line-height:1.6}
 .rules h3{font:700 15px var(--head);letter-spacing:2px;text-transform:uppercase;color:#fff;margin:16px 0 6px}
 .rules p{margin-bottom:8px}.rules b{color:#fff}
@@ -131,13 +159,16 @@ button:focus-visible{outline:2px solid #fff;outline-offset:2px}
 </style></head><body>
 <div class="bar"></div>
 <div class="wrap" id="wrap">
-<header><div class="k">Legacy Gym · Grand Final party</div><h1><span class="a">Knights</span> v <span class="b">Roosters</span><br>Bingo</h1></header>
+<div class="hero"><img class="wm k" src="https://www.nrl.com/.theme/knights/badge.svg" alt=""><img class="wm r" src="https://www.nrl.com/.theme/roosters/badge.svg" alt="">
+<img class="gf" src="https://www.nrl.com/siteassets/.lookups/sponsors/2026-special/nrl-finals/nrl-grand-final-2026-gold_neg_26.svg" alt="NRL Grand Final 2026">
+<div class="k">Legacy Gym party</div><h1>Grand Final<br>Bingo</h1>
+<div class="vs"><img src="https://a.espncdn.com/i/teamlogos/rugby/teams/500/289207.png" alt="Knights"><b>v</b><img src="https://a.espncdn.com/i/teamlogos/rugby/teams/500/289204.png" alt="Roosters"></div></div>
 <div class="feed" id="feed"></div>
 <div class="src" id="src"></div>
-<div class="tabs"><button class="on" data-v="card">My card</button><button data-v="screen">Big screen</button><button data-v="how">How it works</button></div>
+<div class="tabs"><button class="on" data-v="card">My card</button><button data-v="screen">Big screen</button></div>
 <div id="v-card"></div>
 <div id="v-screen" hidden></div>
-<div id="v-how" hidden></div>
+
 </div>
 <div id="mo"><div class="bg"></div><button class="x" data-act="mox" aria-label="Close">×</button><div class="in" id="moin"></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -153,6 +184,7 @@ var P={};PL.forEach(function(p){P[p[2]]={t:p[0],no:p[1],n:p[2],pos:p[3]};});
 var HS={'Kalyn Ponga':'2026/500003/Kalyn Ponga _260129_Knights_MK725.png','Dominic Young':'2026/500003/Dominic Young _260129_Knights_MK885.png','Dane Gagai':'2026/500003/Dane Gagai _260129_Knights_MK1405.png','Bradman Best':'2026/500003/Bradman Best _260129_Knights_MK222.png','Greg Marzhew':'2026/500003/Greg Marzhew _260129_Knights_MK1584.png','Sandon Smith':'2026/500003/Sandon Smith _260129_Knights_MK1744.png','Tyson Frizell':'2026/500003/Tyson Frizell _260129_Knights_MK400.png','Harrison Graham':'2026/500003/Harrison Graham _260129_Knights_MK1236.png','Cody Hopwood':'2026/500003/Cody Hopwood _260129_Knights_MK1344.png','Jermaine McEwen':'2026/500003/Jermain McEwan _260129_Knights_MK497.png','Francis Manuleleua':'2026/500003/Francis Manuleleua _260129_Knights_MK439.png','Mat Croker':'2026/500003/Mathew Croker _260129_Knights_MK795.png','Lachlan Crouch':'2026/500003/Lachlan Crouch _260129_Knights_MK548.png','Pasami Saulo':'2026/500003/Pasami Saulo _260129_Knights_MK1467.png','Dylan Lucas':'2026/500003/Dylan Lucas _260129_Knights_MK1927.png','Thomas Cant':'2026/500003/Thomas Cant _260129_Knights_MK681.png',
  'James Tedesco':'2026/500001/James Tedesco 260203_Roosters813.png','Daniel Tupou':'2026/500001/Daniel Tupou 260203_Roosters1405.png','Billy Smith':'2026/500001/Billy Smith 260203_Roosters148.png','Robert Toia':'2026/500001/Rob Toia 260203_Roosters1729.png','Mark Nawaqanitawase':'2026/500001/Mark Nawaqanitawase 260203_Roosters96.png','Daly Cherry-Evans':'2026/500001/Daly Cherry-Evans 260203_Roosters313.png','Sam Walker':'2025/500001/WALKER,S NRL_2025_7170.png','Naufahu Whyte':'2026/500001/Naufahu Whyte 260203_Roosters1578.png','Reece Robson':'2026/500001/Reece Robson 260203_Roosters1449.png','Lindsay Collins':'2026/500001/Lindsay Collins 260203_Roosters1533.png','Salesi Foketi':'2026/500001/Salesi Foket 260203_Roosters940.png','Siua Wong':'2025/500001/WONG,S NRL_2025_6735.png','Victor Radley':'2026/500001/Victor Radiey 260203_Roosters680.png','Benaiah Ioelu':'2026/500001/Benaiah Loelu 260203_Roosters1829.png','Angus Crichton':'2026/500001/Angus Crichton 260203_Roosters1332.png','Nat Butcher':'2026/500001/Nat Butcher 260203_Roosters874.png','Spencer Leniu':'2026/500001/Spencer Leniu 260203_Roosters624.png'};
 function face(name,w){var f=HS[name];if(!f)return null;var parts=f.split('/');return 'https://www.nrl.com/remote.axd?http://rugbyimages.statsperform.com/Player%20Profile%20Headshots/111/'+parts[0]+'/'+parts[1]+'/'+encodeURIComponent(parts[2])+'?width='+w+'&height='+w+'&mode=crop';}
+var LOGO={k:'https://a.espncdn.com/i/teamlogos/rugby/teams/500/289207.png',r:'https://a.espncdn.com/i/teamlogos/rugby/teams/500/289204.png'},BADGE={k:'https://www.nrl.com/.theme/knights/badge.svg',r:'https://www.nrl.com/.theme/roosters/badge.svg'},GFM='https://www.nrl.com/siteassets/.lookups/sponsors/2026-special/nrl-finals/nrl-grand-final-2026-gold_neg_26.svg';
 function initials(n){return n.split(' ').map(function(x){return x[0];}).join('').slice(0,2);}
 function last(n){return n.split(' ').slice(-1)[0];}
 function short(n){var s=n.split(' ');return s[0][0]+'. '+s.slice(1).join(' ');}
@@ -325,7 +357,8 @@ function nextMoment(){var m=MQ.shift();var box=document.getElementById('mo');if(
   if(m.ticked)story=(story?story+'<br>':'')+m.ticked+' card'+(m.ticked===1?'':'s')+' ticked over.';
   if(e.type==='ht'||e.type==='ft')story=(e.type==='ht'?'Half-time prize goes to the most squares.':'That’s the game.')+(story?'<br>'+story:'');
   box.className='on '+(e.t==='a'?'a':e.t);
-  document.getElementById('moin').innerHTML=(f?'<img class="f" src="'+f+'" alt="">':e.player?'<div class="av">'+initials(e.player)+'</div>':'')+'<div class="lab">'+lab+'</div>'+(e.player?'<div class="nm">'+esc(e.player)+' · '+e.min+'′</div>':'<div class="nm">'+e.min+'′</div>')+'<div class="sc">Knights '+m.score[0]+' · Roosters '+m.score[1]+'</div>'+(story?'<div class="story">'+story+'</div>':'');
+  var wm=e.t==='a'?'':'<img class="wm" src="'+BADGE[e.t]+'" alt="">';
+  document.getElementById('moin').innerHTML=wm+'<img class="gfm" src="'+GFM+'" alt="">'+(f?'<img class="f" src="'+f+'" alt="">':e.player?'<div class="av">'+initials(e.player)+'</div>':'')+'<div class="lab">'+lab+'</div>'+(e.player?'<div class="nm">'+esc(e.player)+' · '+e.min+'′</div>':'<div class="nm">'+e.min+'′</div>')+'<div class="sc">Knights '+m.score[0]+' · Roosters '+m.score[1]+'</div>'+(story?'<div class="story">'+story+'</div>':'');
   if(S.sound)ding(e.type);
   var ms=S.view==='screen'?7000:4500;moTimer=setTimeout(nextMoment,ms);
 }
@@ -333,10 +366,12 @@ var AC=null;function ding(type){try{AC=AC||new (window.AudioContext||window.webk
 /* ---------- rendering ---------- */
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function evText(e){var who=e.player?esc(e.player):'';switch(e.type){case 'try':return 'Try, '+who;case 'conversion':return 'Conversion, '+who;case 'penalty goal':return 'Penalty goal, '+who;case 'drop goal':return (e.two?'2-point field goal, ':'Field goal, ')+who;case 'yellow card':return 'Sin bin, '+who;case 'red card':return 'Send off, '+who;case 'ht':return 'Half time';case 'ft':return 'Full time';}return e.type;}
-function feedHtml(){var st=S.st,lab=st.state==='pre'?'Kick-off 7:30pm':st.state==='post'?'Full time':(st.period===1?'1st half ':'2nd half ')+st.clock;
-  var src=S.mode==='live'?(S.live.ok?'Live · updated '+Math.max(0,Math.round((Date.now()-S.live.at)/1000))+'s ago':S.live.msg):'Practice game · simulated';
-  return '<div class="t k"><b>'+st.ks+'</b><span>Knights</span></div><div class="mid"><b>'+lab+'</b><span><i class="'+(st.state==='in'?'on':'')+'"></i>'+esc(src)+'</span></div><div class="t r"><b>'+st.rs+'</b><span>Roosters</span></div>';}
-function srcHtml(){var s='<button class="'+(S.mode==='live'?'p':'')+'" data-mode="live">Live</button><button class="'+(S.mode==='sim'?'p':'')+'" data-mode="sim">Practice game</button>';
+function countdown(){var ko=new Date('2026-10-04T08:30:00Z'),d=ko-Date.now();if(d<=0)return 'Kick-off 7:30pm';var h=Math.floor(d/36e5),m=Math.floor(d%36e5/6e4);return 'Kick-off in '+(h?h+'h ':'')+m+'m';}
+function feedHtml(){var st=S.st,lab=st.state==='pre'?(S.mode==='live'?countdown():'Kick-off'):st.state==='post'?'Full time':(st.period===1?'1st half ':'2nd half ')+st.clock;
+  var src=S.mode==='live'?(S.live.ok?'Live · updates itself':S.live.msg):'Practice game · simulated';
+  return '<div class="t k"><img class="badge" src="'+LOGO.k+'" alt=""><div><b>'+st.ks+'</b><span>Knights</span></div></div><div class="mid"><b>'+lab+'</b><span><i class="'+(st.state==='in'?'on':'')+'"></i>'+esc(src)+'</span></div><div class="t r"><div><b>'+st.rs+'</b><span>Roosters</span></div><img class="badge" src="'+LOGO.r+'" alt=""></div>';}
+function srcHtml(){var liveOn=S.mode==='live'&&S.st.state==='in';var s='';
+  if(!liveOn)s+='<button class="'+(S.mode==='live'?'p':'')+'" data-mode="live">Live game</button><button class="'+(S.mode==='sim'?'p':'')+'" data-mode="sim">Practice game</button>';
   if(S.mode==='sim')s+='<button data-act="pp">'+(S.playing?'Pause':'Play')+'</button><button data-act="new">New game</button>';
   s+='<button data-act="snd">'+(S.sound?'Sound on':'Sound off')+'</button>';return s;}
 var lastHits={};
@@ -345,11 +380,13 @@ function cardHtml(){
   if(!S.me)return joinHtml();
   var G=new Game(S.events,S.st),me={no:S.me.card_no,name:S.me.name,card:makeCard(S.me.card_no)},pr=progress(me.card,G),lineSet={};if(pr.line)pr.line.forEach(function(x){lineSet[x]=1;});
   var s='<div class="who"><div><b>'+esc(me.name)+'</b><br><span>Card #'+me.no+' · '+pr.n+' of 24 squares</span></div><div class="st">'+(pr.house?'Full house':pr.lineAt!=null?'Line!':pr.needOne?'One away':'Playing')+'</div></div>';
-  s+='<div class="grid">'+me.card.map(function(id,i){if(id==='FREE')return '<div class="sq free"><b>Grand<br>Final<br>2026</b></div>';var p=BY[id],hit=pr.when[i]!=null,isNew=hit&&!lastHits[id],f=p.player?face(p.player,240):null;return '<div class="sq '+p.t+(hit?' hit':'')+(isNew?' new':'')+(lineSet[i]?' line':'')+(f?' hasface':'')+'">'+(f?'<img class="face" src="'+f+'" alt="">':'')+'<i>'+esc(p.cat)+'</i><b>'+esc(p.n)+'</b></div>';}).join('')+'</div>';
+  s+='<div class="grid">'+me.card.map(function(id,i){if(id==='FREE')return '<div class="sq free"><b>Grand<br>Final<br>2026</b></div>';var p=BY[id],hit=pr.when[i]!=null,isNew=hit&&!lastHits[id],f=p.player?face(p.player,240):null;return '<div class="sq '+p.t+(hit?' hit':'')+(isNew?' new':'')+(lineSet[i]?' line':'')+(f?' hasface':'')+'">'+(f?'<img class="face" src="'+f+'" alt="">':(p.t!=='a'?'<img class="tb" src="'+LOGO[p.t]+'" alt="">':''))+'<i>'+esc(p.cat)+'</i><b>'+esc(p.n)+'</b></div>';}).join('')+'</div>';
   lastHits={};me.card.forEach(function(id,i){if(pr.when[i]!=null)lastHits[id]=1;});
   s+='<div class="key"><span><i class="h"></i>Happened</span><span><i class="l"></i>Your line</span><span><i></i>Still to come</span></div>';
+  if(S.st.state==='pre'&&S.mode==='live')s+='<div class="strip"><img src="'+GFM+'" alt="" style="width:auto;height:26px"><div><span class="cd">'+countdown()+'</span><br>Nothing to do. When the game starts your squares tick over by themselves.</div></div>';
   if(pr.house)s+='<div class="banner"><b>Full house</b><span>Every square. Go and see Jake.</span></div>';else if(pr.lineAt!=null)s+='<div class="banner"><b>Bingo</b><span>You have a line. Check the big screen to see if you were first.</span></div>';else if(pr.needOne)s+='<div class="banner" style="border-color:#fff;background:var(--panel)"><b style="color:#fff;font-size:26px">One away</b><span>You need: '+esc(BY[pr.needOne].n)+'</span></div>';
   s+='<div class="sec"><b>The story so far</b><span>'+S.events.filter(function(e){return e.type!=='ht'&&e.type!=='ft';}).length+' events</span></div><div class="tick">'+(S.events.length?S.events.slice().reverse().map(function(e){var f=e.player?face(e.player,80):null;return '<div><span class="m">'+e.min+'′</span>'+(f?'<img src="'+f+'" alt="">':'<span class="av">'+(e.player?initials(e.player):e.type==='ht'?'HT':'FT')+'</span>')+'<span class="e">'+(e.t==='a'?'':'<span class="chip '+e.t+'">'+TEAMS[e.t].ab+'</span> ')+evText(e)+'</span></div>';}).join(''):'<div><span class="n">Nothing yet. Kick-off is 7:30pm.</span></div>')+'</div>';
+  s+='<details class="how"><summary>How it works</summary><p>Everyone has a different card. When something happens in the game, the player\u2019s face comes up on every phone and the matching squares tick over on their own.</p><p><b>Three prizes:</b> first line of five (across, down or diagonal), most squares at half time, most squares at full time.</p><p>Nothing to press. Just keep this page open and watch the game.</p></details>';
   return s;
 }
 function screenHtml(){
@@ -363,6 +400,7 @@ function screenHtml(){
   rows.sort(function(a,b){return b.pr.n-a.pr.n||((a.pr.lineAt==null)-(b.pr.lineAt==null))||a.c.no-b.c.no;});
   var near=rows.filter(function(r){return r.pr.lineAt==null&&r.pr.needOne;}).slice(0,6);
   var s='<div class="screen"><div>';
+  s+='<div class="lbh"><img src="'+LOGO.k+'" alt=""><b>Grand Final Bingo</b><img src="'+LOGO.r+'" alt=""></div>';
   s+='<div class="sec"><b>Prizes</b><span>'+cards.length+' cards in play</span></div><div class="prize">';
   s+='<div class="'+(firstLine?'on':'')+'"><i>First line</i><b>'+(firstLine?esc(firstLine.c.name):'Open')+'</b><small>'+(firstLine?S.events[firstLine.pr.lineAt].min+'′ · '+evText(S.events[firstLine.pr.lineAt]).split(',')[0]:'any row, column or diagonal')+'</small></div>';
   s+='<div class="'+(htLead?'on':'')+'"><i>Half time</i><b>'+(htLead?esc(htLead.c.name):'Open')+'</b><small>'+(htLead?htLead.nht+' squares at the break':'most squares at the break')+'</small></div>';
@@ -381,14 +419,14 @@ var lastKey='';
 function R_(){
   document.getElementById('feed').innerHTML=feedHtml();document.getElementById('src').innerHTML=srcHtml();
   document.getElementById('wrap').classList.toggle('wide',S.view==='screen');
-  ['card','screen','how'].forEach(function(v){document.getElementById('v-'+v).hidden=S.view!==v;});
+  ['card','screen'].forEach(function(v){document.getElementById('v-'+v).hidden=S.view!==v;});
   document.querySelectorAll('.tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.v===S.view);});
   /* only rebuild the views when something they show has changed, so the photos are not reloaded every tick */
   var key=S.view+'|'+S.mode+'|'+S.events.map(function(e){return e.key;}).join(',')+'|'+S.st.state+S.st.period+'|'+(S.me?S.me.card_no:'')+'|'+S.cards.length+'|'+S.joinErr+'|'+(S.prefill||'')+'|'+(S.st.gameMin>43?1:0);
   if(key===lastKey)return;lastKey=key;
   if(S.view==='card'){var active=document.activeElement;if(!(active&&active.id==='jn'))document.getElementById('v-card').innerHTML=cardHtml();}
   if(S.view==='screen')document.getElementById('v-screen').innerHTML=screenHtml();
-  if(S.view==='how'&&!document.getElementById('v-how').innerHTML)document.getElementById('v-how').innerHTML=howHtml();
+  
 }
 function join(){var nm=(document.getElementById('jn')||{}).value||'';nm=nm.trim().replace(/\s+/g,' ');if(nm.length<2){S.joinErr='Pop your name in first.';R_();return;}
   if(!sb){S.joinErr='Not connected. Try again in a sec.';R_();return;}
@@ -409,7 +447,8 @@ if(sb){sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.
 Object.keys(HS).forEach(function(n){[240,600].forEach(function(w){var im=new Image();im.src=face(n,w);});});
 loadCards();cardsTimer=setInterval(loadCards,20000);
 setMode('live');
-setInterval(function(){if(S.mode==='live'&&S.view!=='card')R_();},5000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&S.mode==='live')pollLive();});
+setInterval(function(){if(S.mode==='live')R_();},20000);
 })();
 </script>
 </body></html>
