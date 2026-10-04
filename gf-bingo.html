@@ -179,6 +179,17 @@ details.how summary{cursor:pointer;font:800 11px var(--body);letter-spacing:2px;
 .ftp .res{margin:12px 0 0;border-radius:14px;padding:12px 14px;background:#0d2a12;border:2px solid #39ff88}
 .ftp .res b{font:400 26px/1 var(--display);text-transform:uppercase;display:block}.ftp .res span{font-size:12px;color:#cfe9d6}
 .ftp .lock{margin-top:10px;font-size:11px;color:var(--mute)}
+.host{margin:18px 0 0;background:var(--panel);border:1.5px solid var(--gold);border-radius:16px;padding:14px}
+.host h3{font:700 15px var(--head);letter-spacing:2px;text-transform:uppercase;margin:0;color:var(--gold)}
+.host p{font-size:12px;color:var(--mute);margin:4px 0 10px;line-height:1.4}
+.host .f{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.host select,.host input{width:100%;background:var(--bg);color:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;font:600 13px var(--body)}
+.host .f .w{grid-column:1/-1}
+.host .ml{margin-top:10px;display:flex;flex-direction:column;gap:5px}
+.host .ml div{display:flex;align-items:center;gap:8px;font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+.host .ml div b{color:var(--gold);font-family:var(--head)}
+.host .ml div button{margin-left:auto;background:transparent;border:1px solid var(--line);color:#fff;border-radius:999px;width:28px;height:28px;cursor:pointer}
+.host .st{font-size:11px;color:var(--mute);margin-top:8px}
 .pk{display:flex;flex-direction:column;gap:6px}
 .pk div{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:7px 10px;font:600 13px var(--body)}
 .pk div img,.pk div .av{width:36px;height:36px;border-radius:50%;object-fit:cover;object-position:50% 15%;background:#000;display:flex;align-items:center;justify-content:center;font:400 13px var(--display)}
@@ -197,6 +208,7 @@ details.how summary{cursor:pointer;font:800 11px var(--body);letter-spacing:2px;
 <div id="v-card"></div>
 <div id="v-ft" hidden></div>
 <div id="v-screen" hidden></div>
+<div id="host" hidden></div>
 <a class="back" href="/">‹ Back to the Legacy Gym app</a>
 
 </div>
@@ -316,7 +328,8 @@ function progress(card,G){
 /* ---------- state ---------- */
 var sb=null;try{sb=supabase.createClient("https://jyslqxepodrseyhoppce.supabase.co","sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we");}catch(e){}
 var DEMO=['Chris Simpson','Mark Anastasakis','Emma Anastasakis','Ayrton Gilbert','Kyle Pearson','Sarsha McGurk','Kelly Dickson','Christian Carroll','Alison Williamson','Brent Mayol','Henry Matthews','Samuel Bell','Stuart Blyton','David Logan','Braith Bright','Ashley Kendall','Joseph Williams','David Sarno','Aaron Hayes','Presley Brown','Ines Clarke','Daniel Ranson','Jarred Hallop','Michael Castle','Ryan Spong','Scotty Wall','Patrick Catindig','Tyler Johnson','Jessica Roach','Sunny Williams','Mia Pal','Scott Turner','Liam Wade','Tom Williams','Hussein Mouhanna','Erin Sheehy','Alexis Rose','Lorenzo Perez','Mick Egan'];
-var S={view:'card',mode:'live',playing:true,simSeed:3,events:[],st:{period:0,clock:"0'",gameMin:0,state:'pre',ks:0,rs:0},live:{ok:null,at:0,msg:'Connecting'},me:null,cards:[],joinErr:'',sound:false,seen:{},booted:false,picks:[],myPick:null,pickBusy:false};
+var S={view:'card',mode:'live',playing:true,simSeed:3,events:[],st:{period:0,clock:"0'",gameMin:0,state:'pre',ks:0,rs:0},live:{ok:null,at:0,msg:'Connecting'},me:null,cards:[],joinErr:'',sound:false,seen:{},booted:false,picks:[],myPick:null,pickBusy:false,manual:[],hostMsg:''};
+var HOSTS={'15a011b9-e222-45f0-8eb9-d5338da935d1':1,'f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce':1};function isHost(){return !!(S.uid&&HOSTS[S.uid]);}
 var DEMO_OK=/[?&]demo=1/.test(location.search);
 var devKey=null;try{devKey=localStorage.getItem('gfbk');if(!devKey){devKey='d'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('gfbk',devKey);}}catch(e){devKey='d'+Math.random().toString(36).slice(2);}
 function cardsInPlay(){var real=S.cards.map(function(c){return {no:c.card_no,name:c.name,card:makeCard(c.card_no),me:S.me&&c.card_no===S.me.card_no};});
@@ -338,10 +351,51 @@ function parseEspn(json){
   return {events:ev,st:{period:per,clock:clock,gameMin:state==='post'?80:gm,state:state,ks:ks,rs:rs}};
 }
 var liveTimer=null,cardsTimer=null;
-function pollLive(){
-  fetch('https://site.api.espn.com/apis/site/v2/sports/rugby-league/3/scoreboard?dates='+ESPN_DATE,{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){var g=parseEspn(j);if(!g)throw new Error('no game');applyEvents(g.events,g.st);S.live={ok:true,at:Date.now(),msg:'Live match feed'};R_();})
-  .catch(function(){S.live={ok:false,at:Date.now(),msg:'Feed hiccup, retrying'};R_();});
+function loadManual(){if(!sb)return Promise.resolve();return Promise.resolve(sb.from('gf_events').select('id,type,min,team,player').eq('event_key',EVENT).order('min').order('id')).then(function(r){if(!r.error&&r.data)S.manual=r.data;}).catch(function(){});}
+function manualEvents(){return S.manual.map(function(m){return {type:m.type,min:m.min||0,t:m.type==='ht'||m.type==='ft'?'a':(m.team||'a'),player:m.player||undefined,two:m.type==='drop goal 2'?true:undefined,manual:true};}).map(function(x){if(x.type==='drop goal 2')x.type='drop goal';return x;});}
+function tallyScore(ev){var ks=0,rs=0;ev.forEach(function(x){var v=x.type==='try'?4:x.type==='conversion'||x.type==='penalty goal'?2:x.type==='drop goal'?(x.two?2:1):0;if(x.t==='k')ks+=v;else if(x.t==='r')rs+=v;});return [ks,rs];}
+function sameEv(a,b){return a.type===b.type&&(a.player||a.t)===(b.player||b.t)&&Math.abs(a.min-b.min)<=3;}
+function mergeManual(g){
+  var man=manualEvents();if(!man.length)return g;
+  var ev=g?g.events.filter(function(x){return x.type!=='ht'&&x.type!=='ft';}):[];
+  man.forEach(function(m){if(m.type==='ht'||m.type==='ft')return;if(!ev.some(function(x){return sameEv(x,m);}))ev.push(m);});
+  ev.sort(function(a,b){return a.min-b.min;});
+  var hasHt=man.some(function(m){return m.type==='ht';})||(g&&g.events.some(function(x){return x.type==='ht';}));
+  var hasFt=man.some(function(m){return m.type==='ft';})||(g&&g.st.state==='post');
+  if(hasHt){var i=0;while(i<ev.length&&ev[i].min<=40)i++;ev.splice(i,0,{type:'ht',min:40,t:'a'});}
+  if(hasFt)ev.push({type:'ft',min:80,t:'a'});
+  ev.forEach(function(x,i){x.seq=i;x.key=x.type+'|'+x.min+'|'+(x.player||x.t);});
+  var sc=tallyScore(ev),last=ev.length?ev[ev.length-1].min:0;
+  var st=g?g.st:{period:hasHt?2:1,clock:last+"'",gameMin:last,state:'in',ks:0,rs:0};
+  st=Object.assign({},st,{ks:Math.max(st.ks||0,sc[0]),rs:Math.max(st.rs||0,sc[1])});
+  if(hasFt){st.state='post';st.gameMin=80;}else if(st.state==='pre'){st.state='in';st.period=hasHt?2:1;st.clock=last+"'";st.gameMin=last;}
+  else if(hasHt&&st.period<2)st.period=2;
+  return {events:ev,st:st};
 }
+function pollLive(){
+  loadManual().then(function(){
+  return fetch('https://site.api.espn.com/apis/site/v2/sports/rugby-league/3/scoreboard?dates='+ESPN_DATE,{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){var g=parseEspn(j);if(!g)throw new Error('no game');g=mergeManual(g);applyEvents(g.events,g.st);S.live={ok:true,at:Date.now(),msg:'Live match feed'};R_();})
+  .catch(function(){var g=mergeManual(null);if(g){applyEvents(g.events,g.st);S.live={ok:true,at:Date.now(),msg:'Live · host feed'};}else S.live={ok:false,at:Date.now(),msg:'Feed hiccup, retrying'};R_();});
+  });
+}
+var lastHostKey='';
+function hostHtml(){
+  var types=[['try','Try'],['conversion','Conversion'],['penalty goal','Penalty goal'],['drop goal','Field goal (1)'],['drop goal 2','Field goal (2 pt)'],['yellow card','Sin bin'],['red card','Send off'],['ht','Half time'],['ft','Full time']];
+  var s='<div class="host"><h3>Host controls · Jake &amp; Alison</h3><p>Backup if the live feed misses something. Anything you add here goes to every phone within 20 seconds and counts for the bingo. The feed keeps running underneath.</p>';
+  s+='<div class="f"><select id="hType">'+types.map(function(t){return '<option value="'+t[0]+'">'+t[1]+'</option>';}).join('')+'</select><input id="hMin" type="number" min="0" max="100" placeholder="Minute">';
+  s+='<select id="hTeam"><option value="k">Knights</option><option value="r">Roosters</option></select><select id="hPlayer"><option value="">Player</option>'+PL.map(function(p){return '<option value="'+esc(p[2])+'" data-t="'+p[0]+'">'+(p[0]==='k'?'KNI':'ROO')+' '+p[1]+' '+esc(p[2])+'</option>';}).join('')+'</select>';
+  s+='<button class="btn p w" data-act="hadd" style="padding:12px">Add to the game</button></div>';
+  if(S.hostMsg)s+='<div class="st">'+esc(S.hostMsg)+'</div>';
+  if(S.manual.length)s+='<div class="ml">'+S.manual.map(function(m){return '<div><b>'+m.min+'′</b>'+esc(m.type==='drop goal 2'?'2-pt field goal':m.type==='ht'?'Half time':m.type==='ft'?'Full time':m.type)+(m.player?' · '+esc(m.player):'')+(m.team?' · '+(m.team==='k'?'KNI':'ROO'):'')+'<button data-hdel="'+m.id+'" aria-label="Remove">×</button></div>';}).join('')+'</div>';
+  return s+'</div>';}
+function hostAdd(){if(!sb||!isHost())return;var type=document.getElementById('hType').value,min=parseInt(document.getElementById('hMin').value,10),team=document.getElementById('hTeam').value,player=document.getElementById('hPlayer').value||null;
+  if(isNaN(min)){S.hostMsg='Put the minute in.';renderHost(true);return;}
+  if(player&&P[player])team=P[player].t;
+  if(/try|conversion|penalty|drop|card/.test(type)&&!player){S.hostMsg='Pick the player.';renderHost(true);return;}
+  S.hostMsg='Saving…';renderHost(true);
+  sb.from('gf_events').insert({event_key:EVENT,type:type,min:min,team:team,player:player,created_by:S.uid}).then(function(r){S.hostMsg=r.error?('Could not save: '+r.error.message):'Added. Phones update within 20 seconds.';pollLive();renderHost(true);});}
+function hostDel(id){if(!sb||!isHost())return;sb.from('gf_events').delete().eq('id',id).then(function(r){S.hostMsg=r.error?'Could not remove.':'Removed.';pollLive();renderHost(true);});}
+function renderHost(force){var el=document.getElementById('host');var show=isHost()&&S.view==='screen';el.hidden=!show;if(!show)return;var k=JSON.stringify(S.manual)+'|'+S.hostMsg;if(!force&&k===lastHostKey)return;lastHostKey=k;el.innerHTML=hostHtml();}
 function loadCards(){if(!sb)return;sb.from('gf_bingo_cards').select('card_no,name,device_key,user_id').eq('event_key',EVENT).order('card_no').then(function(r){if(r.error||!r.data)return;S.cards=r.data;var had=S.me,mine=null;if(S.uid)mine=r.data.find(function(c){return c.user_id===S.uid;});if(!mine)mine=r.data.find(function(c){return c.device_key===devKey;});if(mine){S.me=mine;try{localStorage.setItem('gfbk',mine.device_key);devKey=mine.device_key;}catch(e){}}if(S.view!=='card'||!S.booted||(mine&&(!had||had.card_no!==mine.card_no)))R_();S.booted=true;loadPicks();});}
 function loadPicks(){if(!sb)return;sb.from('gf_first_try').select('card_no,player').then(function(r){if(r.error||!r.data)return;S.picks=r.data;var m=S.me&&r.data.find(function(x){return x.card_no===S.me.card_no;});S.myPick=m?m.player:null;if(S.view!=='card')R_();});}
 function pickLocked(){return S.st.state!=='pre'||Date.now()>=new Date('2026-10-04T08:30:00Z').getTime()||!!firstTryEvent();}
@@ -479,10 +533,12 @@ function R_(){
   document.querySelectorAll('.tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.v===S.view);});
   /* only rebuild the views when something they show has changed, so the photos are not reloaded every tick */
   var key=S.view+'|'+S.picks.length+'|'+(S.myPick||'')+'|'+S.picks.map(function(x){return x.card_no+x.player;}).join(',')+'|'+S.mode+'|'+S.events.map(function(e){return e.key;}).join(',')+'|'+S.st.state+S.st.period+'|'+(S.me?S.me.card_no:'')+'|'+S.cards.length+'|'+S.joinErr+'|'+(S.prefill||'')+'|'+(S.st.gameMin>43?1:0);
+  renderHost();
   if(key===lastKey)return;lastKey=key;
   if(S.view==='card'){var active=document.activeElement;if(!(active&&active.id==='jn'))document.getElementById('v-card').innerHTML=cardHtml();}
   if(S.view==='ft')document.getElementById('v-ft').innerHTML=ftHtml();
   if(S.view==='screen')document.getElementById('v-screen').innerHTML=screenHtml();
+  renderHost();
   
 }
 function join(){var nm=(document.getElementById('jn')||{}).value||'';nm=nm.trim().replace(/\s+/g,' ');if(nm.length<2){S.joinErr='Pop your name in first.';R_();return;}
@@ -498,6 +554,8 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('button')
   if(b.dataset.act==='snd'){S.sound=!S.sound;if(S.sound)ding('conversion');R_();return;}
   if(b.dataset.act==='join'){join();return;}
   if(b.dataset.pick){pickFT(b.dataset.pick);return;}
+  if(b.dataset.act==='hadd'){hostAdd();return;}
+  if(b.dataset.hdel){hostDel(parseInt(b.dataset.hdel,10));return;}
   if(b.dataset.act==='mox'){clearTimeout(moTimer);nextMoment();return;}
 });
 document.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target&&ev.target.id==='jn')join();});
