@@ -156,6 +156,34 @@ details.how summary{cursor:pointer;font:800 11px var(--body);letter-spacing:2px;
 .pool{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
 .pool span{font-size:10.5px;border:1px solid var(--line);border-radius:999px;padding:3px 8px;color:#ccc}
 .note{font-size:11px;color:var(--mute);margin-top:8px}
+
+.back{display:inline-block;margin:10px 0 0;font:800 10px var(--body);letter-spacing:2px;text-transform:uppercase;color:var(--mute);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:7px 12px}
+.ftp{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+.ftp h2{font:400 30px/1 var(--display);text-transform:uppercase;margin:0}
+.ftp p{color:var(--mute);font-size:13px;line-height:1.45;margin:6px 0 0}
+.ftp .mine{margin:12px 0 0;border:2px solid var(--gold);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;background:#0a1e3f}
+.ftp .mine img,.ftp .mine .av{width:54px;height:54px;border-radius:50%;object-fit:cover;object-position:50% 15%;background:#000;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font:400 20px var(--display)}
+.ftp .mine b{display:block;font:700 18px var(--head);text-transform:uppercase}
+.ftp .mine span{font-size:11px;color:var(--mute)}
+.ftp .mine i{margin-left:auto;font:800 10px var(--body);letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);font-style:normal}
+.ftp .tm{display:flex;align-items:center;gap:8px;margin:18px 0 8px;font:700 15px var(--head);letter-spacing:2px;text-transform:uppercase}
+.ftp .tm img{width:28px;height:28px}
+.ftp .pl{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.ftp .pl button{display:flex;align-items:center;gap:9px;text-align:left;border:1px solid var(--line);background:var(--bg);color:#fff;border-radius:12px;padding:7px 9px;cursor:pointer;font:600 12px var(--body)}
+.ftp .pl button img,.ftp .pl button .av{width:38px;height:38px;border-radius:50%;object-fit:cover;object-position:50% 15%;background:#111;flex:none;display:flex;align-items:center;justify-content:center;font:400 14px var(--display)}
+.ftp .pl button small{display:block;font-size:9px;letter-spacing:1px;color:var(--mute);text-transform:uppercase;font-weight:800}
+.ftp .pl button.on{border-color:var(--gold);background:#1a1a0a;box-shadow:0 0 0 2px var(--gold) inset}
+.ftp .pl button.won{border-color:#39ff88}
+.ftp .pl button:disabled{cursor:default;opacity:.55}.ftp .pl button.on:disabled,.ftp .pl button.won:disabled{opacity:1}
+.ftp .k.on{border-color:var(--kni)}.ftp .r.on{border-color:var(--roo)}
+.ftp .res{margin:12px 0 0;border-radius:14px;padding:12px 14px;background:#0d2a12;border:2px solid #39ff88}
+.ftp .res b{font:400 26px/1 var(--display);text-transform:uppercase;display:block}.ftp .res span{font-size:12px;color:#cfe9d6}
+.ftp .lock{margin-top:10px;font-size:11px;color:var(--mute)}
+.pk{display:flex;flex-direction:column;gap:6px}
+.pk div{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:7px 10px;font:600 13px var(--body)}
+.pk div img,.pk div .av{width:36px;height:36px;border-radius:50%;object-fit:cover;object-position:50% 15%;background:#000;display:flex;align-items:center;justify-content:center;font:400 13px var(--display)}
+.pk div b{margin-left:auto;font:700 16px var(--head);color:var(--gold)}
+.pk div.won{border-color:#39ff88}.pk div small{color:var(--mute);font-size:10px}
 </style></head><body>
 <div class="bar"></div>
 <div class="wrap" id="wrap">
@@ -165,9 +193,11 @@ details.how summary{cursor:pointer;font:800 11px var(--body);letter-spacing:2px;
 <div class="vs"><img src="https://a.espncdn.com/i/teamlogos/rugby/teams/500/289207.png" alt="Knights"><b>v</b><img src="https://a.espncdn.com/i/teamlogos/rugby/teams/500/289204.png" alt="Roosters"></div></div>
 <div class="feed" id="feed"></div>
 <div class="src" id="src"></div>
-<div class="tabs"><button class="on" data-v="card">My card</button><button data-v="screen">Big screen</button></div>
+<div class="tabs"><button class="on" data-v="card">My card</button><button data-v="ft">First try</button><button data-v="screen">Big screen</button></div>
 <div id="v-card"></div>
+<div id="v-ft" hidden></div>
 <div id="v-screen" hidden></div>
+<a class="back" href="/">‹ Back to the Legacy Gym app</a>
 
 </div>
 <div id="mo"><div class="bg"></div><button class="x" data-act="mox" aria-label="Close">×</button><div class="in" id="moin"></div></div>
@@ -286,7 +316,8 @@ function progress(card,G){
 /* ---------- state ---------- */
 var sb=null;try{sb=supabase.createClient("https://jyslqxepodrseyhoppce.supabase.co","sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we");}catch(e){}
 var DEMO=['Chris Simpson','Mark Anastasakis','Emma Anastasakis','Ayrton Gilbert','Kyle Pearson','Sarsha McGurk','Kelly Dickson','Christian Carroll','Alison Williamson','Brent Mayol','Henry Matthews','Samuel Bell','Stuart Blyton','David Logan','Braith Bright','Ashley Kendall','Joseph Williams','David Sarno','Aaron Hayes','Presley Brown','Ines Clarke','Daniel Ranson','Jarred Hallop','Michael Castle','Ryan Spong','Scotty Wall','Patrick Catindig','Tyler Johnson','Jessica Roach','Sunny Williams','Mia Pal','Scott Turner','Liam Wade','Tom Williams','Hussein Mouhanna','Erin Sheehy','Alexis Rose','Lorenzo Perez','Mick Egan'];
-var S={view:'card',mode:'live',playing:true,simSeed:3,events:[],st:{period:0,clock:"0'",gameMin:0,state:'pre',ks:0,rs:0},live:{ok:null,at:0,msg:'Connecting'},me:null,cards:[],joinErr:'',sound:false,seen:{},booted:false};
+var S={view:'card',mode:'live',playing:true,simSeed:3,events:[],st:{period:0,clock:"0'",gameMin:0,state:'pre',ks:0,rs:0},live:{ok:null,at:0,msg:'Connecting'},me:null,cards:[],joinErr:'',sound:false,seen:{},booted:false,picks:[],myPick:null,pickBusy:false};
+var DEMO_OK=/[?&]demo=1/.test(location.search);
 var devKey=null;try{devKey=localStorage.getItem('gfbk');if(!devKey){devKey='d'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('gfbk',devKey);}}catch(e){devKey='d'+Math.random().toString(36).slice(2);}
 function cardsInPlay(){var real=S.cards.map(function(c){return {no:c.card_no,name:c.name,card:makeCard(c.card_no),me:S.me&&c.card_no===S.me.card_no};});
   if(S.mode==='sim'){var base=real.length?Math.max.apply(null,real.map(function(c){return c.no;})):0;DEMO.forEach(function(n,i){real.push({no:base+1+i,name:n,card:makeCard(base+1+i),demo:true});});}
@@ -311,7 +342,30 @@ function pollLive(){
   fetch('https://site.api.espn.com/apis/site/v2/sports/rugby-league/3/scoreboard?dates='+ESPN_DATE,{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){var g=parseEspn(j);if(!g)throw new Error('no game');applyEvents(g.events,g.st);S.live={ok:true,at:Date.now(),msg:'Live match feed'};R_();})
   .catch(function(){S.live={ok:false,at:Date.now(),msg:'Feed hiccup, retrying'};R_();});
 }
-function loadCards(){if(!sb)return;sb.from('gf_bingo_cards').select('card_no,name,device_key').eq('event_key',EVENT).order('card_no').then(function(r){if(r.error||!r.data)return;S.cards=r.data;var mine=r.data.find(function(c){return c.device_key===devKey;});if(mine)S.me=mine;if(S.view!=='card'||!S.booted)R_();S.booted=true;});}
+function loadCards(){if(!sb)return;sb.from('gf_bingo_cards').select('card_no,name,device_key,user_id').eq('event_key',EVENT).order('card_no').then(function(r){if(r.error||!r.data)return;S.cards=r.data;var had=S.me,mine=null;if(S.uid)mine=r.data.find(function(c){return c.user_id===S.uid;});if(!mine)mine=r.data.find(function(c){return c.device_key===devKey;});if(mine){S.me=mine;try{localStorage.setItem('gfbk',mine.device_key);devKey=mine.device_key;}catch(e){}}if(S.view!=='card'||!S.booted||(mine&&(!had||had.card_no!==mine.card_no)))R_();S.booted=true;loadPicks();});}
+function loadPicks(){if(!sb)return;sb.from('gf_first_try').select('card_no,player').then(function(r){if(r.error||!r.data)return;S.picks=r.data;var m=S.me&&r.data.find(function(x){return x.card_no===S.me.card_no;});S.myPick=m?m.player:null;if(S.view!=='card')R_();});}
+function pickLocked(){return S.st.state!=='pre'||Date.now()>=new Date('2026-10-04T08:30:00Z').getTime()||!!firstTryEvent();}
+function firstTryEvent(){for(var i=0;i<S.events.length;i++)if(S.events[i].type==='try')return S.events[i];return null;}
+function pick(name){if(!S.me||!sb||pickLocked()||S.pickBusy)return;S.pickBusy=true;var old=S.myPick;S.myPick=name;R_();
+  sb.from('gf_first_try').upsert({card_no:S.me.card_no,player:name,team:P[name]?P[name].t:null,updated_at:new Date().toISOString()},{onConflict:'card_no'}).then(function(r){S.pickBusy=false;if(r.error){S.myPick=old;R_();return;}loadPicks();});}
+function ftHtml(){
+  if(!S.me)return '<div class="ftp"><h2>First try scorer</h2><p>Grab your bingo card first (My card tab), then come back and pick who scores the first try of the Grand Final.</p></div>';
+  var ev=firstTryEvent(),locked=pickLocked(),mine=S.myPick;
+  var tally={};S.picks.forEach(function(x){tally[x.player]=(tally[x.player]||0)+1;});
+  var s='<div class="ftp"><h2>First try scorer</h2><p>Pick who you reckon scores the first try tonight. One pick each, locks at kick-off. Bragging rights, and Jake might have something for the winners.</p>';
+  if(ev){var winners=S.cards.filter(function(c){return S.picks.some(function(x){return x.card_no===c.card_no&&x.player===ev.player;});}).map(function(c){return c.name;});
+    s+='<div class="res"><span>First try · '+ev.min+'′</span><b>'+esc(ev.player)+'</b><span>'+(winners.length?'Picked it: '+esc(winners.join(', ')):'Nobody picked it.')+'</span></div>';}
+  if(mine){var f=face(mine,120);s+='<div class="mine">'+(f?'<img src="'+f+'" alt="">':'<span class="av">'+initials(mine)+'</span>')+'<div><b>'+esc(mine)+'</b><span>'+(P[mine]?TEAMS[P[mine].t].n+' · '+P[mine].pos:'')+(tally[mine]>1?' · '+tally[mine]+' people picked him':'')+'</span></div><i>'+(ev?(ev.player===mine?'Winner':'Missed'):locked?'Locked':'Your pick')+'</i></div>';}
+  else if(!locked)s+='<div class="lock">Tap a player below to pick.</div>';
+  else s+='<div class="lock">Picks are locked, kick-off has happened.</div>';
+  ['k','r'].forEach(function(t){s+='<div class="tm"><img src="'+LOGO[t]+'" alt="">'+TEAMS[t].n+'</div><div class="pl">'+PL.filter(function(p){return p[0]===t;}).map(function(p){var n=p[2],f=face(n,80);return '<button class="'+t+(mine===n?' on':'')+(ev&&ev.player===n?' won':'')+'" data-pick="'+esc(n)+'"'+(locked?' disabled':'')+'>'+(f?'<img src="'+f+'" alt="">':'<span class="av">'+initials(n)+'</span>')+'<span>'+esc(n)+'<small>'+p[1]+' · '+p[3]+(tally[n]?' · '+tally[n]+' pick'+(tally[n]===1?'':'s'):'')+'</small></span></button>';}).join('')+'</div>';});
+  s+='</div>';return s;}
+function picksHtml(){var tally={},ev=firstTryEvent();S.picks.forEach(function(x){tally[x.player]=(tally[x.player]||0)+1;});var top=Object.keys(tally).sort(function(a,b){return tally[b]-tally[a];}).slice(0,6);
+  if(!S.picks.length)return '';
+  var s='<div class="sec"><b>First try scorer</b><span>'+S.picks.length+' picks</span></div><div class="pk">';
+  if(ev){var w=S.cards.filter(function(c){return S.picks.some(function(x){return x.card_no===c.card_no&&x.player===ev.player;});}).map(function(c){return c.name;});var f=face(ev.player,80);s+='<div class="won">'+(f?'<img src="'+f+'" alt="">':'<span class="av">'+initials(ev.player)+'</span>')+'<span>'+esc(ev.player)+' scored first, '+ev.min+'′<br><small>'+(w.length?esc(w.join(', ')):'Nobody picked it')+'</small></span></div>';}
+  top.forEach(function(n){var f=face(n,80);s+='<div'+(ev&&ev.player===n?' class="won"':'')+'>'+(f?'<img src="'+f+'" alt="">':'<span class="av">'+initials(n)+'</span>')+'<span>'+esc(n)+'</span><b>'+tally[n]+'</b></div>';});
+  return s+'</div>';}
 /* ---------- feed: simulated grand final ---------- */
 function simGame(seed){
   var r=rng(seed*7919+13),ev=[],mins=[];
@@ -371,7 +425,7 @@ function countdown(){var ko=new Date('2026-10-04T08:30:00Z'),d=ko-Date.now();if(
 function feedHtml(){var st=S.st,lab=st.state==='pre'?(S.mode==='live'?countdown():'Kick-off'):st.state==='post'?'Full time':(st.period===1?'1st half ':'2nd half ')+st.clock;
   var src=S.mode==='live'?(S.live.ok?'Live · updates itself':S.live.msg):'Practice game · simulated';
   return '<div class="t k"><img class="badge" src="'+LOGO.k+'" alt=""><div><b>'+st.ks+'</b><span>Knights</span></div></div><div class="mid"><b>'+lab+'</b><span><i class="'+(st.state==='in'?'on':'')+'"></i>'+esc(src)+'</span></div><div class="t r"><div><b>'+st.rs+'</b><span>Roosters</span></div><img class="badge" src="'+LOGO.r+'" alt=""></div>';}
-function srcHtml(){var liveOn=S.mode==='live'&&S.st.state==='in';var s='';
+function srcHtml(){var liveOn=S.mode==='live'&&S.st.state==='in';var s='';if(!DEMO_OK)return '<button data-act="snd">'+(S.sound?'Sound on':'Sound off')+'</button>';
   if(!liveOn)s+='<button class="'+(S.mode==='live'?'p':'')+'" data-mode="live">Live game</button><button class="'+(S.mode==='sim'?'p':'')+'" data-mode="sim">Practice game</button>';
   if(S.mode==='sim')s+='<button data-act="pp">'+(S.playing?'Pause':'Play')+'</button><button data-act="new">New game</button>';
   s+='<button data-act="snd">'+(S.sound?'Sound on':'Sound off')+'</button>';return s;}
@@ -407,6 +461,7 @@ function screenHtml(){
   s+='<div class="'+(htLead?'on':'')+'"><i>Half time</i><b>'+(htLead?esc(htLead.c.name):'Open')+'</b><small>'+(htLead?htLead.nht+' squares at the break':'most squares at the break')+'</small></div>';
   s+='<div class="'+(ftLead?'on':'')+'"><i>Full time</i><b>'+(ftLead?esc(ftLead.c.name):'Open')+'</b><small>'+(ftLead?ftLead.pr.n+' squares':'most squares at the siren')+'</small></div></div>';
   s+='<div class="sec"><b>One square away</b><span>what they need</span></div><div class="need">'+(near.length?near.map(function(r){var sq=BY[r.pr.needOne],f=sq.player?face(sq.player,120):null;return '<div>'+(f?'<img src="'+f+'" alt="">':'<span class="av">'+(sq.t==='a'?'GF':TEAMS[sq.t].ab)+'</span>')+'<div><b>'+esc(r.c.name)+'</b><span>needs '+esc(sq.n)+'</span></div></div>';}).join(''):'<div><span>Nobody yet.</span></div>')+'</div>';
+  s+=picksHtml();
   s+='</div><div>';
   s+='<div class="sec"><b>Leaderboard</b><span>squares hit</span></div><div class="lb">'+(rows.length?rows.slice(0,45).map(function(r,i){return '<div class="lbr'+(r.pr.lineAt!=null?' win':'')+'"><span class="rk">'+(i+1)+'</span><span class="nm">'+esc(r.c.name)+(r.c.me?' <span class="chip a">you</span>':'')+'<small>Card #'+r.c.no+'</small></span><span class="ct">'+r.pr.n+'/24</span><span class="pill '+(r.pr.house?'h':r.pr.lineAt!=null?'l':'')+'">'+(r.pr.house?'House':r.pr.lineAt!=null?'Line '+S.events[r.pr.lineAt].min+'′':'')+'</span></div>';}).join(''):'<div class="lbr"><span></span><span class="nm">No cards yet</span></div>')+'</div>';
   s+='<div class="note">This screen refreshes itself from the live feed every 20 seconds.</div></div></div>';
@@ -420,19 +475,21 @@ var lastKey='';
 function R_(){
   document.getElementById('feed').innerHTML=feedHtml();document.getElementById('src').innerHTML=srcHtml();
   document.getElementById('wrap').classList.toggle('wide',S.view==='screen');
-  ['card','screen'].forEach(function(v){document.getElementById('v-'+v).hidden=S.view!==v;});
+  ['card','ft','screen'].forEach(function(v){document.getElementById('v-'+v).hidden=S.view!==v;});
   document.querySelectorAll('.tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.v===S.view);});
   /* only rebuild the views when something they show has changed, so the photos are not reloaded every tick */
-  var key=S.view+'|'+S.mode+'|'+S.events.map(function(e){return e.key;}).join(',')+'|'+S.st.state+S.st.period+'|'+(S.me?S.me.card_no:'')+'|'+S.cards.length+'|'+S.joinErr+'|'+(S.prefill||'')+'|'+(S.st.gameMin>43?1:0);
+  var key=S.view+'|'+S.picks.length+'|'+(S.myPick||'')+'|'+S.picks.map(function(x){return x.card_no+x.player;}).join(',')+'|'+S.mode+'|'+S.events.map(function(e){return e.key;}).join(',')+'|'+S.st.state+S.st.period+'|'+(S.me?S.me.card_no:'')+'|'+S.cards.length+'|'+S.joinErr+'|'+(S.prefill||'')+'|'+(S.st.gameMin>43?1:0);
   if(key===lastKey)return;lastKey=key;
   if(S.view==='card'){var active=document.activeElement;if(!(active&&active.id==='jn'))document.getElementById('v-card').innerHTML=cardHtml();}
+  if(S.view==='ft')document.getElementById('v-ft').innerHTML=ftHtml();
   if(S.view==='screen')document.getElementById('v-screen').innerHTML=screenHtml();
   
 }
 function join(){var nm=(document.getElementById('jn')||{}).value||'';nm=nm.trim().replace(/\s+/g,' ');if(nm.length<2){S.joinErr='Pop your name in first.';R_();return;}
   if(!sb){S.joinErr='Not connected. Try again in a sec.';R_();return;}
-  S.joinErr='';var row={event_key:EVENT,name:nm,device_key:devKey};if(S.uid)row.user_id=S.uid;
-  sb.from('gf_bingo_cards').insert(row).select('card_no,name,device_key').single().then(function(r){if(r.error){if(/duplicate|unique/i.test(r.error.message)){loadCards();return;}S.joinErr='Couldn’t save, try again.';R_();return;}S.me=r.data;S.cards.push(r.data);R_();});}
+  S.joinErr='';var have=S.uid&&S.cards.find(function(c){return c.user_id===S.uid;});if(!have)have=S.cards.find(function(c){return c.device_key===devKey;});if(have){S.me=have;R_();return;}
+  var row={event_key:EVENT,name:nm,device_key:devKey};if(S.uid)row.user_id=S.uid;
+  sb.from('gf_bingo_cards').insert(row).select('card_no,name,device_key').single().then(function(r){if(r.error){if(/duplicate|unique/i.test(r.error.message)){loadCards();return;}S.joinErr='Couldn’t save, try again.';R_();return;}S.me=r.data;S.cards.push(r.data);R_();loadPicks();});}
 document.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;
   if(b.dataset.v){S.view=b.dataset.v;R_();try{window.scrollTo(0,0);}catch(e){}return;}
   if(b.dataset.mode){if(b.dataset.mode!==S.mode)setMode(b.dataset.mode);return;}
@@ -440,11 +497,12 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('button')
   if(b.dataset.act==='new'){S.simSeed++;S.playing=true;lastHits={};setMode('sim');return;}
   if(b.dataset.act==='snd'){S.sound=!S.sound;if(S.sound)ding('conversion');R_();return;}
   if(b.dataset.act==='join'){join();return;}
+  if(b.dataset.pick){pick(b.dataset.pick);return;}
   if(b.dataset.act==='mox'){clearTimeout(moTimer);nextMoment();return;}
 });
 document.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target&&ev.target.id==='jn')join();});
 /* prefill the name for logged-in members */
-if(sb){sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;S.uid=u.id;return sb.from('profiles').select('first_name,last_name').eq('id',u.id).maybeSingle().then(function(p){if(p&&p.data){S.prefill=((p.data.first_name||'')+' '+(p.data.last_name||'')).trim();if(!S.me)R_();}});}).catch(function(){});}
+if(sb){sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;S.uid=u.id;loadCards();return sb.from('profiles').select('first_name,last_name').eq('id',u.id).maybeSingle().then(function(p){if(p&&p.data){S.prefill=((p.data.first_name||'')+' '+(p.data.last_name||'')).trim();if(!S.me)R_();}});}).catch(function(){});}
 Object.keys(HS).forEach(function(n){[240,600].forEach(function(w){var im=new Image();im.src=face(n,w);});});
 loadCards();cardsTimer=setInterval(loadCards,20000);
 setMode('live');

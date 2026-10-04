@@ -1326,7 +1326,7 @@ function bingoHtml(){
   return '<div class="nrlBingo" onclick="event.stopPropagation()"><div class="k">Game day · Knights v Roosters · 7:30pm</div><div class="q">Grand Final Bingo</div>'
    +'<p><b>Grab a card before kick-off.</b> Everyone gets a different one: try scorers, goals, field goals, sin bins, with the players\' faces on the squares. It fills itself in during the game, nothing to press.</p>'
    +'<div class="pr"><span>First line</span><span>Most at half time</span><span>Most at full time</span></div>'
-   +'<a class="nrlBtn gold" href="'+BINGO_URL+'" target="_blank" rel="noopener">Grab my bingo card</a></div>';
+   +'<a class="nrlBtn gold" href="'+BINGO_URL+'">My bingo card</a></div>';
 }
 function bingoDismissed(){try{return sessionStorage.getItem("nrlBingoNotNow")==="1";}catch(e){return false;}}
 function bingoDismiss(){try{sessionStorage.setItem("nrlBingoNotNow","1");}catch(e){}}
@@ -1339,7 +1339,7 @@ function showBingoPopup(){
    +'<div class="bd"><div class="nrlKick">Game day · Sunday 4 October</div><h2>Grand Final <em>Bingo</em></h2>'
    +'<div class="when">Kick-off <b>7:30pm</b> · doors 4pm · Front bar</div>'
    +'<p><b>Grab your bingo card before kick-off.</b> Everyone gets a different card with the players\' faces on it. When someone scores, gets binned or kicks a goal, your card ticks over by itself. First line, most squares at half time and most squares at full time all win.</p>'
-   +'<a class="nrlBtn gold" href="'+BINGO_URL+'" target="_blank" rel="noopener" onclick="nrlBingoNotNow()" style="margin-top:14px">Grab my bingo card</a>'
+   +'<a class="nrlBtn gold" href="'+BINGO_URL+'" onclick="nrlBingoNotNow()" style="margin-top:14px">My bingo card</a>'
    +'<div class="btns"><button class="nrlBtn ghost" onclick="nrlOpen()">Party details &amp; RSVP</button><button class="nrlBtn ghost" onclick="nrlBingoNotNow()">Not now</button></div>'
    +'<div class="note">Pops up when you open the app today · gone after the game</div></div>';
   document.body.appendChild(d);document.body.appendChild(s);
@@ -1413,7 +1413,7 @@ function tileHtml(){
   if(bingoPopupLive())line='<b>Today</b> · doors 4pm · kick-off 7:30pm · bingo cards are open';
   var cnt=S.count&&S.count.heads?'<span class="cnt">'+S.count.heads+' coming</span>':'';
   var btns=bingoPopupLive()
-    ?'<a class="nrlBtn gold" href="'+BINGO_URL+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">Grab my bingo card</a><button class="nrlBtn ghost">'+(m?"Details":"RSVP")+'</button>'
+    ?'<a class="nrlBtn gold" href="'+BINGO_URL+'" onclick="event.stopPropagation()">My bingo card</a><button class="nrlBtn ghost">'+(m?"Details":"RSVP")+'</button>'
     :'<button class="nrlBtn gold">'+(m?"Event details":"RSVP now")+'</button>'+cnt;
   return '<div id="nrlTile" class="'+(m?"slim":"")+'" onclick="nrlOpen()"><img src="'+EV.img+'" alt=""><div class="bd"><span class="nrlTag">'+(bingoPopupLive()?'Game day · Grand Final Bingo':'Members\' event · Sun 4 Oct')+'</span><div class="t">NRL Grand Final Party</div><div class="s">'+line+'</div>'
    +'<div class="row">'+btns+'</div></div></div>';
@@ -1490,7 +1490,7 @@ function html(n){
   if(n.now)h+='<div class="d">'+(n.was?'<div class="was"><b>'+E(n.was)+'</b><small>Was</small></div><div class="arr">→</div>':'')+'<div><b>'+E(n.now)+'</b><small>'+E(n.now_label||"")+'</small></div></div>';
   if(n.body)h+='<p>'+E(n.body)+'</p>';
   var d=n.data||{};
-  if(d.url)return h+'<a class="btn" href="'+E(d.url)+'" target="_blank" rel="noopener" style="text-decoration:none">'+E(n.button||"Pay now")+'</a>'+(d.no_dismiss?'':'<button class="btn" style="margin-top:6px;background:none;color:#9a9891;border:1px solid #2e2e36;padding:9px" onclick="mnSeen(\''+n.id+'\')">'+E(d.dismiss||"Done — hide this")+'</button>')+'</div>';
+  if(d.url)return h+'<a class="btn" href="'+E(d.url)+'" style="text-decoration:none">'+E(n.button||"Pay now")+'</a>'+(d.no_dismiss?'':'<button class="btn" style="margin-top:6px;background:none;color:#9a9891;border:1px solid #2e2e36;padding:9px" onclick="mnSeen(\''+n.id+'\')">'+E(d.dismiss||"Done — hide this")+'</button>')+'</div>';
   return h+'<button class="btn" onclick="mnSeen(\''+n.id+'\')">'+E(n.button||"Got it")+'</button></div>';
 }
 function paint(){
