@@ -60,7 +60,7 @@ window.ptAlertHtml=function(){
   var h='<div class="smCoach">';
   h+='<button onclick="openMyPT()"><small>Coach only</small>'+c.db+'’s PT</button>';
   if(j){h+='<button onclick="window.__tbj&&(window.__tbj.T.sub=\'inbox\');go(\'tbj\')"><small>Coach only</small>Trained by Jake</button>';
-        h+='<button onclick="typeof inOpen===\'function\'&&inOpen()"><small>Fight Club</small>Info night RSVPs</button>';}
+        }
   return h+'</div>';
 };
 
