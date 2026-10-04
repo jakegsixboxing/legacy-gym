@@ -346,7 +346,7 @@ function loadCards(){if(!sb)return;sb.from('gf_bingo_cards').select('card_no,nam
 function loadPicks(){if(!sb)return;sb.from('gf_first_try').select('card_no,player').then(function(r){if(r.error||!r.data)return;S.picks=r.data;var m=S.me&&r.data.find(function(x){return x.card_no===S.me.card_no;});S.myPick=m?m.player:null;if(S.view!=='card')R_();});}
 function pickLocked(){return S.st.state!=='pre'||Date.now()>=new Date('2026-10-04T08:30:00Z').getTime()||!!firstTryEvent();}
 function firstTryEvent(){for(var i=0;i<S.events.length;i++)if(S.events[i].type==='try')return S.events[i];return null;}
-function pick(name){if(!S.me||!sb||pickLocked()||S.pickBusy)return;S.pickBusy=true;var old=S.myPick;S.myPick=name;R_();
+function pickFT(name){if(!S.me||!sb||pickLocked()||S.pickBusy)return;S.pickBusy=true;var old=S.myPick;S.myPick=name;R_();
   sb.from('gf_first_try').upsert({card_no:S.me.card_no,player:name,team:P[name]?P[name].t:null,updated_at:new Date().toISOString()},{onConflict:'card_no'}).then(function(r){S.pickBusy=false;if(r.error){S.myPick=old;R_();return;}loadPicks();});}
 function ftHtml(){
   if(!S.me)return '<div class="ftp"><h2>First try scorer</h2><p>Grab your bingo card first (My card tab), then come back and pick who scores the first try of the Grand Final.</p></div>';
@@ -497,7 +497,7 @@ document.addEventListener('click',function(ev){var b=ev.target.closest('button')
   if(b.dataset.act==='new'){S.simSeed++;S.playing=true;lastHits={};setMode('sim');return;}
   if(b.dataset.act==='snd'){S.sound=!S.sound;if(S.sound)ding('conversion');R_();return;}
   if(b.dataset.act==='join'){join();return;}
-  if(b.dataset.pick){pick(b.dataset.pick);return;}
+  if(b.dataset.pick){pickFT(b.dataset.pick);return;}
   if(b.dataset.act==='mox'){clearTimeout(moTimer);nextMoment();return;}
 });
 document.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target&&ev.target.id==='jn')join();});
