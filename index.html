@@ -159,6 +159,7 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .cbBook{margin-top:10px;display:flex;gap:8px;align-items:center}
 .cbBtn{flex:1;text-align:center;background:var(--gold);color:#111;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:12px;border-radius:10px;border:0;cursor:pointer;font-family:inherit}
 .cbBtn.in{background:transparent;border:1.5px solid var(--ok);color:var(--ok)}.cbBtn.wait{background:transparent;border:1.5px solid #3a3a3a;color:#ddd}.cbBtn.onwait{background:transparent;border:1.5px solid var(--gold);color:#e5c46b}
+.cbBtn.lock{background:transparent;border:1.5px solid var(--gold-dim,#3a3324);color:var(--gold);text-decoration:none;display:flex;align-items:center;justify-content:center}
 .cbMate{width:44px;height:40px;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;background:#0e0e0e;cursor:pointer;color:#fff;flex:none}
 .cbHint{font-size:10.5px;color:var(--muted);margin-top:10px;text-align:center;line-height:1.4}
 .cbClosed{margin-top:10px;border-radius:16px;border:1px solid #7a2a2e;background:linear-gradient(180deg,rgba(229,72,77,.14),rgba(8,8,10,.9));padding:16px;text-align:left}
@@ -569,7 +570,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610051600";
+const LG_BUILD="202610051700";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -1501,24 +1502,11 @@ function upcomingClasses48(){
   return out.sort((a,b)=>a.start-b.start);
 }
 async function renderClasses(){
-  if(!tierHasClasses()){
-    $("main").innerHTML=`
-      <button class="backBtn" onclick="go('home')">‹ Back To Home</button>
-      <div style="background:#0d0d0b;border:1px solid #2a2417;border-radius:16px;padding:40px 22px;text-align:center;margin-top:8px">
-        <div style="font-weight:900;letter-spacing:4px;color:#9e9e9e;font-size:11px">CLASS MEMBERS ONLY</div>
-        <h2 style="font-size:22px;margin-top:8px;color:#f5f5f5;letter-spacing:1px;line-height:1.3">BOOK IN FOR CLASSES</h2>
-        <div style="margin:20px auto;width:56px;height:56px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:22px">🔒</div>
-        <p style="color:var(--gold);font-weight:800;font-size:14px;letter-spacing:1px">SORRY — THIS IS FOR A HIGHER LEVEL OF MEMBERSHIP.</p>
-        <p style="color:#9e9e9e;font-size:13px;margin-top:10px;line-height:1.6">${myTier()===TIER_TRIAL?"Your 7-day free trial has finished. Pick a membership and you're straight back into classes — your points carry over.":"Open Gym membership covers the gym floor — classes are the next level up."}</p>
-        ${myTier()===TIER_TRIAL?'<a class="btnGold" style="display:block;margin-top:14px;text-align:center;text-decoration:none" href="https://www.legacygym.net/pages/memberships" target="_blank" rel="noopener">Join from $19.99/wk ›</a>':''}
-        <p style="color:#6e6e6e;font-size:11.5px;margin-top:18px;letter-spacing:.5px">Want in? See the staff at the front desk to upgrade your membership.</p>
-        <button class="btnLink" style="margin-top:16px" onclick="go('timetable')">See What You're Missing — Full Timetable ›</button>
-      </div>`;
-    return;
-  }
+  const canBook=tierHasClasses();
   $("main").innerHTML=`
     <div class="cbTop"><button class="backBtn" style="margin:0" onclick="go('home')">‹ Home</button><button id="smWeek" class="btnLink" style="width:auto;margin:0;padding:6px 10px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800" onclick="go('timetable')">Full timetable ›</button></div>
-    <div class="secTitle" style="margin-top:6px">Book in · this week</div>
+    ${!canBook?`<div class="notice" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><b>Browsing only.</b> ${myTier()===TIER_TRIAL?"Your 7-day free trial has finished — pick a membership and you're straight back into booking. Your points carry over.":"Your membership covers the gym floor. Upgrade to book into any class below."}</div><a class="btnGold" style="flex:none;text-decoration:none;padding:10px 16px;font-size:11px" href="https://www.legacygym.net/pages/memberships" target="_blank" rel="noopener">${myTier()===TIER_TRIAL?"Join from $19.99/wk ›":"See memberships ›"}</a></div>`:""}
+    <div class="secTitle" style="margin-top:6px">${canBook?"Book in · this week":"This week's classes"}</div>
     <div id="classList"><div class="loadingDots">Loading upcoming classes…</div></div>`;
   if(!ptsData.loaded){try{await loadWorld();}catch(e){}}
   const cls=upcomingClasses48();
@@ -1618,6 +1606,7 @@ async function renderClasses(){
         <div class="cbWho"><div class="cbAvs">${mine?`<i class="me">ME</i>`:""}${shown.map(r=>`<i style="background:${COLS[hsh(r.name)%COLS.length]}">${ini(r.name)}</i>`).join("")}</div><span>${who}</span></div>
         <div class="cbCap"><i style="width:${pct}%"></i></div>
         <div class="cbBook">${mine?`<button class="cbBtn in" onclick="unattendClass('${c.date}','${c.t}','${esc(c.n)}')">You're in \u2713 \u00b7 tap to pull out</button>`
+          :!canBook?`<a class="cbBtn lock" href="https://www.legacygym.net/pages/memberships" target="_blank" rel="noopener">\ud83d\udd12 Upgrade to book</a>`
           :full?(myWaitRow?`<button class="cbBtn onwait" onclick="leaveWaitlist('${c.date}','${c.t}')">On the waitlist \u00b7 tap to leave</button>`:`<button class="cbBtn wait" onclick="joinWaitlist('${c.date}','${c.t}','${esc(c.n)}')">Class full \u2014 join waitlist</button>`)
           :`<button class="cbBtn" onclick="attendClass('${c.date}','${c.t}','${esc(c.n)}')">Book me in</button>`}<button class="cbMate" title="Bring a mate" onclick="cbBringMate('${shareTxt}')">\ud83d\udc65</button></div>
       </div></div>`;
@@ -7336,6 +7325,7 @@ function refreshClassReg(){
   else if(view==="timetable")renderTimetable();
 }
 async function attendClass(date,time,name){
+  if(!tierHasClasses()){toast("Your membership doesn't include classes — see staff at the front desk or upgrade online to book in.");refreshClassReg();return;}
   const isSpar=/sparring/i.test(name);
   let bp=null;
   if(isSpar){
@@ -7408,6 +7398,7 @@ async function unattendClass(date,time,name){
   refreshClassReg();
 }
 async function joinWaitlist(date,time,name){
+  if(!tierHasClasses()){toast("Your membership doesn't include classes — see staff at the front desk or upgrade online to join the waitlist.");refreshClassReg();return;}
   const me=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";
   const {error}=await sb.from("class_waitlist").insert({user_id:session.user.id,name:me,class_name:name,class_date:date,class_time:time});
   toast(error?(/duplicate|unique/i.test(error.message)?"You're already on the waitlist for that one.":error.message):"You're on the waitlist — grab a spot the moment one opens up.");
