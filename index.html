@@ -570,7 +570,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610051700";
+const LG_BUILD="202610051800";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -7348,6 +7348,7 @@ async function attendClass(date,time,name){
   await sb.from("class_waitlist").delete().eq("user_id",session.user.id).eq("class_date",date).eq("class_time",time);
   refreshClassReg();
   setTimeout(saleSpotlight,1100);
+  setTimeout(function(){if(typeof maybeOfferRecovery==="function")maybeOfferRecovery(name,fmtClassTime(time));},1700);
 }
 /* ---- Sale spotlight: after a class booking, surface the best live deal ---- */
 const SALE_SPOT_HANDLE="sparring-club-embroidered-hoodie";
@@ -10764,6 +10765,151 @@ window.trNote=async function(id,el){var L=(TR.leads||[]).find(function(x){return
 try{NAV_TAB.trials="home";}catch(e){}
 var _render=window.render;window.render=function(){if(view==="trials")return render();return _render.apply(this,arguments);};
 try{var _go=window.go;window.go=function(v){if(v==="trials")TR.need=true;if(v==="home")TR.leads=TR.leads;return _go.apply(this,arguments);};}catch(e){}
+})();
+</script>
+<script>
+/*__RECOVERY_OFFER__*/
+(function(){
+/* Post-booking free-week recovery offer. Shown once per member, ever — tracked server-side via challenge_leads so it survives logout/reinstall.
+   Accept or decline both write a row (challenge = recovery7) so Jake & Alison know who to set up / that someone said no. */
+var RC={checked:false,already:false,busy:false};
+var css=document.createElement("style");css.textContent=`
+.rcOvWrap{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0);display:flex;align-items:flex-end;justify-content:center;transition:background .3s ease}
+.rcOvWrap.on{background:rgba(0,0,0,.74)}
+.rcSheet{width:100%;max-width:480px;height:88vh;max-height:720px;background:linear-gradient(165deg,#1c1709,#0c0b08 55%,#0a0a0a);border-top:2px solid var(--gold);border-radius:28px 28px 0 0;padding:34px 26px 28px;display:flex;flex-direction:column;justify-content:center;transform:translateY(100%);transition:transform .42s cubic-bezier(.2,.9,.25,1);box-shadow:0 -30px 70px rgba(0,0,0,.6)}
+.rcOvWrap.on .rcSheet{transform:translateY(0)}
+.rcIcon{width:88px;height:88px;border-radius:50%;background:rgba(201,164,76,.14);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 24px;position:relative;flex:none}
+.rcIcon.pulse::before{content:"";position:absolute;inset:-9px;border-radius:50%;border:2px solid #e5c46b;animation:rcPulse 1.6s ease-out infinite}
+.rcIcon.pulse::after{content:"";position:absolute;inset:-20px;border-radius:50%;border:1.5px solid rgba(229,196,107,.5);animation:rcPulse 1.6s ease-out .3s infinite}
+@keyframes rcPulse{0%{transform:scale(.85);opacity:.9}100%{transform:scale(1.7);opacity:0}}
+.rcSheet .k{text-align:center;font-size:11.5px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#e5c46b;margin-bottom:10px}
+.rcSheet h2{text-align:center;font-family:Oswald,sans-serif;font-weight:700;font-size:30px;text-transform:uppercase;color:#fff;margin:0 0 14px;line-height:1.2}
+.rcSheet p{text-align:center;font-size:14.5px;color:var(--muted);line-height:1.6;margin:0 auto 30px;max-width:320px}
+.rcSheet p.fine{font-size:12px;color:#e5c46b;opacity:.9;margin-top:-16px;margin-bottom:26px}
+.rcBtns{display:flex;flex-direction:column;gap:12px}
+.rcBtns .y{background:linear-gradient(180deg,#e5c46b,var(--gold));color:#161307;border:0;border-radius:14px;padding:17px;font-weight:800;font-size:14px;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;font-family:Montserrat,sans-serif}
+.rcBtns .n{background:transparent;color:var(--muted);border:1.5px solid var(--line);border-radius:14px;padding:15px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:Montserrat,sans-serif}
+.rcBtns .y:active,.rcBtns .n:active{transform:scale(.97)}
+.rcDone{display:none;width:100%;background:transparent;border:2px solid var(--gold);color:#e5c46b;border-radius:14px;padding:16px;font-weight:800;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:Montserrat,sans-serif}
+`;document.head.appendChild(css);
+
+async function alreadyOffered(){
+  if(RC.checked)return RC.already;
+  try{
+    var r=await sb.from("challenge_leads").select("id").eq("challenge","recovery7").eq("user_id",session.user.id).limit(1);
+    RC.already=!!(r.data&&r.data.length);
+  }catch(e){RC.already=false;}
+  RC.checked=true;
+  return RC.already;
+}
+function closeRC(){var w=document.getElementById("rcOvWrap");if(w)w.remove();RC.busy=false;}
+window.maybeOfferRecovery=async function(className,classTime){
+  try{
+    if(!session||!session.user||RC.busy)return;
+    if(await alreadyOffered())return;
+    RC.busy=true;
+    window.__rcClass=className;window.__rcTime=classTime;
+    openRC();
+  }catch(e){RC.busy=false;}
+};
+function openRC(){
+  document.body.insertAdjacentHTML("beforeend",
+    '<div class="rcOvWrap" id="rcOvWrap">'+
+      '<div class="rcSheet" id="rcSheet">'+
+        '<div class="rcIcon pulse" id="rcIcon">🎁</div>'+
+        '<div class="k" id="rcK">Free recovery offer</div>'+
+        '<h2 id="rcH">Fancy a free week<br>of recovery?</h2>'+
+        '<p id="rcP">Saunas, ice baths &amp; hot spa — on us for 7 days. No card, no catch.</p>'+
+        '<p class="fine" id="rcFine" style="display:none"></p>'+
+        '<div class="rcBtns" id="rcBtns">'+
+          '<button class="y" onclick="rcAccept()">Yes, I&#39;m in</button>'+
+          '<button class="n" onclick="rcDecline()">No thanks</button>'+
+        '</div>'+
+        '<button class="rcDone" id="rcDoneBtn" onclick="closeRCFinal()">Done</button>'+
+      '</div>'+
+    '</div>');
+  requestAnimationFrame(function(){var w=document.getElementById("rcOvWrap");if(w)w.classList.add("on");});
+}
+function rcMeta(){
+  return {
+    first_name:(profile&&profile.first_name)||"",
+    last_name:(profile&&profile.last_name)||"",
+    email:(profile&&profile.email)||(session&&session.user&&session.user.email)||"",
+    phone:(profile&&profile.phone)||""
+  };
+}
+window.rcAccept=async function(){
+  var m=rcMeta();
+  try{
+    await sb.from("challenge_leads").insert({challenge:"recovery7",user_id:session.user.id,first_name:m.first_name,last_name:m.last_name,email:m.email,phone:m.phone,package:"Booked "+(window.__rcClass||"a class")+" · "+(window.__rcTime||""),source:"app",status:"new",notes:"Accepted the free-week recovery offer after booking a class in the app. Waiver + walkthrough required before they start."});
+  }catch(e){}
+  RC.already=true;
+  var icon=document.getElementById("rcIcon");if(icon){icon.classList.remove("pulse");icon.textContent="✅";}
+  var k=document.getElementById("rcK");if(k)k.textContent="You're all set";
+  var h=document.getElementById("rcH");if(h)h.textContent="Congratulations!";
+  var p=document.getElementById("rcP");if(p)p.textContent="You've been given a free week of recovery. The team will be in contact with you to get you started.";
+  var fine=document.getElementById("rcFine");
+  if(fine){fine.textContent="Please don’t access recovery until a waiver and walkthrough has been completed.";fine.style.display="block";}
+  var btns=document.getElementById("rcBtns");if(btns)btns.style.display="none";
+  var db=document.getElementById("rcDoneBtn");if(db)db.style.display="block";
+};
+window.rcDecline=async function(){
+  var m=rcMeta();
+  try{
+    await sb.from("challenge_leads").insert({challenge:"recovery7",user_id:session.user.id,first_name:m.first_name,last_name:m.last_name,email:m.email,phone:m.phone,package:"Declined",source:"app",status:"no",notes:"Declined the free-week recovery offer after booking a class in the app."});
+  }catch(e){}
+  RC.already=true;
+  var w=document.getElementById("rcOvWrap");if(w)w.classList.remove("on");
+  setTimeout(function(){closeRC();if(typeof toast==="function")toast("No worries — recovery's always there if you change your mind.");},380);
+};
+window.closeRCFinal=function(){closeRC();};
+})();
+</script>
+<script>
+/*__RECOVERY_LEADS_ADMIN__*/
+(function(){
+/* Free recovery-offer accepts from inside the app. Jake & Alison only. Reads challenge_leads where challenge = recovery7.
+   Mirrors the trials-tab pattern above — same table, same staff list, different challenge key. */
+var WHO=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* Jake, Alison */
+var RC2={leads:null,f:"new",need:false};
+function me(){return !!(session&&session.user&&WHO.indexOf(session.user.id)>=0);}
+function E(s){return (typeof esc==="function")?esc(s==null?"":String(s)):String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function T(m){if(typeof toast==="function")toast(m);}
+async function load(){try{var r=await sb.from("challenge_leads").select("*").eq("challenge","recovery7").order("created_at",{ascending:false});RC2.leads=r.data||[];}catch(e){RC2.leads=[];}}
+function cnt(){var c={new:0,contacted:0,joined:0,no:0,all:0};(RC2.leads||[]).forEach(function(x){c.all++;if(c[x.status]!=null)c[x.status]++;});return c;}
+function ago(iso){var m=Math.round((Date.now()-new Date(iso))/6e4);if(m<60)return m+" min ago";var h=Math.round(m/60);if(h<24)return h+" hr ago";var d=Math.round(h/24);return d===1?"yesterday":d+" days ago";}
+function strip(){
+  if(!me())return "";
+  if(!RC2.leads){load().then(function(){if(view==="home"&&typeof renderHome==="function"){try{renderHome();}catch(e){}}});return '<div class="trStrip" onclick="go(\'recoffers\')"><div class="t">Recovery offers accepted<small>Checking…</small></div><span class="p z">Open</span></div>';}
+  var c=cnt(),accepted=c.all-c.no;
+  return '<div class="trStrip" onclick="go(\'recoffers\')"><div class="t">Recovery offers accepted<small>'+accepted+' said yes · '+c.new+' to set up · Jake &amp; Alison only</small></div><span class="p'+(c.new?'':' z')+'">'+(c.new?c.new+' new':'Open')+'</span></div>';
+}
+try{var _fch=window.fightClubHtml;window.fightClubHtml=function(){var h="";try{h=_fch?_fch.apply(this,arguments):"";}catch(e){}return (h||"")+strip();};}catch(e){}
+function render(){
+  if(!me()){go("home");return;}
+  if(RC2.need){RC2.need=false;load().then(function(){if(view==="recoffers")render();});}
+  var L=RC2.leads||[],f=RC2.f,c=cnt(),list=f==="all"?L:L.filter(function(x){return x.status===f;});
+  function tab(k,l){return '<button class="'+(f===k?"on":"")+'" onclick="rcoF(\''+k+'\')">'+l+(c[k]?' '+c[k]:'')+'</button>';}
+  $("main").innerHTML='<div class="rtcPage trPage"><button class="backBtn" onclick="go(\'home\')">‹ Home</button>'+
+   '<div class="trHead"><div class="k">In-app · free 7-day recovery offer</div><h2>Recovery offers accepted</h2><div class="w">'+c.all+' responses · '+c.new+' to set up · <a href="#" onclick="rcoReload();return false">refresh</a></div></div>'+
+   '<div class="trTabs">'+tab("new","New")+tab("contacted","Contacted")+tab("joined","Started")+tab("all","All")+'</div>'+
+   (RC2.leads===null?'<div class="card"><p>Loading…</p></div>':list.length?list.map(function(x){var ph=(x.phone||"").replace(/\s/g,"");var s=x.status;
+     return '<div class="rtcLead '+(s==="new"?"new":"")+'"><div class="top"><div><div class="nm">'+E((x.first_name+" "+(x.last_name||"")).trim()||"Member")+'</div><div class="meta">'+ago(x.created_at)+' · '+new Date(x.created_at).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})+(x.contacted_at?' · contacted '+new Date(x.contacted_at).toLocaleDateString("en-AU",{day:"numeric",month:"short"}):'')+'</div></div><div class="pk">'+E(x.package||"")+'</div></div>'+
+     '<div class="ct"><a href="tel:'+E(ph)+'">📞 '+E(x.phone||"no number")+'</a><a href="sms:'+E(ph)+'">💬 Text</a><a href="mailto:'+E(x.email||"")+'">✉️ '+E(x.email||"")+'</a></div>'+
+     '<div class="st"><button class="'+(s==="new"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'new\')">New</button><button class="'+(s==="contacted"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'contacted\')">Contacted</button><button class="j '+(s==="joined"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'joined\')">Started</button><button class="x '+(s==="no"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'no\')">Declined</button></div>'+
+     '<textarea placeholder="Note — e.g. waiver signed, walkthrough booked Tuesday" onblur="rcoNote(\''+x.id+'\',this)">'+E(x.notes||"")+'</textarea></div>';}).join(""):'<div class="card"><p>'+(f==="new"?"Nobody waiting — all caught up.":"Nothing here yet.")+'</p></div>')+
+   '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">Only you and Alison can see this list. Don’t let anyone into recovery until a waiver and walkthrough has been done.</p></div>';
+}
+window.rcoF=function(f){RC2.f=f;render();};
+window.rcoReload=async function(){await load();render();T("Updated");};
+window.rcoSt=async function(id,st){if(!me())return;var L=(RC2.leads||[]).find(function(x){return x.id===id;});if(!L)return;
+  var up={status:st,updated_at:new Date().toISOString()};if(st==="contacted"&&!L.contacted_at){up.contacted_at=up.updated_at;up.contacted_by=session.user.id;}
+  var r=await sb.from("challenge_leads").update(up).eq("id",id);if(r.error){T(r.error.message);return;}
+  Object.assign(L,up);T(st==="contacted"?"Marked contacted":st==="joined"?"Marked started ✓":st==="no"?"Marked declined":"Back to new");render();};
+window.rcoNote=async function(id,el){var L=(RC2.leads||[]).find(function(x){return x.id===id;});if(!L||el.value===(L.notes||""))return;var r=await sb.from("challenge_leads").update({notes:el.value,updated_at:new Date().toISOString()}).eq("id",id);if(r.error){T(r.error.message);return;}L.notes=el.value;T("Note saved");};
+try{NAV_TAB.recoffers="home";}catch(e){}
+var _render=window.render;window.render=function(){if(view==="recoffers")return render();return _render.apply(this,arguments);};
+try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(v==="home")RC2.leads=RC2.leads;return _go.apply(this,arguments);};}catch(e){}
 })();
 </script>
 <script src="/fc.js?v=202610042200"></script>
