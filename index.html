@@ -583,7 +583,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610060604";
+const LG_BUILD="202610060611";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10914,6 +10914,33 @@ function T(m){if(typeof toast==="function")toast(m);}
 async function load(){try{var r=await sb.from("challenge_leads").select("*").eq("challenge","recovery7").order("created_at",{ascending:false});RC2.leads=r.data||[];}catch(e){RC2.leads=[];}}
 function cnt(){var c={new:0,contacted:0,joined:0,no:0,all:0};(RC2.leads||[]).forEach(function(x){c.all++;if(c[x.status]!=null)c[x.status]++;});return c;}
 function ago(iso){var m=Math.round((Date.now()-new Date(iso))/6e4);if(m<60)return m+" min ago";var h=Math.round(m/60);if(h<24)return h+" hr ago";var d=Math.round(h/24);return d===1?"yesterday":d+" days ago";}
+function countdownText(startIso){
+  if(!startIso)return "";
+  var end=new Date(startIso).getTime()+7*864e5,diff=end-Date.now();
+  if(diff<=0)return "Trial ended";
+  var totH=Math.floor(diff/36e5),d=Math.floor(totH/24),h=totH%24,m=Math.floor((diff%36e5)/6e4);
+  return d>0?(d+"d "+h+"h left"):(h+"h "+m+"m left");
+}
+var _rcTick=null;
+function startTick(){
+  if(_rcTick)return;
+  _rcTick=setInterval(function(){
+    document.querySelectorAll(".rcCountdown").forEach(function(el){
+      var t=countdownText(el.getAttribute("data-start"));
+      el.textContent=t;el.classList.toggle("over",t==="Trial ended");
+    });
+  },60000);
+}
+var _rcCssDone=false;
+function injectCss(){
+  if(_rcCssDone)return;_rcCssDone=true;
+  var css=document.createElement("style");css.textContent=`
+.rcTrial{margin-top:6px;display:inline-flex;align-items:center;gap:6px;background:#15210f;border:1px solid #3a6b2a;border-radius:999px;padding:5px 11px}
+.rcTrial .rcCountdown{font-family:Oswald,sans-serif;font-weight:700;font-size:12px;color:#7ad95a;letter-spacing:.3px}
+.rcTrial .rcCountdown.over{color:#9a9891}
+.rcTrial .lbl{font-size:10px;color:#9a9891;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+`;document.head.appendChild(css);
+}
 function strip(){
   if(!me())return "";
   if(!RC2.leads){load().then(function(){if(view==="home"&&typeof renderHome==="function"){try{renderHome();}catch(e){}}});return '<div class="trStrip" onclick="go(\'recoffers\')"><div class="t">Recovery offers accepted<small>Checking…</small></div><span class="p z">Open</span></div>';}
@@ -10923,6 +10950,7 @@ function strip(){
 try{var _fch=window.fightClubHtml;window.fightClubHtml=function(){var h="";try{h=_fch?_fch.apply(this,arguments):"";}catch(e){}return (h||"")+strip();};}catch(e){}
 function render(){
   if(!me()){go("home");return;}
+  injectCss();startTick();
   if(RC2.need){RC2.need=false;load().then(function(){if(view==="recoffers")render();});}
   var L=RC2.leads||[],f=RC2.f,c=cnt(),list=f==="all"?L:L.filter(function(x){return x.status===f;});
   function tab(k,l){return '<button class="'+(f===k?"on":"")+'" onclick="rcoF(\''+k+'\')">'+l+(c[k]?' '+c[k]:'')+'</button>';}
@@ -10930,7 +10958,7 @@ function render(){
    '<div class="trHead"><div class="k">In-app · free 7-day recovery offer</div><h2>Recovery offers accepted</h2><div class="w">'+c.all+' responses · '+c.new+' to set up · <a href="#" onclick="rcoReload();return false">refresh</a></div></div>'+
    '<div class="trTabs">'+tab("new","New")+tab("contacted","Contacted")+tab("joined","Started")+tab("all","All")+'</div>'+
    (RC2.leads===null?'<div class="card"><p>Loading…</p></div>':list.length?list.map(function(x){var ph=(x.phone||"").replace(/\s/g,"");var s=x.status;
-     return '<div class="rtcLead '+(s==="new"?"new":"")+'"><div class="top"><div><div class="nm">'+E((x.first_name+" "+(x.last_name||"")).trim()||"Member")+'</div><div class="meta">'+ago(x.created_at)+' · '+new Date(x.created_at).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})+(x.contacted_at?' · contacted '+new Date(x.contacted_at).toLocaleDateString("en-AU",{day:"numeric",month:"short"}):'')+'</div></div><div class="pk">'+E(x.package||"")+'</div></div>'+
+     return '<div class="rtcLead '+(s==="new"?"new":"")+'"><div class="top"><div><div class="nm">'+E((x.first_name+" "+(x.last_name||"")).trim()||"Member")+'</div><div class="meta">'+ago(x.created_at)+' · '+new Date(x.created_at).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})+(x.contacted_at?' · contacted '+new Date(x.contacted_at).toLocaleDateString("en-AU",{day:"numeric",month:"short"}):'')+'</div>'+(s==="joined"&&x.started_at?'<div class="rcTrial"><span class="lbl">Trial</span><span class="rcCountdown'+(countdownText(x.started_at)==="Trial ended"?" over":"")+'" data-start="'+E(x.started_at)+'">'+countdownText(x.started_at)+'</span></div>':'')+'</div><div class="pk">'+E(x.package||"")+'</div></div>'+
      '<div class="ct"><a href="tel:'+E(ph)+'">📞 '+E(x.phone||"no number")+'</a><a href="sms:'+E(ph)+'">💬 Text</a><a href="mailto:'+E(x.email||"")+'">✉️ '+E(x.email||"")+'</a></div>'+
      '<div class="st"><button class="'+(s==="new"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'new\')">New</button><button class="'+(s==="contacted"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'contacted\')">Contacted</button><button class="j '+(s==="joined"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'joined\')">Started</button><button class="x '+(s==="no"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'no\')">Declined</button></div>'+
      '<textarea placeholder="Note — e.g. waiver signed, walkthrough booked Tuesday" onblur="rcoNote(\''+x.id+'\',this)">'+E(x.notes||"")+'</textarea></div>';}).join(""):'<div class="card"><p>'+(f==="new"?"Nobody waiting — all caught up.":"Nothing here yet.")+'</p></div>')+
@@ -10940,8 +10968,9 @@ window.rcoF=function(f){RC2.f=f;render();};
 window.rcoReload=async function(){await load();render();T("Updated");};
 window.rcoSt=async function(id,st){if(!me())return;var L=(RC2.leads||[]).find(function(x){return x.id===id;});if(!L)return;
   var up={status:st,updated_at:new Date().toISOString()};if(st==="contacted"&&!L.contacted_at){up.contacted_at=up.updated_at;up.contacted_by=session.user.id;}
+  if(st==="joined"&&!L.started_at){up.started_at=up.updated_at;}
   var r=await sb.from("challenge_leads").update(up).eq("id",id);if(r.error){T(r.error.message);return;}
-  Object.assign(L,up);T(st==="contacted"?"Marked contacted":st==="joined"?"Marked started ✓":st==="no"?"Marked declined":"Back to new");render();};
+  Object.assign(L,up);T(st==="contacted"?"Marked contacted":st==="joined"?"Started — 7-day trial is now counting down":st==="no"?"Marked declined":"Back to new");render();};
 window.rcoNote=async function(id,el){var L=(RC2.leads||[]).find(function(x){return x.id===id;});if(!L||el.value===(L.notes||""))return;var r=await sb.from("challenge_leads").update({notes:el.value,updated_at:new Date().toISOString()}).eq("id",id);if(r.error){T(r.error.message);return;}L.notes=el.value;T("Note saved");};
 try{NAV_TAB.recoffers="home";}catch(e){}
 var _render=window.render;window.render=function(){if(view==="recoffers")return render();return _render.apply(this,arguments);};
