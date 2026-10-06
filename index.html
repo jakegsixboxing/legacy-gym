@@ -162,6 +162,19 @@ main{max-width:520px;margin:0 auto;padding:20px 18px}
 .cbBtn.lock{background:transparent;border:1.5px solid var(--gold-dim,#3a3324);color:var(--gold);text-decoration:none;display:flex;align-items:center;justify-content:center}
 .cbMate{width:44px;height:40px;border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;background:#0e0e0e;cursor:pointer;color:#fff;flex:none}
 .cbHint{font-size:10.5px;color:var(--muted);margin-top:10px;text-align:center;line-height:1.4}
+.cbRosterBtn{width:100%;margin-top:8px;background:rgba(201,164,76,.08);border:1px solid var(--gold-dim,#3a3324);color:var(--gold);font-size:10.5px;font-weight:700;letter-spacing:.5px;padding:9px 10px;border-radius:9px;cursor:pointer;font-family:inherit;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cbRosterBtn span.n{color:var(--muted);font-weight:600}
+.clsRosterOv{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+.clsRosterCard{width:100%;max-width:560px;max-height:82vh;background:var(--panel,#121214);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));overflow-y:auto}
+.clsRosterCard h3{margin:0;font-family:Oswald,sans-serif;font-size:18px;color:#fff;text-transform:uppercase;letter-spacing:.5px}
+.clsRosterCard .sub{font-size:12px;color:var(--muted);margin-top:4px}
+.clsRosterList{margin-top:14px;display:flex;flex-direction:column;gap:0}
+.clsRosterRow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.clsRosterRow:first-child{border-top:0}
+.clsRosterRow .num{font-family:Oswald,sans-serif;font-size:11px;color:var(--muted);width:20px;flex:none}
+.clsRosterRow .nm{font-size:13.5px;color:#fff;font-weight:600}
+.clsRosterEmpty{padding:26px 0;text-align:center;color:var(--muted);font-size:13px}
+.clsRosterClose{width:100%;margin-top:16px;background:transparent;border:1px solid var(--line);color:#fff;font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:13px;border-radius:10px;cursor:pointer;font-family:inherit}
 .cbClosed{margin-top:10px;border-radius:16px;border:1px solid #7a2a2e;background:linear-gradient(180deg,rgba(229,72,77,.14),rgba(8,8,10,.9));padding:16px;text-align:left}
 .cbClosed .k{font-size:9px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#ff7a7e}.cbClosed h3{font-family:Oswald,sans-serif;font-size:18px;text-transform:uppercase;margin-top:4px}.cbClosed p{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45}
 .cbEmpty{margin-top:10px;border-radius:16px;border:1px solid var(--line);background:var(--card,#121212);padding:14px;font-size:12px;color:var(--muted);line-height:1.5;text-align:left}
@@ -570,7 +583,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610051800";
+const LG_BUILD="202610060217";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -1567,6 +1580,8 @@ async function renderClasses(){
   const dayList=[];
   for(let off=0;off<=13;off++){const day=new Date(now);day.setDate(day.getDate()+off);if(day>horizon&&off>0)break;const ds=isoDateLocal(day);dayList.push({date:ds,dow:day.getDay(),off,closed:classDayClosed(ds),items:cls.filter(c=>c.date===ds&&!c.closed)});}
   const bookedDates=new Set(regs.filter(r=>r.user_id===uid).map(r=>r.class_date));
+  const isStaff=profile&&profile.is_staff;
+  window.__classRoster=window.__classRoster||{};
   if(!window.__cbSel||!dayList.some(d=>d.date===window.__cbSel)){const first=dayList.find(d=>d.items.length)||dayList[0];window.__cbSel=first?first.date:d0;}
   const sel=dayList.find(d=>d.date===window.__cbSel)||dayList[0];
   const DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -1586,6 +1601,8 @@ async function renderClasses(){
     const hsh=t=>{let h=0;for(const ch of String(t))h=(h*31+ch.charCodeAt(0))>>>0;return h;};
     sel.items.forEach(c=>{
       const these=regs.filter(r=>r.class_date===c.date&&r.class_time===c.t);
+      const rosterKey=c.date+"|"+c.t;
+      window.__classRoster[rosterKey]={cls:c.n,date:c.date,t:c.t,names:these.slice().sort((a,b)=>(a.created_at||"").localeCompare(b.created_at||"")).map(r=>r.name)};
       const mine=these.find(r=>r.user_id===uid);
       const others=these.filter(r=>r.user_id!==uid);
       const myWaitRow=myWait.find(w=>w.class_date===c.date&&w.class_time===c.t);
@@ -1604,6 +1621,7 @@ async function renderClasses(){
         <div class="cbRow"><div class="cbTm">${tm[0]}<small>${tm[1]} \u00b7 45 MIN</small></div>${badge}</div>
         <div class="cbNm">${esc(c.n)}</div><div class="cbCat">${catLbl}</div>
         <div class="cbWho"><div class="cbAvs">${mine?`<i class="me">ME</i>`:""}${shown.map(r=>`<i style="background:${COLS[hsh(r.name)%COLS.length]}">${ini(r.name)}</i>`).join("")}</div><span>${who}</span></div>
+        ${isStaff?`<button class="cbRosterBtn" onclick="openClassRoster('${rosterKey}')">👥 Who's attending<span class="n">${these.length} ${these.length===1?"person":"people"} ›</span></button>`:""}
         <div class="cbCap"><i style="width:${pct}%"></i></div>
         <div class="cbBook">${mine?`<button class="cbBtn in" onclick="unattendClass('${c.date}','${c.t}','${esc(c.n)}')">You're in \u2713 \u00b7 tap to pull out</button>`
           :!canBook?`<a class="cbBtn lock" href="https://www.legacygym.net/pages/memberships" target="_blank" rel="noopener">\ud83d\udd12 Upgrade to book</a>`
@@ -1616,6 +1634,24 @@ async function renderClasses(){
   if(!takeoverDone&&CLASS_TAKEOVER.date&&d0<=CLASS_TAKEOVER.date){takeoverDone=true;html+=takeoverHtml();}
   c2.innerHTML=html;
 }
+
+window.openClassRoster=function(key){
+  const r=window.__classRoster&&window.__classRoster[key];
+  if(!r)return;
+  closeClassRoster();
+  const ov=document.createElement("div");
+  ov.className="clsRosterOv";ov.id="clsRosterOv";
+  ov.addEventListener("click",function(e){if(e.target===ov)closeClassRoster();});
+  const rows=r.names.length?r.names.map((n,i)=>`<div class="clsRosterRow"><span class="num">${i+1}</span><span class="nm">${esc(n)}</span></div>`).join(""):`<div class="clsRosterEmpty">No one's booked in yet.</div>`;
+  ov.innerHTML=`<div class="clsRosterCard">
+    <h3>${esc(r.cls)}</h3>
+    <div class="sub">${fmtDateAU(r.date)} · ${fmtClassTime(r.t)} · ${r.names.length} attending</div>
+    <div class="clsRosterList">${rows}</div>
+    <button class="clsRosterClose" onclick="closeClassRoster()">Close</button>
+  </div>`;
+  document.body.appendChild(ov);
+};
+window.closeClassRoster=function(){const el=document.getElementById("clsRosterOv");if(el)el.remove();};
 
 async function submitClassPoint(date,time){
   const ok=await awardPoints("class","class:"+date+":"+time,1);
