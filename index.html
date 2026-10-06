@@ -583,7 +583,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610060559";
+const LG_BUILD="202610060604";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10904,9 +10904,9 @@ window.closeRCFinal=function(){closeRC();};
 <script>
 /*__RECOVERY_LEADS_ADMIN__*/
 (function(){
-/* Free recovery-offer accepts from inside the app. Jake & Alison only. Reads challenge_leads where challenge = recovery7.
+/* Free recovery-offer accepts from inside the app. Jake, Alison & Kelly. Reads challenge_leads where challenge = recovery7.
    Mirrors the trials-tab pattern above — same table, same staff list, different challenge key. */
-var WHO=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* Jake, Alison */
+var WHO=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce","09e6788d-f0cd-4c7a-a0b0-2dd9db75bbeb"]; /* Jake, Alison, Kelly */
 var RC2={leads:null,f:"new",need:false};
 function me(){return !!(session&&session.user&&WHO.indexOf(session.user.id)>=0);}
 function E(s){return (typeof esc==="function")?esc(s==null?"":String(s)):String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
@@ -10918,7 +10918,7 @@ function strip(){
   if(!me())return "";
   if(!RC2.leads){load().then(function(){if(view==="home"&&typeof renderHome==="function"){try{renderHome();}catch(e){}}});return '<div class="trStrip" onclick="go(\'recoffers\')"><div class="t">Recovery offers accepted<small>Checking…</small></div><span class="p z">Open</span></div>';}
   var c=cnt(),accepted=c.all-c.no;
-  return '<div class="trStrip" onclick="go(\'recoffers\')"><div class="t">Recovery offers accepted<small>'+accepted+' said yes · '+c.new+' to set up · Jake &amp; Alison only</small></div><span class="p'+(c.new?'':' z')+'">'+(c.new?c.new+' new':'Open')+'</span></div>';
+  return '<div class="trStrip" onclick="go(\'recoffers\')"><div class="t">Recovery offers accepted<small>'+accepted+' said yes · '+c.new+' to set up</small></div><span class="p'+(c.new?'':' z')+'">'+(c.new?c.new+' new':'Open')+'</span></div>';
 }
 try{var _fch=window.fightClubHtml;window.fightClubHtml=function(){var h="";try{h=_fch?_fch.apply(this,arguments):"";}catch(e){}return (h||"")+strip();};}catch(e){}
 function render(){
@@ -10934,7 +10934,7 @@ function render(){
      '<div class="ct"><a href="tel:'+E(ph)+'">📞 '+E(x.phone||"no number")+'</a><a href="sms:'+E(ph)+'">💬 Text</a><a href="mailto:'+E(x.email||"")+'">✉️ '+E(x.email||"")+'</a></div>'+
      '<div class="st"><button class="'+(s==="new"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'new\')">New</button><button class="'+(s==="contacted"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'contacted\')">Contacted</button><button class="j '+(s==="joined"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'joined\')">Started</button><button class="x '+(s==="no"?"on":"")+'" onclick="rcoSt(\''+x.id+'\',\'no\')">Declined</button></div>'+
      '<textarea placeholder="Note — e.g. waiver signed, walkthrough booked Tuesday" onblur="rcoNote(\''+x.id+'\',this)">'+E(x.notes||"")+'</textarea></div>';}).join(""):'<div class="card"><p>'+(f==="new"?"Nobody waiting — all caught up.":"Nothing here yet.")+'</p></div>')+
-   '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">Only you and Alison can see this list. Don’t let anyone into recovery until a waiver and walkthrough has been done.</p></div>';
+   '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">Only Jake, Alison and Kelly can see this list. Don’t let anyone into recovery until a waiver and walkthrough has been done.</p></div>';
 }
 window.rcoF=function(f){RC2.f=f;render();};
 window.rcoReload=async function(){await load();render();T("Updated");};
