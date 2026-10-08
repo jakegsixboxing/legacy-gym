@@ -583,7 +583,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610060611";
+const LG_BUILD="202610080430";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -815,6 +815,7 @@ function render(){
   if(view==="timetable")return renderTimetable();
   if(view==="classes")return renderClasses();
   if(view==="social")return renderSocial();
+  if(view==="sponsorship")return renderSponsorship();
   if(view==="staff")return renderStaff();
   if(view==="chat")return renderChat();
   if(view==="profile")return renderProfile();
@@ -865,7 +866,8 @@ const HOME_CARDS=[
  {id:"hyrox",kicker:"Race Yourself Fitter",title:"HYROX",sub:"Full sessions, every station, smart training built on real coaching — all trackable, all worth points.",hyroxLogo:true},
  {id:"board",kicker:"The Ladder",title:"Members Leaderboard",sub:"Every point, every member — see who runs the gym.",img:"leaderboard"},
  {id:"social",kicker:"Get Amongst It",title:"Social Events",sub:"Golf days, fight nights & gym socials — put your name down.",img:"social"},
- {id:"shop",kicker:"Official Store",title:"Shop Apparel",sub:"Hoodies, tees & gear straight from our store — spend your credit here.",img:"shopmerch"}
+ {id:"shop",kicker:"Official Store",title:"Shop Apparel",sub:"Hoodies, tees & gear straight from our store — spend your credit here.",img:"shopmerch"},
+ {id:"sponsorship",kicker:"Partner With Legacy",title:"Sponsorship",sub:"Sponsor a training ring, the Fight Night ring, or back a pro boxer — your business in the gym and on fight night.",img:"boxing"}
 ]; /* Local Blokes card removed 26 Sep 2026 — program finished; former Blokes now have Sparring Club (is_fighter) */ /* Nutrition card removed 30 Aug — restore when the nutrition coach feature is built */
 function _stepNum(s){return parseInt(String(s).replace(/[^0-9]/g,''),10)||0;}
 function _kmNum(s){return parseFloat(String(s).replace(/[^0-9.]/g,''))||0;}
@@ -953,14 +955,38 @@ function renderHome(){
       <div class="hcSub">Team chat, daily tasks & PT commissions.</div>
     </button>`:""}
     <div style="margin-top:26px;padding:18px 0 6px;border-top:1px solid #1c1c1e;text-align:center">
-      <a href="/sarsha-mcgurk" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;color:var(--gold);text-decoration:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase">&#9733; Sponsor A Pro Boxer</a>
-      <div style="font-size:10px;color:var(--muted);margin-top:5px;letter-spacing:.4px">Back Sarsha McGurk&rsquo;s road to the ring</div>
+      <a href="#" onclick="go('sponsorship');return false;" style="display:inline-flex;align-items:center;gap:8px;color:var(--gold);text-decoration:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase">&#9733; Sponsorship</a>
+      <div style="font-size:10px;color:var(--muted);margin-top:5px;letter-spacing:.4px">Sponsor a ring, or back Sarsha McGurk&rsquo;s road to the ring</div>
     </div>`;
   updateBadges();
 startTimetableCountdown();
 startSpringCountdown();
   t10MaybePopup();
   reviewMaybePopup();
+}
+/* ---- Sponsorship hub (Sponsor A Ring + Sponsor A Pro Boxer) ---- */
+function renderSponsorship(){
+  $("main").innerHTML=`
+    <button class="backBtn" onclick="go('home')">&lsaquo; Back Home</button>
+    <div class="hero" style="${bgStyle('boxing',.5)}">
+      <div class="heroKicker">Partner With Legacy Gym</div>
+      <div class="heroTitle">Sponsorship</div>
+      <div class="heroText">Put your business in the ring. Pick a package, leave your details, and the Legacy team will call you to lock it in.</div>
+    </div>
+    <a class="homeCard" href="/sponsor-a-ring" target="_blank" rel="noopener" style="${bgStyle('boxing',.55)};text-decoration:none;display:block">
+      <div class="hcKicker">Training Rings &amp; Fight Night</div>
+      <div class="hcTitle">Sponsor A Ring</div>
+      <div class="hcSub">Your logo on the four training rings members use every day (six-month terms from $800), or on the Fight Night ring in front of the crowd and the live stream. Every logo zone shown to scale.</div>
+    </a>
+    <a class="homeCard" href="/sarsha-mcgurk" target="_blank" rel="noopener" style="${bgStyle('social',.55)};text-decoration:none;display:block">
+      <div class="hcKicker">Pro Boxer &middot; Year-Round Partnerships</div>
+      <div class="hcTitle">Sponsor A Pro Boxer</div>
+      <div class="hcSub">Back Sarsha McGurk &mdash; WBO Asia Pacific, WBC Asian Gold, UBF and NSW State Champion &mdash; on her road back to the ring.</div>
+    </a>
+    <div class="card" style="margin-top:14px;text-align:center;padding:18px">
+      <div style="font-weight:900;letter-spacing:3px;color:var(--gold);font-size:11px;text-transform:uppercase">How it works</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6">Choose a package on either page and hit <b style="color:var(--text)">I Want This Spot</b>. You'll leave your name, business name, number and email &mdash; it lands straight in the Legacy inbox and we call you back to confirm the placement, term and artwork.</div>
+    </div>`;
 }
 function timetableCountdownHtml(){
   var t=new Date(2026,6,20,5,15,0,0).getTime();
