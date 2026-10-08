@@ -1,7 +1,12 @@
 -- Legacy Gym — Road to Xmas Challenge section (Training Log · Check-Ins · Leaderboard · Overview)
 -- Spec: HANDOVER_road_to_xmas.md + legacy_rtc_app_spec.xlsx (Ali, Oct 2026)
+-- Coach access: Alison only (is_rtc_coach) — full read/write on every member's rows. Members: own rows only.
 -- Registration flag already exists: public.challenge_regs where challenge = 'rtc2026'.
 -- Points are NOT a new system: the Leaderboard is a filtered read of public.points_events.
+
+create or replace function public.is_rtc_coach(uid uuid) returns boolean language sql stable security definer set search_path=public as $$
+  select uid = 'f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce'::uuid  -- Alison
+$$;
 
 -- ---------- Mon–Thu lift sessions ----------
 create table if not exists public.rtc_sessions (
@@ -24,8 +29,8 @@ drop policy if exists "rtcs read" on public.rtc_sessions;
 drop policy if exists "rtcs insert" on public.rtc_sessions;
 drop policy if exists "rtcs update" on public.rtc_sessions;
 drop policy if exists "rtcs delete" on public.rtc_sessions;
-create policy "rtcs read"   on public.rtc_sessions for select using (auth.uid() = user_id or public.is_coach(auth.uid()) or public.is_staff(auth.uid()));
-create policy "rtcs insert" on public.rtc_sessions for insert with check (auth.uid() = user_id);
+create policy "rtcs read"   on public.rtc_sessions for select using (auth.uid() = user_id or public.is_rtc_coach(auth.uid()));
+create policy "rtcs insert" on public.rtc_sessions for insert with check (auth.uid() = user_id or public.is_rtc_coach(auth.uid()));
 create policy "rtcs update" on public.rtc_sessions for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "rtcs delete" on public.rtc_sessions for delete using (auth.uid() = user_id);
 
@@ -46,7 +51,7 @@ drop policy if exists "rtcsat read" on public.rtc_saturday;
 drop policy if exists "rtcsat insert" on public.rtc_saturday;
 drop policy if exists "rtcsat update" on public.rtc_saturday;
 drop policy if exists "rtcsat delete" on public.rtc_saturday;
-create policy "rtcsat read"   on public.rtc_saturday for select using (auth.uid() = user_id or public.is_coach(auth.uid()) or public.is_staff(auth.uid()));
+create policy "rtcsat read"   on public.rtc_saturday for select using (auth.uid() = user_id or public.is_rtc_coach(auth.uid()));
 create policy "rtcsat insert" on public.rtc_saturday for insert with check (auth.uid() = user_id);
 create policy "rtcsat update" on public.rtc_saturday for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "rtcsat delete" on public.rtc_saturday for delete using (auth.uid() = user_id);
@@ -71,7 +76,7 @@ drop policy if exists "rtcci read" on public.rtc_checkins;
 drop policy if exists "rtcci insert" on public.rtc_checkins;
 drop policy if exists "rtcci update" on public.rtc_checkins;
 drop policy if exists "rtcci delete" on public.rtc_checkins;
-create policy "rtcci read"   on public.rtc_checkins for select using (auth.uid() = user_id or public.is_coach(auth.uid()) or public.is_staff(auth.uid()));
+create policy "rtcci read"   on public.rtc_checkins for select using (auth.uid() = user_id or public.is_rtc_coach(auth.uid()));
 create policy "rtcci insert" on public.rtc_checkins for insert with check (auth.uid() = user_id);
 create policy "rtcci update" on public.rtc_checkins for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "rtcci delete" on public.rtc_checkins for delete using (auth.uid() = user_id);
@@ -87,7 +92,7 @@ create table if not exists public.rtc_coach_views (
 alter table public.rtc_coach_views enable row level security;
 drop policy if exists "rtccv insert" on public.rtc_coach_views;
 drop policy if exists "rtccv read" on public.rtc_coach_views;
-create policy "rtccv insert" on public.rtc_coach_views for insert with check (auth.uid() = coach_id and (public.is_coach(auth.uid()) or public.is_staff(auth.uid())));
+create policy "rtccv insert" on public.rtc_coach_views for insert with check (auth.uid() = coach_id and (public.is_rtc_coach(auth.uid())));
 create policy "rtccv read"   on public.rtc_coach_views for select using (public.is_staff(auth.uid()));
 
 -- ---------- Registrant list for the Leaderboard (ids only; challenge_regs itself stays self/Jake/Alison-only) ----------
@@ -113,4 +118,4 @@ create policy "rtcphoto upd" on storage.objects for update to authenticated
 create policy "rtcphoto del" on storage.objects for delete to authenticated
   using (bucket_id = 'rtc-photos' and (storage.foldername(name))[1] = auth.uid()::text);
 create policy "rtcphoto read" on storage.objects for select to authenticated
-  using (bucket_id = 'rtc-photos' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_coach(auth.uid()) or public.is_staff(auth.uid())));
+  using (bucket_id = 'rtc-photos' and ((storage.foldername(name))[1] = auth.uid()::text or public.is_rtc_coach(auth.uid())));

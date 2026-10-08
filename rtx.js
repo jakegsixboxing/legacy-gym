@@ -75,6 +75,7 @@
 .rtx .ciBox{aspect-ratio:3/4;border:1px dashed var(--blue-line);border-radius:12px;display:grid;place-items:center;color:var(--blue-ice);font-family:Oswald,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;background-size:cover;background-position:center;position:relative;overflow:hidden}
 .rtx .ciBox.has{border-style:solid}.rtx .ciBox.has span{background:rgba(0,0,0,.6);padding:3px 7px;border-radius:6px}.rtx .ciBox.ro{cursor:default}
 .rtx .ciHist{border-top:1px solid var(--border);padding:10px 0;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start}.rtx .ciHist:first-of-type{border-top:0}
+.rtx .ciDel{display:inline-block;margin-left:8px;color:var(--muted2);cursor:pointer;font-size:12px}
 .rtx .ciDate{font-family:Oswald,sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--blue-ice);margin-bottom:3px}
 .rtx .ciStats{font-size:12px;color:var(--white);line-height:1.5}.rtx .ciStats small{color:var(--muted);margin-left:3px}.rtx .ciStats small.dn{color:var(--green)}.rtx .ciStats small.up{color:var(--strength)}
 .rtx .ciNotes{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.4}
@@ -167,9 +168,11 @@
   function E(s){return typeof esc==="function"?esc(s==null?"":String(s)):String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
   function T(m){if(typeof toast==="function")toast(m);}
   function me(){return session&&session.user?session.user.id:null;}
-  function canCoach(){return !!(profile&&(profile.is_coach||profile.is_staff));}
+  var COACH_UID="f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"; /* Alison — the only Coach View account; full read/write on every member (RLS: is_rtc_coach) */
+  function canCoach(){return me()===COACH_UID;}
   function viewing(){return RTX.role==="coach"&&RTX.member?RTX.member:me();}
-  function isCoachView(){return RTX.role==="coach"&&RTX.member&&RTX.member!==me();}
+  function isCoachView(){return false;} /* Coach View is full access — nothing is read-only for Alison */
+  function onBehalf(){return RTX.role==="coach"&&RTX.member&&RTX.member!==me();}
   function curWeek(){var w=Math.floor((Date.now()-START_TS)/(7*864e5))+1;return Math.max(1,Math.min(10,w));}
   function curDay(){var d=new Date().getDay();return ["Monday","Monday","Tuesday","Wednesday","Thursday","Thursday","Saturday"][d];}
   function firstLast(n){n=String(n||"").trim();if(!n)return "Member";var p=n.split(/\s+/);return p.length>1?p[0]+" "+p[p.length-1][0].toUpperCase()+".":p[0];}
@@ -237,7 +240,7 @@
     if(me()&&!list.some(function(x){return x.id===me();}))list.unshift({id:me(),name:(RTX.names[me()]||myName())+" (me)"});
     var opts=list.map(function(m){return '<option value="'+m.id+'" '+(m.id===RTX.member?"selected":"")+'>'+E(m.name)+'</option>';}).join("");
     return '<div class="coachBar"><span class="lbl">Viewing</span><select onchange="rtxMember(this.value)">'+opts+'</select></div>'+
-      '<div class="coachNote">Coach View is read-only — '+(RTX.tab==="log"?"Training Log":"Check-Ins")+' data stays private to each member; coaches can look it up, not log on their behalf.</div>';
+      '<div class="coachNote">Coach View — you\'re looking at '+(RTX.tab==="log"?"the Training Log":"the Check-Ins")+' for the member above. Anything you submit here is saved to their record.</div>';
   }
   function renderPane(){
     var bar=$("rtxCoachBar");if(bar)bar.innerHTML=coachBarHtml();
@@ -330,8 +333,8 @@
   window.rtxWeek=function(n){RTX.week=Math.max(1,Math.min(10,RTX.week+n));renderPane();};
   function collect(key){var by={};document.querySelectorAll('#rtxPane input.inp[data-k="'+key+'"]').forEach(function(i){var idx=i.dataset.i;by[idx]=by[idx]||{};by[idx][i.dataset.f]=i.value.trim();});return Object.keys(by).sort(function(a,b){return a-b;}).map(function(k){return by[k];});}
   window.rtxSubmit=async function(){
-    if(isCoachView()||!me())return;
-    var day=RTX.day,wk=RTX.week,btn=$("rtxSubmit");if(btn)btn.disabled=true;
+    if(!me())return;
+    var uid=viewing(),day=RTX.day,wk=RTX.week,btn=$("rtxSubmit");if(btn)btn.disabled=true;
     var comments=($("rtxComments")&&$("rtxComments").value.trim())||"";
     var r;
     if(day==="Saturday"){
@@ -339,11 +342,11 @@
       document.querySelectorAll('#rtxPane input.inp[data-s]').forEach(function(i){var idx=Number(i.dataset.s);st[idx]=st[idx]||{name:info.stations[idx].name,type:info.stations[idx].type};st[idx][i.dataset.f]=i.value.trim();});
       var filled=st.some(function(s){return s&&(s.value||s.time||s.distance);});
       if(!filled){T("Log at least one station first.");if(btn)btn.disabled=false;return;}
-      r=await sb.from("rtc_saturday").upsert({user_id:me(),challenge:KEY,week:wk,stations:st,comments:comments,updated_at:new Date().toISOString()},{onConflict:"user_id,challenge,week"}).select().single();
+      r=await sb.from("rtc_saturday").upsert({user_id:uid,challenge:KEY,week:wk,stations:st,comments:comments,updated_at:new Date().toISOString()},{onConflict:"user_id,challenge,week"}).select().single();
       if(!r.error){RTX.sats=RTX.sats.filter(function(s){return s.week!==wk;}).concat([r.data]);}
     }else{
       var mainGoal=goalFor(day,"main",wk);
-      var row={user_id:me(),challenge:KEY,week:wk,day:day,main_lift:LIFT_MAIN[day][wk-1],main_sets:mainGoal.type==="notlogged"?[]:collect("main"),secondary_lift:(LIFT_SEC[day]||[])[wk-1]||"",secondary_sets:(day==="Tuesday"||day==="Thursday")?collect("sec"):[],comments:comments,updated_at:new Date().toISOString()};
+      var row={user_id:uid,challenge:KEY,week:wk,day:day,main_lift:LIFT_MAIN[day][wk-1],main_sets:mainGoal.type==="notlogged"?[]:collect("main"),secondary_lift:(LIFT_SEC[day]||[])[wk-1]||"",secondary_sets:(day==="Tuesday"||day==="Thursday")?collect("sec"):[],comments:comments,updated_at:new Date().toISOString()};
       var any=row.main_sets.concat(row.secondary_sets).some(function(s){return s&&(s.reps||s.weight);});
       if(!any){T("Fill in at least one set — reps and kilos.");if(btn)btn.disabled=false;return;}
       r=await sb.from("rtc_sessions").upsert(row,{onConflict:"user_id,challenge,week,day"}).select().single();
@@ -368,7 +371,7 @@
     var list=RTX.checkins.slice().reverse();
     var hist=list.map(function(c,i){var p=list[i+1];
       var thumbs=["front","side","back"].map(function(k){var path=c["photo_"+k];return path?'<div class="ciThumb" data-path="'+E(path)+'" onclick="rtxZoom(this)"></div>':'<div class="ciThumb"></div>';}).join("");
-      return '<div class="ciHist"><div><div class="ciDate">'+fmtDate(c.logged_at)+'</div><div class="ciStats">'+
+      return '<div class="ciHist"><div><div class="ciDate">'+fmtDate(c.logged_at)+' <span class="ciDel" onclick="rtxDelCheckin(\''+c.id+'\')" title="Remove">✕</span></div><div class="ciStats">'+
         val(num(c.bodyweight),"kg")+delta(num(c.bodyweight),p&&num(p.bodyweight),"kg")+'<br>Waist '+val(num(c.waist),"cm")+delta(num(c.waist),p&&num(p.waist),"cm")+' · Hips '+val(num(c.hips),"cm")+delta(num(c.hips),p&&num(p.hips),"cm")+' · Chest '+val(num(c.chest),"cm")+delta(num(c.chest),p&&num(p.chest),"cm")+'</div>'+
         (c.notes?'<div class="ciNotes">'+E(c.notes)+'</div>':'')+'</div><div class="ciThumbs">'+thumbs+'</div></div>';}).join("");
     var form=ro?'<div class="ro" style="margin-bottom:10px">Coach View — Read Only</div>':
@@ -397,15 +400,15 @@
     var d=document.createElement("div");d.className="rtxZoom";d.innerHTML='<img src="'+u+'" alt="">';d.onclick=function(){d.remove();};document.body.appendChild(d);
   };
   window.rtxSaveCheckin=async function(){
-    if(isCoachView()||!me())return;
-    var w=num($("ciW").value.trim());
+    if(!me())return;
+    var uid=viewing();var w=num($("ciW").value.trim());
     if(w==null||isNaN(w)){T("Bodyweight first — that's the one number every check-in needs.");$("ciW").focus();return;}
     var btn=$("ciSubmit");if(btn){btn.disabled=true;btn.textContent="Saving…";}
-    var row={user_id:me(),challenge:KEY,bodyweight:w,waist:num($("ciWa").value.trim()),hips:num($("ciH").value.trim()),chest:num($("ciC").value.trim()),notes:$("ciN").value.trim()};
+    var row={user_id:uid,challenge:KEY,bodyweight:w,waist:num($("ciWa").value.trim()),hips:num($("ciH").value.trim()),chest:num($("ciC").value.trim()),notes:$("ciN").value.trim()};
     var stamp=Date.now();
     for(var k in ciPending){ if(!ciPending[k])continue;
       var f=ciPending[k].file,ext=(f.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
-      var path=me()+"/"+stamp+"-"+k+"."+ext;
+      var path=uid+"/"+stamp+"-"+k+"."+ext;
       var up=await sb.storage.from("rtc-photos").upload(path,f,{upsert:true});
       if(up.error){T("Photo ("+k+") didn't upload: "+up.error.message);if(btn){btn.disabled=false;btn.textContent="Save Check-In";}return;}
       row["photo_"+k]=path;
@@ -418,6 +421,13 @@
     T("Check-in saved ✓");
   };
 
+  window.rtxDelCheckin=async function(id){
+    if(!confirm("Remove this check-in? It comes off the history straight away."))return;
+    var r=await sb.from("rtc_checkins").delete().eq("id",id);
+    if(r.error){T(r.error.message);return;}
+    RTX.checkins=RTX.checkins.filter(function(c){return c.id!==id;});renderPane();
+  };
+
   /* ---------- Tab 3 — Leaderboard (filtered read of points_events) ---------- */
   function weekdayOf(iso){return new Date(iso+"T12:00:00").getDay();}
   function classAt(date,time){var d=weekdayOf(date);if(typeof TIMETABLE_NEW==="undefined")return null;return TIMETABLE_NEW.find(function(c){return c.d===d&&c.t===time;})||null;}
@@ -426,7 +436,7 @@
     if(e.kind==="class"&&/^class:\d{4}-\d{2}-\d{2}:\d{2}:\d{2}$/.test(e.ref)){
       var p=e.ref.split(":"),date=p[1],time=p[2]+":"+p[3],c=classAt(date,time);
       var snc=!!(c&&c.cat==="snc"),d=weekdayOf(date);
-      if(snc&&GAMES.indexOf(date)>=0)return 10;           /* Legacy Games I / II attendance */
+      if(snc&&GAMES.indexOf(date)>=0)return 5;            /* Legacy Games I / II attendance */
       if(snc&&(d===2||d===4||d===6))return 2;              /* Tue/Thu/Sat S&C sessions */
       return 1;
     }
@@ -445,7 +455,7 @@
     var html=rows.map(function(r,i){if(r.uid===mine)myIdx=i;return '<div class="lbRow '+(r.uid===mine?"you":"")+'" '+(r.uid===mine?'id="rtxMyRow"':'')+'><div class="lbRank">'+(i+1)+'</div><div class="lbName">'+E(r.name)+(r.uid===mine?'<span class="yb">YOU</span>':'')+'</div><div class="lbPts">'+r.pts+'<small>pts</small></div></div>';}).join("");
     var sticky=myIdx>=0?'<div class="lbRow you lbSticky" id="rtxMySticky" style="display:none"><div class="lbRank">'+(myIdx+1)+'</div><div class="lbName">'+E(rows[myIdx].name)+'<span class="yb">YOU</span></div><div class="lbPts">'+rows[myIdx].pts+'<small>pts</small></div></div>':"";
     return '<div class="card"><div class="lbScope"><b>Challenge Leaderboard.</b> Road to Xmas Challenge registrants only — points from '+fmtDate(START+"T12:00:00")+'.<ul>'+
-      '<li>2 pts on Tuesday/Thursday/Saturday S&amp;C sessions</li><li>1 pt every other class</li><li>Plus bonus points for members app challenges</li><li>10 points for the Legacy Games (Sat 7 Nov &amp; Sat 12 Dec)</li></ul></div></div>'+
+      '<li>2 pts on Tuesday/Thursday/Saturday S&amp;C sessions</li><li>1 pt every other class</li><li>Plus bonus points for members app challenges</li><li>5 points for the Legacy Games (Sat 7 Nov &amp; Sat 12 Dec)</li></ul></div></div>'+
       (rows.length?html:'<div class="notlogged">Nobody on the board yet — first class logged gets it started.</div>')+sticky+
       '<div class="lbFoot">Updates live as classes get logged. Ranked by total points; ties go to whoever registered first.</div>';
   }
@@ -461,7 +471,7 @@
     var lifts=OVERVIEW_LIFTS.map(function(l){return '<div class="ovLift"><div class="d">'+l.day+'</div><div>'+l.segments.map(function(s){return '<div class="ovSeg"><span>'+E(s.range)+'</span><span>'+E(s.lift)+'</span></div>';}).join("")+'</div></div>';}).join("");
     return '<div class="card"><div class="ovDates">Oct 12 – Dec 19, 2026</div><div class="ovWeeks">10 weeks · Legacy Games I (Wk 4) · Legacy Games II (Wk 9)</div></div>'+
       '<div class="secT">Phase timeline</div>'+ph+'<div class="secT">Main lift by day</div><div class="card">'+lifts+'</div>'+
-      '<div class="card"><div class="ovPts"><b>Points.</b> 2 pts on Tue/Thu/Sat S&amp;C sessions · 1 pt every other class · bonus points for members app challenges · 10 pts for the Legacy Games.</div></div>';
+      '<div class="card"><div class="ovPts"><b>Points.</b> 2 pts on Tue/Thu/Sat S&amp;C sessions · 1 pt every other class · bonus points for members app challenges · 5 pts for the Legacy Games.</div></div>';
   }
 
   /* ---------- home card (same entry pattern as Fight Club) ---------- */
