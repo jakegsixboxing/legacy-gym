@@ -220,12 +220,14 @@
   }
 
   /* ---------- shell ---------- */
+  var TOPTABS=[["overview","Overview"],["log","Training Log"],["checkins","Check-Ins"],["leaderboard","Leaderboard"]];
+  function topTabsHtml(){return TOPTABS.map(function(t){return '<div class="topTab '+(RTX.tab===t[0]?"active":"")+'" data-tab="'+t[0]+'" onclick="rtxTab(\''+t[0]+'\')">'+t[1]+'</div>';}).join("");}
+  function syncTopTabs(){var w=$("rtxTopTabs");if(w)w.innerHTML=topTabsHtml();}
   function renderRTX(){
     if(!session){go("home");return;}
     if(RTX.day==null){RTX.day=curDay();RTX.week=curWeek();}
     var coachUI=canCoach()?'<div class="roleTog" id="rtxRole"><div class="'+(RTX.role==="member"?"active":"")+'" onclick="rtxRole(\'member\')">Member View</div><div class="'+(RTX.role==="coach"?"active":"")+'" onclick="rtxRole(\'coach\')">Coach View</div></div>':"";
-    var tabs=[["log","Training Log"],["checkins","Check-Ins"],["leaderboard","Leaderboard"],["overview","Overview"]].map(function(t){return '<div class="topTab '+(RTX.tab===t[0]?"active":"")+'" onclick="rtxTab(\''+t[0]+'\')">'+t[1]+'</div>';}).join("");
-    $("main").innerHTML='<div class="rtx"><button class="backBtn" onclick="go(\'home\')">‹ Home</button>'+heroHtml()+coachUI+'<div class="topTabs">'+tabs+'</div><div id="rtxCoachBar"></div><div id="rtxPane"><div class="loadingDots">Loading…</div></div>'+
+    $("main").innerHTML='<div class="rtx"><button class="backBtn" onclick="go(\'home\')">‹ Home</button>'+heroHtml()+coachUI+'<div class="topTabs" id="rtxTopTabs">'+topTabsHtml()+'</div><div id="rtxCoachBar"></div><div id="rtxPane"><div class="loadingDots">Loading…</div></div>'+
       '<button class="rtxLink" onclick="rtxInfo()">Challenge info, nutrition &amp; who\'s in ›</button></div>';
     if(!RTX.loaded){load().then(function(){if(view==="rtx")renderPane();});}else renderPane();
   }
@@ -248,7 +250,7 @@
     if(RTX.tab==="checkins")afterCheckins();
     if(RTX.tab==="leaderboard")afterLeaderboard();
   }
-  window.rtxTab=function(t){RTX.tab=t;renderPane();try{window.scrollTo(0,0);}catch(e){}
+  window.rtxTab=function(t){RTX.tab=t;syncTopTabs();renderPane();try{window.scrollTo(0,0);}catch(e){}
     if(t==="leaderboard"){try{ptsData.loaded=false;}catch(e){}loadRegs().then(function(){if(view==="rtx"&&RTX.tab==="leaderboard")renderPane();});}};
   window.rtxRole=function(r){
     if(r==="coach"&&!canCoach())return;
