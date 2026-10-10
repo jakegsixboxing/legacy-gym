@@ -131,7 +131,7 @@ var css=document.createElement("style");css.id="fccCss";css.textContent=
  ".fccCnt span{font-size:6px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;line-height:1.3;color:var(--gold2)}.fccCnt .pts{border-color:var(--gold)}.fccCnt .pts b,.fccCnt .pts span{color:var(--gold)}"+
  ".fccVw{display:flex;gap:4px;margin:12px 0;background:rgba(0,0,0,.6);border:1px solid var(--line);border-radius:12px;padding:4px}"+
  ".fccVw button{flex:1;font-family:Anton,Oswald,sans-serif;font-weight:400;font-size:13px;letter-spacing:1.6px;text-transform:uppercase;padding:9px 2px;border-radius:9px;border:0;background:transparent;color:var(--gold2);cursor:pointer}"+
- ".fccVw button.on{background:"+G+";color:#1a1200}.fccVw button.coach{flex:.8;border:1px solid rgba(201,164,76,.5);font-size:11px}.fccVw button{white-space:nowrap}.fccVw.sub{margin:10px 0 6px}.fccVw.sub button{font-size:12px;padding:8px}"+
+ ".fccVw button.on{background:"+G+";color:#1a1200}.fccVw button.coach{flex:.8;border:1px solid rgba(201,164,76,.5);font-size:11px}.fccVw button{white-space:nowrap;font-size:11.5px;letter-spacing:1.1px;padding:9px 1px}.fccVw.sub{margin:10px 0 6px}.fccVw.sub button{font-size:12px;padding:8px}"+
  ".fccTn{padding:11px 13px 12px;margin-bottom:10px;border-width:1.5px;border-color:#d4a94a;box-shadow:0 0 8px rgba(244,201,93,.28)}.fccTn.ok{border-color:#39FF88;box-shadow:0 0 10px rgba(57,255,136,.35)}.fccTn.no{border-color:#e4002b;box-shadow:0 0 10px rgba(228,0,43,.3)}"+
  ".fccTn .k{margin-bottom:8px}.fccTn h3{font-family:Anton,Oswald,sans-serif;font-weight:400;font-size:24px;line-height:1;text-transform:uppercase;color:#fff;margin:2px 0 6px}.fccTn p{font-size:9.5px;line-height:1.5;color:var(--txt);margin:0}.fccTn p b{color:#fff}"+
  ".fccTr{display:flex;align-items:center;gap:10px}.fccTr .tt{font-family:Anton,Oswald,sans-serif;font-weight:400;font-size:34px;line-height:1;color:#fff;flex:none;text-shadow:0 1px 0 #000,0 0 8px rgba(244,201,93,.35)}.fccTr .tt small{font:700 11px Oswald,sans-serif;letter-spacing:1px;color:var(--gold2);margin-left:2px}"+
@@ -261,7 +261,7 @@ function headHtml(w){
   return pvb+'<div class="fccHd"><div class="row"><div>'+(logo?'<div class="lg" style="background-image:url(\''+logo+'\')"></div>':'')+'<div><div class="k">'+E(phase(cw))+' · Camp 2026</div><h2>'+(cw===0?'Starts <span>'+fd(campStart())+'</span>':'Week <span>'+w+'</span> of 10')+'</h2></div></div><div class="cd"><b>'+Math.max(0,days)+'</b><small>days to fight night</small></div></div>'
    +'<div class="fccWk">'+[1,2,3,4,5,6,7,8,9,10].map(function(i){return '<div class="'+(i<cw?"done":i===cw?"now":"")+'"></div>';}).join("")+'</div>'
    +'<div class="fccCnt"><div><b>'+prim+'<small>/3</small></b><span>Primary<br>Mon Tue Wed</span></div><div><b>'+snc+'<small>/2</small></b><span>Strength<br>Tue Thu</span></div><div><b>'+bon+'</b><span>Bonus<br>extra credit</span></div><div class="pts"><b>'+pts+'</b><span>Points<br>camp total</span></div></div></div>'
-   +'<div class="fccVw">'+[["today","Today"],["week","Week"],["prog","Progress"],["board","Board"]].map(function(v){return '<button class="'+(ST.view===v[0]?"on":"")+'" onclick="fccView(\''+v[0]+'\')">'+v[1]+'</button>';}).join('')+(sf()?'<button class="coach" onclick="fccTools(true)">Coach</button>':'')+'</div>';
+   +'<div class="fccVw">'+[["today","Today"],["week","Week"],["prog","Progress"],["board","Board"],["rec","Recovery"]].map(function(v){return '<button class="'+(ST.view===v[0]?"on":"")+'" onclick="fccView(\''+v[0]+'\')">'+v[1]+'</button>';}).join('')+(sf()?'<button class="coach" onclick="fccTools(true)">Coach</button>':'')+'</div>';
 }
 function todayHtml(w){
   var d=TD(),h='';
@@ -388,9 +388,10 @@ function paint(force){
       (pills||box).insertAdjacentElement("afterend",wrap);}
     if(sf()&&pills)pills.style.display="none";
     if(cm()){if(pills)pills.style.display="none";if(ST.view==="prog"||ST.view==="week")ST.view="today";var cbody=ST.view==="board"?boardHtml(w):coachTodayHtml(w);wrap.innerHTML='<div data-fct="plan" class="fccHide"></div><div data-fct="wt" class="fccHide"></div>'+coachHeadHtml(w)+cbody;}
-    else{if(pills&&!sf())pills.style.display="";var body=ST.view==="prog"?progHtml(w):ST.view==="board"?boardHtml(w):ST.view==="week"?weekHtml(w):todayHtml(w);
+    else{if(pills&&!sf())pills.style.display="";var body=ST.view==="prog"?progHtml(w):ST.view==="board"?boardHtml(w):ST.view==="week"?weekHtml(w):(ST.view==="rec"&&window.fcRecHtml)?window.fcRecHtml(w):todayHtml(w);
     wrap.innerHTML='<div data-fct="plan" class="fccHide"></div><div data-fct="wt" class="fccHide"></div>'+headHtml(w)+body;}
     var inp=document.getElementById("fccWtIn")||document.getElementById("fccRunIn")||document.getElementById("fccRdIn");if(inp)try{inp.focus();}catch(e){}
+    if(ST.view==="rec"&&window.fcRecAfter)try{window.fcRecAfter();}catch(e){}
     if(ST.view==="today"&&CW()>=1){var d=TD(),keys=(SESS[d]||[]).map(function(x){return x.key;});if(d===5&&SPAR_SAT_WEEKS.indexOf(w)>=0)keys.push(15);if(keys.length)loadWho(w,d,keys);}
     if(cm()&&ST.view==="today")loadBoard();
     if(ST.view==="board")loadBoard();
@@ -401,6 +402,7 @@ function paint(force){
 function repaint(){paint(true);}
 
 /* ---------- actions ---------- */
+window.fccFighter=fighter;window.fccPv=pv;window.fccRepaint=repaint;
 window.fccView=function(v){ST.view=v;ST.open=null;try{localStorage.setItem("fccView",v);}catch(e){}try{if(!cm()&&!sf())window.FC.tab=v==="prog"?"progress":"camp";}catch(e){}repaint();try{window.scrollTo(0,0);}catch(e){}};
 window.fccBoard=function(t){ST.board=t;repaint();};
 window.fccTools=function(on){ST.tools=!!on;var w=document.getElementById("fcc");if(w)w.parentNode.removeChild(w);var b=document.getElementById("fccPrev");if(b)b.parentNode.removeChild(b);var box=document.querySelector("#main .fcx .pills");if(box)box.style.display="";frameSync();try{fcxSet("tab",on?"fighters":"camp");}catch(e){}if(!on){ST.view="today";repaint();}else{var pl=document.querySelector("#main .fcx .pills");if(pl)pl.removeAttribute("data-trim");}try{window.scrollTo(0,0);}catch(e){}};
