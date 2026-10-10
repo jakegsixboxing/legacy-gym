@@ -166,6 +166,13 @@ Ask Me Anything assistant · NUTRITION space (`nutrition.js`): privately
 assigned programs, data-gated by `nutrition_assignments` user IDs only, first
 one is the Road to Christmas Fuel Plan for Henry Matthews + Alison's coach view
 (see `supabase-setup-nutrition.sql` for how to assign the next member).
+Fight Club fighter view (`fcs.js`, 11 Oct 2026): the simple one-job-at-a-time
+screen fighters see (TODAY · WEEK · WEIGH · RUN · SPAR · TAPE · BOARD ·
+PROGRESS · FIGHT · EXTRAS, each on its own tab). Paints its own `.fcs` root for
+non-staff fighters, for Jake (his own fc_fighters row, COACH button goes back
+to the coach tools) and for coach Preview; Ali/Sarsha coach views still come
+from `fc.js` + `fccamp.js`. Same tables and write rules as `fccamp.js`. Remove
+the script tag to get the old fighter screens back.
 
 **Outstanding / parked:**
 - Alison is supplying 7 nutrition guide documents as markdown — they drop
