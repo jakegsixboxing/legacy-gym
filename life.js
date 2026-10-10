@@ -314,6 +314,99 @@
     var solo=L.screen==="water";
     return '<div class="job '+(next?"next":"")+'"><div class="jk">Water <small>'+(w*0.25).toFixed(2).replace(/\.?0+$/,"")+' / '+(p.waterGoal*0.25)+' L</small></div>'+(solo?'<div class="timer" style="padding:6px 0 2px"><b>'+(w*0.25).toFixed(2).replace(/\.?0+$/,"")+'<span style="font-size:22px;color:var(--mu)"> / '+(p.waterGoal*0.25)+' L</span></b><small>'+w+' of '+p.waterGoal+' glasses \u00b7 250 ml each</small></div>':'<div class="jt">'+(w>=p.waterGoal?"Water done":"Tap + every glass")+'</div>')+'<div class="jd">'+msg+'</div><div class="water"><button class="minus" onclick="lfW(-1)">−</button><div class="cups" style="grid-template-columns:repeat('+p.waterGoal+',1fr)">'+cups+'</div><button onclick="lfW(1)">+</button></div>'+(solo?'<button class="big" onclick="lfW(1)">+ 1 glass</button>':'')+'</div>';
   }
+  /* ---------- shopping list (built from the meal plan) ---------- */
+  var ALISON_SMS="0419609263";
+  /* per person, per day. pack = how Woolies sells it. aisle = order on the list */
+  var SHOP={
+    "Eggs & toast":[{n:"Eggs",q:3,u:"eggs",aisle:"Dairy & eggs",pack:{size:12,one:"dozen",many:"dozen"}},{n:"Wholemeal bread",q:3,u:"slices",aisle:"Bakery",pack:{size:20,one:"loaf",many:"loaves"}}],
+    "Cap":[],
+    "YoPro & fruit":[{n:"YoPro tubs (160g)",q:1,u:"tubs",aisle:"Dairy & eggs"},{n:"Bananas",q:1,u:"",aisle:"Fruit & veg"}],
+    "Fast Fuel schnitzel & mash":[{n:"Fast Fuel chicken schnitzel & mash (350g)",q:1,u:"tubs",aisle:"Ready meals"}],
+    "Crumpets & honey":[{n:"Crumpets",q:2,u:"",aisle:"Bakery",pack:{size:6,one:"pack of 6",many:"packs of 6"}},{n:"Apples",q:1,u:"",aisle:"Fruit & veg"},{n:"Honey",q:0,u:"",aisle:"Pantry",once:"1 jar, if you're out"}],
+    "Steak, eggs & potato":[{n:"Rump or sirloin steak",q:200,u:"g",aisle:"Meat",pack:{size:1000,one:"kg",many:"kg"}},{n:"Eggs",q:2,u:"eggs",aisle:"Dairy & eggs",pack:{size:12,one:"dozen",many:"dozen"}},{n:"Potatoes",q:250,u:"g",aisle:"Fruit & veg",pack:{size:1000,one:"kg",many:"kg"}},{n:"Frozen mixed veg",q:150,u:"g",aisle:"Frozen",pack:{size:1000,one:"kg bag",many:"kg bags"}}],
+    "Protein shake":[{n:"Protein powder",q:0,u:"",aisle:"Pantry",once:"1 tub, if you're out"}]
+  };
+  var AISLES=["Fruit & veg","Meat","Dairy & eggs","Bakery","Ready meals","Frozen","Pantry"];
+  function buildShop(people,days){
+    var p=plan(),acc={};
+    p.meals.forEach(function(m){var list=SHOP[mN(m)]||[];list.forEach(function(it){var k=it.n;if(!acc[k])acc[k]={n:it.n,u:it.u,aisle:it.aisle,pack:it.pack,once:it.once,q:0};acc[k].q+=it.q*people*days;});});
+    var out=[];Object.keys(acc).forEach(function(k){var it=acc[k];var line;
+      if(it.once){line=it.once;}
+      else if(it.pack){var n=Math.ceil(it.q/it.pack.size);line=n+" "+(n===1?it.pack.one:it.pack.many)+" ("+Math.round(it.q)+(it.u?" "+it.u:"")+")";}
+      else{line=Math.round(it.q)+(it.u?" "+it.u:"");}
+      out.push({n:it.n,aisle:it.aisle,line:line,done:false});});
+    out.sort(function(a,b){return AISLES.indexOf(a.aisle)-AISLES.indexOf(b.aisle);});
+    return out;
+  }
+  function shopText(sh){
+    var lines=["Woolies list · "+sh.people+(sh.people===1?" person":" people")+" · 7 days"];
+    AISLES.forEach(function(a){var items=sh.items.filter(function(x){return x.aisle===a;});if(!items.length)return;lines.push("");lines.push(a.toUpperCase());items.forEach(function(x){lines.push("- "+x.n+": "+x.line);});});
+    lines.push("");lines.push("Plus the McCafe cap each day (not on the list).");
+    return lines.join("\n");
+  }
+  window.lfShopMake=function(people){var sh=get("shop");people=people||sh.people||1;sh.people=people;sh.days=7;sh.created=today();sh.items=buildShop(people,7);save("shop");paint();T("Shopping list for "+people+(people===1?" person":" people"));};
+  window.lfShopTick=function(i){var sh=get("shop");if(sh.items&&sh.items[i]){sh.items[i].done=!sh.items[i].done;save("shop");paint();}};
+  window.lfShopClear=function(){var sh=get("shop");sh.items=null;save("shop");paint();};
+  window.lfShopCopy=function(){var sh=get("shop");if(!sh.items)return;var t=shopText(sh);try{navigator.clipboard.writeText(t).then(function(){T("Copied");});}catch(e){T("Couldn’t copy on this browser");}};
+  window.lfShopShare=function(){var sh=get("shop");if(!sh.items)return;var t=shopText(sh);if(navigator.share){navigator.share({title:"Woolies list",text:t}).catch(function(){});}else{window.lfShopCopy();}};
+  window.lfShopText=function(){var sh=get("shop");if(!sh.items)return;var t=shopText(sh);var ua=navigator.userAgent||"";var sep=/iPhone|iPad|Macintosh/.test(ua)?"&":"?";window.location.href="sms:"+ALISON_SMS+sep+"body="+encodeURIComponent(t);};
+  function shopHtml(){
+    var sh=get("shop");
+    if(!sh.items){return '<div class="job"><div class="jk">Shopping list <small>weekly</small></div><div class="jt">Build this week’s Woolies list</div><div class="jd">Made from the meal plan above, 7 days, rounded up to what Woolies sells. Pick who it’s for.</div><div class="row2"><button class="big" onclick="lfShopMake(1)">1 person</button><button class="big ghost" onclick="lfShopMake(2)">2 people</button></div></div>';}
+    var groups=AISLES.map(function(a){var items=[];sh.items.forEach(function(x,i){if(x.aisle===a)items.push([x,i]);});if(!items.length)return "";
+      return '<div style="font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--g);font-weight:800;margin:12px 0 2px">'+E(a)+'</div>'+items.map(function(pr){var x=pr[0],i=pr[1];return '<div class="item '+(x.done?"on":"")+'"><div onclick="lfShopTick('+i+')">'+tick(x.done)+'</div><span><b>'+E(x.n)+'</b><br><span style="color:var(--mu);font-size:12px">'+E(x.line)+'</span></span></div>';}).join("");}).join("");
+    var left=sh.items.filter(function(x){return !x.done;}).length;
+    return '<div class="job"><div class="jk">Shopping list <small>made '+E(sh.created||"")+' · '+left+' to get</small></div>'+
+      '<div class="lf-tabs" style="margin:4px 0 2px"><button class="'+(sh.people===1?"on":"")+'" onclick="lfShopMake(1)">1 person</button><button class="'+(sh.people===2?"on":"")+'" onclick="lfShopMake(2)">2 people</button><button onclick="lfShopMake('+sh.people+')">Rebuild</button><button onclick="lfShopClear()">Clear</button></div>'+
+      '<div class="list">'+groups+'</div>'+
+      '<div class="jd" style="margin-top:10px">Plus the McCafé cap each day, not on the list.</div>'+
+      '<button class="big" onclick="lfShopText()">Text it to Alison</button>'+
+      '<div class="row2"><button class="big ghost" style="margin-top:8px" onclick="lfShopShare()">Share</button><button class="big ghost" style="margin-top:8px" onclick="lfShopCopy()">Copy</button></div>'+
+      '<div class="jd" style="margin-top:8px">Text opens Messages with the list already typed to Alison’s number. You still press send.</div></div>';
+  }
+  /* ---------- weight tab: daily weigh-in, the whole 10 weeks ---------- */
+  var GOAL_KG=105;
+  function weightSeries(){var out=[];var start=XMAS_START<"2026-10-01"?XMAS_START:"2026-10-01";var d=start;var end=today();var guard=0;while(d<=end&&guard<400){var w=parseFloat((L.rows[d]||{}).weight);if(w)out.push({day:d,kg:w});d=addDays(d,1);guard++;}return out;}
+  function avg7(day){var s=0,n=0;for(var i=0;i<7;i++){var w=parseFloat((L.rows[addDays(day,-i)]||{}).weight);if(w){s+=w;n++;}}return n?s/n:null;}
+  window.lfWeightSave=function(){var inp=document.getElementById("lfKg");var v=parseFloat(inp&&inp.value);if(!v||v<40||v>250){T("Enter your weight in kg");return;}var d=D();d.weight=v;save(L.day);L.open.weigh=false;paint();T(v+" kg logged");};
+  function weightChart(series){
+    if(series.length<2)return '<div class="jd">The graph starts once there are two weigh-ins.</div>';
+    var W=360,H=150,pad=28,min=Math.min.apply(null,series.map(function(x){return x.kg;}).concat([GOAL_KG]))-1,max=Math.max.apply(null,series.map(function(x){return x.kg;}))+1;
+    var t0=Date.parse(series[0].day+"T12:00:00"),t1=Date.parse(series[series.length-1].day+"T12:00:00");if(t1===t0)t1=t0+864e5;
+    var X=function(day){return pad+ (Date.parse(day+"T12:00:00")-t0)/(t1-t0)*(W-pad-10);},Y=function(kg){return 10+(max-kg)/(max-min)*(H-30);};
+    var pts=series.map(function(x){return X(x.day).toFixed(1)+","+Y(x.kg).toFixed(1);}).join(" ");
+    var avgPts=series.map(function(x){var a=avg7(x.day);return X(x.day).toFixed(1)+","+Y(a).toFixed(1);}).join(" ");
+    var gy=Y(GOAL_KG);
+    return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block;margin-top:8px">'+
+      '<line x1="'+pad+'" y1="'+gy.toFixed(1)+'" x2="'+(W-10)+'" y2="'+gy.toFixed(1)+'" stroke="#4bc97a" stroke-dasharray="4 4" stroke-width="1"/><text x="'+(W-12)+'" y="'+(gy-4).toFixed(1)+'" fill="#4bc97a" font-size="10" text-anchor="end" font-family="Montserrat,sans-serif">goal '+GOAL_KG+'</text>'+
+      '<polyline points="'+pts+'" fill="none" stroke="#3a3a40" stroke-width="1.5"/>'+
+      '<polyline points="'+avgPts+'" fill="none" stroke="#c9a44c" stroke-width="2.5" stroke-linejoin="round"/>'+
+      series.map(function(x){return '<circle cx="'+X(x.day).toFixed(1)+'" cy="'+Y(x.kg).toFixed(1)+'" r="2.5" fill="#f2f0eb"/>';}).join("")+
+      '<text x="'+pad+'" y="'+(H-4)+'" fill="#9a9891" font-size="10" font-family="Montserrat,sans-serif">'+new Date(series[0].day+"T12:00:00").toLocaleDateString("en-AU",{day:"numeric",month:"short"})+'</text><text x="'+(W-10)+'" y="'+(H-4)+'" fill="#9a9891" font-size="10" text-anchor="end" font-family="Montserrat,sans-serif">'+new Date(series[series.length-1].day+"T12:00:00").toLocaleDateString("en-AU",{day:"numeric",month:"short"})+'</text>'+
+      '<text x="'+(pad-4)+'" y="'+(Y(max)+4).toFixed(1)+'" fill="#9a9891" font-size="10" text-anchor="end" font-family="Montserrat,sans-serif">'+max.toFixed(0)+'</text><text x="'+(pad-4)+'" y="'+(Y(min)+4).toFixed(1)+'" fill="#9a9891" font-size="10" text-anchor="end" font-family="Montserrat,sans-serif">'+min.toFixed(0)+'</text></svg>'+
+      '<div class="jd" style="text-align:center">grey = daily · gold = 7-day average · green = goal</div>';
+  }
+  function weightHtml(){
+    var d=D(),series=weightSeries(),first=series[0],lastE=series[series.length-1];
+    var a7=avg7(L.day),w=parseFloat(d.weight);
+    var lost=(first&&lastE)?(first.kg-lastE.kg):0;
+    var weeks=first?Math.max(1,(Date.parse(lastE.day+"T12:00:00")-Date.parse(first.day+"T12:00:00"))/(7*864e5)):0;
+    var pace=first&&weeks>=1?(lost/weeks):null;
+    var togo=lastE?(lastE.kg-GOAL_KG):null;
+    var entry=(w&&!L.open.weigh)?'<div class="lf-big"><div><b>'+w+' kg today</b><small>'+(a7?"7-day average "+a7.toFixed(1)+" kg":"")+'</small></div><button class="go" onclick="lfOpen(\'weigh\')">Change</button></div>':
+      '<div class="row2"><input id="lfKg" class="num" type="number" step="0.1" inputmode="decimal" placeholder="kg" value="'+E(d.weight||"")+'" onkeydown="if(event.key===\'Enter\')lfWeightSave()"><button class="big" style="margin:0" onclick="lfWeightSave()">Log it</button></div><div class="jd">Same time every day, after the loo, before breakfast.</div>';
+    var stats='<div class="lf-sum" style="margin-top:10px">'+
+      '<div><b>'+(first?first.kg:"–")+'</b><span>start</span></div>'+
+      '<div class="'+(lost>0?"ok":"")+'"><b>'+(lastE?(lost>=0?"−":"+")+Math.abs(lost).toFixed(1):"–")+'</b><span>kg so far</span></div>'+
+      '<div><b>'+(togo!==null?(togo>0?togo.toFixed(1):"0"):"–")+'</b><span>to '+GOAL_KG+'</span></div>'+
+      '<div><b>'+(a7?a7.toFixed(1):"–")+'</b><span>7-day avg</span></div>'+
+      '<div><b>'+(pace!==null?pace.toFixed(2):"–")+'</b><span>kg / week</span></div>'+
+      '<div><b>'+series.length+'</b><span>weigh-ins</span></div></div>';
+    var log=series.slice().reverse().slice(0,70).map(function(x){var a=avg7(x.day);return '<div class="item" style="cursor:pointer" onclick="lfGoto(\''+x.day+'\');lfScreen(\'weight\')"><span>'+fmtDay(x.day)+'</span><span style="flex:none;text-align:right"><b>'+x.kg+'</b> <small style="color:var(--mu)">avg '+(a?a.toFixed(1):"")+'</small></span></div>';}).join("");
+    return '<div class="job"><div class="jk">Weigh in <small>'+fmtDay(L.day)+'</small></div><div class="jt">'+(w?"Logged":"What’s the number?")+'</div>'+entry+'</div>'+
+      '<div class="job"><div class="jk">Road to Xmas <small>'+(xmasWeek()<1?"starts 12 Oct":xmasWeek()>10?"done":"week "+xmasWeek()+" of 10")+' · goal '+GOAL_KG+' kg</small></div>'+stats+weightChart(series)+'</div>'+
+      (series.length?'<div class="job"><div class="jk">Every weigh-in</div><div class="list">'+log+'</div></div>':'');
+  }
   function jobMeals(d,p,next){
     var done=0;p.meals.forEach(function(_,i){if(d.meals&&d.meals[i])done++;});
     if(done===p.meals.length&&p.meals.length&&!L.open.meals)return jobDone("Food","All "+p.meals.length+" meals on plan",null,"lfOpen('meals')");
@@ -391,7 +484,7 @@
     var seq=ph==="morning"?["sleep","weigh","water","food","train","work","rec","close"]:ph==="day"?["water","food","train","work","sleep","weigh","rec","close"]:["train","rec","food","water","work","close","sleep","weigh"];
     var need={sleep:!d.sleep,weigh:!d.weight,water:(d.water||0)<p.waterGoal,food:md<p.meals.length,train:tr.length>0&&trDone<tr.length,work:t3.length===0||t3d<t3.length,rec:rs.total?rs.done<rs.total:recN===0,close:!d.closed};
     var label={sleep:"Log your sleep",weigh:"Weigh in",water:(p.waterGoal-(d.water||0))+" glasses of water to go",food:"Next meal: "+(p.meals.filter(function(_,i){return !(d.meals&&d.meals[i]);})[0]?mN(p.meals.filter(function(_,i){return !(d.meals&&d.meals[i]);})[0]):""),train:E(prog(L.day).title)+": "+(tr.length-trDone)+" to tick off",work:t3.length?"Top 3: "+(t3.length-t3d)+" left":"Pick your Top 3",rec:rs.total?"Recovery: "+(rs.total-rs.done)+" to go":"Do something for the body",close:"Close the day"};
-    var scr={sleep:"sleep",weigh:"sleep",water:"water",food:"food",train:"train",work:"work",rec:"rec",close:"sleep"};
+    var scr={sleep:"sleep",weigh:"weight",water:"water",food:"food",train:"train",work:"work",rec:"rec",close:"sleep"};
     var nextKey=null;for(var i=0;i<seq.length;i++){if(need[seq[i]]){nextKey=seq[i];break;}}
     var y=get(addDays(L.day,-1));
     var carry=y.tomorrow?'<div class="job" style="border-color:var(--gd);background:linear-gradient(135deg,rgba(201,164,76,.12),var(--p) 60%)"><div class="jk">You told yourself last night</div><div class="jt">'+E(y.tomorrow)+'</div></div>':"";
@@ -404,6 +497,7 @@
       tile("rec",rs.total?rs.done+"/"+rs.total:(recN||"\u2013"),"Recover",rs.total?rs.done===rs.total:recN>0)+
       tile("sleep",d.sleep?d.sleep+"h":"\u2013","Sleep",!!(d.sleep&&d.sleep>=p.sleepTarget))+
       tile("work",t3.length?t3d+"/"+t3.length:"\u2013","Top 3",t3.length&&t3d===t3.length)+
+      tile("weight",parseFloat(d.weight)?d.weight:"\u2013","Weight",!!parseFloat(d.weight))+
       '</div>';
     var fc=FC_DAYS[dow(L.day)];
     return (isToday?carry:"")+nextCard+grid+(fc?'<div class="job"><div class="jk">Tonight</div><div class="jt">'+E(fc)+'</div><div class="jd">6:45 pm \u00b7 fitness &amp; skills 6 pm. Tick it off under Train when you\u2019re done.</div></div>':'');
@@ -412,22 +506,24 @@
     var d=D(),p=plan();
     switch(L.screen){
       case "today":return todayHtml();
-      case "food":L.open.meals=true;return jobMeals(d,p,false);
+      case "food":L.open.meals=true;return jobMeals(d,p,false)+shopHtml();
       case "water":return jobWater(d,p,false);
       case "train":return jobTrain(d,false);
       case "rec":L.open.rec=true;return jobRecover(d,false);
-      case "sleep":L.open.sleep=true;L.open.weigh=!d.weight||L.open.weigh===true;L.open.close=true;return jobSleep(d,p,false)+jobWeigh(d,false)+jobClose(d,p,false);
+      case "sleep":L.open.sleep=true;L.open.close=true;return jobSleep(d,p,false)+jobClose(d,p,false);
+      case "weight":return weightHtml();
       case "work":return jobWork(d,false);
       case "week":return weekHtml();
       case "plan":return planHtml();
     }
     return todayHtml();
   }
-  var TABS=[["today","Today"],["food","Food"],["water","Water"],["train","Train"],["rec","Recover"],["sleep","Sleep"],["work","Work"],["week","Week"],["plan","Plan"]];
+  var TABS=[["today","Today"],["food","Food"],["water","Water"],["weight","Weight"],["train","Train"],["rec","Recover"],["sleep","Sleep"],["work","Work"],["week","Week"],["plan","Plan"]];
   function tabDone(k){
     var d=D(),p=plan();
     if(k==="food"){var n=0;p.meals.forEach(function(_,i){if(d.meals&&d.meals[i])n++;});return p.meals.length&&n===p.meals.length;}
     if(k==="water")return (d.water||0)>=p.waterGoal;
+    if(k==="weight")return !!parseFloat(d.weight);
     if(k==="train"){var ts=trainStats(L.day);return ts.total>0&&ts.done===ts.total;}
     if(k==="rec"){var rs=recStats(L.day);return rs.total?rs.done===rs.total:(d.rec||[]).length>0;}
     if(k==="sleep")return !!d.closed;
@@ -468,7 +564,7 @@
     if(!L.day)L.day=today();
     var isToday=L.day===today(),sc=score(L.day),st=streak();
     var y0=window.scrollY||0;
-    var daily=["today","food","water","train","rec","sleep","work"].indexOf(L.screen)>=0;
+    var daily=["today","food","water","weight","train","rec","sleep","work"].indexOf(L.screen)>=0;
     main.innerHTML='<div class="lf"><div class="lf-top"><div><button class="lf-back" onclick="go(\'home\')">\u2039 Home</button><div class="lf-title">Jake\u2019s Life</div><div class="lf-sub">'+(isToday?"Today \u00b7 ":"")+fmtDay(L.day)+(st?' \u00b7 '+st+' day streak':'')+'</div></div>'+ring(sc,10)+'</div>'+
       tabsHtml()+
       (daily?'<div class="lf-nav" style="grid-template-columns:44px 1fr 44px;margin-top:-6px"><button onclick="lfDay(-1)">\u2039</button><button onclick="lfDay(0)" style="letter-spacing:1px">'+(isToday?"Today":"Back to today")+'</button><button onclick="lfDay(1)">\u203a</button></div>':'')+
