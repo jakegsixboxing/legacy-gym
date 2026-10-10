@@ -162,7 +162,10 @@ days, The Yarn chat, ladder) · Recovery (Kincumber saunas, water therapy, guest
 passes) · Nutrition (4 fuel plans, recipes, weekly shop, Start Here guides) ·
 Shop Apparel (live Shopify products + store credit → checkout codes) ·
 Staff Room (team chat, tasks, member directory, DMs, credit gifting) ·
-Ask Me Anything assistant.
+Ask Me Anything assistant · NUTRITION space (`nutrition.js`): privately
+assigned programs, data-gated by `nutrition_assignments` user IDs only, first
+one is the Road to Christmas Fuel Plan for Henry Matthews + Alison's coach view
+(see `supabase-setup-nutrition.sql` for how to assign the next member).
 
 **Outstanding / parked:**
 - Alison is supplying 7 nutrition guide documents as markdown — they drop

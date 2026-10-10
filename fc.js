@@ -2,8 +2,26 @@
 (function(){
 /* Fight Club tab · locked countdown card on Home, then Camp / Progress / Sparring / Fight Night for fighters and Fighters / Extra Training / Sparring / Camp for Jake & Ali. */
 var FC_LOGO="https://www.legacygym.net/cdn/shop/t/28/assets/fightclub-logo.png";
-var WHO=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* Jake, Alison */
-function staff(){return !!(session&&session.user&&WHO.indexOf(session.user.id)>=0);}
+var WHO=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* Jake, Alison — full access */
+var VIEWERS=["2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139","73a32baf-bdb8-45da-a6d6-77a055d91dda"]; /* Sarsha McGurk (both logins) — coach, view only: sees everything Jake & Ali see, can't change a thing (DB enforces it too via fc_is_viewer) */
+function uid(){return (session&&session.user&&session.user.id)||null;}
+function viewer(){return VIEWERS.indexOf(uid())>=0&&WHO.indexOf(uid())<0;}
+function staff(){return WHO.indexOf(uid())>=0||viewer();}
+window.fcViewOnly=viewer;
+/* View-only guard: for viewers, every insert/upsert/update/delete on an fc_* table (and the fc-videos bucket) becomes a no-op with a toast — the DB would refuse it anyway, this just keeps the UI honest. */
+var guarded=false;
+function guard(){
+  if(guarded||!viewer())return;guarded=true;
+  try{
+    var stub={then:function(res){res({data:null,error:{message:"view only"}});return Promise.resolve();}};
+    ["eq","neq","in","is","match","select","single","maybeSingle","order","limit","gt","lt","gte","lte","filter","not","or","range"].forEach(function(m){stub[m]=function(){return stub;};});
+    var say=function(){T("View only — Fight Club can’t be changed from this login");return stub;};
+    var _from=sb.from.bind(sb);
+    sb.from=function(t){var q=_from(t);if(viewer()&&/^fc_/.test(String(t))){q.insert=say;q.upsert=say;q.update=say;q.delete=say;}return q;};
+    var _sfrom=sb.storage.from.bind(sb.storage);
+    sb.storage.from=function(b){var q=_sfrom(b);if(viewer()&&b==="fc-videos"){q.upload=function(){T("View only — Fight Club can’t be changed from this login");return Promise.resolve({data:null,error:{message:"view only"}});};q.remove=q.upload;}return q;};
+  }catch(e){}
+}
 var E=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
 var T=function(m){try{toast(m);}catch(e){}};
 var FC={camp:null,me:null,F:null,att:[],wi:[],runs:[],sess:[],pairs:[],rounds:[],vids:[],vnotes:[],notes:[],chk:[],cnotes:[],proam:[],loaded:false,loading:null,
@@ -151,6 +169,7 @@ function load(force){
   if(FC.loading&&!force)return FC.loading;
   FC.loading=(async function(){
     try{
+      guard();
       var c=await sb.from("fc_camps").select("*").eq("key","fc2026").maybeSingle();FC.camp=c.data||null;
       try{var oc=document.getElementById("fcxCard");if(oc&&view==="home"){oc.remove();injectCard();}}catch(e){} /* re-draw the home card once the real opens_at is known (26 Sep 2026) */
       if(!session||!session.user){FC.loaded=true;return;}
@@ -216,7 +235,7 @@ var CHECK=[["medical","Medical clearance form","Handed in by Fri 27 Nov"],["mout
 function cdParts(){var s=Math.max(0,(opensAt().getTime()-Date.now())/1e3);var d=Math.floor(s/864e2);s-=d*864e2;var h=Math.floor(s/3600);s-=h*3600;var m=Math.floor(s/60);s-=m*60;return [d,h,m,Math.floor(s)];}
 function cardHtml(){
   var open=isOpen(),p=cdParts();
-  var lock=staff()?'<span class="lock">Staff preview</span>':(open?'':'<span class="lock">Locked</span>');
+  var lock=viewer()?'<span class="lock">Coach view</span>':staff()?'<span class="lock">Staff preview</span>':(open?'':'<span class="lock">Locked</span>');
   var sub=open?(FC.me?"Your camp, your sessions, your sparring, your fight.":"Fighter profiles, extra training, sparring & fight night."):"This tab opens "+opensAt().toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"})+" at "+opensAt().toLocaleTimeString("en-AU",{hour:"numeric",minute:"2-digit"}).replace(":00","")+". Fighter profiles, extra training, sparring & fight night — all in here.";
   var cd=open?'':'<div class="cd" id="fcxCd"><div><b>'+p[0]+'</b><small>days</small></div><div><b>'+String(p[1]).padStart(2,"0")+'</b><small>hrs</small></div><div><b>'+String(p[2]).padStart(2,"0")+'</b><small>min</small></div><div><b>'+String(p[3]).padStart(2,"0")+'</b><small>sec</small></div></div>';
   return '<button class="fcxCard" id="fcxCard" onclick="fcxEnter()">'+lock+'<div class="k">The Ultimate 10-Week Challenge</div><div class="t">Fight Club</div><div class="s">'+sub+'</div>'+cd+'</button>';
@@ -253,7 +272,8 @@ function renderFC(){
   var newVid=!staff()&&FC.me&&vidsOf(FC.me).some(function(v){return !v.seen_at;});
   var html='<div class="fcx"><button class="back" onclick="go(\'home\')">‹ Home</button>'+
    '<div class="head"><img src="'+FC_LOGO+'" alt=""><div><div class="k">Legacy Gym Central Coast</div><div class="t">Fight Club</div><div class="s">'+(w===0?"Camp starts "+fmtD(iso(campStart())):"Week "+w+" of 10 · "+PHASE[w-1])+' · fight night '+fmtD(iso(fightDate()))+'</div></div></div>'+
-   '<div class="pills">'+tabs.map(function(t){return '<button class="'+(FC.tab===t[0]?"on":"")+'" onclick="fcxSet(\'tab\',\''+t[0]+'\')">'+t[1]+(t[0]==="spar"&&newVid?'<span class="dot"></span>':'')+'</button>';}).join("")+'</div>';
+   '<div class="pills">'+tabs.map(function(t){return '<button class="'+(FC.tab===t[0]?"on":"")+'" onclick="fcxSet(\'tab\',\''+t[0]+'\')">'+t[1]+(t[0]==="spar"&&newVid?'<span class="dot"></span>':'')+'</button>';}).join("")+'</div>'+
+   (viewer()?'<div class="card" style="padding:8px 12px;margin:0 0 10px;font-size:12px;opacity:.8">Coach view — you can see everything here, but changes are off for this login.</div>':'');
   var body="";
   try{
     if(staff()){body=FC.tab==="fighters"?fightersHtml():FC.tab==="proam"?proamHtml():FC.tab==="progress"?progressStaffHtml():FC.tab==="train"?trainHtml():FC.tab==="spar"?sparStaffHtml():campStaffHtml();}
