@@ -19,7 +19,7 @@
    ==================================================================== */
 (function(){
   var OWNER=["15a011b9-e222-45f0-8eb9-d5338da935d1"]; /* Jake only */
-  var L={loaded:false,loading:null,for:null,rows:{},screen:"now",day:null,saveT:{},dirty:{},timer:null,open:{}};
+  var L={loaded:false,loading:null,for:null,rows:{},screen:"today",day:null,saveT:{},dirty:{},timer:null,open:{}};
   var E=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});};
   var T=function(m){try{toast(m);}catch(e){}};
   function uid(){try{return (session&&session.user&&session.user.id)||null;}catch(e){return null;}}
@@ -46,8 +46,19 @@
 .lf .lf-ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:Oswald,sans-serif;font-size:19px;line-height:1}
 .lf .lf-ring b small{display:block;font-size:8px;letter-spacing:1px;color:var(--mu);font-family:Montserrat,sans-serif;font-weight:800}
 .lf .lf-nav{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:0 0 12px}
+.lf .lf-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 12px;padding-bottom:2px}
+.lf .lf-tabs::-webkit-scrollbar{display:none}
+.lf .lf-tabs button{flex:none;padding:10px 14px;border-radius:999px;background:var(--p);border:1px solid var(--ln);color:var(--mu);font-family:Oswald,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.lf .lf-tabs button.on{background:var(--g);border-color:var(--g);color:#161307;font-weight:700}
+.lf .lf-tabs button.dn{border-color:#2a6b45}
+.lf .lf-tabs button.dn::after{content:" \u2713";color:var(--ok)}
 .lf .lf-nav button{padding:10px 4px;border-radius:10px;background:var(--p);border:1px solid var(--ln);color:var(--mu);font-family:Oswald,sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
 .lf .lf-nav button.on{background:var(--g);border-color:var(--g);color:#161307;font-weight:700}
+.lf .lf-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.lf .lf-sum div{background:var(--p);border:1px solid var(--ln);border-radius:12px;padding:12px 4px;text-align:center}
+.lf .lf-sum b{display:block;font-family:Oswald,sans-serif;font-size:20px;line-height:1.1}
+.lf .lf-sum span{font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);font-weight:800;display:block;margin-top:4px}
+.lf .lf-sum div.ok{border-color:var(--ok)}.lf .lf-sum div.ok b{color:var(--ok)}
 .lf .lf-strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px;padding-bottom:2px}
 .lf .lf-strip::-webkit-scrollbar{display:none}
 .lf .lf-strip div{flex:none;min-width:74px;background:var(--p);border:1px solid var(--ln);border-radius:10px;padding:7px 8px;text-align:center}
@@ -223,8 +234,8 @@
   window.lfNote=function(v){var d=D();d.note=v;save(L.day);};
   window.lfClose=function(){var d=D();d.closed=!d.closed;save(L.day);paint();if(d.closed)T("Day closed. "+score(L.day)+"/10. Bed by "+plan().bedTarget+".");};
   window.lfScreen=function(s){L.screen=s;paint();try{window.scrollTo(0,0);}catch(e){}};
-  window.lfDay=function(n){L.day=n===0?today():addDays(L.day,n);L.screen="now";L.open={};paint();};
-  window.lfGoto=function(day){L.day=day;L.screen="now";L.open={};paint();try{window.scrollTo(0,0);}catch(e){}};
+  window.lfDay=function(n){L.day=n===0?today():addDays(L.day,n);L.open={};paint();try{window.scrollTo(0,0);}catch(e){}};
+  window.lfGoto=function(day){L.day=day;L.screen="today";L.open={};paint();try{window.scrollTo(0,0);}catch(e){}};
   /* plan editing */
   window.lfPlanAdd=function(dw,sel){var id=sel.value;if(!id)return;var p=plan();p.week[dw]=(p.week[dw]||[]).concat([id]);save("plan");paint();};
   window.lfPlanDel=function(dw,i){var p=plan();(p.week[dw]||[]).splice(i,1);save("plan");paint();};
@@ -265,7 +276,8 @@
     var w=d.water||0,left=p.waterGoal-w;var cups='';for(var i=0;i<p.waterGoal;i++)cups+='<i class="'+(i<w?"on":"")+'"></i>';
     var ph=phase(),pace=ph==="morning"?Math.round(p.waterGoal*.25):ph==="day"?Math.round(p.waterGoal*.6):p.waterGoal;
     var msg=w>=p.waterGoal?"Goal hit. Keep sipping.":w<pace?(pace-w)+" behind where you should be by now.":"On pace. "+left+" to go.";
-    return '<div class="job '+(next?"next":"")+'"><div class="jk">Water <small>'+(w*0.25).toFixed(2).replace(/\.?0+$/,"")+' / '+(p.waterGoal*0.25)+' L</small></div><div class="jt">'+(w>=p.waterGoal?"Water done":"Tap + every glass")+'</div><div class="jd">'+msg+'</div><div class="water"><button class="minus" onclick="lfW(-1)">−</button><div class="cups" style="grid-template-columns:repeat('+p.waterGoal+',1fr)">'+cups+'</div><button onclick="lfW(1)">+</button></div></div>';
+    var solo=L.screen==="water";
+    return '<div class="job '+(next?"next":"")+'"><div class="jk">Water <small>'+(w*0.25).toFixed(2).replace(/\.?0+$/,"")+' / '+(p.waterGoal*0.25)+' L</small></div>'+(solo?'<div class="timer" style="padding:6px 0 2px"><b>'+(w*0.25).toFixed(2).replace(/\.?0+$/,"")+'<span style="font-size:22px;color:var(--mu)"> / '+(p.waterGoal*0.25)+' L</span></b><small>'+w+' of '+p.waterGoal+' glasses \u00b7 250 ml each</small></div>':'<div class="jt">'+(w>=p.waterGoal?"Water done":"Tap + every glass")+'</div>')+'<div class="jd">'+msg+'</div><div class="water"><button class="minus" onclick="lfW(-1)">−</button><div class="cups" style="grid-template-columns:repeat('+p.waterGoal+',1fr)">'+cups+'</div><button onclick="lfW(1)">+</button></div>'+(solo?'<button class="big" onclick="lfW(1)">+ 1 glass</button>':'')+'</div>';
   }
   function jobMeals(d,p,next){
     var done=0;p.meals.forEach(function(_,i){if(d.meals&&d.meals[i])done++;});
@@ -312,18 +324,61 @@
     return '<div class="job '+(next?"next":"")+'"><div class="jk">Close the day <small>bed by '+E(p.bedTarget)+'</small></div><div class="jt">One thing for tomorrow</div><div class="jd">Write it now so tomorrow morning doesn’t have to think.</div><input class="num" style="margin-top:8px" placeholder="Tomorrow’s one thing" value="'+E(d.tomorrow||"")+'" oninput="lfTomorrow(this.value)"><textarea class="note" placeholder="How was today, one line" oninput="lfNote(this.value)">'+E(d.note||"")+'</textarea><button class="big ok" onclick="lfClose()">Close the day · '+score(L.day)+'/10</button></div>';
   }
 
-  function nowHtml(){
+  function todayHtml(){
     var d=D(),p=plan(),ph=phase(),isToday=L.day===today();
-    var J={sleep:[function(n){return jobSleep(d,p,n);},!d.sleep],weigh:[function(n){return jobWeigh(d,n);},!d.weight],water:[function(n){return jobWater(d,p,n);},(d.water||0)<p.waterGoal],meals:[function(n){return jobMeals(d,p,n);},true],train:[function(n){return jobTrain(d,n);},true],work:[function(n){return jobWork(d,n);},true],rec:[function(n){return jobRecover(d,n);},true],close:[function(n){return jobClose(d,p,n);},!d.closed]};
-    var order=ph==="morning"?["sleep","weigh","water","train","meals","work","rec","close"]:ph==="day"?["water","meals","train","work","sleep","weigh","rec","close"]:["train","rec","meals","water","work","close","sleep","weigh"];
-    if(!isToday)order=["sleep","weigh","water","meals","train","rec","work","close"];
-    var nextSet=false;
-    var html=order.map(function(k){var j=J[k];var isNext=false;if(isToday&&!nextSet&&j[1]){isNext=true;nextSet=true;}return j[0](isNext);}).join("");
+    var md=0;p.meals.forEach(function(_,i){if(d.meals&&d.meals[i])md++;});
+    var ids=sessionsFor(L.day),tr=[],rc=[];ids.forEach(function(id,i){if(id==="fc"||(LIB[id]&&LIB[id].kind!=="rec"))tr.push([id,i]);else if(LIB[id])rc.push([id,i]);});
+    var trDone=tr.filter(function(x){return sessDone(d,x[0],x[1]);}).length;
+    var recN=(d.rec||[]).length+rc.filter(function(x){return sessDone(d,x[0],x[1]);}).length;
+    var t3=d.top3||[],t3d=t3.filter(function(x){return x.done;}).length;
+    /* what's next, in time order */
+    var seq=ph==="morning"?["sleep","weigh","water","food","train","work","rec","close"]:ph==="day"?["water","food","train","work","sleep","weigh","rec","close"]:["train","rec","food","water","work","close","sleep","weigh"];
+    var need={sleep:!d.sleep,weigh:!d.weight,water:(d.water||0)<p.waterGoal,food:md<p.meals.length,train:tr.length>0&&trDone<tr.length,work:t3.length===0||t3d<t3.length,rec:recN===0,close:!d.closed};
+    var label={sleep:"Log your sleep",weigh:"Weigh in",water:(p.waterGoal-(d.water||0))+" glasses of water to go",food:"Next meal: "+(p.meals.filter(function(_,i){return !(d.meals&&d.meals[i]);})[0]?mN(p.meals.filter(function(_,i){return !(d.meals&&d.meals[i]);})[0]):""),train:(tr.length-trDone)+" session"+(tr.length-trDone===1?"":"s")+" to do",work:t3.length?"Top 3: "+(t3.length-t3d)+" left":"Pick your Top 3",rec:"Do something for the body",close:"Close the day"};
+    var scr={sleep:"sleep",weigh:"sleep",water:"water",food:"food",train:"train",work:"work",rec:"rec",close:"sleep"};
+    var nextKey=null;for(var i=0;i<seq.length;i++){if(need[seq[i]]){nextKey=seq[i];break;}}
     var y=get(addDays(L.day,-1));
     var carry=y.tomorrow?'<div class="job" style="border-color:var(--gd);background:linear-gradient(135deg,rgba(201,164,76,.12),var(--p) 60%)"><div class="jk">You told yourself last night</div><div class="jt">'+E(y.tomorrow)+'</div></div>':"";
-    var prompt={morning:"Morning. Sleep, weigh, water, then look at the plan.",day:"Midday. Water and food first, then train.",evening:(FC_DAYS[dow(L.day)]?FC_DAYS[dow(L.day)]+" tonight. ":"")+"Recover, then close the day."}[ph];
-    return (isToday?'<div class="jd" style="margin:-4px 0 10px;font-size:12.5px"><b>'+prompt+'</b></div>':'')+carry+html;
+    var nextCard=nextKey?'<div class="job next" onclick="lfScreen(\''+scr[nextKey]+'\')" style="cursor:pointer"><div class="jk">Next up <small>'+(ph==="morning"?"morning":ph==="day"?"midday":"evening")+'</small></div><div class="jt">'+E(label[nextKey])+'</div><div class="jd">Tap to open it.</div></div>':'<div class="job" style="border-color:var(--ok)"><div class="jk">Next up</div><div class="jt">Nothing left. Day done.</div></div>';
+    var tile=function(sc,v,l,ok){return '<div class="'+(ok?"ok":"")+'" onclick="lfScreen(\''+sc+'\')" style="cursor:pointer"><b>'+v+'</b><span>'+l+'</span></div>';};
+    var grid='<div class="lf-sum">'+
+      tile("food",md+"/"+p.meals.length,"Food",p.meals.length&&md===p.meals.length)+
+      tile("water",((d.water||0)*0.25).toFixed(2).replace(/\.?0+$/,"")+"L","Water",(d.water||0)>=p.waterGoal)+
+      tile("train",tr.length?trDone+"/"+tr.length:"rest","Train",tr.length&&trDone===tr.length)+
+      tile("rec",recN||"\u2013","Recover",recN>0)+
+      tile("sleep",d.sleep?d.sleep+"h":"\u2013","Sleep",!!(d.sleep&&d.sleep>=p.sleepTarget))+
+      tile("work",t3.length?t3d+"/"+t3.length:"\u2013","Top 3",t3.length&&t3d===t3.length)+
+      '</div>';
+    var fc=FC_DAYS[dow(L.day)];
+    return (isToday?carry:"")+nextCard+grid+(fc?'<div class="job"><div class="jk">Tonight</div><div class="jt">'+E(fc)+'</div><div class="jd">6:45 pm \u00b7 fitness &amp; skills 6 pm. Tick it off under Train when you\u2019re done.</div></div>':'');
   }
+  function screenHtml(){
+    var d=D(),p=plan();
+    switch(L.screen){
+      case "today":return todayHtml();
+      case "food":L.open.meals=true;return jobMeals(d,p,false);
+      case "water":return jobWater(d,p,false);
+      case "train":return jobTrain(d,false);
+      case "rec":L.open.rec=true;return jobRecover(d,false);
+      case "sleep":L.open.sleep=true;L.open.weigh=!d.weight||L.open.weigh===true;L.open.close=true;return jobSleep(d,p,false)+jobWeigh(d,false)+jobClose(d,p,false);
+      case "work":return jobWork(d,false);
+      case "week":return weekHtml();
+      case "plan":return planHtml();
+    }
+    return todayHtml();
+  }
+  var TABS=[["today","Today"],["food","Food"],["water","Water"],["train","Train"],["rec","Recover"],["sleep","Sleep"],["work","Work"],["week","Week"],["plan","Plan"]];
+  function tabDone(k){
+    var d=D(),p=plan();
+    if(k==="food"){var n=0;p.meals.forEach(function(_,i){if(d.meals&&d.meals[i])n++;});return p.meals.length&&n===p.meals.length;}
+    if(k==="water")return (d.water||0)>=p.waterGoal;
+    if(k==="train"){var ids=sessionsFor(L.day).map(function(id,i){return [id,i];}).filter(function(x){return x[0]==="fc"||(LIB[x[0]]&&LIB[x[0]].kind!=="rec");});return ids.length>0&&ids.every(function(x){return sessDone(d,x[0],x[1]);});}
+    if(k==="rec")return (d.rec||[]).length>0;
+    if(k==="sleep")return !!d.closed;
+    if(k==="work"){var t=d.top3||[];return t.length>0&&t.every(function(x){return x.done;});}
+    return false;
+  }
+  function tabsHtml(){return '<div class="lf-tabs" id="lfTabs">'+TABS.map(function(t){return '<button class="'+(L.screen===t[0]?"on":"")+(tabDone(t[0])?" dn":"")+'" onclick="lfScreen(\''+t[0]+'\')">'+t[1]+'</button>';}).join("")+'</div>';}
 
   function weekHtml(){
     var days=[];for(var i=6;i>=0;i--)days.push(addDays(today(),-i));
@@ -355,11 +410,13 @@
     if(!L.day)L.day=today();
     var isToday=L.day===today(),sc=score(L.day),st=streak();
     var y0=window.scrollY||0;
-    main.innerHTML='<div class="lf"><div class="lf-top"><div><button class="lf-back" onclick="go(\'home\')">‹ Home</button><div class="lf-title">Jake’s Life</div><div class="lf-sub">'+(isToday?"Today · ":"")+fmtDay(L.day)+(st?' · '+st+' day streak':'')+'</div></div>'+ring(sc,10)+'</div>'+
-      '<div class="lf-nav"><button class="'+(L.screen==="now"?"on":"")+'" onclick="lfScreen(\'now\')">Now</button><button class="'+(L.screen==="week"?"on":"")+'" onclick="lfScreen(\'week\')">Week</button><button class="'+(L.screen==="plan"?"on":"")+'" onclick="lfScreen(\'plan\')">Plan</button></div>'+
-      (L.screen==="now"?'<div class="lf-nav" style="grid-template-columns:44px 1fr 44px;margin-top:-6px"><button onclick="lfDay(-1)">‹</button><button onclick="lfDay(0)" style="letter-spacing:1px">'+(isToday?"Today":"Back to today")+'</button><button onclick="lfDay(1)">›</button></div>':'')+
-      (L.screen==="now"?nowHtml():L.screen==="week"?weekHtml():planHtml())+
+    var daily=["today","food","water","train","rec","sleep","work"].indexOf(L.screen)>=0;
+    main.innerHTML='<div class="lf"><div class="lf-top"><div><button class="lf-back" onclick="go(\'home\')">\u2039 Home</button><div class="lf-title">Jake\u2019s Life</div><div class="lf-sub">'+(isToday?"Today \u00b7 ":"")+fmtDay(L.day)+(st?' \u00b7 '+st+' day streak':'')+'</div></div>'+ring(sc,10)+'</div>'+
+      tabsHtml()+
+      (daily?'<div class="lf-nav" style="grid-template-columns:44px 1fr 44px;margin-top:-6px"><button onclick="lfDay(-1)">\u2039</button><button onclick="lfDay(0)" style="letter-spacing:1px">'+(isToday?"Today":"Back to today")+'</button><button onclick="lfDay(1)">\u203a</button></div>':'')+
+      screenHtml()+
       '<div class="save" id="lfSave"></div></div>';
+    try{var on=main.querySelector(".lf-tabs .on");if(on)on.scrollIntoView({block:"nearest",inline:"center"});}catch(e){}
     try{window.scrollTo(0,y0);}catch(e){}
   }
 
@@ -379,7 +436,7 @@
     var card=wrap.firstChild;var first=main.querySelector(".homeCard");
     if(first)first.insertAdjacentElement("beforebegin",card);else main.appendChild(card);
   }
-  window.lifeEnter=function(){if(!allowed())return;L.screen="now";L.day=today();L.open={};go("life");};
+  window.lifeEnter=function(){if(!allowed())return;L.screen="today";L.day=today();L.open={};go("life");};
 
   /* ---------- hooks ---------- */
   try{NAV_TAB.life="home";}catch(e){}
