@@ -244,6 +244,7 @@
   function xmasWeek(){var ms=Date.parse(L.day+"T12:00:00")-Date.parse(XMAS_START+"T12:00:00");var w=Math.floor(ms/(7*864e5))+1;return w<1?0:w>10?11:w;}
 
   /* ---------- setters ---------- */
+  window.lfWSet=function(l){var d=D();d.water=Math.round(l*4);save(L.day);paint();};
   window.lfW=function(n){var d=D();d.water=Math.max(0,(d.water||0)+n);save(L.day);paint();};
   window.lfMeal=function(i){var d=D();d.meals=d.meals||{};d.meals[i]=!d.meals[i];save(L.day);paint();};
   window.lfSleep=function(h){var d=D();d.sleep=(d.sleep===h?null:h);save(L.day);paint();};
@@ -308,11 +309,18 @@
     return '<div class="job '+(next?"next":"")+'"><div class="jk">Weigh in <small>same time, after the loo</small></div><div class="row2"><input class="num" type="number" step="0.1" inputmode="decimal" placeholder="kg" value="'+E(d.weight||"")+'" oninput="lfWeight(this.value)"><button class="big" style="margin:0" onclick="lfShut(\'weigh\')">Done</button></div></div>';
   }
   function jobWater(d,p,next){
-    var w=d.water||0,left=p.waterGoal-w;var cups='';for(var i=0;i<p.waterGoal;i++)cups+='<i class="'+(i<w?"on":"")+'"></i>';
-    var ph=phase(),pace=ph==="morning"?Math.round(p.waterGoal*.25):ph==="day"?Math.round(p.waterGoal*.6):p.waterGoal;
-    var msg=w>=p.waterGoal?"Goal hit. Keep sipping.":w<pace?(pace-w)+" behind where you should be by now.":"On pace. "+left+" to go.";
-    var solo=L.screen==="water";
-    return '<div class="job '+(next?"next":"")+'"><div class="jk">Water <small>'+(w*0.25).toFixed(2).replace(/\.?0+$/,"")+' / '+(p.waterGoal*0.25)+' L</small></div>'+(solo?'<div class="timer" style="padding:6px 0 2px"><b>'+(w*0.25).toFixed(2).replace(/\.?0+$/,"")+'<span style="font-size:22px;color:var(--mu)"> / '+(p.waterGoal*0.25)+' L</span></b><small>'+w+' of '+p.waterGoal+' glasses \u00b7 250 ml each</small></div>':'<div class="jt">'+(w>=p.waterGoal?"Water done":"Tap + every glass")+'</div>')+'<div class="jd">'+msg+'</div><div class="water"><button class="minus" onclick="lfW(-1)">−</button><div class="cups" style="grid-template-columns:repeat('+p.waterGoal+',1fr)">'+cups+'</div><button onclick="lfW(1)">+</button></div>'+(solo?'<button class="big" onclick="lfW(1)">+ 1 glass</button>':'')+'</div>';
+    var w=d.water||0,L_=w*0.25,goalL=p.waterGoal*0.25;
+    var ph=phase(),paceL=ph==="morning"?0.5:ph==="day"?1.5:goalL;
+    var msg=L_>=goalL?"Goal hit. Keep sipping.":L_<paceL?"Behind. You should be at "+paceL+" L by now.":"On pace. "+(goalL-L_).toFixed(1).replace(/\.0$/,"")+" L to go.";
+    var levels=[0.5,1,1.5,2,2.5,3];
+    var pct=Math.min(100,Math.round(L_/goalL*100));
+    var fmt=function(x){return (x%1?x.toFixed(1):x)+" L";};
+    return '<div class="job '+(next?"next":"")+'"><div class="jk">Water <small>goal '+fmt(goalL)+'</small></div>'+
+      '<div class="timer" style="padding:6px 0 2px"><b>'+fmt(L_)+'</b><small>drunk so far today</small></div><div class="jd" style="text-align:center">'+msg+'</div>'+
+      '<div style="height:12px;border-radius:999px;background:#0e0e10;border:1px solid var(--ln);overflow:hidden;margin:10px 0 4px"><i style="display:block;height:100%;width:'+pct+'%;background:linear-gradient(90deg,#2f6fc4,#4a8de6);border-radius:999px"></i></div>'+
+      '<div class="jd">Tap where you\u2019re up to.</div>'+
+      '<div class="lf-sum" style="margin-top:8px">'+levels.map(function(l){var on=Math.abs(L_-l)<0.01,past=L_>l+0.01;return '<div class="'+(on?"ok":"")+'" style="cursor:pointer;'+(past?"opacity:.55;":"")+(on?"background:rgba(74,141,230,.18);border-color:var(--blue);":"")+'" onclick="lfWSet('+l+')"><b style="color:'+(on?"#7fd3ff":"var(--tx)")+'">'+fmt(l)+'</b><span>'+(on?"you\u2019re here":past?"done":l===goalL?"goal":"")+'</span></div>';}).join("")+'</div>'+
+      (w>0?'<button class="big ghost" style="margin-top:10px" onclick="lfWSet(0)">Reset today</button>':'')+'</div>';
   }
   /* ---------- shopping list (built from the meal plan) ---------- */
   var ALISON_SMS="0419609263";
