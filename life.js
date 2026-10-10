@@ -185,6 +185,9 @@
   window.addEventListener("beforeunload",function(){Object.keys(L.dirty).forEach(flush);});
 
   /* ---------- the day's jobs ---------- */
+  function mN(m){return typeof m==='string'?m:(m&&m.n)||'';}
+  function mD(m){return (m&&typeof m==='object'&&m.d)||'';}
+  function mK(m){return (m&&typeof m==='object'&&m.kcal)||0;}
   function sessionsFor(day){var p=plan();var ids=(p.week&&p.week[dow(day)])||[];var d=get(day);return ids.concat(d.extra||[]);}
   function sessDone(d,id,idx){return !!(d.sess&&d.sess[id+"#"+idx]);}
   function score(day){
@@ -226,7 +229,7 @@
   window.lfPlanAdd=function(dw,sel){var id=sel.value;if(!id)return;var p=plan();p.week[dw]=(p.week[dw]||[]).concat([id]);save("plan");paint();};
   window.lfPlanDel=function(dw,i){var p=plan();(p.week[dw]||[]).splice(i,1);save("plan");paint();};
   window.lfPlanSet=function(k,v){var p=plan();p[k]=(k==="waterGoal"||k==="sleepTarget")?(parseFloat(v)||DEFAULT_PLAN[k]):v;save("plan");};
-  window.lfMealName=function(i,v){var p=plan();p.meals[i]=v;save("plan");};
+  window.lfMealName=function(i,v){var p=plan();if(typeof p.meals[i]==='object'&&p.meals[i])p.meals[i].n=v;else p.meals[i]=v;save("plan");};
   window.lfMealAdd=function(){var p=plan();p.meals.push("Meal "+(p.meals.length+1));save("plan");paint();};
   window.lfMealDel=function(i){var p=plan();p.meals.splice(i,1);save("plan");paint();};
 
@@ -255,7 +258,7 @@
     return '<div class="job '+(next?"next":"")+'"><div class="jk">Sleep <small>target '+p.sleepTarget+'h</small></div><div class="jt">How long did you sleep?</div><div class="chips">'+hs.map(function(h){return '<div class="chip '+(d.sleep===h?"on":"")+'" onclick="lfSleep('+h+')">'+h+'</div>';}).join("")+'</div></div>';
   }
   function jobWeigh(d,next){
-    if(d.weight&&!L.open.weigh)return jobDone("Weigh in",d.weight+" kg",null,"lfOpen('weigh')");
+    if(d.weight&&!L.open.weigh){var ws=0,wn=0;for(var i=0;i<7;i++){var x=parseFloat((get(addDays(L.day,-i))||{}).weight);if(x){ws+=x;wn++;}}return jobDone("Weigh in",d.weight+" kg",wn>1?"7-day average "+(ws/wn).toFixed(1)+" kg. That’s the number that matters.":null,"lfOpen('weigh')");}
     return '<div class="job '+(next?"next":"")+'"><div class="jk">Weigh in <small>same time, after the loo</small></div><div class="row2"><input class="num" type="number" step="0.1" inputmode="decimal" placeholder="kg" value="'+E(d.weight||"")+'" oninput="lfWeight(this.value)"><button class="big" style="margin:0" onclick="lfShut(\'weigh\')">Done</button></div></div>';
   }
   function jobWater(d,p,next){
@@ -268,7 +271,8 @@
     var done=0;p.meals.forEach(function(_,i){if(d.meals&&d.meals[i])done++;});
     if(done===p.meals.length&&p.meals.length&&!L.open.meals)return jobDone("Food","All "+p.meals.length+" meals on plan",null,"lfOpen('meals')");
     var nextIdx=-1;for(var i=0;i<p.meals.length;i++){if(!(d.meals&&d.meals[i])){nextIdx=i;break;}}
-    return '<div class="job '+(next?"next":"")+'"><div class="jk">Food <small>'+done+' of '+p.meals.length+'</small></div><div class="jt">'+(nextIdx>=0?"Next: "+E(p.meals[nextIdx]):"Meals")+'</div><div class="jd">Tap it when it’s eaten and on plan. Off plan, leave it.</div><div class="meals">'+p.meals.map(function(m,i){var on=!!(d.meals&&d.meals[i]);return '<div class="meal '+(on?"on":"")+'" onclick="lfMeal('+i+')">'+tick(on)+'<span>'+E(m)+'</span>'+(i===nextIdx?'<small>up next</small>':'')+'</div>';}).join("")+'</div></div>';
+    var kt=0,ke=0;p.meals.forEach(function(m,i){kt+=mK(m);if(d.meals&&d.meals[i])ke+=mK(m);});
+    return '<div class="job '+(next?"next":"")+'"><div class="jk">Food <small>'+done+' of '+p.meals.length+'</small></div><div class="jt">'+(nextIdx>=0?"Next: "+E(mN(p.meals[nextIdx])):"Meals")+'</div><div class="jd">Tap it when it’s eaten and on plan. Off plan, leave it.</div><div class="meals">'+p.meals.map(function(m,i){var on=!!(d.meals&&d.meals[i]);return '<div class="meal '+(on?"on":"")+'" onclick="lfMeal('+i+')">'+tick(on)+'<span>'+E(mN(m))+(mD(m)?'<small style="display:block;font-weight:500;line-height:1.35;margin-top:2px">'+E(mD(m))+'</small>':'')+'</span>'+(mK(m)?'<small>'+mK(m)+' kcal</small>':(i===nextIdx?'<small>up next</small>':''))+'</div>';}).join("")+'</div>'+(kt?'<div class="jd" style="margin-top:8px">Plan <b>'+kt+' kcal</b> · eaten so far <b>'+ke+'</b></div>':'')+'</div>';
   }
   function sessRow(id,idx,d){
     var k=id+"#"+idx,done=sessDone(d,id,idx);
@@ -323,13 +327,13 @@
 
   function weekHtml(){
     var days=[];for(var i=6;i>=0;i--)days.push(addDays(today(),-i));
-    var tot={sess:0,rec:0,water:0,sleep:0,sl:0};
-    days.forEach(function(day){var d=get(day);sessionsFor(day).forEach(function(id,i){if(sessDone(d,id,i)){if(LIB[id]&&LIB[id].kind==="rec")tot.rec++;else tot.sess++;}});tot.rec+=(d.rec||[]).length;tot.water+=(d.water||0);if(d.sleep){tot.sleep+=d.sleep;tot.sl++;}});
+    var tot={sess:0,rec:0,water:0,sleep:0,sl:0,w:0,wn:0};
+    days.forEach(function(day){var d=get(day);sessionsFor(day).forEach(function(id,i){if(sessDone(d,id,i)){if(LIB[id]&&LIB[id].kind==="rec")tot.rec++;else tot.sess++;}});tot.rec+=(d.rec||[]).length;tot.water+=(d.water||0);if(d.sleep){tot.sleep+=d.sleep;tot.sl++;}var wkg=parseFloat(d.weight);if(wkg){tot.w+=wkg;tot.wn++;}});
     var wk=days.map(function(day){var s=score(day);var lab=new Date(day+"T12:00:00").toLocaleDateString("en-AU",{weekday:"narrow"});return '<div class="'+(day===today()?"today":"")+'" onclick="lfGoto(\''+day+'\')"><span>'+lab+'</span><b>'+(s||"–")+'</b><i class="'+(s>=8?"s3":s>=5?"s2":s>0?"s1":"")+'"></i></div>';}).join("");
     var xw='';for(var w=1;w<=10;w++){var start=addDays(XMAS_START,(w-1)*7),sum=0,n=0;for(var j=0;j<7;j++){var dd=addDays(start,j);if(dd>today())break;sum+=score(dd);n++;}var avg=n?sum/n:0;xw+='<div><i class="'+(xmasWeek()===w?"cur ":"")+(n?(avg>=8?"s3":avg>=5?"s2":"s1"):"")+'"></i>'+w+'</div>';}
     var xwk=xmasWeek();
     return '<div class="job"><div class="jk">This week <small>score per day, tap one to open it</small></div><div class="wk">'+wk+'</div></div>'+
-      '<div class="lf-strip"><div><b>'+tot.sess+'</b><span>sessions</span></div><div><b>'+tot.rec+'</b><span>recovery</span></div><div><b>'+(tot.water*0.25).toFixed(1)+'L</b><span>water (7d)</span></div><div><b>'+(tot.sl?(tot.sleep/tot.sl).toFixed(1)+"h":"–")+'</b><span>avg sleep</span></div><div><b>'+streak()+'</b><span>day streak</span></div></div>'+
+      '<div class="lf-strip">'+(tot.wn?'<div><b>'+(tot.w/tot.wn).toFixed(1)+'</b><span>avg kg (7d)</span></div>':'')+'<div><b>'+tot.sess+'</b><span>sessions</span></div><div><b>'+tot.rec+'</b><span>recovery</span></div><div><b>'+(tot.water*0.25).toFixed(1)+'L</b><span>water (7d)</span></div><div><b>'+(tot.sl?(tot.sleep/tot.sl).toFixed(1)+"h":"–")+'</b><span>avg sleep</span></div><div><b>'+streak()+'</b><span>day streak</span></div></div>'+
       '<div class="job"><div class="jk">Road to Xmas <small>'+(xwk<1?"starts 12 Oct":xwk>10?"done":"week "+xwk+" of 10")+'</small></div><div class="jt">10 weeks to 19 Dec</div><div class="jd">Same 10 weeks as the Fight Club camp and the Fuel Plan. Green week = averaged 8+/10.</div><div class="xw">'+xw+'</div></div>'+
       '<div class="job"><div class="jk">How the score works</div><div class="jd">Water goal <b>2</b> · meals on plan <b>2</b> · planned training done <b>3</b> · sleep at target <b>1</b> · any recovery <b>1</b> · Top 3 cleared <b>1</b>. 5+ keeps the streak alive. 8+ is a green day.</div></div>';
   }
@@ -339,7 +343,7 @@
     var opts='<option value="">+ add</option><option value="fc">FC · Fight Club night</option>'+Object.keys(LIB).map(function(k){return '<option value="'+k+'">'+E(LIB[k].kind.toUpperCase()+" · "+LIB[k].name)+'</option>';}).join("");
     var rows=[1,2,3,4,5,6,0].map(function(dw){var ids=p.week[dw]||[];return '<div class="pl"><b>'+names[dw]+'</b><div class="pls">'+ids.map(function(id,i){var nm=id==="fc"?"Fight Club":(LIB[id]?LIB[id].name:id);return '<span>'+E(nm)+'<i onclick="lfPlanDel('+dw+','+i+')">✕</i></span>';}).join("")+'<select class="sel" style="width:auto;padding:5px 8px;font-size:11px;border-radius:999px" onchange="lfPlanAdd('+dw+',this)">'+opts+'</select></div></div>';}).join("");
     return '<div class="job"><div class="jk">Weekly plan <small>what shows up each day</small></div><div class="jd">Fight Club is Mon, Tue, Wed. Everything else is a suggestion you can swap. Tap ✕ to drop one, use the menu to add.</div><div class="list">'+rows+'</div></div>'+
-      '<div class="job"><div class="jk">Meals <small>your plan, your names</small></div><div class="jd">When Ali hands over the 10-week plan, name the meals here and they become the daily tick list.</div><div class="list">'+p.meals.map(function(m,i){return '<div class="item"><input class="num" style="padding:8px 10px;font-size:14px" value="'+E(m)+'" oninput="lfMealName('+i+',this.value)"><button class="x" onclick="lfMealDel('+i+')">✕</button></div>';}).join("")+'</div><button class="big ghost" onclick="lfMealAdd()">+ Add a meal</button></div>'+
+      '<div class="job"><div class="jk">Meals <small>your plan, your names</small></div><div class="jd">When Ali hands over the 10-week plan, name the meals here and they become the daily tick list.</div><div class="list">'+p.meals.map(function(m,i){return '<div class="item" style="flex-direction:column;align-items:stretch;gap:3px"><div style="display:flex;gap:8px;align-items:center"><input class="num" style="padding:8px 10px;font-size:14px" value="'+E(mN(m))+'" oninput="lfMealName('+i+',this.value)"><button class="x" onclick="lfMealDel('+i+')">✕</button></div>'+(mD(m)?'<div class="jd" style="margin:0">'+E(mD(m))+(mK(m)?' · <b>'+mK(m)+' kcal</b>':'')+'</div>':'')+'</div>';}).join("")+'</div><button class="big ghost" onclick="lfMealAdd()">+ Add a meal</button></div>'+
       '<div class="job"><div class="jk">Targets</div><div class="row2"><div><div class="jd">Water (250 ml glasses)</div><input class="num" type="number" value="'+p.waterGoal+'" oninput="lfPlanSet(\'waterGoal\',this.value)"></div><div><div class="jd">Sleep target (hours)</div><input class="num" type="number" step="0.5" value="'+p.sleepTarget+'" oninput="lfPlanSet(\'sleepTarget\',this.value)"></div></div><div class="jd" style="margin-top:8px">Bed by</div><input class="num" type="time" value="'+E(p.bedTarget)+'" oninput="lfPlanSet(\'bedTarget\',this.value)"></div>'+
       '<div class="job"><div class="jk">Session library</div><div class="jd">Built on your kit: bench, overhead, dumbbells, kettlebells, sled, sandbag, dead ball, ski erg, assault bike, rower. Boxing is skipping, shadow, bag and feet. Recovery is ice, sauna, hot/cold, stretch, walk. Tell me what to add or change and I’ll update it.</div></div>';
   }
