@@ -1,21 +1,23 @@
 /*__FCREC__ ============================================================
-   Fight Club · RECOVERY tab (inside the camp view, next to Today / Week /
-   Progress / Board) · 12 Oct 2026. Kincumber Recovery look: blue, white, black.
-   LOG: the three modalities (infrared sauna, ice bath, hot water therapy),
-        quick log, this camp's sessions.
-   BUILD YOUR OWN: minutes in sauna / ice / hot, rest between, finish hot or
-        cold, run it on a timer or log it straight away.
-   PROTOCOLS (custom recovery): Post sparring · Post run / sprints · Weekly
-        wrap-up, built from the research (see WHY text), each runs on the timer.
+   Fight Club · LEGACY RECOVERY tab (inside the camp view, next to Today /
+   Week / Progress / Board) · 12 Oct 2026 · v2.
+   PROTOCOLS: five numbered step systems with the timer built into the card
+     (Post Strength & Con · Post sparring · Post run & sprints · Weekly
+     wrap-up · Fresh for the week). Ice baths at the gym run 5, 7 and 10°C:
+     longer sits use 10°, short hits 7°, sharp hits 5°.
+   BUILD YOUR OWN: add steps (sauna / ice / hot / rest), minutes and ice temp
+     per step, reorder by adding in order, same built-in timer.
+   LOG: what each tool is for (short), quick log, this camp's sessions.
    Data: public.fc_recovery (own rows via fc_my_fighter_id, staff all).
-   Hooks: fccamp.js calls window.fcRecHtml(w) for the body and
-   window.fcRecAfter() after paint; uses window.fccFighter / fccPv / fccRepaint.
+   Hooks: fccamp.js calls window.fcRecHtml(w) for the body; uses
+   window.fccFighter / fccPv / fccRepaint.
    ==================================================================== */
 (function(){
 "use strict";
 var CAMP="fc2026";
 var BLUE="#4FB8DC",DIM="#2a7c9c";
-var R={sub:"log",rows:null,loadedFor:null,loading:false,run:null,tick:null,build:{sauna:20,ice:5,hot:10,rest:2,finish:"cold"},quick:{sauna:0,ice:0,hot:0}};
+var R={sub:"proto",rows:null,loadedFor:null,loading:false,run:null,tick:null,build:[],quick:{sauna:0,ice:0,hot:0},done:null};
+try{var b0=JSON.parse(localStorage.getItem("fcrBuild")||"null");if(Array.isArray(b0))R.build=b0;}catch(e){}
 function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function T(m){try{toast(m);}catch(e){}}
 function uid(){try{return (session&&session.user&&session.user.id)||null;}catch(e){return null;}}
@@ -26,70 +28,70 @@ function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"
 function pd(s){var p=String(s).slice(0,10).split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
 function fd(d){return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]+" "+d.getDate()+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];}
 function mmss(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
-function num(id,lo,hi){var v=parseFloat((document.getElementById(id)||{}).value);if(isNaN(v))return 0;return Math.max(lo,Math.min(hi,v));}
+function mins(s){return s%60?(Math.floor(s/60)+":"+String(s%60).padStart(2,"0")):(s/60)+" min";}
 
-/* ---------- the three modalities ---------- */
-var MODS={
- sauna:{n:"Infrared sauna",k:"Heat",c:"#ff9f6e",dose:"20 min · 45 to 60°C",
-  what:"Dry radiant heat that warms the muscle, not just the air. Twenty minutes after a hard session kept jump power up and soreness down the next day in trained athletes, and did not disturb overnight heart-rate recovery.",
-  when:"After boxing nights and on the weekly wrap-up. Fine after Strength & Con. Hydrate before and after."},
- ice:{n:"Ice bath",k:"Cold",c:BLUE,dose:"10 to 15 min total · 11 to 15°C",
-  what:"The best-supported recovery tool there is for soreness. The research dose is 10 to 15 minutes somewhere between 11 and 15 degrees. Colder than that works too, it just hurts more and people stop doing it. New to it? Split it: 5 in, 2 out, 5 in.",
-  when:"Straight after sparring and after sprints or runs. Leave it 4 hours after Strength & Con, cold straight after lifting blunts the strength gains you just trained for."},
- hot:{n:"Hot water therapy",k:"Hot",c:"#ffd36e",dose:"10 to 15 min · 38 to 40°C",
-  what:"Loosens tight muscle, opens the blood vessels and slows the nervous system down. On its own it is a wind-down tool. Paired with cold it becomes contrast therapy, the circulation pump.",
-  when:"Before the cold in a contrast session, or last thing in the weekly wrap-up so you sleep. Skip it on fresh bruising from sparring."}};
+/* ---------- modalities ---------- */
+var MN={sauna:"Infrared sauna",ice:"Ice bath",hot:"Hot bath",rest:"Out"};
+var MC={sauna:"#ff9f6e",ice:BLUE,hot:"#ffd36e",rest:"#6f8591"};
+var MODS=[
+ {m:"sauna",temp:"45 to 60°C",time:"15 to 20 min",best:"Next-day power and soreness after a hard session. Sleep.",rule:"Fine after lifting. Water before and after."},
+ {m:"ice",temp:"5 · 7 · 10°C",time:"10° for 10 min sits · 7° for 2 to 4 min hits · 5° for 60 to 90 s",best:"Soreness, swelling, bruising. The best-backed recovery tool there is.",rule:"Not within 4 hours of Strength & Con."},
+ {m:"hot",temp:"38 to 40°C",time:"5 to 15 min",best:"Loosens tight muscle. Pairs with ice for contrast. Wind-down before bed.",rule:"Skip it on fresh bruising."}];
 
-/* ---------- protocols (custom recovery) ---------- */
-/* step: {m:"sauna"|"ice"|"hot"|"rest", min:n} */
+/* ---------- protocols: steps in seconds, ice steps carry the bath temp ---------- */
 var PROTOS=[
- {id:"spar",n:"Post sparring",when:"Mon and Wed, within the hour after rounds",tag:"Cold only",
-  steps:[{m:"ice",min:5},{m:"rest",min:2},{m:"ice",min:5}],
-  why:"Sparring leaves you with sore muscle and contact bruising. Cold is the tool for both: 10 minutes at 11 to 15 degrees is the dose the research ranks best for next-day soreness, split into two 5s so you can actually do it. No heat tonight. Heat pushes blood into bruised tissue and makes the bruising worse. Shower warm, eat, sleep."},
- {id:"run",n:"Post run and sprints",when:"After the 3 km Mon and Wed, and after Friday sprints. Not after Strength & Con",tag:"Contrast · finish cold",
-  steps:[{m:"hot",min:4},{m:"ice",min:2},{m:"hot",min:4},{m:"ice",min:2},{m:"hot",min:4},{m:"ice",min:3}],
-  why:"Legs, not bruises, so you can use heat. Hot opens the vessels, cold clamps them, three rounds flushes the legs and the final cold hit keeps the soreness down. Seven minutes of cold total sits inside the research dose. Always finish on cold. If you lifted today, skip the cold until 4 hours after the lift, heat only."},
- {id:"week",n:"Weekly wrap-up",when:"Saturday or Sunday, the end of the training week",tag:"Full reset · finish hot",
-  steps:[{m:"sauna",min:20},{m:"rest",min:3},{m:"ice",min:3},{m:"rest",min:1},{m:"hot",min:10}],
-  why:"The week's damage is already done, so this one is about the nervous system and sleep. Twenty minutes of infrared sauna is the protocol that improved next-day power and soreness in trained athletes. Three minutes of cold for the mood lift and the mental reps. Then ten minutes hot to finish warm, which is what sets up a deep sleep. Finishing hot, not cold, is deliberate on a rest day."}];
-var MN={sauna:"Infrared sauna",ice:"Ice bath",hot:"Hot bath",rest:"Out · rest"};
-var MC={sauna:"#ff9f6e",ice:BLUE,hot:"#ffd36e",rest:"#8fa3ad"};
-function stepsOf(p){return p.steps;}
-function total(steps){return steps.reduce(function(a,s){return a+s.min;},0);}
-function sum(steps,m){return steps.filter(function(s){return s.m===m;}).reduce(function(a,s){return a+s.min;},0);}
-function buildSteps(){var b=R.build,st=[],seq=b.finish==="hot"?["sauna","ice","hot"]:["sauna","hot","ice"];
-  seq.forEach(function(m){if(b[m]>0){if(st.length&&b.rest>0)st.push({m:"rest",min:b.rest});st.push({m:m,min:b[m]});}});return st;}
+ {id:"snc",n:"Post Strength & Con",when:"Tue and Thu, after the lift",fin:"hot",tag:"Heat only",
+  steps:[{m:"sauna",s:1200},{m:"rest",s:120,lbl:"Shower, water"},{m:"hot",s:480}],
+  why:"<b>No ice after lifting.</b> Cold inside 4 hours of a strength session blunts the size and strength you just trained for. Heat does the opposite: a 20 minute infrared session after a heavy lift kept power up and soreness down the next day in trained athletes."},
+ {id:"spar",n:"Post sparring",when:"Mon and Wed, within the hour after rounds",fin:"cold",tag:"Cold only",
+  steps:[{m:"ice",s:300,t:10},{m:"rest",s:120,lbl:"Out, towel, breathe"},{m:"ice",s:300,t:10}],
+  why:"<b>Cold for the soreness and the bruising, no heat tonight.</b> Ten minutes at 10° is the dose the research ranks best for next-day soreness, split into two sits so it is doable. Heat pushes blood into bruised tissue, so leave the sauna and the hot bath for another day."},
+ {id:"run",n:"Post run & sprints",when:"After the 3 km Mon and Wed, and Friday sprints",fin:"cold",tag:"Contrast",
+  steps:[{m:"hot",s:180},{m:"ice",s:60,t:7},{m:"hot",s:180},{m:"ice",s:60,t:7},{m:"hot",s:180},{m:"ice",s:120,t:7}],
+  why:"<b>Legs, not bruises, so heat is in.</b> Hot opens the vessels, cold shuts them, three rounds pumps the legs out. Contrast beats doing nothing for soreness and strength over the next four days, and finishing on cold keeps the swelling down. Lifted today? Skip the ice, do the hot steps only."},
+ {id:"week",n:"Weekly wrap-up",when:"Saturday or Sunday, end of the training week",fin:"hot",tag:"Full reset",
+  steps:[{m:"sauna",s:1200},{m:"rest",s:180,lbl:"Cool down, water"},{m:"ice",s:180,t:10},{m:"rest",s:60,lbl:"Out, towel"},{m:"hot",s:600}],
+  why:"<b>The week's damage is done, this is for the nervous system and sleep.</b> Twenty minutes of sauna for the recovery, three minutes of cold for the head, then ten minutes hot so you finish warm and sleep deep. Finishing hot is deliberate on a rest day."},
+ {id:"fresh",n:"Fresh for the week",when:"Sunday night or Monday morning, before week one of the next block",fin:"cold",tag:"Switch on",
+  steps:[{m:"sauna",s:900},{m:"ice",s:120,t:7},{m:"hot",s:240},{m:"ice",s:60,t:5}],
+  why:"<b>Wake the system up.</b> Fifteen minutes of heat to loosen the week off, two short cold hits for the mood and the focus, and a hot soak between. Finish on the 5° bath for 60 seconds and you walk out switched on."}];
+function protoById(id){return id==="build"?{id:"build",n:"My own recovery",steps:R.build.slice(),fin:R.build.length&&R.build[R.build.length-1].m==="ice"?"cold":"hot"}:PROTOS.find(function(p){return p.id===id;});}
+function total(st){return st.reduce(function(a,s){return a+s.s;},0);}
+function sumMin(st,m){return Math.round(st.filter(function(s){return s.m===m;}).reduce(function(a,s){return a+s.s;},0)/60);}
+function stepName(s){return s.lbl?s.lbl:(MN[s.m]+(s.m==="ice"&&s.t?" · "+s.t+"°":""));}
 
 /* ---------- css ---------- */
 var css=document.createElement("style");css.id="fcrCss";css.textContent=
  ".fcr{--b:"+BLUE+";--bd:"+DIM+";--ln:#1b2b34;--p:#0b1217;--p2:#0f1a21;--mu:#8fa3ad;--tx:#f4f7f9;color:var(--tx);font-family:Montserrat,sans-serif}"+
  ".fcr .hd{background:linear-gradient(160deg,#0c1a22,#050608);border:1px solid var(--ln);border-radius:16px;padding:18px 16px 16px;margin-bottom:12px}"+
- ".fcr .hd .t{font-family:Oswald,sans-serif;font-weight:600;font-size:22px;letter-spacing:3px;color:#fff;text-transform:uppercase}.fcr .hd .t span{font-family:'Mr Dafoe',cursive;font-weight:400;color:var(--b);font-size:30px;letter-spacing:1px;text-transform:none;margin-left:8px}"+
+ ".fcr .hd .t{font-family:Oswald,sans-serif;font-weight:600;font-size:22px;letter-spacing:4px;color:#fff;text-transform:uppercase}.fcr .hd .t span{font-family:'Mr Dafoe',cursive;font-weight:400;color:var(--b);font-size:30px;letter-spacing:1px;text-transform:none;margin-left:8px}"+
  ".fcr .hd .k{font-weight:700;font-size:9px;letter-spacing:4px;color:var(--mu);margin-top:3px;text-transform:uppercase}.fcr .hd .rule{width:44px;height:2px;background:var(--b);margin:10px 0}"+
  ".fcr .hd .st{display:flex;gap:6px}.fcr .hd .st div{flex:1;background:rgba(0,0,0,.4);border:1px solid var(--ln);border-radius:10px;padding:8px 6px;text-align:center}.fcr .hd .st b{display:block;font-family:Oswald,sans-serif;font-size:20px;line-height:1;color:#fff}.fcr .hd .st span{display:block;font-size:6.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--b);font-weight:800;margin-top:4px}"+
  ".fcr .sub{display:flex;gap:4px;background:rgba(0,0,0,.5);border:1px solid var(--ln);border-radius:12px;padding:4px;margin-bottom:12px}.fcr .sub button{flex:1;font-family:Oswald,sans-serif;font-weight:500;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;padding:9px 2px;border-radius:9px;border:0;background:transparent;color:var(--mu);cursor:pointer;white-space:nowrap}.fcr .sub button.on{background:var(--b);color:#04161d;font-weight:700}"+
- ".fcr .card{background:var(--p);border:1px solid var(--ln);border-radius:14px;padding:14px;margin-bottom:10px}"+
- ".fcr .card h3{font-family:Oswald,sans-serif;font-weight:600;font-size:17px;letter-spacing:1.5px;text-transform:uppercase;margin:0;color:#fff}"+
- ".fcr .kk{font-size:8.5px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--b);margin-bottom:4px;display:flex;justify-content:space-between;gap:8px}.fcr .kk small{color:var(--mu);letter-spacing:1px;text-align:right}"+
- ".fcr p{font-size:12.5px;line-height:1.55;color:#c9d4da;margin:8px 0 0}.fcr p b{color:#fff}"+
- ".fcr .dose{display:inline-block;margin-top:8px;font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:800;color:#fff;border:1px solid var(--bd);border-radius:999px;padding:5px 10px}"+
- ".fcr .mod{border-left:3px solid var(--b)}"+
- ".fcr .row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--ln)}.fcr .row:first-of-type{border-top:0}"+
- ".fcr .row .l{flex:1;min-width:0}.fcr .row .l b{display:block;font-family:Oswald,sans-serif;font-weight:500;font-size:15px;letter-spacing:.5px;text-transform:uppercase;color:#fff}.fcr .row .l small{display:block;font-size:10.5px;color:var(--mu);margin-top:2px}"+
- ".fcr .row input{width:74px;background:#050608;border:1.5px solid var(--bd);border-radius:10px;color:#fff;padding:10px 8px;font-family:Oswald,sans-serif;font-size:20px;text-align:center;flex:none}.fcr .row input:focus{outline:none;border-color:var(--b)}"+
- ".fcr .row .u{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);font-weight:800;flex:none;width:28px}"+
- ".fcr .seg{display:flex;gap:6px;margin-top:8px}.fcr .seg button{flex:1;padding:10px 4px;border-radius:10px;background:var(--p2);border:1px solid var(--ln);color:var(--mu);font-family:Oswald,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}.fcr .seg button.on{background:var(--b);border-color:var(--b);color:#04161d;font-weight:700}"+
- ".fcr .big{display:block;width:100%;margin-top:10px;padding:15px;border-radius:12px;border:0;background:var(--b);color:#04161d;font-family:Oswald,sans-serif;font-size:16px;letter-spacing:2px;text-transform:uppercase;font-weight:700;cursor:pointer}.fcr .big.gh{background:none;border:1px solid var(--bd);color:var(--b);padding:11px;font-size:13px;margin-top:6px}.fcr .big.wh{background:#fff}"+
- ".fcr .steps{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}.fcr .steps i{font-style:normal;font-size:10px;font-weight:800;letter-spacing:.5px;padding:6px 9px;border-radius:999px;background:var(--p2);border:1px solid var(--ln);color:#fff}.fcr .steps i b{font-weight:800}.fcr .steps i.rest{color:var(--mu)}"+
- ".fcr .tot{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;color:var(--mu);margin-top:8px}.fcr .tot b{color:#fff}"+
+ ".fcr .card{background:var(--p);border:1px solid var(--ln);border-radius:16px;padding:14px;margin-bottom:12px}.fcr .card.live{border-color:var(--b);box-shadow:0 0 0 1px rgba(79,184,220,.25),0 12px 30px rgba(0,0,0,.45)}.fcr .card.fin{border-color:#4bc97a}"+
+ ".fcr .ph{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.fcr .ph h3{font-family:Oswald,sans-serif;font-weight:600;font-size:21px;letter-spacing:1.5px;text-transform:uppercase;margin:0;color:#fff;line-height:1.05}.fcr .ph .tt{text-align:right;flex:none}.fcr .ph .tt b{display:block;font-family:Oswald,sans-serif;font-size:21px;line-height:1;color:var(--b)}.fcr .ph .tt span{font-size:7.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);font-weight:800}"+
+ ".fcr .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.fcr .chips i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 9px;border-radius:999px;border:1px solid var(--ln);color:var(--mu)}.fcr .chips i.b{border-color:var(--bd);color:var(--b)}"+
+ ".fcr .steps{margin-top:12px;border-top:1px solid var(--ln)}"+
+ ".fcr .stp{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--ln);position:relative}"+
+ ".fcr .stp .n{width:28px;height:28px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:Oswald,sans-serif;font-weight:600;font-size:13px;color:#04161d;background:var(--c)}"+
+ ".fcr .stp .nm{flex:1;min-width:0}.fcr .stp .nm b{display:block;font-family:Oswald,sans-serif;font-weight:500;font-size:15px;letter-spacing:.8px;text-transform:uppercase;color:#fff}.fcr .stp .nm small{display:block;font-size:10px;color:var(--mu);font-weight:600;margin-top:1px}"+
+ ".fcr .stp .tm{font-family:Oswald,sans-serif;font-weight:600;font-size:20px;color:#fff;font-variant-numeric:tabular-nums;flex:none}"+
+ ".fcr .stp.done{opacity:.45}.fcr .stp.done .tm{color:#4bc97a}.fcr .stp.todo{opacity:.55}"+
+ ".fcr .stp.now{margin:4px -6px;padding:12px 10px;background:linear-gradient(90deg,rgba(79,184,220,.14),rgba(79,184,220,.03));border:1px solid var(--bd);border-radius:12px;opacity:1}"+
+ ".fcr .stp.now .tm{font-size:40px;line-height:1;color:#fff;text-shadow:0 0 18px rgba(79,184,220,.45)}.fcr .stp.now .nm b{font-size:17px;color:var(--b)}"+
+ ".fcr .stp .x{border:0;background:none;color:var(--mu);font-size:20px;cursor:pointer;padding:0 2px;flex:none}"+
+ ".fcr .stp .mn{display:flex;align-items:center;gap:4px;flex:none}.fcr .stp .mn button{width:30px;height:30px;border-radius:8px;border:1px solid var(--ln);background:var(--p2);color:#fff;font-size:16px;font-weight:800;cursor:pointer}.fcr .stp .mn b{min-width:52px;text-align:center;font-family:Oswald,sans-serif;font-size:17px}"+
+ ".fcr .stp .tp{display:flex;gap:3px;margin-top:4px}.fcr .stp .tp button{padding:3px 7px;border-radius:999px;border:1px solid var(--ln);background:transparent;color:var(--mu);font-size:9px;font-weight:800;cursor:pointer}.fcr .stp .tp button.on{background:var(--b);border-color:var(--b);color:#04161d}"+
+ ".fcr .bar{height:5px;border-radius:3px;background:#0e171c;margin-top:12px;overflow:hidden}.fcr .bar i{display:block;height:100%;background:var(--b);transition:width .5s linear}"+
+ ".fcr .why{font-size:12.5px;line-height:1.5;color:#c9d4da;margin:12px 0 0}.fcr .why b{color:#fff}"+
+ ".fcr .big{display:block;width:100%;margin-top:12px;padding:15px;border-radius:12px;border:0;background:var(--b);color:#04161d;font-family:Oswald,sans-serif;font-size:16px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;cursor:pointer}.fcr .big.gh{background:none;border:1px solid var(--ln);color:var(--mu);padding:11px;font-size:12px;letter-spacing:1.5px;margin-top:6px}.fcr .big.ok{background:#4bc97a}"+
+ ".fcr .ctl{display:flex;gap:6px;margin-top:12px}.fcr .ctl button{flex:1;padding:13px 4px;border-radius:12px;border:1px solid var(--bd);background:transparent;color:#fff;font-family:Oswald,sans-serif;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}.fcr .ctl button.p{background:var(--b);color:#04161d;border-color:var(--b);font-weight:700;flex:1.6}"+
+ ".fcr .add{display:flex;gap:5px;margin-top:10px}.fcr .add button{flex:1;padding:11px 2px;border-radius:10px;border:1px solid var(--ln);background:var(--p2);color:#fff;font-family:Oswald,sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-top:3px solid var(--c)}"+
+ ".fcr .mod{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--ln)}.fcr .mod:first-child{border-top:0;padding-top:0}.fcr .mod .dot{width:12px;height:12px;border-radius:50%;flex:none;margin-top:4px}.fcr .mod b{display:block;font-family:Oswald,sans-serif;font-weight:600;font-size:15px;letter-spacing:1px;text-transform:uppercase;color:#fff}.fcr .mod .sp{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--b);font-weight:800;margin-top:2px}.fcr .mod p{font-size:12px;line-height:1.45;color:#c9d4da;margin:4px 0 0}.fcr .mod p small{display:block;color:var(--mu);margin-top:2px;font-size:11px}"+
+ ".fcr .row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--ln)}.fcr .row:first-of-type{border-top:0}.fcr .row .l{flex:1}.fcr .row .l b{font-family:Oswald,sans-serif;font-weight:500;font-size:14px;letter-spacing:.5px;text-transform:uppercase;color:#fff}"+
+ ".fcr .row input{width:74px;background:#050608;border:1.5px solid var(--bd);border-radius:10px;color:#fff;padding:9px 8px;font-family:Oswald,sans-serif;font-size:19px;text-align:center;flex:none}.fcr .row input:focus{outline:none;border-color:var(--b)}.fcr .row .u{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--mu);font-weight:800;width:26px}"+
  ".fcr .log{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--ln)}.fcr .log:first-of-type{border-top:0}.fcr .log .d{width:76px;flex:none;font-size:10.5px;color:var(--mu);font-weight:700}.fcr .log .n{flex:1;min-width:0;font-size:13px;font-weight:700;color:#fff}.fcr .log .n small{display:block;font-size:10.5px;color:var(--mu);font-weight:600;margin-top:1px}.fcr .log .x{border:0;background:none;color:var(--mu);font-size:18px;cursor:pointer;padding:0 4px}"+
- ".fcr .tm{background:linear-gradient(160deg,#0c1a22,#050608);border:1.5px solid var(--b);border-radius:16px;padding:22px 16px;text-align:center;margin-bottom:10px;box-shadow:0 0 24px rgba(79,184,220,.18)}"+
- ".fcr .tm .ph{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:800;color:var(--b)}.fcr .tm .nm{font-family:Oswald,sans-serif;font-weight:600;font-size:30px;letter-spacing:2px;text-transform:uppercase;color:#fff;margin-top:6px;line-height:1}"+
- ".fcr .tm .clock{font-family:Oswald,sans-serif;font-weight:600;font-size:72px;line-height:1;letter-spacing:2px;color:#fff;margin:14px 0 6px;font-variant-numeric:tabular-nums}.fcr .tm .nx{font-size:11px;color:var(--mu);font-weight:600}"+
- ".fcr .tm .bar{height:6px;border-radius:3px;background:#0e171c;margin:14px 0 4px;overflow:hidden}.fcr .tm .bar i{display:block;height:100%;background:var(--b)}"+
- ".fcr .tm .btns{display:flex;gap:6px;margin-top:12px}.fcr .tm .btns button{flex:1;padding:13px 4px;border-radius:12px;border:1px solid var(--bd);background:transparent;color:#fff;font-family:Oswald,sans-serif;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}.fcr .tm .btns button.p{background:var(--b);color:#04161d;border-color:var(--b);font-weight:700}"+
- ".fcr .empty{font-size:12px;color:var(--mu);padding:6px 0}"+
- ".fcr .ico{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}";
+ ".fcr .kk{font-size:8.5px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--b);margin-bottom:6px}.fcr .empty{font-size:12px;color:var(--mu);padding:6px 0}.fcr .src{font-size:10.5px;line-height:1.5;color:var(--mu);margin:0}";
 document.head.appendChild(css);
 try{if(!document.getElementById("fcrDafoe")&&!document.querySelector('link[href*="Mr+Dafoe"]')){var fl=document.createElement("link");fl.id="fcrDafoe";fl.rel="stylesheet";fl.href="https://fonts.googleapis.com/css2?family=Mr+Dafoe&display=swap";document.head.appendChild(fl);}}catch(e){}
 
@@ -97,65 +99,76 @@ try{if(!document.getElementById("fcrDafoe")&&!document.querySelector('link[href*
 function rows(){var f=fighter();if(!f)return [];return (R.rows||[]).filter(function(r){return r.fighter_id===f.id;});}
 function load(){var f=fighter();if(!f||R.loading)return;if(R.loadedFor===f.id)return;R.loading=true;
   sb.from("fc_recovery").select("*").eq("fighter_id",f.id).order("done_at",{ascending:false}).then(function(r){R.loading=false;R.rows=r.error?[]:(r.data||[]);R.loadedFor=f.id;repaint();},function(){R.loading=false;});}
-function thisWeek(){var w=rows(),now=new Date(),d=(now.getDay()+6)%7,mon=new Date(now);mon.setHours(0,0,0,0);mon.setDate(mon.getDate()-d);return w.filter(function(r){return pd(r.done_at)>=mon;}).length;}
-
-/* ---------- pieces ---------- */
-function stepsHtml(st){return '<div class="steps">'+st.map(function(s){return '<i class="'+s.m+'"><span class="ico" style="background:'+MC[s.m]+'"></span>'+E(MN[s.m])+' <b>'+s.min+'</b></i>';}).join('')+'</div>';}
-function headHtml(){var all=rows(),last=all[0];
-  return '<div class="hd"><div class="t">Kincumber<span>Recovery</span></div><div class="k">Inside Legacy Gym · Fight Club</div><div class="rule"></div>'
-   +'<div class="st"><div><b>'+all.length+'</b><span>Sessions<br>this camp</span></div><div><b>'+thisWeek()+'</b><span>This<br>week</span></div><div><b>'+(last?fd(pd(last.done_at)).replace(/^\w+ /,''):'–')+'</b><span>Last<br>session</span></div></div></div>'
-   +'<div class="sub">'+[["log","Log"],["build","Build your own"],["proto","Custom recovery"]].map(function(x){return '<button class="'+(R.sub===x[0]?'on':'')+'" onclick="fcrSub(\''+x[0]+'\')">'+x[1]+'</button>';}).join('')+'</div>';}
-function logHtml(){var h='';
-  ["sauna","ice","hot"].forEach(function(k){var m=MODS[k];h+='<div class="card mod" style="border-left-color:'+m.c+'"><div class="kk"><span>'+E(m.k)+'</span><small>'+E(m.dose)+'</small></div><h3>'+E(m.n)+'</h3><p>'+E(m.what)+'</p><p><b>When.</b> '+E(m.when)+'</p></div>';});
-  h+='<div class="card"><div class="kk"><span>Already done it?</span></div><h3>Log a session</h3>'
-    +'<div class="row"><div class="l"><b>Infrared sauna</b></div><input id="fcrQs" type="number" min="0" max="60" inputmode="numeric" value="'+(R.quick.sauna||'')+'" placeholder="0"><span class="u">min</span></div>'
-    +'<div class="row"><div class="l"><b>Ice bath</b></div><input id="fcrQi" type="number" min="0" max="30" inputmode="numeric" value="'+(R.quick.ice||'')+'" placeholder="0"><span class="u">min</span></div>'
-    +'<div class="row"><div class="l"><b>Hot bath</b></div><input id="fcrQh" type="number" min="0" max="60" inputmode="numeric" value="'+(R.quick.hot||'')+'" placeholder="0"><span class="u">min</span></div>'
-    +'<button class="big" onclick="fcrQuick()">Log it</button></div>';
-  var all=rows();
-  h+='<div class="card"><div class="kk"><span>This camp</span><small>'+all.length+' session'+(all.length===1?'':'s')+'</small></div>'+(all.length?all.slice(0,20).map(function(r){return '<div class="log"><span class="d">'+E(fd(pd(r.done_at)))+'</span><span class="n">'+E(r.name||'Recovery')+'<small>'+[r.sauna_min?'Sauna '+r.sauna_min:'',r.ice_min?'Ice '+r.ice_min:'',r.hot_min?'Hot '+r.hot_min:''].filter(Boolean).join(' · ')+' · '+r.total_min+' min</small></span><button class="x" onclick="fcrDel('+r.id+')">×</button></div>';}).join(''):'<div class="empty">Nothing logged yet. Run a protocol or log one above.</div>')+'</div>';
-  return h;}
-function buildHtml(){var b=R.build,st=buildSteps();
-  var h='<div class="card"><div class="kk"><span>Build your own</span><small>Minutes in each</small></div><h3>Your recovery</h3>'
-    +'<div class="row"><div class="l"><b>Infrared sauna</b><small>0 to skip · 45 to 60°C</small></div><input id="fcrBs" type="number" min="0" max="45" inputmode="numeric" value="'+b.sauna+'" onchange="fcrBuild()"><span class="u">min</span></div>'
-    +'<div class="row"><div class="l"><b>Ice bath</b><small>0 to skip · 11 to 15°C</small></div><input id="fcrBi" type="number" min="0" max="20" inputmode="numeric" value="'+b.ice+'" onchange="fcrBuild()"><span class="u">min</span></div>'
-    +'<div class="row"><div class="l"><b>Hot bath</b><small>0 to skip · 38 to 40°C</small></div><input id="fcrBh" type="number" min="0" max="30" inputmode="numeric" value="'+b.hot+'" onchange="fcrBuild()"><span class="u">min</span></div>'
-    +'<div class="row"><div class="l"><b>Rest between</b><small>Out of the water, towel off</small></div><input id="fcrBr" type="number" min="0" max="10" inputmode="numeric" value="'+b.rest+'" onchange="fcrBuild()"><span class="u">min</span></div>'
-    +'<div class="kk" style="margin-top:12px"><span>Finish on</span></div><div class="seg"><button class="'+(b.finish==="cold"?'on':'')+'" onclick="fcrFinish(\'cold\')">Cold · after training</button><button class="'+(b.finish==="hot"?'on':'')+'" onclick="fcrFinish(\'hot\')">Hot · wind down</button></div>'
-    +(st.length?stepsHtml(st)+'<div class="tot">Total <b>'+total(st)+' min</b></div><button class="big" onclick="fcrStart(\'build\')">Start the timer</button><button class="big gh" onclick="fcrLogSteps(\'build\')">Log it without the timer</button>':'<div class="empty">Put some minutes in above.</div>')+'</div>';
-  h+='<div class="card"><div class="kk"><span>Rules of thumb</span></div><p><b>After training, finish cold.</b> Cold last keeps the soreness down. <b>Rest day, finish hot.</b> Hot last sends you to sleep. <b>Lifted today?</b> No cold for 4 hours, it blunts the strength gains. <b>Sparred today?</b> Cold only, no heat on fresh bruising.</p></div>';
-  return h;}
-function protoHtml(){return PROTOS.map(function(p){var st=stepsOf(p);
-  return '<div class="card"><div class="kk"><span>'+E(p.tag)+'</span><small>'+total(st)+' min</small></div><h3>'+E(p.n)+'</h3><p style="margin-top:4px;color:var(--mu);font-size:11.5px"><b style="color:#fff">When.</b> '+E(p.when)+'</p>'+stepsHtml(st)+'<p>'+E(p.why)+'</p><button class="big" onclick="fcrStart(\''+p.id+'\')">Start</button><button class="big gh" onclick="fcrLogSteps(\''+p.id+'\')">Did it · log it</button></div>';}).join('')
-  +'<div class="card"><div class="kk"><span>Where this comes from</span></div><p>Cold dose: a 2025 network meta-analysis of cold water immersion ranked 10 to 15 minutes at 11 to 15°C best for next-day soreness, with 5 to 10°C close behind for strength and muscle-damage markers. Infrared sauna: a 20 minute session at about 43°C after a heavy session kept jump power up and soreness down the next day in trained athletes, with no hit to overnight heart-rate recovery. Heat in general: the evidence for whole-body heat on its own is mixed, which is why the heat here is paired with cold or used as the wind-down. Cold straight after lifting is well known to blunt strength and size gains, hence the 4 hour rule.</p></div>';}
-function timerHtml(){var r=R.run,st=r.steps,s=st[r.idx],nx=st[r.idx+1],done=st.slice(0,r.idx).reduce(function(a,x){return a+x.min*60;},0)+(s.min*60-r.left),all=st.reduce(function(a,x){return a+x.min*60;},0);
-  return '<div class="tm"><div class="ph">'+E(r.name)+' · step '+(r.idx+1)+' of '+st.length+'</div><div class="nm" style="color:'+MC[s.m]+'">'+E(MN[s.m])+'</div><div class="clock">'+mmss(r.left)+'</div><div class="nx">'+(nx?'Next: '+E(MN[nx.m])+' '+nx.min+' min':'Last step · then it logs itself')+'</div><div class="bar"><i style="width:'+Math.round(done/all*100)+'%"></i></div>'
-   +'<div class="btns"><button class="p" onclick="fcrPause()">'+(r.on?'Pause':(r.started?'Resume':'Start'))+'</button><button onclick="fcrSkip()">Skip</button><button onclick="fcrStop()">Stop</button></div></div>'+stepsHtml(st);}
-
-window.fcRecHtml=function(w){load();var h='<div class="fcr">'+headHtml();if(R.run)h+=timerHtml();else h+=R.sub==="build"?buildHtml():R.sub==="proto"?protoHtml():logHtml();return h+'</div>';};
-window.fcRecAfter=function(){};
-
-/* ---------- timer ---------- */
-function beep(){try{var A=window.AudioContext||window.webkitAudioContext;if(!A)return;var c=new A(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.2;o.start();o.stop(c.currentTime+.25);}catch(e){}try{if(navigator.vibrate)navigator.vibrate([200,100,200]);}catch(e){}}
-function tick(){var r=R.run;if(!r||!r.on)return;r.left--;
-  if(r.left<=0){if(r.idx+1>=r.steps.length){beep();finish();return;}r.idx++;r.left=r.steps[r.idx].min*60;beep();repaint();return;}
-  var el=document.querySelector(".fcr .tm .clock");if(el)el.textContent=mmss(r.left);var bar=document.querySelector(".fcr .tm .bar i");if(bar){var st=r.steps,s=st[r.idx],done=st.slice(0,r.idx).reduce(function(a,x){return a+x.min*60;},0)+(s.min*60-r.left),all=st.reduce(function(a,x){return a+x.min*60;},0);bar.style.width=Math.round(done/all*100)+"%";}}
-function finish(){var r=R.run;stopTick();R.run=null;logSteps(r.steps,r.kind,r.name).then(function(){T(r.name+" done · logged ✓");repaint();});}
-function stopTick(){if(R.tick){clearInterval(R.tick);R.tick=null;}}
-function protoById(id){return id==="build"?{id:"build",n:"My own recovery",steps:buildSteps()}:PROTOS.find(function(p){return p.id===id;});}
+function thisWeek(){var now=new Date(),d=(now.getDay()+6)%7,mon=new Date(now);mon.setHours(0,0,0,0);mon.setDate(mon.getDate()-d);return rows().filter(function(r){return pd(r.done_at)>=mon;}).length;}
 async function logSteps(steps,kind,name){if(pv()){T("Preview only · nothing saved");return;}var f=fighter();if(!f)return;
-  var row={camp:CAMP,fighter_id:f.id,done_at:iso(new Date()),kind:kind,name:name,sauna_min:sum(steps,"sauna"),ice_min:sum(steps,"ice"),hot_min:sum(steps,"hot"),total_min:total(steps),created_by:uid()};
+  var row={camp:CAMP,fighter_id:f.id,done_at:iso(new Date()),kind:kind,name:name,sauna_min:sumMin(steps,"sauna"),ice_min:sumMin(steps,"ice"),hot_min:sumMin(steps,"hot"),total_min:Math.round(total(steps)/60),created_by:uid()};
   var r=await sb.from("fc_recovery").insert(row).select().maybeSingle();if(r.error){T("Couldn't save · "+r.error.message);return;}R.rows=[r.data].concat(R.rows||[]);}
 
+/* ---------- pieces ---------- */
+function headHtml(){var all=rows(),last=all[0];
+  return '<div class="hd"><div class="t">Legacy<span>Recovery</span></div><div class="k">Fight Club · Camp 2026</div><div class="rule"></div>'
+   +'<div class="st"><div><b>'+all.length+'</b><span>Sessions<br>this camp</span></div><div><b>'+thisWeek()+'</b><span>This<br>week</span></div><div><b>'+(last?fd(pd(last.done_at)).replace(/^\w+ /,''):'–')+'</b><span>Last<br>session</span></div></div></div>'
+   +'<div class="sub">'+[["proto","Protocols"],["build","Build your own"],["log","Log"]].map(function(x){return '<button class="'+(R.sub===x[0]?'on':'')+'" onclick="fcrSub(\''+x[0]+'\')">'+x[1]+'</button>';}).join('')+'</div>';}
+/* step list; when a run is attached to this protocol the current step carries the live clock */
+function stepsHtml(p,run,edit){var st=p.steps;
+  return '<div class="steps">'+st.map(function(s,i){var cls=run?(i<run.idx?'done':i===run.idx?'now':'todo'):'';var tm=run&&i===run.idx?mmss(run.left):run&&i<run.idx?'✓':mmss(s.s);
+    var nm='<div class="nm"><b>'+E(stepName(s))+'</b>'+(s.m==="ice"&&!s.lbl?'<small>'+(s.t===10?'Settle in, breathe slow':s.t===7?'Short hit, shoulders under':'Sharp hit, 60 to 90 s')+'</small>':s.m==="sauna"?'<small>45 to 60°C, sip water</small>':s.m==="hot"?'<small>38 to 40°C</small>':s.lbl?'':'<small>Towel off, breathe</small>')+'</div>';
+    if(edit)return '<div class="stp" style="--c:'+MC[s.m]+'"><div class="n">'+(i+1)+'</div><div class="nm"><b>'+E(MN[s.m])+'</b>'+(s.m==="ice"?'<div class="tp">'+[5,7,10].map(function(t){return '<button class="'+(s.t===t?'on':'')+'" onclick="fcrTemp('+i+','+t+')">'+t+'°</button>';}).join('')+'</div>':'')+'</div><div class="mn"><button onclick="fcrAdj('+i+',-30)">−</button><b>'+mmss(s.s)+'</b><button onclick="fcrAdj('+i+',30)">+</button></div><button class="x" onclick="fcrRemove('+i+')">×</button></div>';
+    return '<div class="stp '+cls+'" style="--c:'+MC[s.m]+'"><div class="n">'+(i+1)+'</div>'+nm+'<div class="tm">'+tm+'</div></div>';}).join('')+'</div>';}
+function protoCard(p,ctx){var run=R.run&&R.run.id===p.id?R.run:null,fin=R.done===p.id,st=p.steps,tot=total(st);
+  var h='<div class="card'+(run?' live':'')+(fin?' fin':'')+'"><div class="ph"><h3>'+E(p.n)+'</h3><div class="tt"><b>'+Math.round(tot/60)+'</b><span>min</span></div></div>'
+   +'<div class="chips">'+(p.tag?'<i class="b">'+E(p.tag)+'</i>':'')+'<i>'+(p.fin==="cold"?'Finish cold':'Finish hot')+'</i>'+(p.when?'<i>'+E(p.when)+'</i>':'')+'</div>'
+   +stepsHtml(p,run,ctx==="edit");
+  if(run){var done=st.slice(0,run.idx).reduce(function(a,x){return a+x.s;},0)+(st[run.idx].s-run.left);
+    h+='<div class="bar"><i style="width:'+Math.round(done/tot*100)+'%"></i></div><div class="ctl"><button class="p" onclick="fcrPause()">'+(run.on?'Pause':run.started?'Resume':'Start')+'</button><button onclick="fcrSkip()">Next</button><button onclick="fcrStop()">Stop</button></div>';}
+  else if(fin)h+='<button class="big ok" onclick="fcrSub(\'log\')">Done · logged ✓</button>';
+  else if(st.length)h+=(p.why?'<p class="why">'+p.why+'</p>':'')+'<button class="big" onclick="fcrStart(\''+p.id+'\')">Start</button><button class="big gh" onclick="fcrLogSteps(\''+p.id+'\')">Did it without the timer · log it</button>';
+  else h+='<div class="empty">Add your first step below.</div>';
+  return h+'</div>';}
+function protoHtml(){if(R.run&&R.run.id!=="build"){var lp=protoById(R.run.id);if(lp)return protoCard(lp);}return PROTOS.map(function(p){return protoCard(p);}).join('')
+  +'<div class="card"><div class="kk">Where the numbers come from</div><p class="src">Cold: 10 to 15 minutes at 10 to 15°C ranks best for next-day soreness in a 2025 network meta-analysis, 5 to 10° for strength and muscle-damage markers. Lifting: cold straight after resistance training reduces the size and strength gains, passive rest or heat wins there. Contrast: hot and cold alternated beats rest for soreness and strength over the next 96 hours. Infrared sauna: 20 minutes at about 43°C after a heavy session improved next-day power and soreness in trained athletes with no hit to overnight recovery.</p></div>';}
+function buildHtml(){var p=protoById("build");
+  return protoCard(p,"edit")
+   +'<div class="card"><div class="kk">Add a step</div><div class="add">'+["sauna","ice","hot","rest"].map(function(m){return '<button style="--c:'+MC[m]+'" onclick="fcrAdd(\''+m+'\')">+ '+(m==="rest"?"Out":MN[m].replace("Infrared ",""))+'</button>';}).join('')+'</div>'
+   +'<p class="why" style="margin-top:10px">Steps run in the order you add them. Tap − and + for the minutes, pick the ice bath temp (5, 7 or 10°), × to drop a step. <b>After training finish cold, on a rest day finish hot, and no ice inside 4 hours of a lift.</b></p>'
+   +(p.steps.length?'<button class="big gh" onclick="fcrClear()">Clear the list</button>':'')+'</div>';}
+function logHtml(){var all=rows();
+  var h='<div class="card">'+MODS.map(function(m){return '<div class="mod"><div class="dot" style="background:'+MC[m.m]+'"></div><div><b>'+E(MN[m.m])+'</b><div class="sp">'+E(m.temp)+' · '+E(m.time)+'</div><p>'+E(m.best)+'<small>'+E(m.rule)+'</small></p></div></div>';}).join('')+'</div>';
+  h+='<div class="card"><div class="kk">Already done it · log it</div>'
+    +'<div class="row"><div class="l"><b>Infrared sauna</b></div><input id="fcrQs" type="number" min="0" max="60" inputmode="numeric" placeholder="0"><span class="u">min</span></div>'
+    +'<div class="row"><div class="l"><b>Ice bath</b></div><input id="fcrQi" type="number" min="0" max="30" inputmode="numeric" placeholder="0"><span class="u">min</span></div>'
+    +'<div class="row"><div class="l"><b>Hot bath</b></div><input id="fcrQh" type="number" min="0" max="60" inputmode="numeric" placeholder="0"><span class="u">min</span></div>'
+    +'<button class="big" onclick="fcrQuick()">Log it</button></div>';
+  h+='<div class="card"><div class="kk">This camp · '+all.length+' session'+(all.length===1?'':'s')+'</div>'+(all.length?all.slice(0,25).map(function(r){return '<div class="log"><span class="d">'+E(fd(pd(r.done_at)))+'</span><span class="n">'+E(r.name||'Recovery')+'<small>'+[r.sauna_min?'Sauna '+r.sauna_min:'',r.ice_min?'Ice '+r.ice_min:'',r.hot_min?'Hot '+r.hot_min:''].filter(Boolean).join(' · ')+' · '+r.total_min+' min</small></span><button class="x" onclick="fcrDel('+r.id+')">×</button></div>';}).join(''):'<div class="empty">Nothing logged yet. Run a protocol and it logs itself.</div>')+'</div>';
+  return h;}
+window.fcRecHtml=function(w){load();var h='<div class="fcr">'+headHtml();
+  if(R.run&&R.sub==="log")h+=protoCard(protoById(R.run.id));
+  h+=R.sub==="build"?buildHtml():R.sub==="log"?logHtml():protoHtml();return h+'</div>';};
+window.fcRecAfter=function(){};
+
+/* ---------- timer (updates the live row in place, no full repaint per second) ---------- */
+function beep(n){try{var A=window.AudioContext||window.webkitAudioContext;if(A){var c=new A();for(var i=0;i<(n||1);i++){var o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.2;o.start(c.currentTime+i*.35);o.stop(c.currentTime+i*.35+.22);}}}catch(e){}try{if(navigator.vibrate)navigator.vibrate(n>1?[250,120,250,120,250]:[200,100,200]);}catch(e){}}
+function stopTick(){if(R.tick){clearInterval(R.tick);R.tick=null;}}
+function tick(){var r=R.run;if(!r||!r.on)return;r.left--;
+  if(r.left<=0){if(r.idx+1>=r.steps.length){beep(3);finish();return;}r.idx++;r.left=r.steps[r.idx].s;beep(1);repaint();return;}
+  if(r.left===10)beep(1);
+  var el=document.querySelector(".fcr .card.live .stp.now .tm");if(el)el.textContent=mmss(r.left);
+  var bar=document.querySelector(".fcr .card.live .bar i");if(bar){var st=r.steps,done=st.slice(0,r.idx).reduce(function(a,x){return a+x.s;},0)+(st[r.idx].s-r.left);bar.style.width=Math.round(done/total(st)*100)+"%";}}
+function finish(){var r=R.run;stopTick();R.run=null;R.done=r.id;logSteps(r.steps,r.kind,r.name).then(function(){T(r.name+" done · logged ✓");repaint();});}
+
 /* ---------- actions ---------- */
-window.fcrSub=function(s){R.sub=s;repaint();};
-window.fcrBuild=function(){R.build.sauna=num("fcrBs",0,45);R.build.ice=num("fcrBi",0,20);R.build.hot=num("fcrBh",0,30);R.build.rest=num("fcrBr",0,10);repaint();};
-window.fcrFinish=function(v){window.fcrBuild();R.build.finish=v;repaint();};
-window.fcrStart=function(id){if(id==="build")window.fcrBuild();var p=protoById(id);if(!p||!p.steps.length){T("Put some minutes in first");return;}stopTick();R.run={kind:id==="build"?"build":"protocol",name:p.n,steps:p.steps.slice(),idx:0,left:p.steps[0].min*60,on:false,started:false};repaint();try{window.scrollTo(0,0);}catch(e){}};
+function saveBuild(){try{localStorage.setItem("fcrBuild",JSON.stringify(R.build));}catch(e){}}
+window.fcrSub=function(s){R.sub=s;R.done=null;repaint();try{window.scrollTo(0,0);}catch(e){}};
+window.fcrStart=function(id){var p=protoById(id);if(!p||!p.steps.length){T("Add a step first");return;}stopTick();R.done=null;R.sub=id==="build"?"build":"proto";R.run={id:id,kind:id==="build"?"build":"protocol",name:p.n,steps:p.steps.slice(),idx:0,left:p.steps[0].s,on:true,started:true};R.tick=setInterval(tick,1000);repaint();};
 window.fcrPause=function(){var r=R.run;if(!r)return;r.on=!r.on;r.started=true;stopTick();if(r.on)R.tick=setInterval(tick,1000);repaint();};
-window.fcrSkip=function(){var r=R.run;if(!r)return;if(r.idx+1>=r.steps.length){finish();return;}r.idx++;r.left=r.steps[r.idx].min*60;repaint();};
+window.fcrSkip=function(){var r=R.run;if(!r)return;if(r.idx+1>=r.steps.length){finish();return;}r.idx++;r.left=r.steps[r.idx].s;repaint();};
 window.fcrStop=function(){stopTick();R.run=null;T("Stopped · nothing logged");repaint();};
-window.fcrLogSteps=function(id){if(id==="build")window.fcrBuild();var p=protoById(id);if(!p||!p.steps.length){T("Put some minutes in first");return;}logSteps(p.steps,id==="build"?"build":"protocol",p.n).then(function(){T(p.n+" logged ✓");R.sub="log";repaint();});};
-window.fcrQuick=function(){var s=num("fcrQs",0,60),i=num("fcrQi",0,30),h=num("fcrQh",0,60);if(!(s+i+h)){T("Put the minutes in first");return;}var st=[];if(s)st.push({m:"sauna",min:s});if(i)st.push({m:"ice",min:i});if(h)st.push({m:"hot",min:h});R.quick={sauna:0,ice:0,hot:0};logSteps(st,"quick","Recovery").then(function(){T("Logged ✓");repaint();});};
+window.fcrLogSteps=function(id){var p=protoById(id);if(!p||!p.steps.length){T("Add a step first");return;}logSteps(p.steps,id==="build"?"build":"protocol",p.n).then(function(){T(p.n+" logged ✓");R.sub="log";repaint();});};
+window.fcrAdd=function(m){var d={sauna:900,ice:180,hot:300,rest:60}[m],s={m:m,s:d};if(m==="ice")s.t=10;R.build.push(s);saveBuild();repaint();};
+window.fcrAdj=function(i,d){var s=R.build[i];if(!s)return;s.s=Math.max(30,Math.min(3600,s.s+d));saveBuild();repaint();};
+window.fcrTemp=function(i,t){var s=R.build[i];if(!s)return;s.t=t;saveBuild();repaint();};
+window.fcrRemove=function(i){R.build.splice(i,1);saveBuild();repaint();};
+window.fcrClear=function(){R.build=[];saveBuild();repaint();};
+window.fcrQuick=function(){function n(id,hi){var v=parseFloat((document.getElementById(id)||{}).value);return isNaN(v)?0:Math.max(0,Math.min(hi,v));}var s=n("fcrQs",60),i=n("fcrQi",30),h=n("fcrQh",60);if(!(s+i+h)){T("Put the minutes in first");return;}var st=[];if(s)st.push({m:"sauna",s:s*60});if(i)st.push({m:"ice",s:i*60});if(h)st.push({m:"hot",s:h*60});logSteps(st,"quick","Recovery").then(function(){T("Logged ✓");repaint();});};
 window.fcrDel=async function(id){if(pv()){T("Preview only");return;}if(!confirm("Remove this session?"))return;var r=await sb.from("fc_recovery").delete().eq("id",id);if(r.error){T("Couldn't remove it");return;}R.rows=(R.rows||[]).filter(function(x){return x.id!==id;});repaint();};
 })();
