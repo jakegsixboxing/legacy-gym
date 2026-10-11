@@ -17,7 +17,8 @@ var css='.lgPop{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.82);b
 +'.lgPop .tag{position:absolute;top:12px;left:12px;background:#c9a44c;color:#0b0b0c;font-size:9px;font-weight:900;letter-spacing:2px;text-transform:uppercase;padding:5px 9px;border-radius:999px}';
 var st=document.createElement("style");st.textContent=css;document.head.appendChild(st);
 
-function uid(){return (window.session&&session.user&&session.user.id)||null;}
+function uid(){try{return (session&&session.user&&session.user.id)||null;}catch(e){return null;}}
+function curView(){try{return view;}catch(e){return null;}}
 function active(){return new Date()<new Date(POP.until+"T23:59:59");}
 function html(){
   return '<div class="lgPop" id="lgPop" role="dialog" aria-label="Legacy Training Club singlet"><div class="box">'
@@ -44,10 +45,10 @@ function seenEnough(){
 }
 async function maybeShow(){
   if(!active()||S.shownThisLoad||!uid()||document.getElementById("lgPop"))return;
-  if(window.view!=="home")return;
+  if(curView()!=="home")return;
   if(typeof needsSetup!=="undefined"&&needsSetup)return;
   await load();
-  if(seenEnough()||window.view!=="home"||document.getElementById("lgPop"))return;
+  if(seenEnough()||curView()!=="home"||document.getElementById("lgPop"))return;
   S.shownThisLoad=true;
   var w=document.createElement("div");w.innerHTML=html();document.body.appendChild(w.firstChild);
   bump(false);
