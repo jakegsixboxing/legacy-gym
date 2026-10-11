@@ -10,7 +10,7 @@ var COACH_INITS=["JA","JO","SA","AL"];
 /* ---------- copy tweaks for the smaller tiles ---------- */
 try{
   HOME_CARDS.forEach(function(c){
-    if(c.id==="classes"){c.sub="Full week opens Sunday 7 AM. Tap in, you're booked.";}
+    if(c.id==="classes"){c.sub="Book up to two weeks ahead. Tap in, you're booked.";}
     if(c.id==="coaches"){c.kicker="Coaches · 1-On-1";c.sub="Jake, Joe, Sarsha & Alison. Pick your coach, pick your time.";}
     if(c.id==="cardio"){c.title="HYROX & Challenges";}
   });
@@ -88,7 +88,7 @@ window.homeStatsHtml=function(){
 /* ---------- next up ---------- */
 var NEXT={at:0,html:null,loading:false};
 function nextHtml(){
-  return '<button class="lghNext'+(NEXT.html?"":" none")+'" id="lghNext" onclick="go(\'classes\')">'+(NEXT.html||'<div class="dot"></div><div><div class="k">This week</div><div class="t">Book your week</div><div class="s">Full week opens Sunday 7 AM.</div></div><div class="a">Book ›</div>')+'</button>';
+  return '<button class="lghNext'+(NEXT.html?"":" none")+'" id="lghNext" onclick="go(\'classes\')">'+(NEXT.html||'<div class="dot"></div><div><div class="k">This week</div><div class="t">Book your week</div><div class="s">Open two weeks ahead.</div></div><div class="a">Book ›</div>')+'</button>';
 }
 function loadNext(){
   if(!session||NEXT.loading)return;
