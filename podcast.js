@@ -7,7 +7,15 @@ var EPS=[
   {id:"fc-ep1",n:1,title:"Fight Club EP-1",date:"2026-10-11",dur:1254,src:"/fight-club-ep1.m4a",
    blurb:"Episode one of the Legacy Gym Podcast. Jake on Fight Club — the 10-week camp, what it takes and what’s coming."}
 ];
-var P={ep:null,audio:null,rate:1,tick:null};
+var P={ep:null,audio:null,rate:1,tick:null,stats:null};
+var JAKE="15a011b9-e222-45f0-8eb9-d5338da935d1";
+function devId(){try{var d=localStorage.getItem("lg_dev");if(!d){d=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2));localStorage.setItem("lg_dev",d);}return d;}catch(e){return "nolocal";}}
+function logStart(ep){try{var k="lg_pod_started_"+ep.id;if(localStorage.getItem(k))return;localStorage.setItem(k,"1");}catch(e){}
+  try{sb.from("podcast_plays").insert({episode_id:ep.id,device_id:devId(),user_id:(session&&session.user)?session.user.id:null,source:"app"}).then(function(){});}catch(e){}}
+function isJake(){return !!(session&&session.user&&session.user.id===JAKE);}
+function loadStats(ep){if(!isJake())return;try{sb.rpc("podcast_stats",{ep:ep.id}).then(function(r){P.stats=(r&&r.data)||null;paintStats();});}catch(e){}}
+function paintStats(){var el=$id("pdxStats");if(!el)return;var s=P.stats;if(!s){el.innerHTML="";return;}
+  el.innerHTML='<div class="st"><div><b>'+s.listeners+'</b><small>Started listening</small></div><div><b>'+s.app+'</b><small>In the app</small></div><div><b>'+s.web+'</b><small>Via the link</small></div><div><b>'+s.today+'</b><small>Last 24 hrs</small></div></div><div class="stn">Only you can see this. One tap per device counts once.</div>';}
 var KEY=function(ep){return "lg_pod_pos_"+ep.id;};
 var T=function(m){try{toast(m);}catch(e){}};
 var $id=function(i){return document.getElementById(i);};
@@ -36,6 +44,7 @@ var css='.pdx{max-width:640px;margin:0 auto}.pdx .back{background:none;border:0;
 +'.pdx .epRow .tt{font-family:Oswald,sans-serif;font-size:17px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}.pdx .epRow .mm{font-size:11px;color:var(--muted,#9a968c);margin-top:2px}.pdx .epRow .pg{height:3px;background:#2a2619;border-radius:2px;margin-top:8px;overflow:hidden}.pdx .epRow .pg i{display:block;height:100%;background:var(--gold,#c9a44c)}'
 +'.pdxCard{position:relative;overflow:hidden;display:flex;width:100%;text-align:left;border:2px solid #8a7136;border-radius:14px;padding:22px 22px 20px;margin-bottom:14px;color:#f2f0eb;min-height:150px;flex-direction:column;justify-content:flex-end;cursor:pointer;background:linear-gradient(90deg,rgba(13,13,13,.98) 0%,rgba(13,13,13,.96) 52%,rgba(13,13,13,.3) 100%),url("'+LOGO+'") right 30px center/124px no-repeat #0d0d0d}'
 +'.pdxCard .k{font-size:10px;font-weight:700;letter-spacing:3px;color:#F1D27A;text-transform:uppercase;margin-bottom:7px}.pdxCard .t{font-family:Oswald,sans-serif;font-size:26px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fff;line-height:1.05}.pdxCard .s{font-size:12px;color:#c9c6be;margin-top:7px;line-height:1.5;padding-right:120px}'
++'.pdx .st{display:flex;gap:6px;margin:0 0 14px}.pdx .st>div{flex:1;text-align:center;background:#15130c;border:1px solid #3a3320;border-radius:12px;padding:10px 4px}.pdx .st b{display:block;font-family:Oswald,sans-serif;font-size:24px;font-weight:700;color:#F1D27A;line-height:1}.pdx .st small{display:block;font-size:8.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted,#9a968c);margin-top:5px;line-height:1.3}.pdx .stn{font-size:10px;color:var(--muted,#9a968c);text-align:center;margin:-6px 0 14px}'
 +'.pdxCard .new{position:absolute;top:12px;right:14px;font-size:9px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#0b0b0c;background:#F1D27A;border-radius:999px;padding:4px 9px}';
 var st=document.createElement("style");st.textContent=css;document.head.appendChild(st);
 
@@ -46,7 +55,7 @@ function audio(){
   a.addEventListener("timeupdate",function(){paintTime();if(Math.floor(a.currentTime)%5===0)savePos();});
   a.addEventListener("loadedmetadata",paintTime);
   a.addEventListener("ended",function(){savePos();paintPlay();T("That’s the end of the episode.");});
-  a.addEventListener("play",paintPlay);a.addEventListener("pause",function(){savePos();paintPlay();});
+  a.addEventListener("play",function(){paintPlay();if(P.ep)logStart(P.ep);});a.addEventListener("pause",function(){savePos();paintPlay();});
   a.addEventListener("error",function(){T("Couldn’t load the audio — check your connection and try again.");});
   P.audio=a;return a;
 }
@@ -81,6 +90,7 @@ function paint(){
   var ep=P.ep||EPS[0];var p=pos(ep);
   var h='<div class="pdx"><button class="back" onclick="go(\'home\')">‹ Home</button>'
    +'<div class="hd"><img src="'+LOGO+'" alt=""><div><div class="k">Legacy Gym</div><div class="t">Podcast</div><div class="s">Straight from the gym floor. Listen in the app, no other apps needed.</div></div></div>'
+   +(isJake()?'<div id="pdxStats"></div>':'')
    +'<div class="player"><div class="ep">Episode '+ep.n+' · '+fmtDate(ep.date)+'</div><div class="nm">'+ep.title+'</div><div class="meta">'+Math.round(ep.dur/60)+' min'+(p>5&&!(P.ep&&P.ep.id===ep.id)?' · picks up where you left off ('+fmt(p)+')':'')+'</div>'
    +'<input id="pdxScrub" class="scrub" type="range" min="0" max="1000" value="0" oninput="pdxSeek(this.value)">'
    +'<div class="times"><span id="pdxCur">'+fmt(P.ep?0:p)+'</span><span id="pdxRem">-'+fmt(ep.dur-(P.ep?0:p))+'</span></div>'
@@ -90,7 +100,7 @@ function paint(){
    +'<div class="sec">Episodes</div>'
    +EPS.map(function(e){var q=pos(e),pct=Math.min(100,Math.round(q/e.dur*100));return '<button class="epRow'+(ep.id===e.id?' on':'')+'" onclick="pdxOpen(\''+e.id+'\')"><div class="n">'+e.n+'</div><div style="flex:1;min-width:0"><div class="tt">'+e.title+'</div><div class="mm">'+fmtDate(e.date)+' · '+Math.round(e.dur/60)+' min'+(pct>=95?' · Finished ✓':pct>0?' · '+pct+'% played':'')+'</div>'+(pct>0&&pct<95?'<div class="pg"><i style="width:'+pct+'%"></i></div>':'')+'</div><div style="color:var(--gold,#c9a44c);font-size:22px">›</div></button>';}).join("")
    +'<p style="font-size:11px;color:var(--muted,#9a968c);text-align:center;margin-top:14px">Works with the screen locked. Your spot is saved on this phone.</p></div>';
-  main.innerHTML=h;paintPlay();paintRate();paintTime();
+  main.innerHTML=h;paintPlay();paintRate();paintTime();paintStats();loadStats(ep);
 }
 
 /* ---- home card ---- */

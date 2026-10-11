@@ -65,7 +65,11 @@ function paintP(){$("play").innerHTML=a.paused?'<svg viewBox="0 0 24 24"><path d
 var p=0;try{p=+localStorage.getItem(KEY)||0;}catch(e){}
 if(p>5){$("meta").textContent="21 min · picks up where you left off ("+fmt(p)+")";a.addEventListener("loadedmetadata",function once(){a.removeEventListener("loadedmetadata",once);if(p<a.duration-10)a.currentTime=p;paintT();});}
 a.addEventListener("timeupdate",function(){paintT();if(Math.floor(a.currentTime)%5===0)save();});
-a.addEventListener("loadedmetadata",paintT);a.addEventListener("play",paintP);a.addEventListener("pause",function(){save();paintP();});a.addEventListener("ended",function(){save();paintP();});
+a.addEventListener("loadedmetadata",paintT);
+function devId(){try{var d=localStorage.getItem("lg_dev");if(!d){d=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2));localStorage.setItem("lg_dev",d);}return d;}catch(e){return "nolocal";}}
+function logStart(){try{if(localStorage.getItem("lg_pod_started_fc-ep1"))return;localStorage.setItem("lg_pod_started_fc-ep1","1");}catch(e){}
+  try{fetch("https://jyslqxepodrseyhoppce.supabase.co/rest/v1/podcast_plays",{method:"POST",headers:{"apikey":"sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we","Authorization":"Bearer sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we","Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify({episode_id:"fc-ep1",device_id:devId(),source:"web"}),keepalive:true}).catch(function(){});}catch(e){}}
+a.addEventListener("play",function(){paintP();logStart();});a.addEventListener("pause",function(){save();paintP();});a.addEventListener("ended",function(){save();paintP();});
 a.addEventListener("error",function(){$("meta").textContent="Couldn’t load the audio — check your connection and refresh.";});
 $("play").onclick=function(){if(a.paused)a.play().catch(function(){});else a.pause();};
 $("back").onclick=function(){a.currentTime=Math.max(0,a.currentTime-15);paintT();};
