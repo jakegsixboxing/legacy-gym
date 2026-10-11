@@ -444,7 +444,8 @@ function videoHtml(v){
   else if(!v.seen_at)h+='<button class="line" style="margin-top:10px" onclick="fcxSeen('+v.id+')">Got it — mark as watched</button>';
   return h+'</div>';
 }
-window.fcxSparHtml=function(){try{return FC.me?sparHtml():"";}catch(e){return "";}};window.fcxFightHtml=function(){try{return FC.me?fightHtml():"";}catch(e){return "";}};window.fcxAfterRender=function(){try{afterRender();}catch(e){}};
+function withMe(fn){var keep=FC.me;try{if(!FC.me&&window.fccFighter)FC.me=window.fccFighter();return FC.me?fn():"";}catch(e){return "";}finally{FC.me=keep;}}
+window.fcxSparHtml=function(){return withMe(sparHtml);};window.fcxFightHtml=function(){return withMe(fightHtml);};window.fcxAfterRender=function(){try{afterRender();}catch(e){}};
 function afterRender(){
   document.querySelectorAll("video[id^=fcxV]").forEach(function(el){var id=+el.id.slice(4);var v=FC.vids.find(function(x){return x.id===id;});if(!v)return;
     if(!el.getAttribute("src"))signedUrl(v).then(function(u){if(u&&!el.getAttribute("src"))el.src=u;});
