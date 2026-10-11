@@ -7,7 +7,7 @@ self.addEventListener("fetch", e => {
   // Video/audio need native range-request streaming — passing them through the
   // SW breaks playback (especially iOS). Let the browser handle them directly.
   if (e.request.headers.has("range") || e.request.destination === "video" ||
-      e.request.destination === "audio" || /\.(mp4|mov|m4v|webm|mp3)(\?|$)/i.test(e.request.url)) return;
+      e.request.destination === "audio" || /\.(mp4|mov|m4v|webm|mp3|m4a|aac)(\?|$)/i.test(e.request.url)) return;
   e.respondWith(
     fetch(e.request)
       .then(res => {
