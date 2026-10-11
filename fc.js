@@ -255,7 +255,7 @@ window.fcxEnter=function(){
   if(!FC.loaded){T("One sec…");load().then(function(){window.fcxEnter();});return;}
   if(canEnter()){FC.tab=staff()?"fighters":"camp";FC.fid=null;FC.sub="tape";go("fc");return;}
   if(!isOpen()){T("Fight Club opens "+opensAt().toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"})+" — hang tight.");return;}
-  T("Fight Club is for registered fighters. Register at legacygym.net/pages/fight-club");
+  var em=(session&&session.user&&session.user.email)||"this email";T("No Fight Club registration found for "+em+". Use the email you registered with, or message Jake and he\u2019ll link you.");
 };
 
 /* ---------- render shell ---------- */
@@ -444,6 +444,7 @@ function videoHtml(v){
   else if(!v.seen_at)h+='<button class="line" style="margin-top:10px" onclick="fcxSeen('+v.id+')">Got it — mark as watched</button>';
   return h+'</div>';
 }
+window.fcxSparHtml=function(){try{return FC.me?sparHtml():"";}catch(e){return "";}};window.fcxFightHtml=function(){try{return FC.me?fightHtml():"";}catch(e){return "";}};window.fcxAfterRender=function(){try{afterRender();}catch(e){}};
 function afterRender(){
   document.querySelectorAll("video[id^=fcxV]").forEach(function(el){var id=+el.id.slice(4);var v=FC.vids.find(function(x){return x.id===id;});if(!v)return;
     if(!el.getAttribute("src"))signedUrl(v).then(function(u){if(u&&!el.getAttribute("src"))el.src=u;});
