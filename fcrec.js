@@ -16,7 +16,7 @@
 "use strict";
 var CAMP="fc2026";
 var BLUE="#4FB8DC",DIM="#2a7c9c";
-var R={sub:"proto",rows:null,loadedFor:null,loading:false,run:null,tick:null,build:[],quick:{sauna:0,ice:0,hot:0},done:null};
+var R={sub:"proto",rows:null,loadedFor:null,loading:false,run:null,tick:null,build:[],quick:{sauna:0,ice:0,hot:0},done:null,v:{}};
 try{var b0=JSON.parse(localStorage.getItem("fcrBuild")||"null");if(Array.isArray(b0))R.build=b0;}catch(e){}
 function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function T(m){try{toast(m);}catch(e){}}
@@ -38,24 +38,42 @@ var MODS=[
  {m:"ice",temp:"5 · 7 · 10°C",time:"10° for 10 min sits · 7° for 2 to 4 min hits · 5° for 60 to 90 s",best:"Soreness, swelling, bruising. The best-backed recovery tool there is.",rule:"Not within 4 hours of Strength & Con."},
  {m:"hot",temp:"38 to 40°C",time:"5 to 15 min",best:"Loosens tight muscle. Pairs with ice for contrast. Wind-down before bed.",rule:"Skip it on fresh bruising."}];
 
-/* ---------- protocols: steps in seconds, ice steps carry the bath temp ---------- */
+/* ---------- protocols: steps in seconds, ice steps carry the bath temp ----------
+   Each protocol has two versions: Ultimate (sauna + water) and Water only (no sauna).
+   Sources: CWI 10°C 15 min after simulated MMA (Lindsay et al. 2018, PMID 30443221);
+   CWI dose network meta-analysis (Frontiers Physiol 2025, 10-15 min at 10-15°C best for
+   soreness); contrast 1:1, 1 min hot / 1 min cold x 6-7 at 38-40° / 10-15° (Versey,
+   Halson & Dawson 2013; GSSI SSE 120); CWI as effective as other modalities, may blunt
+   resistance-training gains (Sports Med 2022 meta-analysis); infrared sauna 20 min at
+   ~43°C after a heavy lift (PMID 37398966); hot bath 10 min at 40° 1-2 h before bed
+   improves sleep (Haghayegh 2019 meta-analysis). */
 var PROTOS=[
- {id:"snc",n:"Post Strength & Con",when:"Tue and Thu, after the lift",fin:"hot",tag:"Heat only",
-  steps:[{m:"sauna",s:1200},{m:"rest",s:120,lbl:"Shower, water"},{m:"hot",s:480}],
-  why:"<b>No ice after lifting.</b> Cold inside 4 hours of a strength session blunts the size and strength you just trained for. Heat does the opposite: a 20 minute infrared session after a heavy lift kept power up and soreness down the next day in trained athletes."},
- {id:"spar",n:"Post sparring",when:"Mon and Wed, within the hour after rounds",fin:"cold",tag:"Cold only",
-  steps:[{m:"ice",s:300,t:10},{m:"rest",s:120,lbl:"Out, towel, breathe"},{m:"ice",s:300,t:10}],
-  why:"<b>Cold for the soreness and the bruising, no heat tonight.</b> Ten minutes at 10° is the dose the research ranks best for next-day soreness, split into two sits so it is doable. Heat pushes blood into bruised tissue, so leave the sauna and the hot bath for another day."},
- {id:"run",n:"Post run & sprints",when:"After the 3 km Mon and Wed, and Friday sprints",fin:"cold",tag:"Contrast",
-  steps:[{m:"hot",s:180},{m:"ice",s:60,t:7},{m:"hot",s:180},{m:"ice",s:60,t:7},{m:"hot",s:180},{m:"ice",s:120,t:7}],
-  why:"<b>Legs, not bruises, so heat is in.</b> Hot opens the vessels, cold shuts them, three rounds pumps the legs out. Contrast beats doing nothing for soreness and strength over the next four days, and finishing on cold keeps the swelling down. Lifted today? Skip the ice, do the hot steps only."},
- {id:"week",n:"Weekly wrap-up",when:"Saturday or Sunday, end of the training week",fin:"hot",tag:"Full reset",
-  steps:[{m:"sauna",s:1200},{m:"rest",s:180,lbl:"Cool down, water"},{m:"ice",s:180,t:10},{m:"rest",s:60,lbl:"Out, towel"},{m:"hot",s:600}],
-  why:"<b>The week's damage is done, this is for the nervous system and sleep.</b> Twenty minutes of sauna for the recovery, three minutes of cold for the head, then ten minutes hot so you finish warm and sleep deep. Finishing hot is deliberate on a rest day."},
- {id:"fresh",n:"Fresh for the week",when:"Sunday night or Monday morning, before week one of the next block",fin:"cold",tag:"Switch on",
-  steps:[{m:"sauna",s:900},{m:"ice",s:120,t:7},{m:"hot",s:240},{m:"ice",s:60,t:5}],
-  why:"<b>Wake the system up.</b> Fifteen minutes of heat to loosen the week off, two short cold hits for the mood and the focus, and a hot soak between. Finish on the 5° bath for 60 seconds and you walk out switched on."}];
-function protoById(id){return id==="build"?{id:"build",n:"My own recovery",steps:R.build.slice(),fin:R.build.length&&R.build[R.build.length-1].m==="ice"?"cold":"hot"}:PROTOS.find(function(p){return p.id===id;});}
+ {id:"spar",n:"Post sparring",alias:"The ice out",when:"Mon and Wed · within the hour after rounds",fin:"cold",
+  vars:[{k:"Full",steps:[{m:"ice",s:300,t:10},{m:"rest",s:60,lbl:"Out, breathe"},{m:"ice",s:300,t:10},{m:"rest",s:60,lbl:"Out, breathe"},{m:"ice",s:300,t:10}]},
+        {k:"Quick",steps:[{m:"ice",s:300,t:10},{m:"rest",s:60,lbl:"Out, breathe"},{m:"ice",s:300,t:10}]}],
+  why:"<b>Sparring is the one night heat is out.</b> You have taken shots, so you have bruising on top of sore muscle, and heat pushes blood into bruised tissue. Cold does the opposite: it cuts the soreness, the swelling and the stress, and it is the only recovery that fighters have actually been tested on. Fifteen minutes at 10° after a simulated fight improved next-day soreness, sleep, fatigue and sprint speed. Full is that dose. Quick is ten minutes, still inside the research range.",
+  src:"MMA cold water trial, PMID 30443221 · CWI dose meta-analysis, Frontiers 2025"},
+ {id:"run",n:"Post run & sprints",alias:"The flush",when:"After the 3 km Mon and Wed · after Friday sprints",fin:"cold",
+  vars:[{k:"Ultimate",steps:[{m:"sauna",s:600},{m:"hot",s:60},{m:"ice",s:60,t:10},{m:"hot",s:60},{m:"ice",s:60,t:10},{m:"hot",s:60},{m:"ice",s:60,t:10},{m:"hot",s:60},{m:"ice",s:60,t:10},{m:"hot",s:60},{m:"ice",s:60,t:10},{m:"hot",s:60},{m:"ice",s:120,t:10}]},
+        {k:"Water only",steps:[{m:"hot",s:60},{m:"ice",s:60,t:10},{m:"hot",s:60},{m:"ice",s:60,t:10},{m:"hot",s:60},{m:"ice",s:60,t:10},{m:"hot",s:60},{m:"ice",s:60,t:10},{m:"hot",s:60},{m:"ice",s:60,t:10},{m:"hot",s:60},{m:"ice",s:60,t:10},{m:"hot",s:60},{m:"ice",s:60,t:10}]}],
+  why:"<b>Legs only, no bruises, so this is the contrast session.</b> One minute hot, one minute cold, straight swaps, seven rounds. Hot opens the vessels, cold shuts them, and the pump flushes the legs out. That exact 1:1 protocol is the one that improved performance in the research, and finishing on cold keeps the soreness down for the next two days. Ultimate puts ten minutes of sauna in front to warm the legs through first. Lifted today as well? Do the hot steps only.",
+  src:"Contrast 1:1 × 7, Versey, Halson & Dawson 2013 · GSSI SSE 120"},
+ {id:"snc",n:"Post Strength & Con",alias:"The heat",when:"Tue and Thu · after the lift",fin:"hot",
+  vars:[{k:"Ultimate",steps:[{m:"sauna",s:1200},{m:"rest",s:120,lbl:"Shower, water"},{m:"hot",s:300}]},
+        {k:"Water only",steps:[{m:"hot",s:900}]}],
+  why:"<b>No cold inside four hours of a lift.</b> Cold water straight after strength work cuts the size and strength gains you just trained for, so tonight is heat. Twenty minutes of infrared sauna after a heavy session kept next-day power up and soreness down in trained athletes, and a hot bath on its own reduced strength loss over the following days. Walk out loose, eat, sleep.",
+  src:"Infrared sauna after lifting, PMID 37398966 · CWI and resistance training, Sports Med 2022"},
+ {id:"week",n:"Weekly wrap-up",alias:"The reset",when:"Saturday or Sunday · end of the training week",fin:"hot",
+  vars:[{k:"Ultimate",steps:[{m:"sauna",s:900},{m:"ice",s:120,t:10},{m:"rest",s:60,lbl:"Out, towel"},{m:"hot",s:600}]},
+        {k:"Water only",steps:[{m:"ice",s:180,t:10},{m:"hot",s:300},{m:"ice",s:180,t:10},{m:"hot",s:600}]}],
+  why:"<b>The week's damage is done. This one is for the nervous system and sleep.</b> Sauna then a two minute cold dip is the sauna-and-cold pattern the research uses, and it is the best mood and stress reset in the building. Then a ten minute hot soak to finish warm, because a 40° bath in the hour or two before bed is what improves sleep in the research, and your Sunday sleep is where the week's gains land.",
+  src:"Sauna + 2 min cold studies · hot bath and sleep meta-analysis, Haghayegh 2019"},
+ {id:"fresh",n:"Fresh for the week",alias:"The switch on",when:"Sunday night or Monday morning · before the first session",fin:"cold",
+  vars:[{k:"Ultimate",steps:[{m:"sauna",s:600},{m:"ice",s:90,t:7},{m:"hot",s:120},{m:"ice",s:60,t:5}]},
+        {k:"Water only",steps:[{m:"hot",s:120},{m:"ice",s:90,t:7},{m:"hot",s:120},{m:"ice",s:60,t:5}]}],
+  why:"<b>Wake the system up, not wind it down.</b> Short, sharp and cold last. Heat to loosen the weekend off, then two cold hits on the colder baths: 90 seconds at 7°, then a minute at 5° to finish. Single cold dips lift mood and alertness in the studies, and nothing here is long enough to tire you out before Monday night.",
+  src:"Cold immersion and mood, Massey 2020 · Kelly & Bird 2022"}];
+function protoById(id){if(id==="build")return {id:"build",n:"My own recovery",steps:R.build.slice(),fin:R.build.length&&R.build[R.build.length-1].m==="ice"?"cold":"hot"};var p=PROTOS.find(function(x){return x.id===id;});if(!p)return null;var vi=R.v[id]||0,v=p.vars[vi];return Object.assign({},p,{steps:v.steps,vk:v.k,vi:vi});}
 function total(st){return st.reduce(function(a,s){return a+s.s;},0);}
 function sumMin(st,m){return Math.round(st.filter(function(s){return s.m===m;}).reduce(function(a,s){return a+s.s;},0)/60);}
 function stepName(s){return s.lbl?s.lbl:(MN[s.m]+(s.m==="ice"&&s.t?" · "+s.t+"°":""));}
@@ -71,6 +89,7 @@ var css=document.createElement("style");css.id="fcrCss";css.textContent=
  ".fcr .card{background:var(--p);border:1px solid var(--ln);border-radius:16px;padding:14px;margin-bottom:12px}.fcr .card.live{border-color:var(--b);box-shadow:0 0 0 1px rgba(79,184,220,.25),0 12px 30px rgba(0,0,0,.45)}.fcr .card.fin{border-color:#4bc97a}"+
  ".fcr .ph{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.fcr .ph h3{font-family:Oswald,sans-serif;font-weight:600;font-size:21px;letter-spacing:1.5px;text-transform:uppercase;margin:0;color:#fff;line-height:1.05}.fcr .ph .tt{text-align:right;flex:none}.fcr .ph .tt b{display:block;font-family:Oswald,sans-serif;font-size:21px;line-height:1;color:var(--b)}.fcr .ph .tt span{font-size:7.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);font-weight:800}"+
  ".fcr .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.fcr .chips i{font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 9px;border-radius:999px;border:1px solid var(--ln);color:var(--mu)}.fcr .chips i.b{border-color:var(--bd);color:var(--b)}"+
+ ".fcr .vsw{display:flex;gap:5px;margin-top:10px}.fcr .vsw button{flex:1;padding:9px 4px;border-radius:10px;border:1px solid var(--ln);background:var(--p2);color:var(--mu);font-family:Oswald,sans-serif;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer}.fcr .vsw button.on{background:#fff;border-color:#fff;color:#04161d;font-weight:700}"+
  ".fcr .steps{margin-top:12px;border-top:1px solid var(--ln)}"+
  ".fcr .stp{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--ln);position:relative}"+
  ".fcr .stp .n{width:28px;height:28px;border-radius:50%;flex:none;display:grid;place-items:center;font-family:Oswald,sans-serif;font-weight:600;font-size:13px;color:#04161d;background:var(--c)}"+
@@ -112,21 +131,22 @@ function headHtml(){var all=rows(),last=all[0];
 /* step list; when a run is attached to this protocol the current step carries the live clock */
 function stepsHtml(p,run,edit){var st=p.steps;
   return '<div class="steps">'+st.map(function(s,i){var cls=run?(i<run.idx?'done':i===run.idx?'now':'todo'):'';var tm=run&&i===run.idx?mmss(run.left):run&&i<run.idx?'✓':mmss(s.s);
-    var nm='<div class="nm"><b>'+E(stepName(s))+'</b>'+(s.m==="ice"&&!s.lbl?'<small>'+(s.t===10?'Settle in, breathe slow':s.t===7?'Short hit, shoulders under':'Sharp hit, 60 to 90 s')+'</small>':s.m==="sauna"?'<small>45 to 60°C, sip water</small>':s.m==="hot"?'<small>38 to 40°C</small>':s.lbl?'':'<small>Towel off, breathe</small>')+'</div>';
+    var nm='<div class="nm"><b>'+E(stepName(s))+'</b>'+(s.m==="ice"&&!s.lbl?'<small>'+(s.s>=240?'Settle in, breathe slow':s.s>=90?'Short hit, shoulders under':'Sharp hit, all the way in')+'</small>':s.m==="sauna"?'<small>45 to 60°C, sip water</small>':s.m==="hot"?'<small>38 to 40°C</small>':s.lbl?'':'<small>Towel off, breathe</small>')+'</div>';
     if(edit)return '<div class="stp" style="--c:'+MC[s.m]+'"><div class="n">'+(i+1)+'</div><div class="nm"><b>'+E(MN[s.m])+'</b>'+(s.m==="ice"?'<div class="tp">'+[5,7,10].map(function(t){return '<button class="'+(s.t===t?'on':'')+'" onclick="fcrTemp('+i+','+t+')">'+t+'°</button>';}).join('')+'</div>':'')+'</div><div class="mn"><button onclick="fcrAdj('+i+',-30)">−</button><b>'+mmss(s.s)+'</b><button onclick="fcrAdj('+i+',30)">+</button></div><button class="x" onclick="fcrRemove('+i+')">×</button></div>';
     return '<div class="stp '+cls+'" style="--c:'+MC[s.m]+'"><div class="n">'+(i+1)+'</div>'+nm+'<div class="tm">'+tm+'</div></div>';}).join('')+'</div>';}
 function protoCard(p,ctx){var run=R.run&&R.run.id===p.id?R.run:null,fin=R.done===p.id,st=p.steps,tot=total(st);
-  var h='<div class="card'+(run?' live':'')+(fin?' fin':'')+'"><div class="ph"><h3>'+E(p.n)+'</h3><div class="tt"><b>'+Math.round(tot/60)+'</b><span>min</span></div></div>'
-   +'<div class="chips">'+(p.tag?'<i class="b">'+E(p.tag)+'</i>':'')+'<i>'+(p.fin==="cold"?'Finish cold':'Finish hot')+'</i>'+(p.when?'<i>'+E(p.when)+'</i>':'')+'</div>'
+  var h='<div class="card'+(run?' live':'')+(fin?' fin':'')+'"><div class="ph"><div>'+(p.alias?'<div class="kk">'+E(p.alias)+'</div>':'')+'<h3>'+E(p.n)+'</h3></div><div class="tt"><b>'+Math.round(tot/60)+'</b><span>min</span></div></div>'
+   +'<div class="chips"><i class="b">'+(p.fin==="cold"?'Finish cold':'Finish hot')+'</i>'+(p.when?'<i>'+E(p.when)+'</i>':'')+'</div>'
+   +(p.vars&&!run?'<div class="vsw">'+p.vars.map(function(v,i){return '<button class="'+(i===p.vi?'on':'')+'" onclick="fcrVar(\''+p.id+'\','+i+')">'+E(v.k)+' · '+Math.round(total(v.steps)/60)+' min</button>';}).join('')+'</div>':'')
    +stepsHtml(p,run,ctx==="edit");
   if(run){var done=st.slice(0,run.idx).reduce(function(a,x){return a+x.s;},0)+(st[run.idx].s-run.left);
     h+='<div class="bar"><i style="width:'+Math.round(done/tot*100)+'%"></i></div><div class="ctl"><button class="p" onclick="fcrPause()">'+(run.on?'Pause':run.started?'Resume':'Start')+'</button><button onclick="fcrSkip()">Next</button><button onclick="fcrStop()">Stop</button></div>';}
   else if(fin)h+='<button class="big ok" onclick="fcrSub(\'log\')">Done · logged ✓</button>';
-  else if(st.length)h+=(p.why?'<p class="why">'+p.why+'</p>':'')+'<button class="big" onclick="fcrStart(\''+p.id+'\')">Start</button><button class="big gh" onclick="fcrLogSteps(\''+p.id+'\')">Did it without the timer · log it</button>';
+  else if(st.length)h+=(p.why?'<p class="why">'+p.why+'</p>':'')+(p.src?'<p class="src" style="margin-top:6px">'+E(p.src)+'</p>':'')+'<button class="big" onclick="fcrStart(\''+p.id+'\')">Start</button><button class="big gh" onclick="fcrLogSteps(\''+p.id+'\')">Did it without the timer · log it</button>';
   else h+='<div class="empty">Add your first step below.</div>';
   return h+'</div>';}
-function protoHtml(){if(R.run&&R.run.id!=="build"){var lp=protoById(R.run.id);if(lp)return protoCard(lp);}return PROTOS.map(function(p){return protoCard(p);}).join('')
-  +'<div class="card"><div class="kk">Where the numbers come from</div><p class="src">Cold: 10 to 15 minutes at 10 to 15°C ranks best for next-day soreness in a 2025 network meta-analysis, 5 to 10° for strength and muscle-damage markers. Lifting: cold straight after resistance training reduces the size and strength gains, passive rest or heat wins there. Contrast: hot and cold alternated beats rest for soreness and strength over the next 96 hours. Infrared sauna: 20 minutes at about 43°C after a heavy session improved next-day power and soreness in trained athletes with no hit to overnight recovery.</p></div>';}
+function protoHtml(){if(R.run&&R.run.id!=="build"){var lp=protoById(R.run.id);if(lp)return protoCard(lp);}return PROTOS.map(function(p){return protoCard(protoById(p.id));}).join('')
+  +'<div class="card"><div class="kk">Where the numbers come from</div><p class="src">Cold: 10 to 15 minutes at 10 to 15°C ranks best for next-day soreness in a 2025 network meta-analysis, and 15 minutes at 10°C after a simulated MMA fight improved next-day soreness, sleep, fatigue and sprint speed. Contrast: the protocol with proven effects is 1 minute hot, 1 minute cold at 1:1, six to seven rounds, 38 to 40° hot and 10 to 15° cold. Lifting: cold straight after resistance training reduces strength and size gains. Sauna: 20 minutes of infrared at about 43°C after a heavy lift improved next-day power and soreness. Sleep: a 10 minute 40° bath one to two hours before bed improves sleep quality.</p></div>';}
 function buildHtml(){var p=protoById("build");
   return protoCard(p,"edit")
    +'<div class="card"><div class="kk">Add a step</div><div class="add">'+["sauna","ice","hot","rest"].map(function(m){return '<button style="--c:'+MC[m]+'" onclick="fcrAdd(\''+m+'\')">+ '+(m==="rest"?"Out":MN[m].replace("Infrared ",""))+'</button>';}).join('')+'</div>'
@@ -158,12 +178,13 @@ function finish(){var r=R.run;stopTick();R.run=null;R.done=r.id;logSteps(r.steps
 
 /* ---------- actions ---------- */
 function saveBuild(){try{localStorage.setItem("fcrBuild",JSON.stringify(R.build));}catch(e){}}
+window.fcrVar=function(id,i){R.v[id]=i;repaint();};
 window.fcrSub=function(s){R.sub=s;R.done=null;repaint();try{window.scrollTo(0,0);}catch(e){}};
-window.fcrStart=function(id){var p=protoById(id);if(!p||!p.steps.length){T("Add a step first");return;}stopTick();R.done=null;R.sub=id==="build"?"build":"proto";R.run={id:id,kind:id==="build"?"build":"protocol",name:p.n,steps:p.steps.slice(),idx:0,left:p.steps[0].s,on:true,started:true};R.tick=setInterval(tick,1000);repaint();};
+window.fcrStart=function(id){var p=protoById(id);if(!p||!p.steps.length){T("Add a step first");return;}stopTick();R.done=null;R.sub=id==="build"?"build":"proto";R.run={id:id,kind:id==="build"?"build":"protocol",name:p.n+(p.vk?" · "+p.vk:""),steps:p.steps.slice(),idx:0,left:p.steps[0].s,on:true,started:true};R.tick=setInterval(tick,1000);repaint();};
 window.fcrPause=function(){var r=R.run;if(!r)return;r.on=!r.on;r.started=true;stopTick();if(r.on)R.tick=setInterval(tick,1000);repaint();};
 window.fcrSkip=function(){var r=R.run;if(!r)return;if(r.idx+1>=r.steps.length){finish();return;}r.idx++;r.left=r.steps[r.idx].s;repaint();};
 window.fcrStop=function(){stopTick();R.run=null;T("Stopped · nothing logged");repaint();};
-window.fcrLogSteps=function(id){var p=protoById(id);if(!p||!p.steps.length){T("Add a step first");return;}logSteps(p.steps,id==="build"?"build":"protocol",p.n).then(function(){T(p.n+" logged ✓");R.sub="log";repaint();});};
+window.fcrLogSteps=function(id){var p=protoById(id);if(!p||!p.steps.length){T("Add a step first");return;}logSteps(p.steps,id==="build"?"build":"protocol",p.n+(p.vk?" · "+p.vk:"")).then(function(){T(p.n+" logged ✓");R.sub="log";repaint();});};
 window.fcrAdd=function(m){var d={sauna:900,ice:180,hot:300,rest:60}[m],s={m:m,s:d};if(m==="ice")s.t=10;R.build.push(s);saveBuild();repaint();};
 window.fcrAdj=function(i,d){var s=R.build[i];if(!s)return;s.s=Math.max(30,Math.min(3600,s.s+d));saveBuild();repaint();};
 window.fcrTemp=function(i,t){var s=R.build[i];if(!s)return;s.t=t;saveBuild();repaint();};
