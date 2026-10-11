@@ -79,6 +79,9 @@ window.pdxRate=function(r){P.rate=r;audio().playbackRate=r;try{localStorage.setI
 window.pdxOpen=function(id){var ep=EPS.find(function(e){return e.id===id;});if(!ep)return;loadEp(ep,true);try{window.scrollTo(0,0);}catch(e){}};
 window.pdxEnter=function(){if(!session){T("Sign in first");return;}go("podcast");};
 try{P.rate=+localStorage.getItem("lg_pod_rate")||1;}catch(e){}
+/* count back: anyone who pressed play before the tally existed has a saved position on their device — log them on their next visit */
+function backfill(){EPS.forEach(function(ep){try{if(localStorage.getItem("lg_pod_started_"+ep.id))return;if(pos(ep)>0)logStart(ep);}catch(e){}});}
+setTimeout(backfill,2500);
 
 /* ---- paint ---- */
 function paintTime(){var a=P.audio;if(!a||!P.ep)return;var d=a.duration||P.ep.dur,t=a.currentTime||0;var s=$id("pdxScrub");if(s&&document.activeElement!==s){s.value=Math.round(t/d*1000);s.style.setProperty("--p",(t/d*100)+"%");}var c=$id("pdxCur"),r=$id("pdxRem");if(c)c.textContent=fmt(t);if(r)r.textContent="-"+fmt(d-t);}

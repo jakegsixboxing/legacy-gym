@@ -79,6 +79,7 @@ $("rate").addEventListener("click",function(e){var b=e.target.closest("button");
 try{if("mediaSession" in navigator){navigator.mediaSession.metadata=new MediaMetadata({title:"Fight Club EP-1",artist:"Legacy Gym Podcast",album:"Legacy Gym",artwork:[{src:"https://www.legacygym.net/cdn/shop/t/28/assets/fightclub-logo.png",sizes:"512x512",type:"image/png"}]});navigator.mediaSession.setActionHandler("play",function(){a.play();});navigator.mediaSession.setActionHandler("pause",function(){a.pause();});navigator.mediaSession.setActionHandler("seekbackward",function(){$("back").onclick();});navigator.mediaSession.setActionHandler("seekforward",function(){$("fwd").onclick();});}}catch(e){}
 window.addEventListener("pagehide",save);document.addEventListener("visibilitychange",function(){if(document.hidden)save();});
 paintP();paintT();
+if(p>0)setTimeout(logStart,1500); /* listened before the tally existed — count them now */
 })();
 </script>
 </body>
