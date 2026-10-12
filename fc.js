@@ -210,6 +210,15 @@ function load(force){
           FC.att=r2[2].data||[];FC.wi=r2[3].data||[];FC.runs=r2[4].data||[];FC.sess=r2[5].data||[];FC.pairs=r2[6].data||[];FC.rounds=r2[7].data||[];FC.vids=r2[8].data||[];FC.vnotes=r2[9].data||[];FC.notes=r2[10].data||[];FC.chk=r2[11].data||[];
         }else{FC.me=null;FC.F=[];}
       }
+      /* Fight Club photo = the member photo they were made to take at sign-up. Fill any gaps (and save, so coaches see it too). */
+      try{
+        var need=(FC.F||[]).filter(function(x){return x.user_id&&!x.photo_url;});
+        if(need.length){
+          var pr=await sb.from("member_profiles").select("user_id,photo_url").in("user_id",need.map(function(x){return x.user_id;}));
+          (pr.data||[]).forEach(function(m){if(!m.photo_url)return;need.forEach(function(x){if(x.user_id===m.user_id){x.photo_url=m.photo_url;try{sb.from("fc_fighters").update({photo_url:m.photo_url}).eq("id",x.id).then(function(){},function(){});}catch(e2){}}});});
+          if(FC.me&&!FC.me.photo_url){var mm=FC.F.find(function(x){return x.id===FC.me.id;});if(mm&&mm.photo_url)FC.me.photo_url=mm.photo_url;}
+        }
+      }catch(e3){}
     }catch(e){console.warn("FC load",e);}
     FC.loaded=true;
   })();

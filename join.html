@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Get the Legacy Gym App — Fight Club</title>
+<meta name="description" content="Get the Legacy Gym app on your phone in 60 seconds. Fight Club camp starts now.">
+<meta property="og:title" content="Get the Legacy Gym app — Fight Club">
+<meta property="og:description" content="Add it to your home screen in 60 seconds. Log your training, track your camp, see your team.">
+<meta property="og:image" content="https://legacygym-app.vercel.app/fight-club.jpg">
+<meta property="og:url" content="https://legacygym-app.vercel.app/join">
+<meta name="theme-color" content="#0b0b0c">
+<link rel="icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&family=Oswald:wght@600;700&display=swap">
+<style>
+:root{--gold:#c9a44c;--gold2:#F1D27A;--muted:#a39f94;--bg:#0b0b0c}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:#f2f0eb;font-family:Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;padding:26px 16px 44px;background:radial-gradient(ellipse at 50% 0%,rgba(201,164,76,.16),transparent 60%),var(--bg)}
+.wrap{max-width:460px;margin:0 auto}
+.hd{display:flex;align-items:center;gap:14px;margin-bottom:20px}.hd img{width:74px;height:74px;object-fit:contain;flex:none}
+.k{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--gold2)}
+h1{font-family:Oswald,sans-serif;font-size:34px;letter-spacing:1.5px;text-transform:uppercase;line-height:1;margin:4px 0 0}h1 span{color:var(--gold2)}
+.lead{font-size:14px;line-height:1.55;color:#d7d3c8;margin:0 0 18px}
+.warn{display:none;border:1px solid #b8860b;background:#241b06;border-radius:12px;padding:13px 14px;font-size:13px;line-height:1.5;margin-bottom:16px;color:#ffe9a8}
+.warn b{color:#fff}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.tabs button{background:#141210;border:1px solid #3a3320;color:#cfc6b0;border-radius:12px;padding:13px;font-size:13px;font-weight:800;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit}
+.tabs button.on{background:var(--gold);border-color:var(--gold);color:#161307}
+.steps{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:13px;align-items:flex-start;border:1px solid #2f2a1a;background:linear-gradient(160deg,#16120a,#0c0a07);border-radius:14px;padding:14px}
+.steps li::before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:var(--gold);color:#161307;font-family:Oswald,sans-serif;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center}
+.steps b{display:block;font-size:14px;margin-bottom:3px}.steps span{font-size:12.5px;line-height:1.5;color:#c9c5ba}
+.ic{display:inline-block;vertical-align:-3px;width:18px;height:18px;border:1.5px solid var(--gold2);border-radius:5px;position:relative;margin:0 2px}
+.ic.share::before{content:"";position:absolute;left:50%;top:3px;width:1.5px;height:8px;background:var(--gold2);transform:translateX(-50%)}
+.ic.share::after{content:"";position:absolute;left:50%;top:2px;width:5px;height:5px;border-left:1.5px solid var(--gold2);border-top:1.5px solid var(--gold2);transform:translateX(-50%) rotate(45deg)}
+.ic.dots{border:0;font-weight:900;color:var(--gold2);font-size:20px;line-height:18px;text-align:center}
+.go{display:block;text-align:center;text-decoration:none;background:linear-gradient(180deg,#ffe58a,#f4c95d 45%,#b8860b 55%,#ffd76a);color:#1a1200;font-family:Oswald,sans-serif;font-weight:700;font-size:19px;letter-spacing:2px;text-transform:uppercase;padding:16px;border-radius:13px}
+.note{border:1px solid #2f2a1a;border-radius:14px;padding:14px;margin-top:16px;font-size:12.5px;line-height:1.55;color:#c9c5ba;background:#0e0c08}
+.note b{color:var(--gold2)}
+.foot{margin-top:20px;text-align:center;font-size:11px;color:var(--muted);line-height:1.6}
+.pane{display:none}.pane.on{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd"><img src="https://www.legacygym.net/cdn/shop/t/28/assets/fightclub-logo.png" alt=""><div><div class="k">Legacy Gym · Fight Club</div><h1>Get the <span>app</span></h1></div></div>
+  <p class="lead">Camp runs through the Legacy Gym app. It's a web app, so there's nothing to download from an app store. Save it to your home screen and it works like any other app. Takes about a minute.</p>
+
+  <div class="warn" id="warn"><b>You're inside another app's browser.</b> Tap the menu (<b>···</b> or the share icon) and choose <b>Open in Safari</b> (iPhone) or <b>Open in Chrome</b> (Android). Then follow the steps below.</div>
+
+  <div class="tabs"><button id="tIos" onclick="pick('ios')">iPhone</button><button id="tAnd" onclick="pick('and')">Android</button></div>
+
+  <div class="pane" id="pIos">
+    <ol class="steps">
+      <li><div><b>Open this page in Safari</b><span>Not inside Instagram or Facebook. Safari is the compass icon.</span></div></li>
+      <li><div><b>Tap the Share button</b><span>The square with an arrow, <span class="ic share"></span> along the bottom of the screen.</span></div></li>
+      <li><div><b>Scroll down and tap "Add to Home Screen"</b><span>Then tap <b style="display:inline;color:#fff">Add</b> in the top right.</span></div></li>
+      <li><div><b>Open it from your home screen</b><span>Look for the Legacy Gym icon. Use that every time from now on.</span></div></li>
+    </ol>
+  </div>
+  <div class="pane" id="pAnd">
+    <ol class="steps">
+      <li><div><b>Open this page in Chrome</b><span>Not inside Instagram or Facebook.</span></div></li>
+      <li><div><b>Tap the menu</b><span>The three dots <span class="ic dots">⋮</span> in the top right.</span></div></li>
+      <li><div><b>Tap "Add to Home screen" or "Install app"</b><span>Then tap <b style="display:inline;color:#fff">Add</b> or <b style="display:inline;color:#fff">Install</b>.</span></div></li>
+      <li><div><b>Open it from your home screen</b><span>Look for the Legacy Gym icon. Use that every time from now on.</span></div></li>
+    </ol>
+  </div>
+
+  <a class="go" href="/">Open the app ›</a>
+
+  <div class="note"><b>First time in?</b> Tap <b>Join</b> and sign up with the <b>same email you used to register for Fight Club</b>, so the app finds your spot. It will ask for your photo, then set up your Fight Club profile (photo, stance, weight). That's it, you're in.</div>
+  <div class="foot">Stuck? Message Jake and he'll sort it.<br><a href="https://www.legacygym.net" style="color:var(--gold)">legacygym.net</a></div>
+</div>
+<script>
+(function(){
+var ua=navigator.userAgent||"",ios=/iPhone|iPad|iPod/i.test(ua)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+function pick(k){document.getElementById("pIos").className="pane"+(k==="ios"?" on":"");document.getElementById("pAnd").className="pane"+(k==="and"?" on":"");document.getElementById("tIos").className=k==="ios"?"on":"";document.getElementById("tAnd").className=k==="and"?"on":"";}
+window.pick=pick;pick(ios?"ios":/Android/i.test(ua)?"and":"ios");
+if(/FBAN|FBAV|Instagram|Messenger|Line\/|MicroMessenger|; wv\)/i.test(ua))document.getElementById("warn").style.display="block";
+try{if(window.matchMedia("(display-mode: standalone)").matches||navigator.standalone)location.replace("/");}catch(e){}
+})();
+</script>
+</body>
+</html>
