@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610121900";
+const LG_BUILD="202610121930";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -3972,8 +3972,8 @@ async function renderLeaderboard(){
   await loadWorld();
   if(view!=="board")return;const box=$("lbBody");if(!box)return;
   const mp=myMp();
-  /* ---- Season reset: board counts points from Tue 1 Sep, 3:00 AM AEST onward; all history preserved ---- */
-  const SEASON_START=Date.parse('2026-09-01T03:00:00+10:00');
+  /* ---- Season reset: board counts points from Mon 12 Oct, the 5:15 AM class (AEDT) onward; all history preserved. September's final top ten was recorded at midnight 11/12 Oct. ---- */
+  const SEASON_START=Date.parse('2026-10-12T05:15:00+11:00');
   const totals={};ptsData.events.forEach(e=>{if(Date.parse(e.created_at)>=SEASON_START)totals[e.user_id]=(totals[e.user_id]||0)+e.points;});
   ptsData.mprofiles.forEach(m=>{if(!(m.user_id in totals))totals[m.user_id]=0;});
   const pts=totals[session.user.id]||0;
@@ -4006,7 +4006,7 @@ async function renderLeaderboard(){
       </div>`}
     <div class="secTitle">Members Leaderboard</div>
     <div class="card">
-      <p style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:8px">September Season &mdash; the board resets to zero at the start of each month.</p><p style="font-size:11.5px;color:var(--muted);margin-bottom:6px">1 point a class · 1–10 points a cardio challenge (bigger mission, bigger points) · 5-point bonus for taking a club record.</p>
+      <p style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:8px">Fresh season &mdash; the board reset to zero at the 5:15am class, Mon 12 Oct.</p><p style="font-size:11.5px;color:var(--muted);margin-bottom:6px">1 point a class · 1–10 points a cardio challenge (bigger mission, bigger points) · 5-point bonus for taking a club record.</p>
       ${rows.length?rows.map((r,i)=>{
         const lv=levelOf(r.p),st=TIER_STYLES[lv.tier];
         return `<div class="lbRow${r.uid===session.user.id?" me":""}">
