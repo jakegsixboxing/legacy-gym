@@ -1,10 +1,10 @@
-/* ===== Gym TV Screens — Jake-only control panel (13 Oct 2026) =====
+/* ===== Gym TV Screens — Jake + Alison control panel (13 Oct 2026) =====
    The six Google TVs each run /tv?n=1..6 in a kiosk browser and poll public.gym_screens every 20s.
    This tab lets Jake push a photo, a video, a YouTube link or a message to any or all of them.
-   Writes are locked to Jake's uid by RLS; media goes to the public 'gym-screens' storage bucket. */
+   Writes are locked to Jake's and Alison's uids by RLS; media goes to the public 'gym-screens' storage bucket. */
 (function(){
-var JAKE="15a011b9-e222-45f0-8eb9-d5338da935d1";
-function isJake(){try{return !!(session&&session.user&&session.user.id===JAKE);}catch(e){return false;}}
+var ADMINS=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* Jake, Alison */
+function isJake(){try{return !!(session&&session.user&&ADMINS.indexOf(session.user.id)>=0);}catch(e){return false;}}
 var $id=function(i){return document.getElementById(i);};
 var T=function(m){try{toast(m);}catch(e){}};
 function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m];});}
