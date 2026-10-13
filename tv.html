@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Legacy Gym TV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800&family=Oswald:wght@700&display=swap">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:100%;height:100%;background:#000;color:#f2f0eb;font-family:Montserrat,system-ui,sans-serif;overflow:hidden;cursor:none}
+#stage{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center}
+#stage img,#stage video,#stage iframe{width:100%;height:100%;border:0;display:block;object-fit:contain;background:#000}
+#stage.cover img,#stage.cover video{object-fit:cover}
+.msg{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:7vw;background:#0b0b0c;position:relative}
+.msg .bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.msg .shade{position:absolute;inset:0;background:rgba(11,11,12,.78)}
+.msg .brand{position:absolute;left:4vw;top:3.5vw;font-family:Oswald,sans-serif;font-size:2vw;letter-spacing:.6vw;color:#c9a44c}
+.msg b{position:relative;font-family:Oswald,sans-serif;font-size:9vw;letter-spacing:.2vw;text-transform:uppercase;line-height:1.05;color:#F1D27A;text-wrap:balance}
+.msg span{position:relative;font-size:3vw;color:#d7d3c8;margin-top:2.5vw;line-height:1.4;max-width:80vw;font-weight:600}
+.idle{font-family:Oswald,sans-serif;font-size:4vw;letter-spacing:1vw;color:#2a2a2e;text-transform:uppercase}
+#setup{position:fixed;inset:0;background:#0b0b0c;display:none;flex-direction:column;align-items:center;justify-content:center;gap:3vh;padding:6vw;text-align:center}
+#setup h1{font-family:Oswald,sans-serif;font-size:5vw;letter-spacing:.3vw;color:#F1D27A}
+#setup p{font-size:2.2vw;color:#a39f94;max-width:70vw;line-height:1.5}
+#setup .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw}
+#setup a{display:block;padding:3vw 4vw;border:2px solid #3a3320;border-radius:1.5vw;color:#fff;text-decoration:none;font-family:Oswald,sans-serif;font-size:3vw;letter-spacing:.2vw}
+#setup a:focus,#setup a:hover{border-color:#F1D27A;background:#1a1405;outline:0}
+#dot{position:fixed;right:1vw;bottom:1vw;width:.6vw;height:.6vw;border-radius:50%;background:#1f1f22}
+#dot.ok{background:#1b3d26}
+</style>
+</head>
+<body>
+<div id="stage"><div class="idle">Legacy Gym</div></div>
+<div id="setup"></div>
+<div id="dot"></div>
+<script>
+(function(){
+var URL_="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/gym_screens";
+var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+var POLL=20000;
+var q=new URLSearchParams(location.search);var n=parseInt(q.get("n")||localStorage.getItem("lg_tv_n")||"0",10);
+var stage=document.getElementById("stage"),setup=document.getElementById("setup"),dot=document.getElementById("dot");
+var last="",fails=0;
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m];});}
+function ytId(u){var m=String(u||"").match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/);return m?m[1]:null;}
+function paint(row){
+  var sig=JSON.stringify([row.kind,row.payload,row.updated_at]);if(sig===last)return;last=sig;
+  var p=row.payload||{};stage.className="";
+  if(row.kind==="photo"&&p.url){stage.className=p.fit==="cover"?"cover":"";stage.innerHTML='<img src="'+esc(p.url)+'" alt="">';}
+  else if(row.kind==="video"&&p.url){stage.className=p.fit==="contain"?"":"cover";stage.innerHTML='<video src="'+esc(p.url)+'" autoplay playsinline '+(p.loop===false?'':'loop ')+(p.sound?'':'muted ')+'></video>';var v=stage.querySelector("video");v.play().catch(function(){});}
+  else if(row.kind==="yt"&&ytId(p.url)){var id=ytId(p.url);stage.innerHTML='<iframe src="https://www.youtube.com/embed/'+id+'?autoplay=1&mute='+(p.sound?0:1)+'&loop=1&playlist='+id+'&controls=0&rel=0&modestbranding=1&iv_load_policy=3" allow="autoplay; encrypted-media" referrerpolicy="strict-origin-when-cross-origin"></iframe>';}
+  else if(row.kind==="msg"&&p.title){stage.innerHTML='<div class="msg">'+(p.bg?'<div class="bg" style="background-image:url('+esc(p.bg)+')"></div><div class="shade"></div>':'')+'<div class="brand">LEGACY GYM</div><b>'+esc(p.title)+'</b>'+(p.body?'<span>'+esc(p.body)+'</span>':'')+'</div>';}
+  else{stage.innerHTML='<div class="idle">Legacy Gym</div>';}
+}
+function tick(){
+  if(!n)return;
+  fetch(URL_+"?id=eq."+n+"&select=kind,payload,updated_at",{headers:{apikey:KEY,Authorization:"Bearer "+KEY},cache:"no-store"})
+   .then(function(r){return r.json();}).then(function(rows){fails=0;dot.className="ok";if(rows&&rows[0])paint(rows[0]);})
+   .catch(function(){fails++;dot.className="";if(fails>30)location.reload();});
+}
+function showSetup(){
+  setup.style.display="flex";
+  fetch(URL_+"?select=id,name&order=id",{headers:{apikey:KEY,Authorization:"Bearer "+KEY}}).then(function(r){return r.json();}).then(function(rows){
+    setup.innerHTML='<h1>Which TV is this?</h1><p>Pick once. This TV remembers it and never asks again.</p><div class="grid">'+rows.map(function(r){return '<a href="?n='+r.id+'" onclick="localStorage.setItem(\'lg_tv_n\',\''+r.id+'\')">'+esc(r.name)+'</a>';}).join("")+'</div>';
+    var a=setup.querySelector("a");if(a)a.focus();
+  }).catch(function(){setup.innerHTML='<h1>No internet</h1><p>Check the TV is on the Wi-Fi, then reopen this page.</p>';});
+}
+if(!n){showSetup();}
+else{try{localStorage.setItem("lg_tv_n",String(n));}catch(e){}tick();setInterval(tick,POLL);}
+/* nightly refresh so a long-running TV never goes stale */
+setInterval(function(){var d=new Date();if(d.getHours()===3&&d.getMinutes()===0)location.reload();},60000);
+document.addEventListener("keydown",function(e){if(e.key==="Backspace"||e.key==="Escape"){try{localStorage.removeItem("lg_tv_n");}catch(x){}location.href=location.pathname;}});
+})();
+</script>
+</body>
+</html>
