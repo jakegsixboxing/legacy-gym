@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0b0b0c">
+<title>Fight Night Ticket · Legacy Gym</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Montserrat:wght@500;600;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{--bg:#0b0b0c;--line:#26262b;--muted:#9a9891;--text:#f2f0eb;--gold:#c9a44c;--gold2:#F1D27A;--green:#39FF88}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--text);font-family:Montserrat,system-ui,sans-serif;min-height:100%}
+body{padding:18px 14px calc(24px + env(safe-area-inset-bottom));max-width:460px;margin:0 auto}
+.app{font:600 11px/1 Oswald,sans-serif;letter-spacing:2px;color:var(--muted);text-align:center;margin:4px 0 14px;text-transform:uppercase}
+.ticket{background:linear-gradient(170deg,#1a1a1e,#0b0b0c);border:1px solid #3a3320;border-radius:24px;overflow:hidden;position:relative}
+.t-head{padding:20px 20px 16px;background:radial-gradient(ellipse at 100% 0,#2a2210 0,transparent 55%),#111113;display:flex;gap:14px;align-items:center}
+.t-head img{height:60px;width:auto}
+.t-head .eyebrow{font:600 10.5px/1 Oswald,sans-serif;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase}
+.t-head h1{font:700 32px/1 Oswald,sans-serif;letter-spacing:.5px;text-transform:uppercase;margin-top:6px}
+.t-head small{display:block;font-size:10.5px;color:var(--muted);margin-top:6px;font-weight:600;line-height:1.4}
+.tier{margin:0 20px;padding:14px 0 12px;border-top:1px solid #26262b;display:flex;justify-content:space-between;align-items:end;gap:10px}
+.tier b{font:700 26px/1 Oswald,sans-serif;text-transform:uppercase;color:var(--gold2);letter-spacing:.5px}
+.tier small{font-size:10px;color:var(--muted);font-weight:600;display:block;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;padding:12px 20px 16px}
+.grid small{display:block;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px}
+.grid b{font-size:14px;font-weight:600}
+.corner{grid-column:1/-1;display:flex;gap:12px;align-items:center;background:#141416;border:1px solid #26262b;border-radius:14px;padding:10px 12px}
+.corner .av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#3a3320,#1a1a1e) center/cover no-repeat;border:2px solid var(--gold);display:grid;place-items:center;font:700 16px Oswald,sans-serif;color:var(--gold2);flex:none}
+.corner b{display:block;font-size:14px}.corner small{margin:0;color:var(--gold);font-size:10px}
+.rip{position:relative;height:0;border-top:2px dashed #3a3320;margin:4px 0}
+.rip:before,.rip:after{content:'';position:absolute;top:-13px;width:24px;height:24px;border-radius:50%;background:var(--bg)}
+.rip:before{left:-13px}.rip:after{right:-13px}
+.qrzone{padding:18px 20px 20px;display:flex;gap:16px;align-items:center}
+.qr{width:150px;height:150px;background:#fff;border-radius:12px;padding:8px;flex:none}
+.qr svg{width:100%;height:100%;display:block}
+.qrmeta{flex:1;min-width:0}
+.qrmeta small{font-size:10px;letter-spacing:1px;color:var(--muted);font-weight:600;text-transform:uppercase}
+.qrmeta .code{font:600 19px/1.1 ui-monospace,Menlo,monospace;letter-spacing:1px;margin:6px 0 10px;word-break:break-all}
+.tag{display:inline-flex;align-items:center;gap:6px;font:600 10.5px/1.2 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;padding:7px 10px;border-radius:99px;border:1px solid #2d5d4e;background:#102c24;color:var(--green)}
+.tag.used{border-color:#3a3a40;background:#1a1a1e;color:var(--muted)}.tag.ref{border-color:#903f4a;background:#351c22;color:#ff8c98}
+.tag:before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.qrmeta p{font-size:10px;color:var(--muted);margin-top:10px;line-height:1.5}
+.btns{display:flex;gap:10px;padding:0 20px 20px}
+.btn{flex:1;text-align:center;padding:12px 10px;border-radius:12px;font-size:12px;font-weight:600;border:1px solid #3a3320;color:var(--gold2);background:none;font-family:inherit;cursor:pointer}
+.btn.gold{background:var(--gold);color:#0b0b0c;border-color:var(--gold)}
+.wm{position:absolute;inset:0;pointer-events:none;display:grid;place-items:center}
+.wm span{transform:rotate(-20deg);font:700 56px/1 Oswald,sans-serif;letter-spacing:4px;color:#ffffff14;border:4px solid #ffffff14;padding:6px 20px;border-radius:12px}
+.used .ticket{filter:saturate(.6)}.used .qr{opacity:.4}
+.addons{margin:0 20px 16px;border:1px solid #3a3320;border-radius:14px;padding:10px 12px;background:#141416}
+.addons small{display:block;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px}
+.addons div{font-size:12.5px;font-weight:600;padding:3px 0}.addons div i{font-style:normal;color:var(--gold2)}
+.foot{font-size:10.5px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.6}
+.err{padding:40px 20px;text-align:center;color:var(--muted)}
+.err h2{font:700 24px/1.1 Oswald,sans-serif;color:var(--text);margin-bottom:8px;text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="app">Legacy Gym · Your ticket</div>
+<div id="root"><div class="err">Loading your ticket…</div></div>
+<div class="foot">Show this screen at the door. One scan, one entry.<br>Screenshots work too.</div>
+<script>
+(function(){
+var URL_="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/fn_ticket_public";
+var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+var tok=new URLSearchParams(location.search).get("t")||"";
+var root=document.getElementById("root");
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m];});}
+function when(iso){if(!iso)return "";return new Date(iso).toLocaleString("en-AU",{weekday:"short",hour:"numeric",minute:"2-digit"});}
+function fail(t,s){root.innerHTML='<div class="err"><h2>'+t+'</h2><p>'+s+'</p></div>';}
+if(!tok){fail("No ticket","This link is missing its ticket code.");return;}
+fetch(URL_,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify({p_token:tok})})
+ .then(function(r){return r.json();}).then(function(t){
+  if(!t||!t.id){fail("Ticket not found","Check the link, or ask the person who sent it.");return;}
+  var ev=t.event||{};var d=ev.date?new Date(ev.date+"T12:00:00"):null;var dateStr=d?d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short",year:"numeric"}).toUpperCase():"";
+  var used=!!t.checked_in_at,ref=t.status==="refunded";
+  var f=t.fighter;var av=f&&f.photo?' style="background-image:url('+esc(f.photo)+')"':'';
+  var qr="";try{var q=qrcode(0,"M");q.addData(location.origin+"/ticket?t="+tok);q.make();qr=q.createSvgTag({cellSize:4,margin:0,scalable:true});}catch(e){}
+  var tag=ref?'<span class="tag ref">Refunded · not valid</span>':used?'<span class="tag used">Admitted '+esc(when(t.checked_in_at))+'</span>':'<span class="tag">Valid · scan at door</span>';
+  var note=ref?'This ticket was refunded and will not scan.':used?'This ticket has been used. Keep it for the running order.':'One scan, one entry. Brightness up at the door helps.';
+  document.body.className=used||ref?"used":"";
+  root.innerHTML='<div class="ticket"><div class="t-head"><img src="/img/fc/fc-logo.png" alt=""><div><div class="eyebrow">Legacy Gym Kincumber presents</div><h1>Fight Night</h1><small>'+esc(dateStr)+(ev.doors?' · DOORS '+esc(ev.doors):'')+(ev.bell?' · FIRST BELL '+esc(ev.bell):'')+'</small></div></div>'
+   +'<div class="tier"><div><small>Experience</small><b>'+esc(t.tier)+'</b></div><div style="text-align:right"><small>Ticket</small><b style="color:#f2f0eb;font-size:20px">1 of '+esc(t.order_qty||1)+'</b></div></div>'
+   +'<div class="grid"><div><small>Holder</small><b>'+esc(t.holder)+'</b></div><div><small>Venue</small><b>'+esc(ev.venue||"Legacy Gym, Kincumber")+'</b></div>'
+   +(f?'<div class="corner"><div class="av"'+av+'>'+(f.photo?'':esc(f.name[0]))+'</div><div><small>IN THE CORNER OF</small><b>'+esc(f.name)+'</b></div></div>':'<div class="corner"><div class="av">FC</div><div><small>HERE FOR</small><b>The whole night</b></div></div>')+'</div>'
+   +((t.addons&&t.addons.length)?'<div class="addons"><small>Included with this ticket</small>'+t.addons.map(function(a){return '<div>'+esc(a.name)+' <i>· paid</i></div>';}).join("")+'</div>':'')
+   +'<div class="rip"></div><div class="qrzone"><div class="qr">'+qr+'</div><div class="qrmeta"><small>Admission code</small><div class="code">'+esc(t.id)+'</div>'+tag+'<p>'+note+'</p></div></div>'
+   +(used?'<div class="wm"><span>ADMITTED</span></div>':'')
+   +'<div class="btns"><button class="btn gold" onclick="share()">Share</button><button class="btn" onclick="window.print()">Save / print</button></div></div>';
+ }).catch(function(){fail("Can't load the ticket","Check your connection and try again.");});
+window.share=async function(){try{if(navigator.share){await navigator.share({title:"Fight Night ticket",url:location.href});return;}}catch(e){}try{await navigator.clipboard.writeText(location.href);alert("Link copied.");}catch(e){}};
+})();
+</script>
+</body>
+</html>
