@@ -9,7 +9,7 @@ var $id=function(i){return document.getElementById(i);};
 var T=function(m){try{toast(m);}catch(e){}};
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];});}
 var FC_LOGO="https://www.legacygym.net/cdn/shop/t/28/assets/fightclub-logo.png";
-var STAFF=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* same as fc_is_staff() */
+var STAFF=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce","09e6788d-f0cd-4c7a-a0b0-2dd9db75bbeb"]; /* Jake, Alison, Kelly — same as bb_is_staff() */
 function staff(){try{return STAFF.indexOf(session.user.id)>=0;}catch(e){return false;}}
 function today(){return RB.sydneyToday();}
 function fmt(v){return RB.fmtAU(v)||"";}
@@ -58,12 +58,14 @@ function yes(r,q){return q.fields.every(function(f){return !!RB.parseDate(r[f]);
 function book(r){return r.bookStatus==="received"?"received":"pending";}
 function summary(r){var d=Q.filter(function(q){return yes(r,q);}).length;var b=book(r)==="received";return {done:d,total:Q.length,book:b,text:b?"Blue Book received":d===Q.length?"All done, waiting on the book":d+" of "+Q.length+" done"};}
 
-var S={mode:null,rec:null,all:null,sel:null,q:"",f:"all",open:{},saving:{}};
+var S={mode:null,rec:null,all:null,sel:null,q:"",f:"all",open:{},saving:{},tab:null,persp:"coach",preview:false};
 var css=document.createElement("style");css.textContent=
 ".bb{max-width:640px;margin:0 auto;padding-bottom:40px;--ink:#f2f0eb;--mute:#9a9891;--line:#2a2a2e;--panel:#141416;--blue:#4f8cff;--teal:#2dd4bf;--amber:#f5b942;--red:#ff5c6c}"
 +".bb .back{background:none;border:0;color:var(--blue);font-weight:800;font-size:13px;letter-spacing:1px;padding:4px 0 12px;cursor:pointer;font-family:inherit}"
 +".bb .head{display:flex;gap:12px;align-items:center;margin-bottom:10px}.bb .head img{height:44px}.bb .head .k{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--mute)}.bb .head .t{font-family:Oswald,sans-serif;font-size:26px;letter-spacing:.5px;text-transform:uppercase;line-height:1.05}"
 +".bb .card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:14px;margin-bottom:10px}.bb .card h3{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:0 0 10px}"
++".bb .persp{display:flex;align-items:center;gap:8px;margin:-4px 0 12px}.bb .persp small{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--mute)}.bb .persp .sw{display:flex;gap:3px;background:#0f0f11;border:1px solid var(--line);border-radius:99px;padding:3px}.bb .persp .sw button{border:0;background:transparent;color:var(--mute);font-family:inherit;font-weight:800;font-size:12px;padding:7px 14px;border-radius:99px;cursor:pointer}.bb .persp .sw button.on{background:var(--teal);color:#06211d}.bb .preview{background:#2b2418;border:1px solid #6b5520;color:#f5d58a;border-radius:10px;padding:9px 12px;font-size:12px;line-height:1.4;margin-bottom:10px}"
++".bb .tabs{display:flex;gap:6px;margin-bottom:12px;background:#0f0f11;border:1px solid var(--line);border-radius:12px;padding:4px}.bb .tabs button{flex:1;border:0;background:transparent;color:var(--mute);font-family:Oswald,sans-serif;font-size:15px;letter-spacing:1px;text-transform:uppercase;padding:11px 6px;border-radius:9px;cursor:pointer}.bb .tabs button.on{background:var(--blue);color:#fff}"
 +".bb .intro{font-size:14px;line-height:1.5}.bb .intro b{color:#fff}"
 +".bb .todo{border-bottom:1px solid #1d1d21;padding:10px 0}.bb .todo:last-child{border:0}.bb .todo .row{display:flex;gap:10px;align-items:center;cursor:pointer}.bb .todo .n{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-family:Oswald,sans-serif;font-size:15px;flex:none}.bb .todo .ic{width:36px;height:36px;flex:none}.bb .todo .ic svg{width:36px;height:36px}.bb .todo .ttl{flex:1;font-size:15px;font-weight:700}.bb .todo .car{color:var(--mute);font-size:12px;transition:transform .2s}.bb .todo.open .car{transform:rotate(180deg)}"
 +".bb .todo ul{display:none;margin:8px 0 0 38px;padding:0 0 0 16px;font-size:13px;line-height:1.5;color:#d8d6cf}.bb .todo.open ul{display:block}.bb .todo li{margin:4px 0}.bb .todo li a{color:var(--blue)}"
@@ -83,14 +85,15 @@ document.head.appendChild(css);
 async function loadMine(){var r=await sb.rpc("bb_get",{p_fighter:null});if(r.error)throw r.error;S.rec=r.data;}
 async function loadAll(){var r=await sb.rpc("bb_all");if(r.error)throw r.error;S.all=r.data||[];}
 function paintSave(key){var el=document.querySelector('[data-sv="'+key+'"]');if(el){var s=S.saving[key];el.className="sv"+(s==="err"?" err":s==="ok"?" ok":"");el.textContent=s==="saving"?"Saving…":s==="ok"?"Saved":s==="err"?"Not saved":"";}}
-function current(){return S.mode==="admin"?S.all.find(function(x){return x.fighter_id===S.sel;}).record:S.rec;}
+function current(){return (S.mode==="admin"&&!fighterPersp())?S.all.find(function(x){return x.fighter_id===S.sel;}).record:S.rec;}
 /* set several fields; fighter → bb_participant_update, staff editing a fighter → bb_staff_set */
 async function setFields(fields,value,key){
-  S.saving[key]="saving";paintSave(key);var rec=current();
+  S.saving[key]="saving";paintSave(key);var rec=current();var asStaff=S.mode==="admin"&&!fighterPersp();
+  if(S.preview&&fighterPersp()){fields.forEach(function(f){rec[f]=value;});S.saving[key]="ok";paintSave(key);return true;}
   for(var i=0;i<fields.length;i++){if(rec[fields[i]]===value)continue;
-    var r=S.mode==="admin"?await sb.rpc("bb_staff_set",{p_fighter:S.sel,p_field:fields[i],p_value:value}):await sb.rpc("bb_participant_update",{p_field:fields[i],p_value:value});
+    var r=asStaff?await sb.rpc("bb_staff_set",{p_fighter:S.sel,p_field:fields[i],p_value:value}):await sb.rpc("bb_participant_update",{p_field:fields[i],p_value:value});
     if(r.error){S.saving[key]="err";paintSave(key);T("Couldn't save: "+r.error.message);return false;}
-    rec=r.data;if(S.mode==="admin")S.all.find(function(x){return x.fighter_id===S.sel;}).record=rec;else S.rec=rec;}
+    rec=r.data;if(asStaff)S.all.find(function(x){return x.fighter_id===S.sel;}).record=rec;else S.rec=rec;}
   S.saving[key]="ok";paintSave(key);setTimeout(function(){if(S.saving[key]==="ok"){S.saving[key]="";paintSave(key);}},1800);return true;}
 
 /* ---------- shared pieces ---------- */
@@ -100,28 +103,42 @@ function statusCard(r){var s=summary(r);
   return '<div class="card"><h3>Where are you up to? · '+s.done+' of '+s.total+'</h3>'+Q.map(function(q){return ynRow(q,r);}).join("")+bookRow(r)
    +(s.book?'<div class="done">Bring your Blue Book in and show Jake or Alison. Take it to every fight.</div><p class="note">Lost or damaged it? <a href="'+L.replace+'" target="_blank" rel="noopener">Replace it on Service NSW</a> ($50) and tell Jake.</p>':'')+'</div>';}
 
+/* staff (Jake, Alison, Kelly) can flip between the coach view and the fighter view */
+function fighterPersp(){return S.mode==="admin"&&S.persp==="fighter";}
+function perspHtml(){if(S.mode!=="admin")return "";return '<div class="persp"><small>View as</small><div class="sw"><button class="'+(S.persp!=="fighter"?'on':'')+'" onclick="bbPersp(\'coach\')">Coach</button><button class="'+(S.persp==="fighter"?'on':'')+'" onclick="bbPersp(\'fighter\')">Fighter</button></div></div>';}
+/* ---------- "How to get your Blue Book" (everyone sees this) ---------- */
+function tabsHtml(second){return '<div class="tabs"><button class="'+(S.tab==="how"?'on':'')+'" onclick="bbTab(\'how\')">How to get it</button><button class="'+(S.tab!=="how"?'on':'')+'" onclick="bbTab(\'main\')">'+second+'</button></div>';}
+function howPage(){
+  return '<div class="card"><div class="intro"><b>No Blue Book, no fight.</b> It\'s the NSW combat sports medical book. Follow the steps below in order, then tick off your checkpoints.</div></div>'
+   +'<div class="card"><h3>Blue Book registration, step by step</h3>'+STEPS.map(function(q,i){return '<div class="todo'+(S.open[q.id]?' open':'')+'" id="td-'+q.id+'"><div class="row" onclick="bbOpen(\''+q.id+'\')"><div class="n">'+(i+1)+'</div><div class="ic">'+ICON[q.icon]+'</div><div class="ttl">'+esc(q.label)+'</div><span class="car">▾</span></div><ul>'+q.how.map(function(x){return '<li>'+x+'</li>';}).join("")+'</ul></div>';}).join("")+'<p class="note">Tap a step to see the details. '+HELP+'</p></div>'
+   +'<div class="card"><h3>Download / print forms</h3><div class="forms"><a href="'+L.fitnessForm+'" target="_blank" rel="noopener">'+ICON.form+'Fitness form<small>Print</small></a><a href="'+L.serologyForm+'" target="_blank" rel="noopener">'+ICON.form+'Bloods form<small>Print</small></a><a href="'+L.concussion+'" target="_blank" rel="noopener">'+ICON.course+'Concussion course<small>Online</small></a><a href="'+L.apply+'" target="_blank" rel="noopener">'+ICON.sent+'Apply on Service NSW<small>Online</small></a></div><p class="note">Under 18? You also need the <a href="'+L.consentForm+'" target="_blank" rel="noopener">parent / guardian form</a> signed.</p></div>';
+}
+
 /* ---------- fighter page ---------- */
 function paintMine(){
   var m=$id("main");if(!m)return;var r=S.rec;
+  if(!r&&S.mode==="admin"){S.rec=r=RB.newRecord("preview",(window.profile&&window.profile.full_name)||"You","");S.preview=true;}
   if(!r){m.innerHTML='<div class="bb"><button class="back" onclick="bbBack()">‹ Fight Club</button><div class="card"><p>No fighter record is linked to this login. Ask Jake to link you.</p></div></div>';return;}
+  if(!S.tab)S.tab=(summary(r).done===0&&!summary(r).book)?"how":"main";
   m.innerHTML='<div class="bb"><button class="back" onclick="bbBack()">‹ Fight Club</button><div class="head"><img src="'+FC_LOGO+'" alt=""><div><div class="k">Fight Night · 19 Dec</div><div class="t">Your Blue Book</div></div></div>'
-   +'<div class="card"><div class="intro"><b>No Blue Book, no fight.</b> It\'s the NSW combat sports medical book. Follow the steps below, then tell us where you\'re up to.</div></div>'
-   +'<div class="card"><h3>Blue Book registration, step by step</h3>'+STEPS.map(function(q,i){return '<div class="todo'+(S.open[q.id]?' open':'')+'" id="td-'+q.id+'"><div class="row" onclick="bbOpen(\''+q.id+'\')"><div class="n">'+(i+1)+'</div><div class="ic">'+ICON[q.icon]+'</div><div class="ttl">'+esc(q.label)+'</div><span class="car">▾</span></div><ul>'+q.how.map(function(x){return '<li>'+x+'</li>';}).join("")+'</ul></div>';}).join("")+'<p class="note">Tap a step to see the details. '+HELP+'</p></div>'
-   +'<div class="card"><h3>Download / print forms</h3><div class="forms"><a href="'+L.fitnessForm+'" target="_blank" rel="noopener">'+ICON.form+'Fitness form<small>Print</small></a><a href="'+L.serologyForm+'" target="_blank" rel="noopener">'+ICON.form+'Bloods form<small>Print</small></a><a href="'+L.concussion+'" target="_blank" rel="noopener">'+ICON.course+'Concussion course<small>Online</small></a><a href="'+L.apply+'" target="_blank" rel="noopener">'+ICON.sent+'Apply on Service NSW<small>Online</small></a></div><p class="note">Under 18? You also need the <a href="'+L.consentForm+'" target="_blank" rel="noopener">parent / guardian form</a> signed.</p></div>'
-   +statusCard(r)
-   +'<p class="note" style="text-align:center">This is just so Jake and the team know where you\'re up to.</p></div>';
+   +perspHtml()+(S.preview?'<div class="preview">Preview of what a fighter sees. You\'re not set up as a fighter, so taps here don\'t save anywhere.</div>':'')
+   +tabsHtml("My checkpoints")
+   +(S.tab==="how"?howPage()+'<p class="note" style="text-align:center">Done a step? Tap <b>My checkpoints</b> above and tick it off.</p>'
+     :statusCard(r)+'<p class="note" style="text-align:center">Not sure what to do next? Tap <b>How to get it</b> above. This is just so Jake and the team know where you\'re up to.</p>')
+   +'</div>';
 }
 
 /* ---------- staff pages ---------- */
 function ticks(r){return '<div class="ticks">'+Q.map(function(q){return '<span class="'+(yes(r,q)?'y':'')+'">'+{medical:"Medical",bloods:"Bloods",course:"Concussion",sent:"Applied"}[q.id]+'</span>';}).join("")+'<span class="'+(book(r)==="received"?'y':'p')+'">Book '+(book(r)==="received"?'✓':'pending')+'</span></div>';}
 function paintAdmin(){
-  var m=$id("main");if(!m)return;if(S.sel){paintOne();return;}
+  var m=$id("main");if(!m)return;if(S.sel){paintOne();return;}if(!S.tab)S.tab="main";
   var all=S.all,c={book:0,none:0};all.forEach(function(x){var s=summary(x.record);if(s.book)c.book++;if(s.done===0&&!s.book)c.none++;});
   var q=S.q.toLowerCase();var rows=all.filter(function(x){var s=summary(x.record);if(q&&x.name.toLowerCase().indexOf(q)<0)return false;if(S.f==="book")return s.book;if(S.f==="done")return s.done===s.total&&!s.book;if(S.f==="none")return s.done===0&&!s.book;if(S.f==="going")return s.done>0&&s.done<s.total;return true;});
   m.innerHTML='<div class="bb"><button class="back" onclick="bbBack()">‹ Fight Club</button><div class="head"><img src="'+FC_LOGO+'" alt=""><div><div class="k">Fight Night · 19 Dec</div><div class="t">Blue Book · who\'s up to what</div></div></div>'
-   +'<div class="stats"><div class="stat'+(S.f==="all"?' on':'')+'" onclick="bbF(\'all\')"><b>'+all.length+'</b><small>Fighters</small></div><div class="stat'+(S.f==="book"?' on':'')+'" onclick="bbF(\'book\')"><b>'+c.book+'</b><small>Book received</small></div><div class="stat'+(S.f==="none"?' on':'')+'" onclick="bbF(\'none\')"><b>'+c.none+'</b><small>Not started</small></div></div>'
+   +perspHtml()+tabsHtml("Fighters")
+   +(S.tab==="how"?howPage()+'</div>':'<div class="stats"><div class="stat'+(S.f==="all"?' on':'')+'" onclick="bbF(\'all\')"><b>'+all.length+'</b><small>Fighters</small></div><div class="stat'+(S.f==="book"?' on':'')+'" onclick="bbF(\'book\')"><b>'+c.book+'</b><small>Book received</small></div><div class="stat'+(S.f==="none"?' on':'')+'" onclick="bbF(\'none\')"><b>'+c.none+'</b><small>Not started</small></div></div>'
    +'<div class="card"><input type="text" placeholder="Search…" value="'+esc(S.q)+'" oninput="bbQ(this.value)"><div style="margin-top:8px">'+[["all","All"],["none","Not started"],["going","In progress"],["done","Waiting on book"],["book","Book received"]].map(function(f){return '<button class="pill'+(S.f===f[0]?' on':'')+'" onclick="bbF(\''+f[0]+'\')">'+f[1]+'</button>';}).join("")+'</div></div>'
-   +'<div class="card">'+(rows.length?rows.map(function(x){var s=summary(x.record);return '<div class="frow" onclick="bbSel(\''+x.fighter_id+'\')"><div class="av"'+(x.photo?' style="background-image:url('+esc(x.photo)+')"':'')+'></div><div style="min-width:0;flex:1"><b>'+esc(x.name)+'</b><small>'+esc(s.text)+(x.record.staffNote?' · '+esc(x.record.staffNote):'')+'</small>'+ticks(x.record)+'</div></div>';}).join(""):'<p class="note">Nobody matches.</p>')+'</div></div>';
+   +'<div class="card">'+(rows.length?rows.map(function(x){var s=summary(x.record);return '<div class="frow" onclick="bbSel(\''+x.fighter_id+'\')"><div class="av"'+(x.photo?' style="background-image:url('+esc(x.photo)+')"':'')+'></div><div style="min-width:0;flex:1"><b>'+esc(x.name)+'</b><small>'+esc(s.text)+(x.record.staffNote?' · '+esc(x.record.staffNote):'')+'</small>'+ticks(x.record)+'</div></div>';}).join(""):'<p class="note">Nobody matches.</p>')+'</div></div>');
 }
 function paintOne(){
   var m=$id("main");var x=S.all.find(function(y){return y.fighter_id===S.sel;});if(!x){S.sel=null;paintAdmin();return;}var r=x.record;
@@ -133,8 +150,8 @@ function paintOne(){
 }
 
 /* ---------- actions ---------- */
-window.S_bb=S;window.bbPaint=function(){if(S.mode==="admin")paintAdmin();else paintMine();};
-function repaint(){if(S.mode==="admin")paintOne();else paintMine();}
+window.S_bb=S;window.bbPaint=function(){if(fighterPersp())paintMine();else if(S.mode==="admin")paintAdmin();else paintMine();};
+function repaint(){if(fighterPersp())paintMine();else if(S.mode==="admin")paintOne();else paintMine();}
 window.bbOpen=function(id){S.open[id]=!S.open[id];var el=$id("td-"+id);if(el)el.classList.toggle("open",!!S.open[id]);};
 window.bbAns=async function(id,v){var q=Q.find(function(x){return x.id===id;});var ok;
   if(!current().route)await setFields(["route"],"new",id);
@@ -150,13 +167,17 @@ window.bbNoteSave=async function(){var ok=await setFields(["staffNote"],($id("bb
 window.bbBack=function(){try{go("fc");}catch(e){go("home");}};
 window.bbQ=function(v){S.q=v;var keep=document.activeElement;paintAdmin();var inp=document.querySelector(".bb input[type=text]");if(inp&&keep&&keep.tagName==="INPUT"){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}};
 window.bbF=function(f){S.f=f;paintAdmin();};
+window.bbPersp=function(p){S.persp=p;S.tab=null;S.sel=null;window.scrollTo(0,0);
+  if(p==="fighter"&&S.rec===null&&!S.preview){var m=$id("main");if(m)m.innerHTML='<div class="loadingDots">Loading…</div>';loadMine().then(function(){if(S.rec)S.preview=false;window.bbPaint();}).catch(function(e){T(e.message||String(e));S.rec=null;window.bbPaint();});return;}
+  window.bbPaint();};
+window.bbTab=function(t){S.tab=t;window.bbPaint();window.scrollTo(0,0);};
 window.bbSel=function(id){S.sel=id;paintOne();window.scrollTo(0,0);};
-window.bbEnter=function(){S.mode=staff()?"admin":"mine";go("bluebook");};
+window.bbEnter=function(){S.mode=staff()?"admin":"mine";S.tab=null;S.sel=null;S.persp="coach";S.preview=false;S.rec=null;go("bluebook");};
 
 /* ---------- hooks ---------- */
 var _render=window.render;window.render=function(){
   if(view==="bluebook"){var m=$id("main");if(m)m.innerHTML='<div class="loadingDots">Opening Blue Book…</div>';S.mode=staff()?"admin":"mine";
-    (S.mode==="admin"?loadAll():loadMine()).then(function(){window.bbPaint();}).catch(function(e){var mm=$id("main");if(mm)mm.innerHTML='<div class="bb"><button class="back" onclick="bbBack()">‹ Fight Club</button><div class="card"><p>Couldn\'t load the Blue Book: '+esc(e.message||e)+'</p><button class="btn pri" onclick="render()">Try again</button></div></div>';});return;}
+    (S.mode==="admin"?loadAll().then(function(){S.rec=null;S.preview=false;}):loadMine()).then(function(){window.bbPaint();}).catch(function(e){var mm=$id("main");if(mm)mm.innerHTML='<div class="bb"><button class="back" onclick="bbBack()">‹ Fight Club</button><div class="card"><p>Couldn\'t load the Blue Book: '+esc(e.message||e)+'</p><button class="btn pri" onclick="render()">Try again</button></div></div>';});return;}
   return _render.apply(this,arguments);};
 var cardCss=document.createElement("style");cardCss.textContent="#bbCard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:linear-gradient(90deg,#0f1a2e,#0d0d0d);border:1px solid #27447d;border-radius:14px;padding:12px 14px;margin:0 0 12px;color:#f2f0eb;cursor:pointer;font-family:inherit}#bbCard .ic{flex:none;width:44px;height:44px;border-radius:12px;background:#102038;display:grid;place-items:center}#bbCard .ic svg{width:34px;height:34px}#bbCard .k{font-size:9px;font-weight:800;letter-spacing:2.5px;color:#4f8cff;text-transform:uppercase}#bbCard .t{font-family:Oswald,sans-serif;font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;line-height:1.1;margin-top:2px}#bbCard .s{font-size:11.5px;color:#9a9891;margin-top:3px;line-height:1.4}#bbCard .a{margin-left:auto;color:#4f8cff;font-weight:800;font-size:13px;flex:none}";document.head.appendChild(cardCss);
 function addCard(){if(view!=="fc"||$id("bbCard"))return;var anchor=document.querySelector("#main .fccVw")||document.querySelector("#main .fcx .pills");if(!anchor)return;var isStaff=staff();
