@@ -83,8 +83,8 @@ input.bad{border-color:var(--red)}
   <div style="padding-top:6px"><div class="eyebrow">Legacy Gym · Fight Club Fight Night · Sat 19 Dec</div><h1>Help local kids <span>train.</span></h1>
   <p class="sub"><b style="color:#fff">Every dollar of ring sponsorship goes to the kids.</b> All proceeds fund training at Legacy for local kids whose families can't afford it: memberships, gloves, coaching, a place to go. Your business gets the ring on fight night; a kid gets a year in the gym.</p>
   <div class="kids"><b>Where your money goes</b><span>$750 keeps a kid training for a term · $2,000 covers a kid for the year · $9,000 puts a whole crew of kids through the gym</span></div>
-  <p class="sub">Pick what you want below, leave a $200 deposit to lock it in, and we'll be in touch for your logo and the balance.</p></div>
-  <div class="steps" id="steps"><div class="on">1 · Pick</div><div>2 · Details</div><div>3 · Deposit</div></div>
+  <p class="sub">Pick what you want below, leave your details, and we'll be in touch for your logo and payment.</p></div>
+  <div class="steps" id="steps"><div class="on">1 · Pick</div><div>2 · Details</div><div>3 · Done</div></div>
   <div id="view"></div>
 </div>
 <div class="bar" id="bar"><div class="in"><div class="sum"><small>Your sponsorship</small><b id="barTotal">$0</b><i id="barItems">Nothing picked yet</i></div><button class="go" id="barGo" disabled onclick="next()">Continue</button></div></div>
@@ -93,7 +93,6 @@ input.bad{border-color:var(--red)}
 (function(){
 var URL_="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/fn_sponsor_request";
 var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
-var DEPOSIT=20000;
 /* The options, straight off the poster. Availability is what the demo shows; the live version reads it from the database. */
 var OPTS=[
  {id:"whole",name:"Whole ring sponsorship",blurb:"Everything below is yours: centre canvas, all four canvas corners, all four corner pads, all four ropes and the available skirt. One brand, the whole ring, and a whole crew of kids funded.",price:900000,avail:1,exclusive:true},
@@ -126,29 +125,20 @@ function paintPick(){
 }
 function paintDetails(){
   var f=S.form;
-  $("view").innerHTML='<div class="card"><h3>Your details <span>so we can get your logo</span></h3>'
+  $("view").innerHTML=(S.error?'<div class="err">'+esc(S.error)+'</div>':'')+'<div class="card"><h3>Your details <span>so we can get your logo</span></h3>'
    +'<label>Your name</label><input id="fName" type="text" autocomplete="name" placeholder="Full name" value="'+esc(f.name)+'" oninput="S_.form.name=this.value">'
    +'<label>Business name</label><input id="fBiz" type="text" autocomplete="organization" placeholder="Business or brand" value="'+esc(f.business)+'" oninput="S_.form.business=this.value">'
    +'<div class="two"><div><label>Email</label><input id="fEmail" type="email" autocomplete="email" inputmode="email" placeholder="name@business.com.au" value="'+esc(f.email)+'" oninput="S_.form.email=this.value"></div><div><label>Mobile</label><input id="fMob" type="tel" autocomplete="tel" inputmode="tel" placeholder="04…" value="'+esc(f.mobile)+'" oninput="S_.form.mobile=this.value"></div></div>'
-   +'<p class="note">We\'ll email a confirmation now, then one of the team will call to collect your logo files and sort the balance.</p>'
+   +'<p class="note">Hit Register and one of the team will call you to collect your logo files and sort payment. Nothing to pay right now.</p>'
    +'<div style="margin-top:12px"><button class="btn" onclick="back()">‹ Change selection</button></div></div>'
    +summaryCard();
 }
-function summaryCard(){var t=total();return '<div class="card"><h3>Summary</h3>'+picked().map(function(x){return '<div class="row"><span>'+esc(x.label)+'</span><b>'+money(x.price)+'</b></div>';}).join("")+'<div class="row tot"><div>Sponsorship total<small>all of it goes to kids\' training</small></div><b>'+money(t)+'</b></div><div class="row"><div>Deposit today<small>secures your spot</small></div><b>'+money(DEPOSIT)+'</b></div><div class="row"><div>Balance<small>invoiced once your logo is in</small></div><b>'+money(Math.max(0,t-DEPOSIT))+'</b></div></div>';}
-function paintDeposit(){
-  var c=S.card;
-  $("view").innerHTML=(S.error?'<div class="err">'+esc(S.error)+'</div>':'')
-   +'<div class="card"><h3>$200 deposit <span class="demo">Demo · no charge</span></h3><div class="cardui"><div class="brand"><span>Card</span><span>Visa · Mastercard · Amex</span></div>'
-   +'<label>Card number</label><input type="text" inputmode="numeric" autocomplete="cc-number" value="'+esc(c.num)+'" oninput="S_.card.num=this.value"><div class="two"><div><label>Expiry</label><input type="text" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" value="'+esc(c.exp)+'" oninput="S_.card.exp=this.value"></div><div><label>CVC</label><input type="text" inputmode="numeric" autocomplete="cc-csc" placeholder="123" value="'+esc(c.cvc)+'" oninput="S_.card.cvc=this.value"></div></div></div>'
-   +'<p class="note">This is a demonstration checkout: the card isn\'t charged and nothing is stored. The live version hands this step to our payment provider and only confirms your sponsorship once the $200 clears.</p>'
-   +'<div style="margin-top:12px"><button class="btn" onclick="back()">‹ Back to details</button></div></div>'
-   +summaryCard();
-}
+function summaryCard(){var t=total();return '<div class="card"><h3>Summary</h3>'+picked().map(function(x){return '<div class="row"><span>'+esc(x.label)+'</span><b>'+money(x.price)+'</b></div>';}).join("")+'<div class="row tot"><div>Sponsorship total<small>all of it goes to kids\' training</small></div><b>'+money(t)+'</b></div><div class="row"><div>Payment<small>we\'ll sort it with you on the phone</small></div><b>Nothing now</b></div></div>';}
 function paintDone(){
   var r=S.result;var t=total();
-  $("view").innerHTML='<div class="card"><div class="done"><div class="big">LOCKED IN</div><div class="ref">'+esc(r.ref)+'</div><div class="note">Your reference. A confirmation is on its way to '+esc(S.form.email)+'.</div><div class="kids" style="text-align:left;margin-top:14px"><b>Thank you</b><span>Your '+money(t)+' goes straight to training for local kids who couldn\'t otherwise afford it. We\'ll let you know who you helped.</span></div></div></div>'
-   +'<div class="card"><h3>What you\'ve secured</h3>'+picked().map(function(x){return '<div class="row"><span>'+esc(x.label)+'</span><b>'+money(x.price)+'</b></div>';}).join("")+'<div class="row tot"><span>Total</span><b>'+money(t)+'</b></div><div class="row"><span>Deposit paid (demo)</span><b>'+money(DEPOSIT)+'</b></div><div class="row"><span>Balance to come</span><b>'+money(Math.max(0,t-DEPOSIT))+'</b></div></div>'
-   +'<div class="card"><h3>What happens next</h3><div class="row"><div><b>1 · We call you</b><small>'+esc(S.form.name)+(S.form.business?' · '+esc(S.form.business):'')+' · '+esc(S.form.mobile||S.form.email)+'</small></div></div><div class="row"><div><b>2 · Send us your logo</b><small>High-res PNG, PDF or AI file. We handle the artwork and printing.</small></div></div><div class="row"><div><b>3 · Balance</b><small>Invoiced once the artwork is approved. Your spot stays held.</small></div></div><div class="row"><div><b>4 · Fight night · Sat 19 Dec</b><small>Your brand in the ring at Legacy Gym, Kincumber, and kids in the gym because of you.</small></div></div>'
+  $("view").innerHTML='<div class="card"><div class="done"><div class="big">YOU\'RE IN</div><div class="ref">'+esc(r.ref)+'</div><div class="note">Your reference. We\'ll be in touch at '+esc(S.form.email)+' or '+esc(S.form.mobile)+'.</div><div class="kids" style="text-align:left;margin-top:14px"><b>Thank you</b><span>Your '+money(t)+' goes straight to training for local kids who couldn\'t otherwise afford it. We\'ll let you know who you helped.</span></div></div></div>'
+   +'<div class="card"><h3>What you\'ve requested</h3>'+picked().map(function(x){return '<div class="row"><span>'+esc(x.label)+'</span><b>'+money(x.price)+'</b></div>';}).join("")+'<div class="row tot"><span>Total</span><b>'+money(t)+'</b></div></div>'
+   +'<div class="card"><h3>What happens next</h3><div class="row"><div><b>1 · We call you</b><small>'+esc(S.form.name)+(S.form.business?' · '+esc(S.form.business):'')+' · '+esc(S.form.mobile||S.form.email)+'</small></div></div><div class="row"><div><b>2 · Send us your logo</b><small>High-res PNG, PDF or AI file. We handle the artwork and printing.</small></div></div><div class="row"><div><b>3 · Payment</b><small>We invoice you once the artwork is approved. Your spot is held in the meantime.</small></div></div><div class="row"><div><b>4 · Fight night · Sat 19 Dec</b><small>Your brand in the ring at Legacy Gym, Kincumber, and kids in the gym because of you.</small></div></div>'
    +'<div style="margin-top:12px"><button class="btn" onclick="restart()">Start another</button></div></div>';
 }
 function paintBar(){
@@ -157,13 +147,13 @@ function paintBar(){
   $("barItems").textContent=p.length?p.map(function(x){return x.label;}).join(" · "):"Nothing picked yet";
   var go=$("barGo");
   if(S.step===1){go.textContent="Continue";go.disabled=!p.length;}
-  else if(S.step===2){go.textContent="To deposit";go.disabled=false;}
-  else if(S.step===3){go.textContent=S.busy?"Working…":"Pay $200 deposit";go.disabled=S.busy;}
+  else if(S.step===2){go.textContent=S.busy?"Working…":"Register";go.disabled=S.busy;}
+  else if(S.step===3){go.textContent="Done";go.disabled=true;}
   else{go.textContent="Done";go.disabled=true;}
-  $("bar").style.display=S.step===4?"none":"";
+  $("bar").style.display=S.step>=3?"none":"";
   var st=$("steps").children;for(var i=0;i<3;i++){st[i].className=S.step===i+1?"on":S.step>i+1?"done":"";}
 }
-function paint(){({1:paintPick,2:paintDetails,3:paintDeposit,4:paintDone})[S.step]();paintBar();}
+function paint(){({1:paintPick,2:paintDetails,3:paintDone})[S.step]();paintBar();}
 
 window.S_=S;
 window.toggle=function(id){var o=OPTS.find(function(x){return x.id===id;});if(!o||o.avail<1)return;
@@ -178,15 +168,12 @@ window.next=async function(){
   if(S.step===2){var f=S.form,bad=[];if(!f.name.trim())bad.push("fName");if(!/^\S+@\S+\.\S+$/.test(f.email.trim()))bad.push("fEmail");if(!/^[\d\s+()-]{8,}$/.test(f.mobile.trim()))bad.push("fMob");
     ["fName","fBiz","fEmail","fMob"].forEach(function(i){var el=$(i);if(el)el.classList.toggle("bad",bad.indexOf(i)>=0);});
     if(bad.length){var el=$(bad[0]);if(el)el.focus();return;}
-    S.step=3;paint();window.scrollTo(0,0);return;}
-  if(S.step===3){
-    var c=S.card;if(c.num.replace(/\D/g,"").length<15||!/^\d{2}\/\d{2}$/.test(c.exp.trim())||c.cvc.replace(/\D/g,"").length<3){S.error="Check the card details (demo accepts any valid-looking card).";paint();return;}
     S.busy=true;S.error="";paintBar();
     try{
       var r=await fetch(URL_,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify({p_name:S.form.name.trim(),p_business:S.form.business.trim(),p_email:S.form.email.trim(),p_mobile:S.form.mobile.trim(),p_items:picked(),p_total_cents:total()})});
       var j=await r.json();
       if(!r.ok||!j||!j.ref){throw new Error((j&&(j.message||j.error))||"Couldn't save your request.");}
-      S.result=j;S.step=4;
+      S.result=j;S.step=3;
     }catch(e){S.error=e.message||String(e);}
     S.busy=false;paint();window.scrollTo(0,0);
   }
