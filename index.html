@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610142000";
+const LG_BUILD="202610142100";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -1594,6 +1594,7 @@ async function renderClasses(){
   doneRegs=(res[0].data||[]).filter(r=>r.class_date<d0||(r.class_date===d0&&r.class_time<=nowHM));
   claimedRefs=new Set((res[1].data||[]).map(r=>r.ref));
   regs=res[2]?(res[2].data||[]):[];
+  if(dates.length){try{const g=await sb.from("class_guest_regs").select("*").in("class_date",dates);(g.data||[]).forEach(r=>regs.push({user_id:"guest-"+r.id,name:r.name+" (guest)",class_name:r.class_name,class_date:r.class_date,class_time:r.class_time,created_at:r.created_at}));}catch(e){}}
   myWait=res[3]?(res[3].data||[]):[];
   let takeoverEv=null;
   if(CLASS_TAKEOVER.date&&d0<=CLASS_TAKEOVER.date){
@@ -1667,9 +1668,9 @@ async function renderClasses(){
       const myWaitRow=myWait.find(w=>w.class_date===c.date&&w.class_time===c.t);
       const full=these.length>=CLASS_CAPACITY;
       const cat=/fight club/i.test(c.n)&&!/sparring/i.test(c.n)?"fc":/sparring/i.test(c.n)?"spar":/s&c|grunt|strength/i.test(c.n)?"snc":"box";
-      const clubOnly=cat==="spar"||cat==="fc";
+      const clubOnly=(cat==="spar"||cat==="fc")&&!c.open;
       const xmas=isXmasSession(c.date,c.t); /* Tue, Thu & Sat GRUNT S&C during the Road to Xmas challenge = 2 points */
-      const catLbl=clubOnly?"Fight Club &amp; Sparring Club only":xmas?"\u2018GRUNT\u2019 Strength &amp; Conditioning<b>+ XMAS CHALLENGE</b><span class=\"all\">All members welcome</span>":cat==="snc"?"Strength &amp; Conditioning":"Boxing \u00b7 All levels";
+      const catLbl=c.open?"Open session<b>+ EVERYONE WELCOME</b><span class=\"all\">Bring a mouthguard</span>":clubOnly?"Fight Club &amp; Sparring Club only":xmas?"\u2018GRUNT\u2019 Strength &amp; Conditioning<b>+ XMAS CHALLENGE</b><span class=\"all\">All members welcome</span>":cat==="snc"?"Strength &amp; Conditioning":"Boxing \u00b7 All levels";
       const isUsual=usual&&usual===(c.d+"@"+c.t);
       const pct=Math.min(100,Math.round(these.length/20*100));
       const badge=mine?`<span class="cbBadge ok">Booked \u2713</span>`:full?`<span class="cbBadge hot">Full</span>`:these.length>=12?`<span class="cbBadge hot">\ud83d\udd25 Filling</span>`:isUsual?`<span class="cbBadge pt">Your usual</span>`:xmas?`<span class="cbBadge pt">+2 pts</span>`:`<span class="cbBadge pt">+1 pt</span>`;
@@ -1686,7 +1687,7 @@ async function renderClasses(){
         <div class="cbCap"><i style="width:${pct}%"></i></div>
         <div class="cbBook">${mine?`<button class="cbBtn in" onclick="unattendClass('${c.date}','${c.t}','${esc(c.n)}')">You're in \u2713 \u00b7 tap to pull out</button>`
           :(clubOnly&&!clubMember())?`<button class="cbBtn lock" disabled style="opacity:.75;cursor:default">\ud83d\udd12 Fight Club &amp; Sparring Club members only</button>`
-          :!canBook?`<a class="cbBtn lock" href="https://www.legacygym.net/pages/memberships" target="_blank" rel="noopener">\ud83d\udd12 Upgrade to book</a>`
+          :(!canBook&&!c.open)?`<a class="cbBtn lock" href="https://www.legacygym.net/pages/memberships" target="_blank" rel="noopener">\ud83d\udd12 Upgrade to book</a>`
           :full?(myWaitRow?`<button class="cbBtn onwait" onclick="leaveWaitlist('${c.date}','${c.t}')">On the waitlist \u00b7 tap to leave</button>`:`<button class="cbBtn wait" onclick="joinWaitlist('${c.date}','${c.t}','${esc(c.n)}')">Class full \u2014 join waitlist</button>`)
           :`<button class="cbBtn" onclick="attendClass('${c.date}','${c.t}','${esc(c.n)}')">Book me in</button>`}<button class="cbMate" title="Bring a mate" onclick="cbBringMate('${shareTxt}')">\ud83d\udc65</button></div>
       </div></div>`;
@@ -7388,7 +7389,10 @@ const TIMETABLE_NEW=[
   {d:6,t:"07:30",n:"Boxing",cat:"box"},{d:6,t:"08:30",n:"‘GRUNT’ S&C",cat:"snc"}
 ];
 const CLASS_SCHEDULE_NEW=TIMETABLE_NEW.filter(c=>c.cat!=="jnr"&&c.cat!=="blokes").map(c=>({d:c.d,t:c.t,n:c.n}));
-function scheduleForDate(day){if(classDayClosed(isoDateLocal(day)))return[];return isoDateLocal(day)>=CAMP3_START?CLASS_SCHEDULE_NEW:CLASS_SCHEDULE_OLD;}
+/* One-off extra sessions. open:true = anyone can book, no club membership or boxer profile needed, and guests can book from /book-sparring without the app. */
+const CLASS_EXTRAS=[{date:"2026-10-17",t:"09:30",n:"Open Sparring",open:true}];
+function isOpenSession(name){return /open sparring/i.test(String(name||""));}
+function scheduleForDate(day){const iso=isoDateLocal(day);if(classDayClosed(iso))return[];const base=iso>=CAMP3_START?CLASS_SCHEDULE_NEW:CLASS_SCHEDULE_OLD;const ex=CLASS_EXTRAS.filter(e=>e.date===iso).map(e=>({d:day.getDay(),t:e.t,n:e.n,open:true}));return ex.length?base.concat(ex).sort((a,b)=>a.t<b.t?-1:a.t>b.t?1:0):base;}
 const REG_WINDOW_H=24;
 function upcomingClasses(){
   const now=new Date(),out=[];
@@ -7433,9 +7437,9 @@ function refreshClassReg(){
   else if(view==="timetable")renderTimetable();
 }
 async function attendClass(date,time,name){
-  if(!tierHasClasses()){toast("Your membership doesn't include classes — see staff at the front desk or upgrade online to book in.");refreshClassReg();return;}
-  if(isClubClass(name)){await loadClubMember();if(!clubMember()){toast("That session is for Fight Club and Sparring Club members only.");refreshClassReg();return;}}
-  const isSpar=/sparring/i.test(name)&&window.__fcMember!==true; /* Sparring Club members keep the boxer-profile check; Fight Club fighters are on the camp roster already */
+  if(!tierHasClasses()&&!isOpenSession(name)){toast("Your membership doesn't include classes — see staff at the front desk or upgrade online to book in.");refreshClassReg();return;}
+  if(isClubClass(name)&&!isOpenSession(name)){await loadClubMember();if(!clubMember()){toast("That session is for Fight Club and Sparring Club members only.");refreshClassReg();return;}}
+  const isSpar=/sparring/i.test(name)&&!isOpenSession(name)&&window.__fcMember!==true; /* Sparring Club members keep the boxer-profile check; Fight Club fighters are on the camp roster already */
   let bp=null;
   if(isSpar){
     const {data}=await sb.from("boxer_profiles").select("*").eq("user_id",session.user.id).maybeSingle();
@@ -7508,7 +7512,7 @@ async function unattendClass(date,time,name){
   refreshClassReg();
 }
 async function joinWaitlist(date,time,name){
-  if(!tierHasClasses()){toast("Your membership doesn't include classes — see staff at the front desk or upgrade online to join the waitlist.");refreshClassReg();return;}
+  if(!tierHasClasses()&&!isOpenSession(name)){toast("Your membership doesn't include classes — see staff at the front desk or upgrade online to join the waitlist.");refreshClassReg();return;}
   const me=(((profile&&profile.first_name)||"")+" "+((profile&&profile.last_name)||"")).trim()||"Member";
   const {error}=await sb.from("class_waitlist").insert({user_id:session.user.id,name:me,class_name:name,class_date:date,class_time:time});
   toast(error?(/duplicate|unique/i.test(error.message)?"You're already on the waitlist for that one.":error.message):"You're on the waitlist — grab a spot the moment one opens up.");
