@@ -70,6 +70,7 @@ function myRow(){try{if(!staff())return null;var u=me();return ((fc()&&fc().F)||
 function fighter(){if(pv()){if(!ST.pf)ST.pf=pvPick();return ST.pf;}if(staff()&&!ST.tools){var r=myRow();if(r)return r;}var f=fc();return f&&f.me?f.me:null;}
 function cm(){return staff()&&!ST.preview&&!ST.tools&&!myRow();}
 function sf(){return staff()&&!ST.preview&&!ST.tools&&!!myRow();}
+window.fccMine=function(){try{return view==="fc"&&sf();}catch(e){return false;}}; /* true while a staff member is in their own fighter view (used by the fc.js view-only guard) */
 
 /* ---------- data views ---------- */
 function attRow(w,d){var f=fighter();if(!f)return null;return (fc().att||[]).find(function(r){return r.fighter_id===f.id&&r.week===w&&r.day===d;})||null;}

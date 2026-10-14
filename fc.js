@@ -3,7 +3,7 @@
 /* Fight Club tab · locked countdown card on Home, then Camp / Progress / Sparring / Fight Night for fighters and Fighters / Extra Training / Sparring / Camp for Jake & Ali. */
 var FC_LOGO="https://www.legacygym.net/cdn/shop/t/28/assets/fightclub-logo.png";
 var WHO=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* Jake, Alison — full access */
-var VIEWERS=["2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139","73a32baf-bdb8-45da-a6d6-77a055d91dda"]; /* Sarsha McGurk (both logins) — coach, view only: sees everything Jake & Ali see, can't change a thing (DB enforces it too via fc_is_viewer) */
+var VIEWERS=["2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139","73a32baf-bdb8-45da-a6d6-77a055d91dda","8ddade7e-691b-4c56-9f8d-8594a1c9755f"]; /* Sarsha McGurk (both logins) + Joe Williams — coach, view only: sees everything Jake & Ali see, can't change a thing (DB enforces it too via fc_is_viewer). Joe also has his own fighter row, so his own logging in the fighter view still goes through (RLS limits it to his rows). */
 function uid(){return (session&&session.user&&session.user.id)||null;}
 function viewer(){return VIEWERS.indexOf(uid())>=0&&WHO.indexOf(uid())<0;}
 function staff(){return WHO.indexOf(uid())>=0||viewer();}
@@ -17,7 +17,8 @@ function guard(){
     ["eq","neq","in","is","match","select","single","maybeSingle","order","limit","gt","lt","gte","lte","filter","not","or","range"].forEach(function(m){stub[m]=function(){return stub;};});
     var say=function(){T("View only — Fight Club can’t be changed from this login");return stub;};
     var _from=sb.from.bind(sb);
-    sb.from=function(t){var q=_from(t);if(viewer()&&/^fc_/.test(String(t))){q.insert=say;q.upsert=say;q.update=say;q.delete=say;}return q;};
+    var inFighterView=function(){try{return !!((window.fccMine&&window.fccMine())||(window.fcsMine&&window.fcsMine()));}catch(e){return false;}};
+    sb.from=function(t){var q=_from(t);if(viewer()&&/^fc_/.test(String(t))&&!inFighterView()){q.insert=say;q.upsert=say;q.update=say;q.delete=say;}return q;};
     var _sfrom=sb.storage.from.bind(sb.storage);
     sb.storage.from=function(b){var q=_sfrom(b);if(viewer()&&b==="fc-videos"){q.upload=function(){T("View only — Fight Club can’t be changed from this login");return Promise.resolve({data:null,error:{message:"view only"}});};q.remove=q.upload;}return q;};
   }catch(e){}

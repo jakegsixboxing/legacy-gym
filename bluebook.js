@@ -10,7 +10,9 @@ var T=function(m){try{toast(m);}catch(e){}};
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];});}
 var FC_LOGO="https://www.legacygym.net/cdn/shop/t/28/assets/fightclub-logo.png";
 var STAFF=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce","09e6788d-f0cd-4c7a-a0b0-2dd9db75bbeb"]; /* Jake, Alison, Kelly — same as bb_is_staff() */
-function staff(){try{return STAFF.indexOf(session.user.id)>=0;}catch(e){return false;}}
+var VIEWERS=["8ddade7e-691b-4c56-9f8d-8594a1c9755f","2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139","73a32baf-bdb8-45da-a6d6-77a055d91dda"]; /* Joe Williams, Sarsha: coach view, read only */
+function staff(){try{return STAFF.indexOf(session.user.id)>=0||VIEWERS.indexOf(session.user.id)>=0;}catch(e){return false;}}
+function readOnly(){try{return STAFF.indexOf(session.user.id)<0&&VIEWERS.indexOf(session.user.id)>=0;}catch(e){return false;}}
 function today(){return RB.sydneyToday();}
 function fmt(v){return RB.fmtAU(v)||"";}
 var L={fitnessForm:"https://www.sport.nsw.gov.au/sites/default/files/2021-04/csa_form_certificate_of_fitness_for_combat_sports.pdf",serologyForm:"https://www.sport.nsw.gov.au/sites/default/files/2021-04/csa_form_serology_clearance_certificate_s7_oct_2014.pdf",consentForm:"https://www.sport.nsw.gov.au/sites/default/files/2023-05/Parent-Legal-Guardian-Consent-Form.pdf",concussion:"https://connectivity.thinkific.com/courses/combat-course-nsw",apply:"https://www.service.nsw.gov.au/transaction/apply-for-a-combat-sports-registration-combatant",replace:"https://www.service.nsw.gov.au/transaction/replace-a-medical-record-book"};
@@ -65,6 +67,7 @@ var css=document.createElement("style");css.textContent=
 +".bb .back{background:none;border:0;color:var(--blue);font-weight:800;font-size:13px;letter-spacing:1px;padding:4px 0 12px;cursor:pointer;font-family:inherit}"
 +".bb .head{display:flex;gap:12px;align-items:center;margin-bottom:10px}.bb .head img{height:44px}.bb .head .k{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--mute)}.bb .head .t{font-family:Oswald,sans-serif;font-size:26px;letter-spacing:.5px;text-transform:uppercase;line-height:1.05}"
 +".bb .card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:14px;margin-bottom:10px}.bb .card h3{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:0 0 10px}"
++".bb.ro .yn button,.bb.ro .numin,.bb.ro .staffcard{pointer-events:none;opacity:.55}.bb.ro .staffcard{display:none}.bb .rohint{font-size:11.5px;color:var(--amber);margin:-4px 0 10px}"
 +".bb .persp{display:flex;align-items:center;gap:8px;margin:-4px 0 12px}.bb .persp small{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--mute)}.bb .persp .sw{display:flex;gap:3px;background:#0f0f11;border:1px solid var(--line);border-radius:99px;padding:3px}.bb .persp .sw button{border:0;background:transparent;color:var(--mute);font-family:inherit;font-weight:800;font-size:12px;padding:7px 14px;border-radius:99px;cursor:pointer}.bb .persp .sw button.on{background:var(--teal);color:#06211d}.bb .preview{background:#2b2418;border:1px solid #6b5520;color:#f5d58a;border-radius:10px;padding:9px 12px;font-size:12px;line-height:1.4;margin-bottom:10px}"
 +".bb .tabs{display:flex;gap:6px;margin-bottom:12px;background:#0f0f11;border:1px solid var(--line);border-radius:12px;padding:4px}.bb .tabs button{flex:1;border:0;background:transparent;color:var(--mute);font-family:Oswald,sans-serif;font-size:15px;letter-spacing:1px;text-transform:uppercase;padding:11px 6px;border-radius:9px;cursor:pointer}.bb .tabs button.on{background:var(--blue);color:#fff}"
 +".bb .intro{font-size:14px;line-height:1.5}.bb .intro b{color:#fff}"
@@ -90,7 +93,8 @@ function paintSave(key){var el=document.querySelector('[data-sv="'+key+'"]');if(
 function current(){return (S.mode==="admin"&&!fighterPersp())?S.all.find(function(x){return x.fighter_id===S.sel;}).record:S.rec;}
 /* set several fields; fighter → bb_participant_update, staff editing a fighter → bb_staff_set */
 async function setFields(fields,value,key){
-  S.saving[key]="saving";paintSave(key);var rec=current();var asStaff=S.mode==="admin"&&!fighterPersp();
+  var asStaff=S.mode==="admin"&&!fighterPersp();if(asStaff&&readOnly()){T("Coach view · changes are off for this login.");return false;}
+  S.saving[key]="saving";paintSave(key);var rec=current();
   if(S.preview&&fighterPersp()){fields.forEach(function(f){rec[f]=value;});S.saving[key]="ok";paintSave(key);return true;}
   for(var i=0;i<fields.length;i++){if(rec[fields[i]]===value)continue;
     var r=asStaff?await sb.rpc("bb_staff_set",{p_fighter:S.sel,p_field:fields[i],p_value:value}):await sb.rpc("bb_participant_update",{p_field:fields[i],p_value:value});
@@ -137,17 +141,17 @@ function paintAdmin(){
   var m=$id("main");if(!m)return;if(S.sel){paintOne();return;}if(!S.tab)S.tab="main";
   var all=S.all,c={book:0,none:0};all.forEach(function(x){var s=summary(x.record);if(s.book)c.book++;if(s.done===0&&!s.book)c.none++;});
   var q=S.q.toLowerCase();var rows=all.filter(function(x){var s=summary(x.record);if(q&&x.name.toLowerCase().indexOf(q)<0)return false;if(S.f==="book")return s.book;if(S.f==="done")return s.done===s.total&&!s.book;if(S.f==="none")return s.done===0&&!s.book;if(S.f==="going")return s.done>0&&s.done<s.total;return true;});
-  m.innerHTML='<div class="bb"><button class="back" onclick="bbBack()">‹ Fight Club</button><div class="head"><img src="'+FC_LOGO+'" alt=""><div><div class="k">Fight Night · 19 Dec</div><div class="t">Blue Book · who\'s up to what</div></div></div>'
-   +perspHtml()+tabsHtml("Fighters")
+  m.innerHTML='<div class="bb'+(readOnly()?' ro':'')+'"><button class="back" onclick="bbBack()">‹ Fight Club</button><div class="head"><img src="'+FC_LOGO+'" alt=""><div><div class="k">Fight Night · 19 Dec</div><div class="t">Blue Book · who\'s up to what</div></div></div>'
+   +perspHtml()+(readOnly()?'<div class="rohint">Coach view · you can see everyone\'s progress, changes are off for this login.</div>':'')+tabsHtml("Fighters")
    +(S.tab==="how"?howPage()+'</div>':'<div class="stats"><div class="stat'+(S.f==="all"?' on':'')+'" onclick="bbF(\'all\')"><b>'+all.length+'</b><small>Fighters</small></div><div class="stat'+(S.f==="book"?' on':'')+'" onclick="bbF(\'book\')"><b>'+c.book+'</b><small>Book received</small></div><div class="stat'+(S.f==="none"?' on':'')+'" onclick="bbF(\'none\')"><b>'+c.none+'</b><small>Not started</small></div></div>'
    +'<div class="card"><input type="text" placeholder="Search…" value="'+esc(S.q)+'" oninput="bbQ(this.value)"><div style="margin-top:8px">'+[["all","All"],["none","Not started"],["going","In progress"],["done","Waiting on book"],["book","Book received"]].map(function(f){return '<button class="pill'+(S.f===f[0]?' on':'')+'" onclick="bbF(\''+f[0]+'\')">'+f[1]+'</button>';}).join("")+'</div></div>'
    +'<div class="card">'+(rows.length?rows.map(function(x){var s=summary(x.record);return '<div class="frow" onclick="bbSel(\''+x.fighter_id+'\')"><div class="av"'+(x.photo?' style="background-image:url('+esc(x.photo)+')"':'')+'></div><div style="min-width:0;flex:1"><b>'+esc(x.name)+'</b><small>'+esc(s.text)+(x.record.staffNote?' · '+esc(x.record.staffNote):'')+'</small>'+ticks(x.record)+'</div></div>';}).join(""):'<p class="note">Nobody matches.</p>')+'</div></div>');
 }
 function paintOne(){
   var m=$id("main");var x=S.all.find(function(y){return y.fighter_id===S.sel;});if(!x){S.sel=null;paintAdmin();return;}var r=x.record;
-  m.innerHTML='<div class="bb"><button class="back" onclick="S_bb.sel=null;bbPaint()">‹ All fighters</button><div class="head"><div style="width:48px;height:48px;border-radius:50%;background:#232327 center/cover no-repeat;flex:none'+(x.photo?';background-image:url('+esc(x.photo)+')':'')+'"></div><div><div class="k">'+(x.camp_number?'Fighter #'+x.camp_number:'Fight Club')+'</div><div class="t">'+esc(x.name)+'</div></div></div>'
+  m.innerHTML='<div class="bb'+(readOnly()?' ro':'')+'"><button class="back" onclick="S_bb.sel=null;bbPaint()">‹ All fighters</button><div class="head"><div style="width:48px;height:48px;border-radius:50%;background:#232327 center/cover no-repeat;flex:none'+(x.photo?';background-image:url('+esc(x.photo)+')':'')+'"></div><div><div class="k">'+(x.camp_number?'Fighter #'+x.camp_number:'Fight Club')+'</div><div class="t">'+esc(x.name)+'</div></div></div>'
    +statusCard(r)
-   +'<div class="card"><h3>Staff</h3><div class="qrow"><div class="ic">'+ICON.book+'</div><div class="qt"><b>Seen the physical book?</b><small>'+(r.bookSightedOn?'Sighted '+fmt(r.bookSightedOn):'Tick once they\'ve shown you the actual book')+'</small></div><div class="yn"><button class="'+(r.bookSightedOn?'on':'')+'" onclick="bbSighted(true)">Yes</button><button class="'+(!r.bookSightedOn?'on no':'')+'" onclick="bbSighted(false)">No</button></div><span class="sv" data-sv="sighted"></span></div>'
+   +'<div class="card staffcard"><h3>Staff</h3><div class="qrow"><div class="ic">'+ICON.book+'</div><div class="qt"><b>Seen the physical book?</b><small>'+(r.bookSightedOn?'Sighted '+fmt(r.bookSightedOn):'Tick once they\'ve shown you the actual book')+'</small></div><div class="yn"><button class="'+(r.bookSightedOn?'on':'')+'" onclick="bbSighted(true)">Yes</button><button class="'+(!r.bookSightedOn?'on no':'')+'" onclick="bbSighted(false)">No</button></div><span class="sv" data-sv="sighted"></span></div>'
    +'<div style="margin-top:10px"><input type="text" id="bbNote" placeholder="Note (e.g. chased 14/10, bloods booked Fri)" maxlength="200" value="'+esc(r.staffNote||"")+'"><div style="margin-top:6px;display:flex;gap:6px;align-items:center"><button class="btn pri" onclick="bbNoteSave()">Save note</button><span class="sv" data-sv="note"></span></div></div>'
    +'<p class="note">You can tap Yes / No for them if they tell you in person. It saves against their name.</p></div></div>';
 }
