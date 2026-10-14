@@ -30,10 +30,10 @@ var STEPS=[
  {id:"book",icon:"medical",label:"Book 2 doctor's appointments",how:[
   "<b>First appointment:</b> the earliest date you can get. It doesn't have to be your usual doctor if they can't fit you in early enough.",
   "<b>Second appointment:</b> for after your blood tests come back. We recommend about 1 week after the first, or ask the surgery what they suggest."]},
- {id:"id",icon:"book",label:"Sort your ID",how:[
-  "You need <b>current</b> Aus passport, driver's licence and Medicare card.",
-  "If you don't have those, get your 100 points of ID certified by a JP while you wait for the appointments.",
-  "Stuck? Ask us for help."]},
+ {id:"id",icon:"book",label:"Sort your ID while you wait",how:[
+  "DVS accepted ID is a <b>current</b> Aus passport, driver's licence, Medicare card etc.",
+  "If you <b>don't</b> have those, get your 100 points of ID certified by a Justice of the Peace while you wait for the doctor's appointments.",
+  "Not sure? Ask us, or see the <a href=\"https://www.sport.nsw.gov.au/sites/default/files/2021-04/proving_your_identity_-_combatants_ring_officials_trainers.pdf\" target=\"_blank\" rel=\"noopener\">proving your identity</a> sheet."]},
  {id:"attend",icon:"bloods",label:"Attend the doctor's appointments",how:[
   "<b>First appointment</b> is to order your blood tests. Bring the <b>Bloods form</b> (serological certificate) so the doctor orders the exact tests on the sheet.",
   "Get your bloods taken ASAP.",
@@ -46,7 +46,7 @@ var STEPS=[
  {id:"upload",icon:"sent",label:"Upload everything, plus a passport-style photo",how:[
   "<b>This is your responsibility.</b> Tap <b>Apply on Service NSW</b> below.",
   "Click the red rectangle to open the combat sports registration system. Choose <b>Apply for a combatant registration class</b> then <b>Apply Online</b>. Log into your Service NSW account and create a new profile.",
-  "Scan and upload as prompted: Fitness certificate final page (within 28 days of signing), Serological certificate final page, certified IDs, digital photo, concussion training, and the under-18 form if you're under 18."]}];
+  "Scan and upload as prompted: Fitness certificate <b>final page</b> (within 28 days of signing), Serological certificate <b>final page</b>, DVS accepted IDs <b>or</b> 100 points of JP-certified ID, digital passport-style photo, concussion training, and the under-18 form if you're under 18."]}];
 var HELP="If you need help, message or call reception on <b>0401 587 508</b>, or come and see us at reception.";
 var ICON={medical:'<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#102038"/><path d="M17 14v9a7 7 0 0 0 14 0v-9" fill="none" stroke="#9fc0ff" stroke-width="3" stroke-linecap="round"/><circle cx="31" cy="33" r="4" fill="none" stroke="#9fc0ff" stroke-width="3"/><path d="M24 30v3a4 4 0 0 0 4 4" fill="none" stroke="#9fc0ff" stroke-width="3"/></svg>',
  bloods:'<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#102038"/><path d="M24 11c5 7 9 12 9 17a9 9 0 0 1-18 0c0-5 4-10 9-17z" fill="#ff5c6c"/></svg>',
@@ -66,7 +66,7 @@ var css=document.createElement("style");css.textContent=
 +".bb .card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:14px;margin-bottom:10px}.bb .card h3{font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);margin:0 0 10px}"
 +".bb .intro{font-size:14px;line-height:1.5}.bb .intro b{color:#fff}"
 +".bb .todo{border-bottom:1px solid #1d1d21;padding:10px 0}.bb .todo:last-child{border:0}.bb .todo .row{display:flex;gap:10px;align-items:center;cursor:pointer}.bb .todo .n{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-family:Oswald,sans-serif;font-size:15px;flex:none}.bb .todo .ic{width:36px;height:36px;flex:none}.bb .todo .ic svg{width:36px;height:36px}.bb .todo .ttl{flex:1;font-size:15px;font-weight:700}.bb .todo .car{color:var(--mute);font-size:12px;transition:transform .2s}.bb .todo.open .car{transform:rotate(180deg)}"
-+".bb .todo ul{display:none;margin:8px 0 0 38px;padding:0 0 0 16px;font-size:13px;line-height:1.5;color:#d8d6cf}.bb .todo.open ul{display:block}.bb .todo li{margin:4px 0}"
++".bb .todo ul{display:none;margin:8px 0 0 38px;padding:0 0 0 16px;font-size:13px;line-height:1.5;color:#d8d6cf}.bb .todo.open ul{display:block}.bb .todo li{margin:4px 0}.bb .todo li a{color:var(--blue)}"
 +".bb .forms{display:grid;grid-template-columns:1fr 1fr;gap:8px}.bb .forms a{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;background:#0f0f11;border:1px solid #27447d;border-radius:12px;padding:12px 8px;color:var(--ink);text-decoration:none;font-size:12.5px;font-weight:700;line-height:1.3}.bb .forms a svg{width:40px;height:40px}.bb .forms a small{color:var(--teal);font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase}"
 +".bb .qrow{display:flex;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #1d1d21}.bb .qrow:last-child{border:0}.bb .qrow .ic{width:38px;height:38px;flex:none}.bb .qrow .ic svg{width:38px;height:38px}.bb .qrow .qt{flex:1;min-width:0}.bb .qrow .qt b{display:block;font-size:14px;line-height:1.25}.bb .qrow .qt small{display:block;color:var(--mute);font-size:11px;margin-top:3px}"
 +".bb .yn{display:flex;gap:4px;flex:none;background:#0f0f11;border:1px solid var(--line);border-radius:10px;padding:3px}.bb .yn button{border:0;background:transparent;color:var(--mute);font-family:inherit;font-weight:800;font-size:12px;padding:10px 13px;border-radius:8px;cursor:pointer;min-width:48px}.bb .yn button.on{background:var(--teal);color:#06211d}.bb .yn button.on.no{background:#3a3a40;color:#f2f0eb}.bb .yn button.on.mid{background:var(--amber);color:#2b2000}"
