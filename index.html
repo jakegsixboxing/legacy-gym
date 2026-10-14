@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610142100";
+const LG_BUILD="202610142130";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -9977,6 +9977,7 @@ window.tbjEnqStatus=async function(id,st){var r=await sb.from("pt_enquiries").up
 /* Home-card alert: enquiries now live in the Trained by Jake inbox */
 if(typeof window.openMyPT==="function"){var _openMyPT=window.openMyPT;window.openMyPT=async function(){if(!isJake())return _openMyPT.apply(this,arguments);var enq=(typeof ptNewEnq!=="undefined")?ptNewEnq:0,bk=(typeof ptNewCount!=="undefined")?ptNewCount:0;if(enq>0&&bk===0){try{await sb.from("pt_seen").upsert({uid:session.user.id,seen_at:new Date().toISOString()});}catch(e){}try{ptNewCount=0;ptNewEnq=0;}catch(e){}T.sub="inbox";go("tbj");return;}return _openMyPT.apply(this,arguments);};}
 /* Deep link: /?tbj=1 opens Trained by Jake once signed in */
+try{var _clsDL=/[?&]classes=(\d{4}-\d{2}-\d{2})/.exec(location.search);if(_clsDL){var _clsDate=_clsDL[1];var _clsT=setInterval(function(){if(window.session&&window.session.user&&typeof go==="function"&&document.getElementById("main")){clearInterval(_clsT);window.__cbSel=_clsDate;go("classes");}},400);setTimeout(function(){clearInterval(_clsT);},30000);}}catch(e){}
 try{if(/[?&]tbj=1/.test(location.search)){var _tbjDL=setInterval(function(){if(window.session&&window.session.user&&typeof go==="function"&&document.getElementById("main")){clearInterval(_tbjDL);go("tbj");}},400);setTimeout(function(){clearInterval(_tbjDL);},30000);}}catch(e){}
 window.tbjPaid=async function(id,val){var r=await sb.from("tbj_requests").update({paid:val,status:val?undefined:undefined}).eq("id",id);if(r.error){toast(r.error.message);return;}
   var req=(T.cache.inbox.reqs.find(function(x){return x.id===id;})||{});
