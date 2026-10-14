@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610141930";
+const LG_BUILD="202610142000";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -965,10 +965,45 @@ startSpringCountdown();
   t10MaybePopup();
   reviewMaybePopup();
 }
-/* ---- Sponsorship hub (Sponsor A Ring + Sponsor A Pro Boxer) ---- */
+/* ---- Sponsorship hub (Fight Night ring for local kids + Sponsor A Pro Boxer) ---- */
+var SPON_ADMINS=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* Jake, Alison: the only two who see New sponsors */
+var SPON={tab:"info",rows:null,loading:false};
+(function(){var c=document.createElement("style");c.textContent=".sponBtn{background:#141210;border:1px solid #3a3320;color:#F1D27A;border-radius:10px;padding:11px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}";document.head.appendChild(c);})();
+function sponAdmin(){try{return !!(session&&session.user&&SPON_ADMINS.indexOf(session.user.id)>=0);}catch(e){return false;}}
+function sponMoney(c){return "$"+Math.round((c||0)/100).toLocaleString("en-AU");}
+function sponWhen(iso){try{return new Date(iso).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"});}catch(e){return "";}}
+async function sponLoad(){SPON.loading=true;try{const r=await sb.from("fn_sponsor_requests").select("*").order("created_at",{ascending:false});SPON.rows=r.error?[]:(r.data||[]);if(r.error)toast(r.error.message);}catch(e){SPON.rows=[];}SPON.loading=false;if(view==="sponsorship"&&SPON.tab==="new")renderSponsorship();}
+window.sponTab=function(t){SPON.tab=t;if(t==="new"&&!SPON.rows)sponLoad();renderSponsorship();window.scrollTo(0,0);};
+window.sponStatus=async function(id,st){const r=await sb.from("fn_sponsor_requests").update({status:st}).eq("id",id);if(r.error){toast(r.error.message);return;}await sponLoad();};
+function sponNewHtml(){
+  const rows=SPON.rows;
+  if(!rows)return `<div class="card" style="padding:18px;text-align:center;color:var(--muted)">Loading…</div>`;
+  if(!rows.length)return `<div class="card" style="padding:18px;text-align:center;color:var(--muted)">Nobody has registered yet. When someone fills in the ring sponsorship page they'll show up here.</div>`;
+  const ST={requested:["New",  "#39FF88","#0f2019","#2d5d4e"],contacted:["Contacted","#f5b942","#2b2418","#6b5520"],paid:["Paid","#9fc0ff","#13203a","#2b3f66"],declined:["Not going ahead","#9a9891","#1a1a1e","#3a3a40"]};
+  const fresh=rows.filter(r=>r.status==="requested").length;
+  return `<div style="font-size:12px;color:var(--muted);margin:0 2px 10px">${rows.length} registered · ${fresh} new to call. Only you and Ali can see this.</div>`+rows.map(r=>{const st=ST[r.status]||ST.requested;const items=(r.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid #1f1b12"><span>${esc(i.label||i.id)}</span><b>${sponMoney(i.price)}</b></div>`).join("");
+    return `<div class="card" style="padding:14px;margin-bottom:10px;border:1px solid ${r.status==="requested"?"var(--gold)":"#2a261c"}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div><div style="font-weight:900;font-size:16px">${esc(r.business||r.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(r.name)}${r.business?" · "+esc(r.business):""}</div></div>
+        <span style="font-size:9.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:4px 8px;border-radius:99px;border:1px solid ${st[3]};color:${st[1]};background:${st[2]};white-space:nowrap">${st[0]}</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 6px"><a href="tel:${esc(r.mobile)}" style="color:var(--gold);text-decoration:none;font-weight:800;font-size:13px">&#9742; ${esc(r.mobile||"no mobile")}</a><a href="mailto:${esc(r.email)}" style="color:var(--gold);text-decoration:none;font-weight:800;font-size:13px">&#9993; ${esc(r.email)}</a></div>
+      <div style="margin-top:6px">${items}<div style="display:flex;justify-content:space-between;font-size:14px;padding:8px 0 0"><span>Total</span><b style="color:var(--gold)">${sponMoney(r.total_cents)}</b></div></div>
+      <div style="font-size:10.5px;color:var(--muted);margin-top:6px">${esc(r.ref)} · ${sponWhen(r.created_at)}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${r.status!=="contacted"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'contacted')">Contacted</button>`:""}${r.status!=="paid"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'paid')">Paid</button>`:""}${r.status!=="requested"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'requested')">Back to new</button>`:""}${r.status!=="declined"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px;color:#ff8c98" onclick="sponStatus(${r.id},'declined')">Not going ahead</button>`:""}</div>
+    </div>`;}).join("");
+}
 function renderSponsorship(){
+  if(sponAdmin()&&SPON.tab==="new"){
+    if(!SPON.rows&&!SPON.loading)sponLoad();
+    $("main").innerHTML=`
+    <button class="backBtn" onclick="go('home')">&lsaquo; Back Home</button>
+    <div style="display:flex;gap:6px;margin-bottom:12px"><button class="sponBtn" style="flex:1" onclick="sponTab('info')">Sponsorship</button><button class="sponBtn" style="flex:1;background:var(--gold);color:#161307;border-color:var(--gold)" onclick="sponTab('new')">New sponsors</button></div>
+    ${sponNewHtml()}`;
+    return;
+  }
   $("main").innerHTML=`
     <button class="backBtn" onclick="go('home')">&lsaquo; Back Home</button>
+    ${sponAdmin()?`<div style="display:flex;gap:6px;margin-bottom:12px"><button class="sponBtn" style="flex:1;background:var(--gold);color:#161307;border-color:var(--gold)" onclick="sponTab('info')">Sponsorship</button><button class="sponBtn" style="flex:1" onclick="sponTab('new')">New sponsors</button></div>`:""}
     <div class="hero" style="${bgStyle('boxing',.5)}">
       <div class="heroKicker">Help Local Kids Train</div>
       <div class="heroTitle">Sponsorship</div>
