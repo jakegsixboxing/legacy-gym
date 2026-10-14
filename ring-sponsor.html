@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#070605">
-<title>Ring Sponsorship · Fight Night</title>
+<title>Ring Sponsorship for Local Kids</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Montserrat:wght@500;600;800&display=swap">
 <style>
@@ -65,6 +65,7 @@ input.bad{border-color:var(--red)}
 .go:disabled{opacity:.45}
 .btn{background:#141210;border:1px solid #3a3320;color:var(--gold2);border-radius:10px;padding:11px 14px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
 .note{font-size:11.5px;color:var(--mute);line-height:1.55;margin-top:10px}
+.kids{margin:12px 0 2px;border:1px solid #6b5520;background:linear-gradient(135deg,#2a2211,#14110a);border-radius:14px;padding:12px 14px}.kids b{display:block;font:600 14px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold2);margin-bottom:6px}.kids span{display:block;font-size:12px;line-height:1.5;color:#e8e2d2}
 .demo{display:inline-block;background:#2b2418;border:1px solid #6b5520;color:#f5d58a;border-radius:8px;padding:5px 9px;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
 .cardui{border:1px solid #3a3320;border-radius:14px;padding:14px;background:linear-gradient(135deg,#1a1710,#0b0a08)}
 .cardui .brand{display:flex;justify-content:space-between;align-items:center;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mute);font-weight:800}
@@ -77,10 +78,12 @@ input.bad{border-color:var(--red)}
 </style>
 </head>
 <body>
-<div class="hero"><img src="/img/fc/ring-sponsor.jpg" alt="Fight Club Fight Night ring sponsorship options"><div class="fade"></div></div>
+<div class="hero"><img src="/img/fc/ring-sponsor.jpg?v=3" alt="Help local kids get into training: Fight Night ring sponsorship options"><div class="fade"></div></div>
 <div class="wrap">
-  <div style="padding-top:6px"><div class="eyebrow">Legacy Gym · Fight Club Fight Night · Sat 19 Dec</div><h1>Ring <span>Sponsorship</span></h1>
-  <p class="sub">Put your business in the ring on fight night. Pick what you want below, leave a $200 deposit to lock it in, and we'll be in touch for your logo and the balance.</p></div>
+  <div style="padding-top:6px"><div class="eyebrow">Legacy Gym · Fight Club Fight Night · Sat 19 Dec</div><h1>Help local kids <span>train.</span></h1>
+  <p class="sub"><b style="color:#fff">Every dollar of ring sponsorship goes to the kids.</b> All proceeds fund training at Legacy for local kids whose families can't afford it: memberships, gloves, coaching, a place to go. Your business gets the ring on fight night; a kid gets a year in the gym.</p>
+  <div class="kids"><b>Where your money goes</b><span>$750 keeps a kid training for a term · $2,000 covers a kid for the year · $9,000 puts a whole crew of kids through the gym</span></div>
+  <p class="sub">Pick what you want below, leave a $200 deposit to lock it in, and we'll be in touch for your logo and the balance.</p></div>
   <div class="steps" id="steps"><div class="on">1 · Pick</div><div>2 · Details</div><div>3 · Deposit</div></div>
   <div id="view"></div>
 </div>
@@ -93,7 +96,7 @@ var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 var DEPOSIT=20000;
 /* The options, straight off the poster. Availability is what the demo shows; the live version reads it from the database. */
 var OPTS=[
- {id:"whole",name:"Whole ring sponsorship",blurb:"Everything below is yours: centre canvas, all four canvas corners, all four corner pads, all four ropes and the available skirt. One brand, the whole ring.",price:800000,avail:1,exclusive:true},
+ {id:"whole",name:"Whole ring sponsorship",blurb:"Everything below is yours: centre canvas, all four canvas corners, all four corner pads, all four ropes and the available skirt. One brand, the whole ring, and a whole crew of kids funded.",price:900000,avail:1,exclusive:true},
  {id:"centre",name:"Centre canvas",blurb:"Your logo in the middle of the canvas. Every photo, every round, every replay.",price:200000,avail:1},
  {id:"pads",name:"Corner pads",blurb:"Your logo on the turnbuckle pads. Pick how many corners.",qty:true,prices:{1:100000,2:200000,3:300000,4:300000},avail:4},
  {id:"corner",name:"Canvas corner",blurb:"Your logo on the canvas in a corner. Pick how many corners.",qty:true,prices:{1:75000,2:150000,3:225000,4:300000},avail:4},
@@ -105,7 +108,7 @@ var $=function(id){return document.getElementById(id);};
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];});}
 function money(c){return "$"+Math.round(c/100).toLocaleString("en-AU");}
 function priceOf(o){return o.qty?o.prices[S.qty[o.id]]:o.price;}
-function picked(){if(S.sel.whole)return [{id:"whole",label:"Whole ring sponsorship",price:800000}];
+function picked(){if(S.sel.whole)return [{id:"whole",label:"Whole ring sponsorship",price:900000}];
   return OPTS.filter(function(o){return S.sel[o.id]&&!o.exclusive;}).map(function(o){var q=o.qty?S.qty[o.id]:1;return {id:o.id,label:o.name+(o.qty?" × "+q:""),qty:q,price:priceOf(o)};});}
 function total(){return picked().reduce(function(a,x){return a+x.price;},0);}
 
@@ -119,7 +122,7 @@ function optHtml(o){
   return '<div class="opt'+(on?' on':'')+(off||!avail?' off':'')+(o.exclusive?' whole':'')+'" onclick="toggle(\''+o.id+'\')"><div><b>'+esc(o.name)+'</b><small>'+esc(o.blurb)+'</small>'+pill+'</div>'+price+extra+'<span class="tick">✓</span></div>';
 }
 function paintPick(){
-  $("view").innerHTML='<div class="card"><h3>What do you want on the ring? <span>tap to select</span></h3>'+OPTS.map(optHtml).join("")+'<p class="note">Prices include design placement on the night. Production of your artwork is handled by us once we have your logo. Skirts: three of the four sides are already taken.</p></div>';
+  $("view").innerHTML='<div class="card"><h3>What do you want on the ring? <span>tap to select</span></h3>'+OPTS.map(optHtml).join("")+'<p class="note">100% of sponsorship proceeds fund training for local kids who can\'t afford to train. Prices include placement on the night; we handle the artwork and printing once we have your logo. Skirts: three of the four sides are already taken.</p></div>';
 }
 function paintDetails(){
   var f=S.form;
@@ -131,7 +134,7 @@ function paintDetails(){
    +'<div style="margin-top:12px"><button class="btn" onclick="back()">‹ Change selection</button></div></div>'
    +summaryCard();
 }
-function summaryCard(){var t=total();return '<div class="card"><h3>Summary</h3>'+picked().map(function(x){return '<div class="row"><span>'+esc(x.label)+'</span><b>'+money(x.price)+'</b></div>';}).join("")+'<div class="row tot"><span>Sponsorship total</span><b>'+money(t)+'</b></div><div class="row"><div>Deposit today<small>secures your spot</small></div><b>'+money(DEPOSIT)+'</b></div><div class="row"><div>Balance<small>invoiced once your logo is in</small></div><b>'+money(Math.max(0,t-DEPOSIT))+'</b></div></div>';}
+function summaryCard(){var t=total();return '<div class="card"><h3>Summary</h3>'+picked().map(function(x){return '<div class="row"><span>'+esc(x.label)+'</span><b>'+money(x.price)+'</b></div>';}).join("")+'<div class="row tot"><div>Sponsorship total<small>all of it goes to kids\' training</small></div><b>'+money(t)+'</b></div><div class="row"><div>Deposit today<small>secures your spot</small></div><b>'+money(DEPOSIT)+'</b></div><div class="row"><div>Balance<small>invoiced once your logo is in</small></div><b>'+money(Math.max(0,t-DEPOSIT))+'</b></div></div>';}
 function paintDeposit(){
   var c=S.card;
   $("view").innerHTML=(S.error?'<div class="err">'+esc(S.error)+'</div>':'')
@@ -143,9 +146,9 @@ function paintDeposit(){
 }
 function paintDone(){
   var r=S.result;var t=total();
-  $("view").innerHTML='<div class="card"><div class="done"><div class="big">LOCKED IN</div><div class="ref">'+esc(r.ref)+'</div><div class="note">Your reference. A confirmation is on its way to '+esc(S.form.email)+'.</div></div></div>'
+  $("view").innerHTML='<div class="card"><div class="done"><div class="big">LOCKED IN</div><div class="ref">'+esc(r.ref)+'</div><div class="note">Your reference. A confirmation is on its way to '+esc(S.form.email)+'.</div><div class="kids" style="text-align:left;margin-top:14px"><b>Thank you</b><span>Your '+money(t)+' goes straight to training for local kids who couldn\'t otherwise afford it. We\'ll let you know who you helped.</span></div></div></div>'
    +'<div class="card"><h3>What you\'ve secured</h3>'+picked().map(function(x){return '<div class="row"><span>'+esc(x.label)+'</span><b>'+money(x.price)+'</b></div>';}).join("")+'<div class="row tot"><span>Total</span><b>'+money(t)+'</b></div><div class="row"><span>Deposit paid (demo)</span><b>'+money(DEPOSIT)+'</b></div><div class="row"><span>Balance to come</span><b>'+money(Math.max(0,t-DEPOSIT))+'</b></div></div>'
-   +'<div class="card"><h3>What happens next</h3><div class="row"><div><b>1 · We call you</b><small>'+esc(S.form.name)+(S.form.business?' · '+esc(S.form.business):'')+' · '+esc(S.form.mobile||S.form.email)+'</small></div></div><div class="row"><div><b>2 · Send us your logo</b><small>High-res PNG, PDF or AI file. We handle the artwork and printing.</small></div></div><div class="row"><div><b>3 · Balance</b><small>Invoiced once the artwork is approved. Your spot stays held.</small></div></div><div class="row"><div><b>4 · Fight night · Sat 19 Dec</b><small>Your brand in the ring at Legacy Gym, Kincumber.</small></div></div>'
+   +'<div class="card"><h3>What happens next</h3><div class="row"><div><b>1 · We call you</b><small>'+esc(S.form.name)+(S.form.business?' · '+esc(S.form.business):'')+' · '+esc(S.form.mobile||S.form.email)+'</small></div></div><div class="row"><div><b>2 · Send us your logo</b><small>High-res PNG, PDF or AI file. We handle the artwork and printing.</small></div></div><div class="row"><div><b>3 · Balance</b><small>Invoiced once the artwork is approved. Your spot stays held.</small></div></div><div class="row"><div><b>4 · Fight night · Sat 19 Dec</b><small>Your brand in the ring at Legacy Gym, Kincumber, and kids in the gym because of you.</small></div></div>'
    +'<div style="margin-top:12px"><button class="btn" onclick="restart()">Start another</button></div></div>';
 }
 function paintBar(){
