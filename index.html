@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610141700";
+const LG_BUILD="202610141800";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -1633,11 +1633,11 @@ async function renderClasses(){
       const full=these.length>=CLASS_CAPACITY;
       const cat=/fight club/i.test(c.n)&&!/sparring/i.test(c.n)?"fc":/sparring/i.test(c.n)?"spar":/s&c|grunt|strength/i.test(c.n)?"snc":"box";
       const clubOnly=cat==="spar"||cat==="fc";
-      const xmas=cat==="snc"&&(c.d===2||c.d===4); /* Tue & Thu GRUNT S&C = Road to Xmas challenge sessions */
+      const xmas=isXmasSession(c.date,c.t); /* Tue, Thu & Sat GRUNT S&C during the Road to Xmas challenge = 2 points */
       const catLbl=clubOnly?"Fight Club &amp; Sparring Club only":xmas?"\u2018GRUNT\u2019 Strength &amp; Conditioning<b>+ XMAS CHALLENGE</b><span class=\"all\">All members welcome</span>":cat==="snc"?"Strength &amp; Conditioning":"Boxing \u00b7 All levels";
       const isUsual=usual&&usual===(c.d+"@"+c.t);
       const pct=Math.min(100,Math.round(these.length/20*100));
-      const badge=mine?`<span class="cbBadge ok">Booked \u2713</span>`:full?`<span class="cbBadge hot">Full</span>`:these.length>=12?`<span class="cbBadge hot">\ud83d\udd25 Filling</span>`:isUsual?`<span class="cbBadge pt">Your usual</span>`:`<span class="cbBadge pt">+1 pt</span>`;
+      const badge=mine?`<span class="cbBadge ok">Booked \u2713</span>`:full?`<span class="cbBadge hot">Full</span>`:these.length>=12?`<span class="cbBadge hot">\ud83d\udd25 Filling</span>`:isUsual?`<span class="cbBadge pt">Your usual</span>`:xmas?`<span class="cbBadge pt">+2 pts</span>`:`<span class="cbBadge pt">+1 pt</span>`;
       const tm=fmtClassTime(c.t).split(" ");
       const shown=others.slice(0,4);
       const first=n=>String(n||"").trim().split(/\s+/)[0];
@@ -1680,8 +1680,13 @@ window.openClassRoster=function(key){
 };
 window.closeClassRoster=function(){const el=document.getElementById("clsRosterOv");if(el)el.remove();};
 
+/* Road to Xmas challenge sessions (Tue / Thu / Sat GRUNT S&C, 12 Oct – 19 Dec 2026) are worth 2 points on the members board; every other class is 1. */
+const XMAS_FROM="2026-10-12",XMAS_TO="2026-12-19";
+function isXmasSession(date,time){try{if(!date||date<XMAS_FROM||date>XMAS_TO)return false;const d=new Date(date+"T12:00:00").getDay();if(!(d===2||d===4||d===6))return false;const c=(typeof TIMETABLE_NEW!=="undefined"?TIMETABLE_NEW:[]).find(x=>x.d===d&&x.t===time);return !!(c&&(c.cat==="snc"||/s&c|grunt|strength/i.test(c.n||"")));}catch(e){return false;}}
+function classPointsFor(date,time){return isXmasSession(date,time)?2:1;}
 async function submitClassPoint(date,time){
-  const ok=await awardPoints("class","class:"+date+":"+time,1);
+  const cp=classPointsFor(date,time);
+  const ok=await awardPoints("class","class:"+date+":"+time,cp);
   let bonus=false;
   if(ok){
     /* Weekly goal: 4 claimed classes in one Mon–Sun week banks a bonus point (added 26 Sep 2026) */
@@ -1692,7 +1697,7 @@ async function submitClassPoint(date,time){
       if(n>=4)bonus=await awardPoints("bonus","weekgoal:"+wk,1);
     }catch(e){}
   }
-  toast(!ok?"Couldn't submit — try again.":bonus?"That's 4 this week — class point + weekly bonus banked! 🔥":"Class submitted — 1 point on the board!");
+  toast(!ok?"Couldn't submit — try again.":bonus?"That's 4 this week — "+(cp===2?"2 challenge points":"class point")+" + weekly bonus banked! 🔥":cp===2?"Xmas challenge session — 2 points on the board!":"Class submitted — 1 point on the board!");
   renderClasses();
 }
 function cbBringMate(encoded){
