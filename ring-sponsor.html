@@ -81,8 +81,8 @@ input.bad{border-color:var(--red)}
 <div class="hero"><img src="/img/fc/ring-sponsor.jpg?v=3" alt="Help local kids get into training: Fight Night ring sponsorship options"><div class="fade"></div></div>
 <div class="wrap">
   <div style="padding-top:6px"><div class="eyebrow">Legacy Gym · Fight Club Fight Night · Sat 19 Dec</div><h1>Help local kids <span>train.</span></h1>
-  <p class="sub"><b style="color:#fff">Every dollar of ring sponsorship goes to the kids.</b> All proceeds fund training at Legacy for local kids whose families can't afford it: memberships, gloves, coaching, a place to go. Your business gets the ring on fight night; a kid gets a year in the gym.</p>
-  <div class="kids"><b>Where your money goes</b><span>$750 keeps a kid training for a term · $2,000 covers a kid for the year · $9,000 puts a whole crew of kids through the gym</span></div>
+  <p class="sub"><b style="color:#fff">Every dollar of ring sponsorship goes to the kids.</b> All funds go to keeping local kids who can't afford it engaged in the gym year round. Your business gets the ring on fight night; the kids get the gym.</p>
+  <div class="kids"><b>Where your money goes</b><span>All funds go to keeping local kids engaged in the gym year round.</span></div>
   <p class="sub">Pick what you want below, leave your details, and we'll be in touch for your logo and payment.</p></div>
   <div class="steps" id="steps"><div class="on">1 · Pick</div><div>2 · Details</div><div>3 · Done</div></div>
   <div id="view"></div>
@@ -95,7 +95,7 @@ var URL_="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/fn_sponsor_reques
 var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 /* The options, straight off the poster. Availability is what the demo shows; the live version reads it from the database. */
 var OPTS=[
- {id:"whole",name:"Whole ring sponsorship",blurb:"Everything below is yours: centre canvas, all four canvas corners, all four corner pads, all four ropes and the available skirt. One brand, the whole ring, and a whole crew of kids funded.",price:900000,avail:1,exclusive:true},
+ {id:"whole",name:"Whole ring sponsorship",blurb:"Everything below is yours: centre canvas, all four canvas corners, all four corner pads, all four ropes and the available skirt. One brand, the whole ring.",price:900000,avail:1,exclusive:true},
  {id:"centre",name:"Centre canvas",blurb:"Your logo in the middle of the canvas. Every photo, every round, every replay.",price:200000,avail:1},
  {id:"pads",name:"Corner pads",blurb:"Your logo on the turnbuckle pads. Pick how many corners.",qty:true,prices:{1:100000,2:200000,3:300000,4:300000},avail:4},
  {id:"corner",name:"Canvas corner",blurb:"Your logo on the canvas in a corner. Pick how many corners.",qty:true,prices:{1:75000,2:150000,3:225000,4:300000},avail:4},
@@ -136,7 +136,7 @@ function paintDetails(){
 function summaryCard(){var t=total();return '<div class="card"><h3>Summary</h3>'+picked().map(function(x){return '<div class="row"><span>'+esc(x.label)+'</span><b>'+money(x.price)+'</b></div>';}).join("")+'<div class="row tot"><div>Sponsorship total<small>all of it goes to kids\' training</small></div><b>'+money(t)+'</b></div><div class="row"><div>Payment<small>we\'ll sort it with you on the phone</small></div><b>Nothing now</b></div></div>';}
 function paintDone(){
   var r=S.result;var t=total();
-  $("view").innerHTML='<div class="card"><div class="done"><div class="big">YOU\'RE IN</div><div class="ref">'+esc(r.ref)+'</div><div class="note">Your reference. We\'ll be in touch at '+esc(S.form.email)+' or '+esc(S.form.mobile)+'.</div><div class="kids" style="text-align:left;margin-top:14px"><b>Thank you</b><span>Your '+money(t)+' goes straight to training for local kids who couldn\'t otherwise afford it. We\'ll let you know who you helped.</span></div></div></div>'
+  $("view").innerHTML='<div class="card"><div class="done"><div class="big">YOU\'RE IN</div><div class="ref">'+esc(r.ref)+'</div><div class="note">Your reference. We\'ll be in touch at '+esc(S.form.email)+' or '+esc(S.form.mobile)+'.</div><div class="kids" style="text-align:left;margin-top:14px"><b>Thank you</b><span>Your '+money(t)+' goes to keeping local kids engaged in the gym year round.</span></div></div></div>'
    +'<div class="card"><h3>What you\'ve requested</h3>'+picked().map(function(x){return '<div class="row"><span>'+esc(x.label)+'</span><b>'+money(x.price)+'</b></div>';}).join("")+'<div class="row tot"><span>Total</span><b>'+money(t)+'</b></div></div>'
    +'<div class="card"><h3>What happens next</h3><div class="row"><div><b>1 · We call you</b><small>'+esc(S.form.name)+(S.form.business?' · '+esc(S.form.business):'')+' · '+esc(S.form.mobile||S.form.email)+'</small></div></div><div class="row"><div><b>2 · Send us your logo</b><small>High-res PNG, PDF or AI file. We handle the artwork and printing.</small></div></div><div class="row"><div><b>3 · Payment</b><small>We invoice you once the artwork is approved. Your spot is held in the meantime.</small></div></div><div class="row"><div><b>4 · Fight night · Sat 19 Dec</b><small>Your brand in the ring at Legacy Gym, Kincumber, and kids in the gym because of you.</small></div></div>'
    +'<div style="margin-top:12px"><button class="btn" onclick="restart()">Start another</button></div></div>';
