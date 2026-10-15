@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610151230";
+const LG_BUILD="202610151310";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -999,6 +999,21 @@ function sponNewHtml(){
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${r.logo_path?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponLogoDl('${esc(r.logo_path)}','${esc((r.business||r.name||"sponsor").replace(/[^A-Za-z0-9 _-]/g,""))}-logo.${esc((r.logo_path.split(".").pop()||"png"))}')">Download logo</button>`:""}${r.status!=="contacted"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'contacted')">Contacted</button>`:""}${r.status!=="paid"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'paid')">Paid</button>`:""}${r.status!=="requested"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'requested')">Back to new</button>`:""}${r.status!=="declined"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px;color:#ff8c98" onclick="sponStatus(${r.id},'declined')">Not going ahead</button>`:""}</div>
     </div>`;}).join("");
 }
+var SPON_OPEN_AT=Date.parse("2026-10-18T13:00:00Z"); /* sponsorship unlocks: Mon 19 Oct, 12:00am AEDT (72h from launch) */
+function sponOpen(){return Date.now()>=SPON_OPEN_AT;}
+function sponOpenLabel(){try{return new Date(SPON_OPEN_AT).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit",timeZone:"Australia/Sydney"});}catch(e){return "";}}
+function sponParts(){var ms=Math.max(0,SPON_OPEN_AT-Date.now()),s=Math.floor(ms/1000);return [Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60];}
+function sponCdHtml(small){var p=sponParts(),L=["days","hrs","min","sec"];return '<div class="sponCd'+(small?" sm":"")+'">'+p.map(function(n,i){return '<div><b data-cd="'+i+'">'+String(n).padStart(2,"0")+'</b><small>'+L[i]+'</small></div>';}).join("")+'</div>';}
+function sponLockHtml(){return `<div class="card" style="text-align:center;padding:26px 18px;border:1px solid #6b5520;background:linear-gradient(160deg,#1a1508,#0b0b0c)">
+    <div style="width:64px;height:64px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;background:#2a2211;border:1px solid #6b5520;font-size:28px">&#128274;</div>
+    <div style="font-weight:900;letter-spacing:3px;color:var(--gold);font-size:11px;text-transform:uppercase">Fight Night &middot; Sat 19 Dec</div>
+    <div style="font-size:28px;font-weight:900;line-height:1.05;margin-top:6px;text-transform:uppercase">Sponsorship opens in</div>
+    ${sponCdHtml(false)}
+    <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-top:12px">Ring and fighter-kit sponsorship for Fight Night unlocks <b style="color:#fff">${esc(sponOpenLabel())}</b>. Every dollar goes to keeping local kids engaged in the gym year round.</div>
+  </div>`;}
+function sponTick(){if(view!=="sponsorship")return;if(sponOpen()){clearInterval(SPON.timer);SPON.timer=null;renderSponsorship();return;}var p=sponParts();document.querySelectorAll("[data-cd]").forEach(function(el){el.textContent=String(p[+el.dataset.cd]).padStart(2,"0");});}
+function sponStartTimer(){if(SPON.timer)return;SPON.timer=setInterval(sponTick,1000);}
+(function(){var c=document.createElement("style");c.textContent=".sponCd{display:flex;justify-content:center;gap:8px;margin-top:14px}.sponCd div{min-width:64px;background:#0b0b0c;border:1px solid #3a3320;border-radius:12px;padding:10px 6px}.sponCd b{display:block;font-size:30px;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1}.sponCd small{display:block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:800;margin-top:5px}.sponCd.sm{margin-top:8px;gap:6px}.sponCd.sm div{min-width:50px;padding:7px 4px}.sponCd.sm b{font-size:20px}";document.head.appendChild(c);})();
 function renderSponsorship(){
   if(sponAdmin()&&SPON.tab==="new"){
     if(!SPON.rows&&!SPON.loading)sponLoad();
@@ -1008,9 +1023,12 @@ function renderSponsorship(){
     ${sponNewHtml()}`;
     return;
   }
+  if(!sponOpen())sponStartTimer();
+  if(!sponOpen()&&!sponAdmin()){$("main").innerHTML=`<button class="backBtn" onclick="go('home')">&lsaquo; Back Home</button>${sponLockHtml()}`;sponStartTimer();return;}
   $("main").innerHTML=`
     <button class="backBtn" onclick="go('home')">&lsaquo; Back Home</button>
     ${sponAdmin()?`<div style="display:flex;gap:6px;margin-bottom:12px"><button class="sponBtn" style="flex:1;background:var(--gold);color:#161307;border-color:var(--gold)" onclick="sponTab('info')">Sponsorship</button><button class="sponBtn" style="flex:1" onclick="sponTab('new')">New sponsors</button></div>`:""}
+    ${!sponOpen()?`<div class="card" style="padding:12px 14px;margin-bottom:12px;border:1px solid #6b5520"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><div style="font-size:10px;font-weight:900;letter-spacing:2px;color:var(--gold);text-transform:uppercase">&#128274; Locked for members</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Everyone else sees a countdown until ${esc(sponOpenLabel())}. You and Ali can see it now.</div></div></div>${sponCdHtml(true)}</div>`:""}
     <div class="hero" style="${bgStyle('boxing',.5)}">
       <div class="heroKicker">Help Local Kids Train</div>
       <div class="heroTitle">Sponsorship</div>

@@ -98,6 +98,7 @@ input.bad{border-color:var(--red)}
 /* logo */
 .logo-drop{border:1.5px dashed #5a4a22;border-radius:14px;padding:16px;text-align:center;cursor:pointer;background:#0e0c08;transition:border-color .15s}.logo-drop:hover,.logo-drop.over{border-color:var(--gold)}.logo-drop .ic{font:700 26px/1 Oswald,sans-serif;color:var(--gold)}.logo-drop b{display:block;font-size:13.5px;margin-top:4px}.logo-drop small{display:block;font-size:11px;color:var(--mute);margin-top:4px;line-height:1.4}
 .logo-have{display:flex;align-items:center;gap:12px;border:1px solid #2d5d4e;background:#0f2019;border-radius:14px;padding:10px}.logo-have img{width:58px;height:58px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;flex:none}.logo-have b{display:block;font-size:13px;word-break:break-all}.logo-have small{display:block;font-size:11px;color:var(--green);margin-top:2px}.logo-have small.up{color:var(--gold2)}.logo-have button{margin-left:auto;flex:none}
+.lock{text-align:center;padding:26px 16px;border-color:#6b5520}.padlock{width:64px;height:64px;border-radius:50%;margin:0 auto 12px;display:grid;place-items:center;background:#2a2211;border:1px solid #6b5520;font-size:28px}.lt{font:700 30px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:1px;margin-top:6px}.cd{display:flex;justify-content:center;gap:8px;margin-top:14px}.cd div{min-width:64px;background:#0b0b0c;border:1px solid #3a3320;border-radius:12px;padding:10px 6px}.cd b{display:block;font:600 32px/1 Oswald,sans-serif;color:var(--gold2);font-variant-numeric:tabular-nums}.cd small{display:block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:800;margin-top:5px}
 .pay{display:flex;align-items:center;gap:10px;border:1px solid #3a3320;border-radius:14px;padding:12px;background:#0e0c08;margin-top:10px}.pay .lk{width:34px;height:34px;border-radius:10px;background:#1a1712;display:grid;place-items:center;font-size:16px;flex:none}.pay b{display:block;font-size:13px}.pay small{display:block;font-size:11px;color:var(--mute);margin-top:2px;line-height:1.4}
 @media(prefers-reduced-motion:no-preference){.opt{transition:transform .12s}.opt:active{transform:scale(.99)}}
 </style>
@@ -119,7 +120,14 @@ input.bad{border-color:var(--red)}
 var SB="https://jyslqxepodrseyhoppce.supabase.co";
 var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 var KIT_IMG="/img/fc/kit-base.jpg";
-var CHECKOUT="/api/fightnight?a=checkout"; /* makes a Shopify draft order for the saved request and returns the secure pay link */
+var CHECKOUT="/api/fightnight?a=checkout";
+var OPEN_AT=Date.parse("2026-10-18T13:00:00Z"); /* fighter-kit sponsorship unlocks (ring is already live) */
+var UNLOCK=/[?&]unlock=legacy/.test(location.search);
+function kitOpen(){return UNLOCK||Date.now()>=OPEN_AT;}
+function openLabel(){try{return new Date(OPEN_AT).toLocaleString("en-AU",{weekday:"long",day:"numeric",month:"long",hour:"numeric",minute:"2-digit",timeZone:"Australia/Sydney"});}catch(e){return "";}}
+function cdParts(){var ms=Math.max(0,OPEN_AT-Date.now()),s=Math.floor(ms/1000);return [Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60];}
+function lockHtml(){var L=["days","hrs","min","sec"];return '<div class="card lock"><div class="padlock">&#128274;</div><div class="eyebrow">Sponsor a Fighter · Fight Night 19 Dec</div><div class="lt">Opens in</div><div class="cd">'+cdParts().map(function(n,i){return '<div><b data-cd="'+i+'">'+String(n).padStart(2,"0")+'</b><small>'+L[i]+'</small></div>';}).join("")+'</div><p class="note" style="text-align:center">Fighter-kit sponsorship (singlet $250 · trunks $250 · full kit $450) unlocks <b style="color:#fff">'+esc(openLabel())+'</b>. Ring sponsorship is open now, tap <b style="color:#fff">The ring</b> above.</p></div>';}
+setInterval(function(){if(S.kind!=="kit"||S.step!==1)return;if(kitOpen()&&document.querySelector(".lock")){paint();return;}var p=cdParts();document.querySelectorAll("[data-cd]").forEach(function(el){el.textContent=String(p[+el.dataset.cd]).padStart(2,"0");});},1000); /* makes a Shopify draft order for the saved request and returns the secure pay link */
 var RING=[
  {id:"whole",name:"Whole ring sponsorship",blurb:"Everything below is yours: centre canvas, all four canvas corners, all four corner pads, all four ropes and the available skirt. One brand, the whole ring.",price:900000,avail:1,exclusive:true},
  {id:"centre",name:"Centre canvas",blurb:"Your logo in the middle of the canvas. Every photo, every round, every replay.",price:200000,avail:1},
@@ -144,7 +152,7 @@ function picked(){var O=opts();var ex=O.find(function(o){return o.exclusive&&S.s
   return O.filter(function(o){return S.sel[o.id]&&!o.exclusive;}).map(function(o){var q=o.qty?S.qty[o.id]:1;return {id:o.id,label:o.name+(o.qty?" × "+q:""),qty:q,price:priceOf(o)};});}
 function total(){return picked().reduce(function(a,x){return a+x.price;},0);}
 function fighter(){return (S.fighters||[]).find(function(f){return f.id===S.fighter;})||null;}
-function canContinue(){return picked().length>0&&(S.kind==="ring"||!!S.fighter);}
+function canContinue(){return picked().length>0&&(S.kind==="ring"||(!!S.fighter&&kitOpen()));}
 function payLive(){return true;}
 
 /* ---- fighters ---- */
@@ -205,6 +213,7 @@ function paintPick(){
     return;
   }
   var f=fighter(),h='';
+  if(!kitOpen()){$("view").innerHTML=lockHtml();return;}
   if(!f){
     h+='<div class="card"><h3>Who are you sponsoring? <span>type their first name</span></h3><input id="fsearch" type="text" autocomplete="off" autocapitalize="words" placeholder="Fighter\'s first name" value="'+esc(S.q)+'" oninput="fsearch(this.value)"><div id="fres">'+fresHtml()+'</div></div>';
   }else{
@@ -246,7 +255,7 @@ function paintDone(){
 function paintBar(){
   var t=total(),p=picked();
   $("barTotal").textContent=money(t);
-  $("barItems").textContent=p.length?p.map(function(x){return x.label;}).join(" · "):(S.kind==="kit"&&!S.fighter?"Pick your fighter first":"Nothing picked yet");
+  $("barItems").textContent=p.length?p.map(function(x){return x.label;}).join(" · "):(S.kind==="kit"&&!kitOpen()?"Fighter kit opens soon":S.kind==="kit"&&!S.fighter?"Pick your fighter first":"Nothing picked yet");
   var go=$("barGo");
   if(S.step===1){go.textContent="Continue";go.disabled=!canContinue();}
   else if(S.step===2){go.textContent=S.busy?"Working…":(payLive()?"Pay "+money(t):"Register");go.disabled=S.busy;}
