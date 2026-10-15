@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#070605">
+<title>Sponsor Fight Night · Legacy Gym</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Montserrat:wght@500;600;800&display=swap">
+<style>
+:root{--bg:#070605;--panel:#121009;--panel2:#0d0b07;--line:#2e281a;--mute:#9a958a;--ink:#f2f0eb;--gold:#C9A44C;--gold2:#F1D27A;--green:#39FF88;--red:#ff8c98;--pink:#ff2d8f}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--ink);font-family:Montserrat,system-ui,sans-serif;min-height:100%}
+body{padding:0 0 calc(110px + env(safe-area-inset-bottom));background:radial-gradient(ellipse 90% 30% at 50% -5%,rgba(201,164,76,.25),transparent 60%),var(--bg)}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px}
+.hero{position:relative;border-radius:0 0 26px 26px;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero img{width:100%;display:block}
+.hero .fade{position:absolute;inset:auto 0 0 0;height:40%;background:linear-gradient(180deg,transparent,var(--bg))}
+.eyebrow{font:600 10px/1 Oswald,sans-serif;letter-spacing:3px;color:var(--gold);text-transform:uppercase}
+h1{font:700 34px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:1px;margin-top:6px}
+h1 span{color:var(--gold2)}
+.sub{font-size:13px;color:var(--mute);line-height:1.55;margin-top:8px}
+.seg{display:flex;gap:4px;padding:4px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;margin:14px 0 4px}
+.seg button{flex:1;border:0;background:transparent;color:var(--mute);border-radius:10px;padding:12px 8px;font:600 14px/1 Oswald,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+.seg button.on{background:var(--gold);color:#161307}
+.steps{display:flex;gap:6px;margin:14px 0 14px}
+.steps div{flex:1;text-align:center;font:600 11px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);padding:10px 4px;border-radius:10px;background:var(--panel2);border:1px solid var(--line)}
+.steps div.on{background:var(--gold);color:#161307;border-color:var(--gold)}
+.steps div.done{color:var(--gold2);border-color:#6b5520}
+.card{border:1px solid var(--line);background:linear-gradient(160deg,#16130a,#0d0b07);border-radius:16px;padding:16px;margin-bottom:12px}
+.card h3{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold2);margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
+.card h3 span{font-weight:700;letter-spacing:0;text-transform:none;color:var(--mute);font-size:11px}
+.opt{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:13px 14px;margin-bottom:8px;cursor:pointer;position:relative;transition:border-color .15s,background .15s}
+.opt.on{border-color:var(--gold2);background:#2a2211;box-shadow:0 0 0 1px rgba(241,210,122,.25) inset}
+.opt.off{opacity:.45;cursor:not-allowed}
+.opt b{display:block;font:600 18px/1.1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px}
+.opt small{display:block;color:var(--mute);font-size:11px;margin-top:3px;line-height:1.45}
+.opt .p{font:600 22px/1 Oswald,sans-serif;color:var(--gold2);text-align:right;white-space:nowrap}
+.opt .p i{display:block;font-style:normal;font-size:10px;color:var(--mute);font-family:Montserrat,sans-serif;font-weight:700;margin-top:3px;letter-spacing:.5px}
+.opt .tick{position:absolute;top:-8px;right:-6px;background:var(--gold);color:#161307;font-size:11px;font-weight:800;width:22px;height:22px;border-radius:50%;display:none;place-items:center;border:2px solid var(--bg)}
+.opt.on .tick{display:grid}
+.opt .pads{grid-column:1/-1;display:flex;gap:6px;margin-top:8px}
+.opt .pads button{flex:1;border:1px solid #3a3320;background:#0e0c08;color:var(--ink);border-radius:9px;padding:10px 4px;font:600 15px/1 Oswald,sans-serif;cursor:pointer}
+.opt .pads button.on{background:var(--gold);border-color:var(--gold);color:#161307}
+.opt .pads button small{display:block;font:700 9px/1 Montserrat,sans-serif;color:inherit;opacity:.75;margin-top:4px;letter-spacing:.3px}
+.opt .skirts{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.opt .skirts div{border:1px solid #3a3320;background:#0e0c08;border-radius:9px;padding:9px 4px;text-align:center;font:600 12px/1.2 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px}
+.opt .skirts div small{display:block;font:800 8.5px/1 Montserrat,sans-serif;letter-spacing:1px;margin-top:5px}
+.opt .skirts div.sold{opacity:.4;text-decoration:line-through}.opt .skirts div.sold small{text-decoration:none;color:var(--red)}
+.opt .skirts div.free{border-color:#2d5d4e;background:#0f2019}.opt .skirts div.free small{color:var(--green)}
+.opt.whole{background:linear-gradient(135deg,#2a2211,#0d0b07);border-color:#6b5520}
+.opt.whole b{font-size:22px;color:var(--gold2)}
+.opt.hot{border-color:#5a2a44}
+.pill{display:inline-block;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:3px 7px;border-radius:99px;border:1px solid #2d5d4e;color:var(--green);background:#0f2019;margin-top:5px}
+.pill.red{border-color:#5a2a30;color:var(--red);background:#2a1216}.pill.gold{border-color:#6b5520;color:var(--gold2);background:#2a2211}.pill.pink{border-color:#5a2a44;color:var(--pink);background:#2a1220}
+label{display:block;font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#cfc6b0;margin:12px 0 6px}
+input{width:100%;background:#0e0c08;border:1px solid #3a3320;border-radius:10px;color:var(--ink);padding:13px 12px;font-family:inherit;font-size:15px}
+input:focus{outline:none;border-color:var(--gold)}
+input.bad{border-color:var(--red)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px;color:#d9d3c3;padding:9px 0;border-bottom:1px solid #1f1b12}
+.row:last-child{border:0}.row b{color:#fff;font-variant-numeric:tabular-nums}.row small{display:block;color:var(--mute);font-size:10.5px}
+.row.tot{border-top:1px solid var(--line);margin-top:4px;padding-top:12px}.row.tot b{font:600 24px/1 Oswald,sans-serif;color:var(--gold2)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(7,6,5,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:12px 14px calc(12px + env(safe-area-inset-bottom));z-index:9}
+.bar .in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.bar .sum{flex:1;min-width:0}.bar .sum small{display:block;font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:800}.bar .sum b{display:block;font:600 24px/1 Oswald,sans-serif;color:var(--gold2);margin-top:3px}.bar .sum i{display:block;font-style:normal;font-size:10.5px;color:var(--mute);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.go{flex:none;background:linear-gradient(180deg,#ffe58a,#f4c95d 48%,#b8860b 52%,#ffd76a);color:#1a1200;border:0;border-radius:12px;padding:14px 18px;font:700 15px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer}
+.go:disabled{opacity:.45}
+.btn{background:#141210;border:1px solid #3a3320;color:var(--gold2);border-radius:10px;padding:11px 14px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn.sm{padding:7px 10px;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase}
+.note{font-size:11.5px;color:var(--mute);line-height:1.55;margin-top:10px}
+.kids{margin:12px 0 2px;border:1px solid #6b5520;background:linear-gradient(135deg,#2a2211,#14110a);border-radius:14px;padding:12px 14px}.kids b{display:block;font:600 14px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:1.5px;color:var(--gold2);margin-bottom:6px}.kids span{display:block;font-size:12px;line-height:1.5;color:#e8e2d2}
+.ok{background:#152a25;border:1px solid #2d5d4e;padding:12px;border-radius:12px;color:#a9ddcb;font-size:13px;line-height:1.5;margin-top:10px}
+.err{background:#2a1216;border:1px solid #5a2a30;padding:12px;border-radius:12px;color:#f1b3bb;font-size:13px;margin-top:10px}
+.done{text-align:center;padding:10px 0 0}
+.done .big{font:700 42px/1 Oswald,sans-serif;color:var(--green);letter-spacing:2px}
+.done .ref{font:600 20px/1 ui-monospace,Menlo,monospace;letter-spacing:2px;margin:12px 0 4px}
+/* fighter search */
+.fhint{font-size:12px;color:var(--mute);line-height:1.5;padding:8px 2px 2px}
+.fr{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:13px;padding:11px 12px;margin-top:8px;cursor:pointer;color:var(--ink);font-family:inherit}
+.fr:hover,.fr:focus-visible{border-color:var(--gold)}
+.fr .av,.fchip .av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:600 14px Oswald,sans-serif;flex:none;background:#1a1712;border:2px solid var(--gold);color:var(--gold2)}
+.fr b{font-size:15px;display:block;line-height:1.2}.fr b u{text-decoration:none;color:var(--gold2)}.fr small,.fchip small{display:block;font-size:10.5px;color:var(--mute);margin-top:2px}
+.fr .go2{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--pink)}
+.fchip{display:flex;align-items:center;gap:12px;border:1px solid var(--pink);background:#1a1016;border-radius:14px;padding:11px 12px;margin-bottom:10px}.fchip b{font-size:15px;display:block;line-height:1.2}.fchip button{margin-left:auto}
+.ksub{font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:#cfc6b0;font-weight:800;margin:14px 0 8px}
+/* real kit preview */
+.kitprev{border:1px solid var(--line);background:#0d0b07;border-radius:14px;padding:6px;margin-bottom:8px}
+.kit{position:relative;width:100%;container-type:inline-size;border-radius:10px;overflow:hidden;background:#2a2a2a}.kit .base{display:block;width:100%;height:auto}
+.kz{position:absolute;display:grid;place-items:center;transform:translate(-50%,-50%)}.kz span{font:700 1em/1 Oswald,Impact,"Arial Narrow",sans-serif;font-size:4.2cqw;line-height:.95;letter-spacing:.05cqw;text-transform:uppercase;color:#fff;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.6)}.kz.has img{width:100%;height:100%;object-fit:contain;opacity:.96;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+.kz.sb{left:70.9%;top:27.4%;width:20%;height:9%}.kz.tf{left:17.3%;top:83.8%;width:11.5%;height:5.6%;transform:translate(-50%,-50%) rotate(-5deg)}.kz.tf span,.kz.tl span{font-size:3.1cqw}.kz.tb{left:71.8%;top:57.8%;width:18%;height:3.8%}.kz.tb span{font-size:3.4cqw;white-space:nowrap}.kz.tb span br{display:none}.kz.tl{left:65%;top:83%;width:12.5%;height:5.6%;transform:translate(-50%,-50%) rotate(3deg)}
+.kname{position:absolute;transform:translate(-50%,-50%) skewX(-5deg);font:700 1em/1 Oswald,Impact,"Arial Narrow",sans-serif;color:var(--pink);text-transform:uppercase;white-space:nowrap;letter-spacing:.1cqw;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.kname.sb{left:70.9%;top:16.8%;font-size:5.2cqw}.kname.tf{left:30%;top:58%;font-size:4.8cqw}.kname.mid{font-size:4.6cqw}.kname.tf.mid{font-size:4.2cqw}.kname.long{font-size:3.8cqw}.kname.tf.long{font-size:3.4cqw}
+.kdim{position:absolute;left:0;right:0;background:rgba(10,9,8,.78);display:grid;place-items:center}.kdim.top{top:0;height:52%}.kdim.bot{top:52%;bottom:0}.kdim span{font:800 2.4cqw Montserrat,sans-serif;letter-spacing:.3cqw;text-transform:uppercase;color:#9a958a;border:1px solid #3a3320;border-radius:99px;padding:.8cqw 2cqw;background:#0b0b0c}
+.klab{position:absolute;left:0;right:0;top:1.5%;display:flex}.klab span{flex:1;text-align:center;font:800 2.2cqw Montserrat,sans-serif;letter-spacing:.4cqw;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.kp-note{font-size:11px;color:var(--mute);line-height:1.5;margin:6px 2px 0}.kp-note b{color:var(--gold2)}
+/* logo */
+.logo-drop{border:1.5px dashed #5a4a22;border-radius:14px;padding:16px;text-align:center;cursor:pointer;background:#0e0c08;transition:border-color .15s}.logo-drop:hover,.logo-drop.over{border-color:var(--gold)}.logo-drop .ic{font:700 26px/1 Oswald,sans-serif;color:var(--gold)}.logo-drop b{display:block;font-size:13.5px;margin-top:4px}.logo-drop small{display:block;font-size:11px;color:var(--mute);margin-top:4px;line-height:1.4}
+.logo-have{display:flex;align-items:center;gap:12px;border:1px solid #2d5d4e;background:#0f2019;border-radius:14px;padding:10px}.logo-have img{width:58px;height:58px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;flex:none}.logo-have b{display:block;font-size:13px;word-break:break-all}.logo-have small{display:block;font-size:11px;color:var(--green);margin-top:2px}.logo-have small.up{color:var(--gold2)}.logo-have button{margin-left:auto;flex:none}
+.pay{display:flex;align-items:center;gap:10px;border:1px solid #3a3320;border-radius:14px;padding:12px;background:#0e0c08;margin-top:10px}.pay .lk{width:34px;height:34px;border-radius:10px;background:#1a1712;display:grid;place-items:center;font-size:16px;flex:none}.pay b{display:block;font-size:13px}.pay small{display:block;font-size:11px;color:var(--mute);margin-top:2px;line-height:1.4}
+@media(prefers-reduced-motion:no-preference){.opt{transition:transform .12s}.opt:active{transform:scale(.99)}}
+</style>
+</head>
+<body>
+<div class="hero"><img id="heroImg" src="/img/fc/ring-sponsor.jpg?v=3" alt="Help local kids get into training: Fight Night sponsorship"><div class="fade"></div></div>
+<div class="wrap">
+  <div style="padding-top:6px"><div class="eyebrow">Legacy Gym · Fight Club Fight Night · Sat 19 Dec</div><h1>Help local kids <span>train.</span></h1>
+  <p class="sub"><b style="color:#fff">Every dollar of sponsorship goes to the kids.</b> All funds go to keeping local kids who can't afford it engaged in the gym year round. Your business gets the ring or a fighter's kit on fight night; the kids get the gym.</p>
+  <div class="kids"><b>Where your money goes</b><span>All funds go to keeping local kids engaged in the gym year round.</span></div></div>
+  <div class="seg" id="seg"><button type="button" onclick="setKind('ring')">The ring</button><button type="button" onclick="setKind('kit')">A fighter's kit</button></div>
+  <div class="steps" id="steps"><div class="on">1 · Pick</div><div>2 · Details</div><div>3 · Done</div></div>
+  <div id="view"></div>
+</div>
+<div class="bar" id="bar"><div class="in"><div class="sum"><small>Your sponsorship</small><b id="barTotal">$0</b><i id="barItems">Nothing picked yet</i></div><button class="go" id="barGo" disabled onclick="next()">Continue</button></div></div>
+
+<script>
+(function(){
+var SB="https://jyslqxepodrseyhoppce.supabase.co";
+var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+var KIT_IMG="/img/fc/kit-base.jpg";
+var CHECKOUT="/api/sponsor-checkout"; /* makes a Shopify draft order for the saved request and returns the secure pay link */
+var RING=[
+ {id:"whole",name:"Whole ring sponsorship",blurb:"Everything below is yours: centre canvas, all four canvas corners, all four corner pads, all four ropes and the available skirt. One brand, the whole ring.",price:900000,avail:1,exclusive:true},
+ {id:"centre",name:"Centre canvas",blurb:"Your logo in the middle of the canvas. Every photo, every round, every replay.",price:200000,avail:1},
+ {id:"pads",name:"Corner pads",blurb:"Your logo on the turnbuckle pads. Pick how many corners.",qty:true,prices:{1:100000,2:200000,3:300000,4:300000},avail:4},
+ {id:"corner",name:"Canvas corner",blurb:"Your logo on the canvas in a corner. Pick how many corners.",qty:true,prices:{1:75000,2:150000,3:225000,4:300000},avail:4},
+ {id:"skirt",name:"Single side skirt",blurb:"Your logo across the ring apron, facing the crowd.",price:100000,avail:1,skirts:[["North","sold"],["East","sold"],["South","free"],["West","sold"]]},
+ {id:"ropes",name:"All 4 ropes",blurb:"Your logo on the rope covers on every side of the ring.",price:200000,avail:1}
+];
+var KIT=[
+ {id:"singlet",name:"Singlet",blurb:"Your logo on the back of the singlet. Fighter's name above it.",price:25000,avail:1},
+ {id:"trunks",name:"Trunks",blurb:"Your logo on the back waistband and both legs. Fighter's name on the front.",price:25000,avail:1},
+ {id:"kit",name:"Full kit",blurb:"Singlet and trunks. Your logo in every sponsor space on the gear.",price:45000,avail:1,exclusive:true,hot:true}
+];
+var S={kind:"ring",step:1,sel:{},qty:{pads:1,corner:1},fighters:null,fighter:null,q:"",form:{name:"",business:"",email:"",mobile:""},logo:null,logoName:"",logoPath:null,logoUp:"",busy:false,result:null,error:""};
+var $=function(id){return document.getElementById(id);};
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];});}
+function money(c){return "$"+Math.round(c/100).toLocaleString("en-AU");}
+function opts(){return S.kind==="ring"?RING:KIT;}
+function priceOf(o){return o.qty?o.prices[S.qty[o.id]]:o.price;}
+function picked(){var O=opts();var ex=O.find(function(o){return o.exclusive&&S.sel[o.id];});
+  if(ex)return [{id:ex.id,label:ex.name,qty:1,price:ex.price}];
+  return O.filter(function(o){return S.sel[o.id]&&!o.exclusive;}).map(function(o){var q=o.qty?S.qty[o.id]:1;return {id:o.id,label:o.name+(o.qty?" × "+q:""),qty:q,price:priceOf(o)};});}
+function total(){return picked().reduce(function(a,x){return a+x.price;},0);}
+function fighter(){return (S.fighters||[]).find(function(f){return f.id===S.fighter;})||null;}
+function canContinue(){return picked().length>0&&(S.kind==="ring"||!!S.fighter);}
+function payLive(){return true;}
+
+/* ---- fighters ---- */
+async function loadFighters(){if(S.fighters)return;try{var r=await fetch(SB+"/rest/v1/rpc/fn_fighter_names",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:"{}"});var j=await r.json();S.fighters=Array.isArray(j)?j.map(function(f){return {id:f.id,first:f.first_name,last:f.last_name,camp:f.camp_number,n:(f.first_name+" "+f.last_name).trim()};}):[];}catch(e){S.fighters=[];}if(S.kind==="kit")paint();}
+function fresHtml(){
+  if(!S.fighters)return '<div class="fhint">Loading the fight card…</div>';
+  var q=S.q.trim().toLowerCase();
+  if(!q)return '<div class="fhint">Start typing your fighter\'s first name and they\'ll come up. Not sure who\'s on the card? Ask them which name they\'re entered under.</div>';
+  var m=S.fighters.filter(function(f){return f.first.toLowerCase().indexOf(q)===0||f.n.toLowerCase().indexOf(q)===0||f.last.toLowerCase().indexOf(q)===0;}).slice(0,8);
+  if(!m.length)return '<div class="fhint">No fighter starting with “'+esc(S.q.trim())+'”. Check the spelling, or try their surname.</div>';
+  return m.map(function(f){return '<button type="button" class="fr" onclick="pickFighter(\''+f.id+'\')"><span class="av">'+esc((f.first[0]||"")+(f.last[0]||""))+'</span><span><b>'+esc(f.first)+' <u>'+esc(f.last)+'</u></b><small>Legacy Fight Club'+(f.camp?' · Camp '+f.camp:'')+'</small></span><span class="go2">Select ›</span></button>';}).join("");
+}
+/* ---- kit preview on the real kit photo ---- */
+function kitHtml(f,sel,logo,labels){
+  var any=sel.singlet||sel.trunks||sel.kit,showS=!any||sel.singlet||sel.kit,showT=!any||sel.trunks||sel.kit;
+  var name=(f.last||f.first||"").toUpperCase(),lc=name.length>9?" long":name.length>7?" mid":"";
+  function zone(cls){return logo?'<div class="kz '+cls+' has"><img src="'+logo+'" alt=""></div>':'<div class="kz '+cls+'"><span>Your logo <br>here</span></div>';}
+  var h='<div class="kit"><img class="base" src="'+KIT_IMG+'" alt="'+esc(f.n)+' fight kit preview">';
+  h+='<div class="kname sb'+lc+'">'+esc(name)+'</div>'+zone("sb")+'<div class="kname tf'+lc+'">'+esc(name)+'</div>'+zone("tf")+zone("tb")+zone("tl");
+  if(!showS)h+='<div class="kdim top"><span>Singlet not included</span></div>';
+  if(!showT)h+='<div class="kdim bot"><span>Trunks not included</span></div>';
+  if(labels!==false)h+='<div class="klab"><span>Front</span><span>Back</span></div>';
+  return h+'</div>';
+}
+/* ---- logo ---- */
+function logoHtml(where){
+  if(S.logo)return '<div class="logo-have"><img src="'+S.logo+'" alt="Your logo"><div><b>'+esc(S.logoName||"Logo")+'</b><small class="'+(S.logoPath?"":"up")+'">'+(S.logoPath?"Uploaded. We print from this.":S.logoUp||"Uploading…")+'</small></div><button type="button" class="btn sm" onclick="clearLogo()">Change</button></div>';
+  return '<div class="logo-drop" id="drop" tabindex="0" onclick="document.getElementById(\'logofile\').click()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();document.getElementById(\'logofile\').click()}"><div class="ic">+</div><b>Add your logo</b><small>PNG, JPG, SVG or PDF up to 10 MB. Camera roll is fine.'+(where==="kit"?" It drops straight onto the gear above.":"")+' Optional, you can send it later.</small></div><input type="file" id="logofile" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif,application/pdf" style="display:none" onchange="logoPicked(this.files[0])">';
+}
+window.clearLogo=function(){S.logo=null;S.logoName="";S.logoPath=null;S.logoUp="";paint();};
+window.logoPicked=function(file){
+  if(!file)return;
+  if(file.size>10*1024*1024){S.error="That logo is over 10 MB. Export a smaller version and try again.";paint();return;}
+  S.error="";S.logoName=file.name;S.logoPath=null;S.logoUp="Uploading…";
+  if(file.type==="application/pdf"){S.logo="data:image/svg+xml;utf8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="20" fill="#1a1712"/><text x="60" y="74" text-anchor="middle" font-family="Arial Black,Arial" font-weight="900" font-size="34" fill="#F1D27A">PDF</text></svg>');paint();}
+  else{var rd=new FileReader();rd.onload=function(){S.logo=rd.result;paint();};rd.readAsDataURL(file);}
+  var ext=(file.name.split(".").pop()||"png").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,5)||"png";
+  var path="uploads/"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8)+"."+ext;
+  fetch(SB+"/storage/v1/object/sponsor-logos/"+path,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":file.type||"application/octet-stream","x-upsert":"false"},body:file})
+   .then(function(r){return r.json().then(function(j){return [r.ok,j];});})
+   .then(function(x){if(x[0]){S.logoPath=path;S.logoUp="";}else{S.logoUp="Couldn\'t upload ("+((x[1]&&(x[1].message||x[1].error))||"network")+"). We\'ll grab it from you after.";}paint();})
+   .catch(function(){S.logoUp="Couldn\'t upload. We\'ll grab it from you after.";paint();});
+};
+/* ---- paint ---- */
+function optHtml(o){
+  var ex=opts().find(function(x){return x.exclusive&&S.sel[x.id];});
+  var on=!!S.sel[o.id];var off=!!ex&&!o.exclusive;var avail=o.avail>0;
+  var price=o.qty?'<div class="p">'+money(o.prices[1])+'<i>per corner · 4 for '+money(o.prices[4])+'</i></div>':'<div class="p">'+money(o.price)+(o.id==="whole"?'<i>exclusive</i>':o.id==="kit"?'<i>save $50</i>':'')+'</div>';
+  var extra="";
+  if(o.qty&&on){extra='<div class="pads">'+[1,2,3,4].map(function(n){return '<button type="button" class="'+(S.qty[o.id]===n?'on':'')+'" onclick="event.stopPropagation();setQty(\''+o.id+'\','+n+')">'+n+'<small>'+money(o.prices[n])+'</small></button>';}).join("")+'</div>';}
+  if(o.skirts){extra='<div class="skirts">'+o.skirts.map(function(s){return '<div class="'+s[1]+'">'+s[0]+'<small>'+(s[1]==="sold"?"Sold":"Available")+'</small></div>';}).join("")+'</div>';}
+  var pill=o.id==="whole"?'<span class="pill gold">Everything on the ring</span>':o.id==="kit"?'<span class="pill pink">Most popular</span>':o.skirts?'<span class="pill">1 of 4 left</span>':avail?'<span class="pill">'+(S.kind==="kit"?"Available":o.avail+" available")+'</span>':'<span class="pill red">Sold out</span>';
+  return '<div class="opt'+(on?' on':'')+(off||!avail?' off':'')+(o.exclusive&&S.kind==="ring"?' whole':'')+(o.hot?' hot':'')+'" onclick="toggle(\''+o.id+'\')"><div><b>'+esc(o.name)+'</b><small>'+esc(o.blurb)+'</small>'+pill+'</div>'+price+extra+'<span class="tick">✓</span></div>';
+}
+function paintPick(){
+  if(S.kind==="ring"){
+    $("view").innerHTML='<div class="card"><h3>What do you want on the ring? <span>tap to select</span></h3>'+RING.map(optHtml).join("")+'<p class="note">100% of sponsorship proceeds fund training for local kids who can\'t afford to train. Prices include placement on the night; we handle the artwork and printing once we have your logo. Skirts: three of the four sides are already taken.</p></div>';
+    return;
+  }
+  var f=fighter(),h='';
+  if(!f){
+    h+='<div class="card"><h3>Who are you sponsoring? <span>type their first name</span></h3><input id="fsearch" type="text" autocomplete="off" autocapitalize="words" placeholder="Fighter\'s first name" value="'+esc(S.q)+'" oninput="fsearch(this.value)"><div id="fres">'+fresHtml()+'</div></div>';
+  }else{
+    h+='<div class="card"><h3>Your fighter</h3><div class="fchip"><span class="av">'+esc((f.first[0]||"")+(f.last[0]||""))+'</span><div><b>'+esc(f.n)+'</b><small>Legacy Fight Club'+(f.camp?' · Camp '+f.camp:'')+' · Fight Night 19 Dec</small></div><button type="button" class="btn sm" onclick="clearFighter()">Change</button></div>';
+    h+='<div class="kitprev">'+kitHtml(f,S.sel,S.logo)+'</div><div class="kp-note">'+(S.logo?'<b>Live preview on the real kit.</b> Your logo in the sponsor spaces, '+esc(f.last||f.first)+' on the singlet back and waistband. We print from this.':'<b>Live preview on the real kit.</b> '+esc(f.first)+'\'s name is already on. Add your logo below and it drops into every sponsor space.')+'</div>';
+    h+='<div class="ksub">What are you sponsoring?</div>'+KIT.map(optHtml).join("");
+    h+='<div class="ksub">Your logo</div>'+logoHtml("kit");
+    h+='<p class="note">Fighter picks their colours. Your logo goes on the marked sponsor spaces of what you sponsor; the fighter\'s name goes on as shown. All funds go to keeping local kids engaged in the gym year round.</p></div>';
+  }
+  $("view").innerHTML=(S.error?'<div class="err">'+esc(S.error)+'</div>':'')+h;
+  var fs=$("fsearch");if(fs&&S.q)fs.focus();
+}
+function paintDetails(){
+  var f=S.form;
+  $("view").innerHTML=(S.error?'<div class="err">'+esc(S.error)+'</div>':'')+'<div class="card"><h3>Your details <span>for your receipt and artwork</span></h3>'
+   +'<label>Your name</label><input id="fName" type="text" autocomplete="name" placeholder="Full name" value="'+esc(f.name)+'" oninput="S_.form.name=this.value">'
+   +'<label>Business name</label><input id="fBiz" type="text" autocomplete="organization" placeholder="Business or brand" value="'+esc(f.business)+'" oninput="S_.form.business=this.value">'
+   +'<div class="two"><div><label>Email</label><input id="fEmail" type="email" autocomplete="email" inputmode="email" placeholder="name@business.com.au" value="'+esc(f.email)+'" oninput="S_.form.email=this.value"></div><div><label>Mobile</label><input id="fMob" type="tel" autocomplete="tel" inputmode="tel" placeholder="04…" value="'+esc(f.mobile)+'" oninput="S_.form.mobile=this.value"></div></div>'
+   +'<label>Your logo</label>'+logoHtml("details")
+   +(payLive()?'<div class="pay"><div class="lk">🔒</div><div><b>Pay securely on the next screen</b><small>You\'ll go to our Legacy Gym checkout (Shopify). Card, Apple Pay or Google Pay. Receipt emailed straight away.</small></div></div>'
+              :'<div class="pay"><div class="lk">☎</div><div><b>Nothing to pay right now</b><small>Hit Register and we\'ll send you a secure pay link and sort your artwork. Your spot is held.</small></div></div>')
+   +'<div style="margin-top:12px"><button class="btn" onclick="back()">‹ Change selection</button></div></div>'
+   +summaryCard();
+}
+function summaryCard(){var t=total(),f=fighter();return '<div class="card"><h3>Summary</h3>'+(S.kind==="kit"&&f?'<div class="row"><span>Fighter</span><b>'+esc(f.n)+'</b></div>':'')+picked().map(function(x){return '<div class="row"><span>'+esc(x.label)+'</span><b>'+money(x.price)+'</b></div>';}).join("")+'<div class="row tot"><div>Sponsorship total<small>all of it goes to kids\' training</small></div><b>'+money(t)+'</b></div></div>';}
+function paintDone(){
+  var r=S.result,t=total(),f=fighter(),paid=r&&r.paid;
+  var h='<div class="card"><div class="done"><div class="big">'+(paid?'PAID. THANK YOU':'YOU\'RE IN')+'</div><div class="ref">'+esc(r.ref)+'</div><div class="note">Your reference. '+(paid?'Your receipt is on its way to '+esc(S.form.email)+'.':'We\'ll be in touch at '+esc(S.form.email)+' or '+esc(S.form.mobile)+'.')+'</div>';
+  if(S.kind==="kit"&&f)h+='<div class="kitprev" style="margin-top:14px;text-align:left">'+kitHtml(f,S.sel,S.logo)+'</div><div class="kp-note" style="text-align:left">'+(S.logo?'This is what '+esc(f.first)+' walks out in. We send it to print.':S.logoPath?'Got your logo. It goes on exactly like this before print.':'Send us your logo when you\'re ready and it goes on before print.')+'</div>';
+  h+='<div class="kids" style="text-align:left;margin-top:14px"><b>Thank you</b><span>Your '+money(t)+' goes to keeping local kids engaged in the gym year round.</span></div></div></div>';
+  h+='<div class="card"><h3>What you\'ve '+(paid?'bought':'requested')+'</h3>'+(f?'<div class="row"><span>Fighter</span><b>'+esc(f.n)+'</b></div>':'')+picked().map(function(x){return '<div class="row"><span>'+esc(x.label)+'</span><b>'+money(x.price)+'</b></div>';}).join("")+'<div class="row tot"><span>Total</span><b>'+money(t)+'</b></div></div>';
+  h+='<div class="card"><h3>What happens next</h3>'
+   +(paid?'<div class="row"><div><b>1 · Receipt</b><small>From Legacy Gym via Shopify, to '+esc(S.form.email)+'.</small></div></div>':'<div class="row"><div><b>1 · We send your pay link</b><small>'+esc(S.form.name)+(S.form.business?' · '+esc(S.form.business):'')+' · '+esc(S.form.mobile||S.form.email)+'. Secure card payment, receipt emailed.</small></div></div>')
+   +'<div class="row"><div><b>2 · Logo</b><small>'+(S.logoPath?'Got it. We handle the artwork and printing.':'Send a high-res PNG, PDF or AI file and we handle the artwork and printing.')+'</small></div></div>'
+   +'<div class="row"><div><b>3 · Fight night · Sat 19 Dec</b><small>Your brand '+(S.kind==="kit"?'on '+esc(f?f.first:'the fighter')+'\'s kit':'in the ring')+' at Legacy Gym, Kincumber, and kids in the gym because of you.</small></div></div>'
+   +'<div style="margin-top:12px"><button class="btn" onclick="restart()">Sponsor something else</button></div></div>';
+  $("view").innerHTML=h;
+}
+function paintBar(){
+  var t=total(),p=picked();
+  $("barTotal").textContent=money(t);
+  $("barItems").textContent=p.length?p.map(function(x){return x.label;}).join(" · "):(S.kind==="kit"&&!S.fighter?"Pick your fighter first":"Nothing picked yet");
+  var go=$("barGo");
+  if(S.step===1){go.textContent="Continue";go.disabled=!canContinue();}
+  else if(S.step===2){go.textContent=S.busy?"Working…":(payLive()?"Pay "+money(t):"Register");go.disabled=S.busy;}
+  else{go.textContent="Done";go.disabled=true;}
+  $("bar").style.display=S.step>=3?"none":"";
+  var st=$("steps").children;for(var i=0;i<3;i++){st[i].className=S.step===i+1?"on":S.step>i+1?"done":"";}
+  var sg=$("seg").children;sg[0].className=S.kind==="ring"?"on":"";sg[1].className=S.kind==="kit"?"on":"";
+  $("seg").style.display=S.step===1?"":"none";
+}
+function paint(){({1:paintPick,2:paintDetails,3:paintDone})[S.step]();paintBar();heroFor();}
+
+window.S_=S;
+window.setKind=function(k){if(S.kind===k)return;S.kind=k;S.sel={};S.error="";if(k==="kit")loadFighters();paint();};
+function heroFor(){var im=$("heroImg");if(im){var want=S.kind==="kit"?"/img/fc/sponsor-fighter.jpg":"/img/fc/ring-sponsor.jpg?v=3";if(im.getAttribute("src")!==want)im.setAttribute("src",want);}}
+window.fsearch=function(v){S.q=v;var el=$("fres");if(el)el.innerHTML=fresHtml();};
+window.pickFighter=function(id){S.fighter=id;S.error="";paint();window.scrollTo(0,0);};
+window.clearFighter=function(){S.fighter=null;S.q="";S.sel={};paint();};
+window.toggle=function(id){var o=opts().find(function(x){return x.id===id;});if(!o||o.avail<1)return;
+  if(o.exclusive){var on=!S.sel[id];S.sel={};if(on)S.sel[id]=true;}
+  else{var ex=opts().find(function(x){return x.exclusive&&S.sel[x.id];});if(ex)return;S.sel[id]=!S.sel[id];}
+  paint();};
+window.setQty=function(id,n){S.qty[id]=n;paint();};
+window.back=function(){S.step=Math.max(1,S.step-1);S.error="";paint();window.scrollTo(0,0);};
+window.restart=function(){S.step=1;S.sel={};S.result=null;S.error="";S.fighter=null;S.q="";S.logo=null;S.logoName="";S.logoPath=null;paint();window.scrollTo(0,0);};
+window.next=async function(){
+  if(S.step===1){if(!canContinue())return;S.step=2;S.error="";paint();window.scrollTo(0,0);return;}
+  if(S.step===2){var f=S.form,bad=[];if(f.name.trim().split(/\s+/).length<2)bad.push("fName");if(!/^\S+@\S+\.\S+$/.test(f.email.trim()))bad.push("fEmail");if(!/^[\d\s+()-]{8,}$/.test(f.mobile.trim()))bad.push("fMob");
+    ["fName","fBiz","fEmail","fMob"].forEach(function(i){var el=$(i);if(el)el.classList.toggle("bad",bad.indexOf(i)>=0);});
+    if(bad.length){var el=$(bad[0]);if(el)el.focus();return;}
+    if(S.logo&&!S.logoPath&&S.logoUp==="Uploading…"){S.error="Your logo is still uploading, give it a second.";paint();return;}
+    S.busy=true;S.error="";paintBar();
+    try{
+      var r=await fetch(SB+"/rest/v1/rpc/fn_sponsor_request",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify({p_name:f.name.trim(),p_business:f.business.trim(),p_email:f.email.trim(),p_mobile:f.mobile.trim(),p_items:picked(),p_total_cents:total(),p_kind:S.kind,p_fighter_id:S.kind==="kit"?S.fighter:null,p_logo_path:S.logoPath,p_logo_name:S.logoPath?S.logoName:null,p_pay_mode:"request"})});
+      var j=await r.json();
+      if(!r.ok||!j||!j.ref){throw new Error((j&&(j.message||j.error))||"Couldn't save your request.");}
+      S.result=j;
+      try{sessionStorage.setItem("lg_sponsor",JSON.stringify({ref:j.ref,kind:S.kind,sel:S.sel,qty:S.qty,fighter:S.fighter,form:S.form,logo:S.logo&&S.logo.length<400000?S.logo:null,logoPath:S.logoPath,logoName:S.logoName}));}catch(e){}
+      var pay=null;
+      try{var c=await fetch(CHECKOUT,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({ref:j.ref,email:f.email.trim()})});pay=await c.json();}catch(e){pay=null;}
+      if(pay&&pay.ok&&pay.url){$("barGo").textContent="Opening secure checkout…";location.href=pay.url;return;}
+      S.result.nopay=true;
+      S.step=3;
+    }catch(e){S.error=e.message||String(e);}
+    S.busy=false;paint();window.scrollTo(0,0);
+  }
+};
+/* back from Shopify with ?paid=1&ref=… → thank-you screen */
+(function(){try{var u=new URLSearchParams(location.search);if(u.get("kind")==="kit")S.kind="kit";
+  if(u.get("paid")==="1"){var saved=JSON.parse(sessionStorage.getItem("lg_sponsor")||"null");if(!saved||(u.get("ref")&&saved.ref!==u.get("ref"))){S.result={ref:u.get("ref")||"",paid:true};S.form.email="your email";S.step=3;}else{S.kind=saved.kind;S.sel=saved.sel;S.qty=saved.qty||S.qty;S.fighter=saved.fighter;S.form=saved.form;S.logo=saved.logo;S.logoPath=saved.logoPath;S.logoName=saved.logoName;S.result={ref:saved.ref,paid:true};S.step=3;}}
+}catch(e){}})();
+if(S.kind==="kit")loadFighters();
+paint();
+})();
+</script>
+</body>
+</html>

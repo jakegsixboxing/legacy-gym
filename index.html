@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610142140";
+const LG_BUILD="202610151230";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -972,24 +972,31 @@ var SPON={tab:"info",rows:null,loading:false};
 function sponAdmin(){try{return !!(session&&session.user&&SPON_ADMINS.indexOf(session.user.id)>=0);}catch(e){return false;}}
 function sponMoney(c){return "$"+Math.round((c||0)/100).toLocaleString("en-AU");}
 function sponWhen(iso){try{return new Date(iso).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"});}catch(e){return "";}}
-async function sponLoad(){SPON.loading=true;try{const r=await sb.from("fn_sponsor_requests").select("*").order("created_at",{ascending:false});SPON.rows=r.error?[]:(r.data||[]);if(r.error)toast(r.error.message);}catch(e){SPON.rows=[];}SPON.loading=false;if(view==="sponsorship"&&SPON.tab==="new")renderSponsorship();}
+async function sponLoad(){SPON.loading=true;try{const r=await sb.from("fn_sponsor_requests").select("*").order("created_at",{ascending:false});SPON.rows=r.error?[]:(r.data||[]);if(r.error)toast(r.error.message);}catch(e){SPON.rows=[];}SPON.loading=false;if(view==="sponsorship"&&SPON.tab==="new")renderSponsorship();sponSignLogos();}
+var SPON_LOGO={};
+async function sponSignLogos(){const need=(SPON.rows||[]).filter(r=>r.logo_path&&!SPON_LOGO[r.logo_path]);if(!need.length)return;try{const r=await sb.storage.from("sponsor-logos").createSignedUrls(need.map(x=>x.logo_path),3600);(r.data||[]).forEach((u,i)=>{if(u&&u.signedUrl)SPON_LOGO[need[i].logo_path]=u.signedUrl;});}catch(e){}if(view==="sponsorship"&&SPON.tab==="new")renderSponsorship();}
+window.sponLogoDl=async function(path,name){try{const r=await sb.storage.from("sponsor-logos").createSignedUrl(path,600,{download:name||true});if(r.error)throw r.error;window.open(r.data.signedUrl,"_blank");}catch(e){toast("Couldn't fetch the logo: "+(e.message||e));}};
+function sponKitHtml(r){const last=(r.fighter_name||"").trim().split(/\s+/).pop()||"";const name=last.toUpperCase();const lc=name.length>9?" long":name.length>7?" mid":"";const pk=r.package||"";const sel={singlet:/singlet/.test(pk),trunks:/trunks/.test(pk),kit:/\bkit\b/.test(pk)};const any=sel.singlet||sel.trunks||sel.kit;const showS=!any||sel.singlet||sel.kit,showT=!any||sel.trunks||sel.kit;const logo=r.logo_path?SPON_LOGO[r.logo_path]:null;const z=c=>logo?`<div class="kz ${c} has"><img src="${logo}" alt=""></div>`:`<div class="kz ${c}"><span>Your logo <br>here</span></div>`;
+  return `<div class="kit"><img class="base" src="/img/fc/kit-base.jpg" alt=""><div class="kname sb${lc}">${esc(name)}</div>${z("sb")}<div class="kname tf${lc}">${esc(name)}</div>${z("tf")}${z("tb")}${z("tl")}${showS?"":'<div class="kdim top"><span>Singlet not included</span></div>'}${showT?"":'<div class="kdim bot"><span>Trunks not included</span></div>'}</div>`;}
+(function(){var c=document.createElement("style");c.textContent='.kit{position:relative;width:100%;container-type:inline-size;border-radius:10px;overflow:hidden;background:#2a2a2a}.kit .base{display:block;width:100%;height:auto}.kz{position:absolute;display:grid;place-items:center;transform:translate(-50%,-50%)}.kz span{font:700 1em/1 Oswald,Impact,"Arial Narrow",sans-serif;font-size:4.2cqw;line-height:.95;letter-spacing:.05cqw;text-transform:uppercase;color:#fff;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.6)}.kz.has img{width:100%;height:100%;object-fit:contain;opacity:.96;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}.kz.sb{left:70.9%;top:27.4%;width:20%;height:9%}.kz.tf{left:17.3%;top:83.8%;width:11.5%;height:5.6%;transform:translate(-50%,-50%) rotate(-5deg)}.kz.tf span,.kz.tl span{font-size:3.1cqw}.kz.tb{left:71.8%;top:57.8%;width:18%;height:3.8%}.kz.tb span{font-size:3.4cqw;white-space:nowrap}.kz.tb span br{display:none}.kz.tl{left:65%;top:83%;width:12.5%;height:5.6%;transform:translate(-50%,-50%) rotate(3deg)}.kname{position:absolute;transform:translate(-50%,-50%) skewX(-5deg);font:700 1em/1 Oswald,Impact,"Arial Narrow",sans-serif;color:#ff2d8f;text-transform:uppercase;white-space:nowrap;letter-spacing:.1cqw;text-shadow:0 1px 2px rgba(0,0,0,.7)}.kname.sb{left:70.9%;top:16.8%;font-size:5.2cqw}.kname.tf{left:30%;top:58%;font-size:4.8cqw}.kname.mid{font-size:4.6cqw}.kname.tf.mid{font-size:4.2cqw}.kname.long{font-size:3.8cqw}.kname.tf.long{font-size:3.4cqw}.kdim{position:absolute;left:0;right:0;background:rgba(10,9,8,.78);display:grid;place-items:center}.kdim.top{top:0;height:52%}.kdim.bot{top:52%;bottom:0}.kdim span{font:800 2.4cqw Montserrat,sans-serif;letter-spacing:.3cqw;text-transform:uppercase;color:#9a958a;border:1px solid #3a3320;border-radius:99px;padding:.8cqw 2cqw;background:#0b0b0c}.sponLg{width:52px;height:52px;border-radius:11px;background:#fff;display:grid;place-items:center;overflow:hidden;flex:none}.sponLg img{width:100%;height:100%;object-fit:contain;padding:4px}.sponLg.none{background:#1a1712;border:1px dashed #4a3f22;color:#6a6050;font:800 8px Montserrat,sans-serif;text-align:center;letter-spacing:.5px;text-transform:uppercase;line-height:1.2;padding:4px}';document.head.appendChild(c);})();
 window.sponTab=function(t){SPON.tab=t;if(t==="new"&&!SPON.rows)sponLoad();renderSponsorship();window.scrollTo(0,0);};
 window.sponStatus=async function(id,st){const r=await sb.from("fn_sponsor_requests").update({status:st}).eq("id",id);if(r.error){toast(r.error.message);return;}await sponLoad();};
 function sponNewHtml(){
   const rows=SPON.rows;
   if(!rows)return `<div class="card" style="padding:18px;text-align:center;color:var(--muted)">Loading…</div>`;
-  if(!rows.length)return `<div class="card" style="padding:18px;text-align:center;color:var(--muted)">Nobody has registered yet. When someone fills in the ring sponsorship page they'll show up here.</div>`;
+  if(!rows.length)return `<div class="card" style="padding:18px;text-align:center;color:var(--muted)">Nobody has registered yet. When someone fills in the sponsorship page (ring or fighter kit) they'll show up here, with their logo.</div>`;
   const ST={requested:["New",  "#39FF88","#0f2019","#2d5d4e"],contacted:["Contacted","#f5b942","#2b2418","#6b5520"],paid:["Paid","#9fc0ff","#13203a","#2b3f66"],declined:["Not going ahead","#9a9891","#1a1a1e","#3a3a40"]};
   const fresh=rows.filter(r=>r.status==="requested").length;
   return `<div style="font-size:12px;color:var(--muted);margin:0 2px 10px">${rows.length} registered · ${fresh} new to call. Only you and Ali can see this.</div>`+rows.map(r=>{const st=ST[r.status]||ST.requested;const items=(r.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid #1f1b12"><span>${esc(i.label||i.id)}</span><b>${sponMoney(i.price)}</b></div>`).join("");
     return `<div class="card" style="padding:14px;margin-bottom:10px;border:1px solid ${r.status==="requested"?"var(--gold)":"#2a261c"}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
-        <div><div style="font-weight:900;font-size:16px">${esc(r.business||r.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(r.name)}${r.business?" · "+esc(r.business):""}</div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start"><div class="sponLg${r.logo_path&&SPON_LOGO[r.logo_path]?"":" none"}">${r.logo_path&&SPON_LOGO[r.logo_path]?`<img src="${SPON_LOGO[r.logo_path]}" alt="">`:(r.logo_path?"Logo…":"No logo yet")}</div><div><div style="font-weight:900;font-size:16px">${esc(r.business||r.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(r.name)}${r.business?" · "+esc(r.business):""}</div><div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-top:4px;color:${r.kind==="kit"?"#ff2d8f":"var(--gold)"}">${r.kind==="kit"?"Fighter kit · "+esc(r.fighter_name||"fighter?"):"Ring"}</div></div></div>
         <span style="font-size:9.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:4px 8px;border-radius:99px;border:1px solid ${st[3]};color:${st[1]};background:${st[2]};white-space:nowrap">${st[0]}</span></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 6px"><a href="tel:${esc(r.mobile)}" style="color:var(--gold);text-decoration:none;font-weight:800;font-size:13px">&#9742; ${esc(r.mobile||"no mobile")}</a><a href="mailto:${esc(r.email)}" style="color:var(--gold);text-decoration:none;font-weight:800;font-size:13px">&#9993; ${esc(r.email)}</a></div>
       <div style="margin-top:6px">${items}<div style="display:flex;justify-content:space-between;font-size:14px;padding:8px 0 0"><span>Total</span><b style="color:var(--gold)">${sponMoney(r.total_cents)}</b></div></div>
-      <div style="font-size:10.5px;color:var(--muted);margin-top:6px">${esc(r.ref)} · ${sponWhen(r.created_at)}</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${r.status!=="contacted"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'contacted')">Contacted</button>`:""}${r.status!=="paid"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'paid')">Paid</button>`:""}${r.status!=="requested"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'requested')">Back to new</button>`:""}${r.status!=="declined"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px;color:#ff8c98" onclick="sponStatus(${r.id},'declined')">Not going ahead</button>`:""}</div>
+      ${r.kind==="kit"?`<div style="border:1px solid #2a261c;border-radius:12px;background:#0d0b07;padding:5px;margin-top:8px;max-width:300px">${sponKitHtml(r)}</div>`:""}
+      <div style="font-size:10.5px;color:var(--muted);margin-top:6px">${esc(r.ref)} · ${sponWhen(r.created_at)}${r.shopify_order?` · <b style="color:#9fc0ff">Shopify order ${esc(r.shopify_order)}</b>`:(r.pay_mode==="shopify"&&r.status!=="paid"?" · went to checkout, not paid yet":"")}${r.paid_at?" · paid "+sponWhen(r.paid_at):""}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${r.logo_path?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponLogoDl('${esc(r.logo_path)}','${esc((r.business||r.name||"sponsor").replace(/[^A-Za-z0-9 _-]/g,""))}-logo.${esc((r.logo_path.split(".").pop()||"png"))}')">Download logo</button>`:""}${r.status!=="contacted"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'contacted')">Contacted</button>`:""}${r.status!=="paid"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'paid')">Paid</button>`:""}${r.status!=="requested"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px" onclick="sponStatus(${r.id},'requested')">Back to new</button>`:""}${r.status!=="declined"?`<button class="sponBtn" style="padding:8px 11px;font-size:11px;color:#ff8c98" onclick="sponStatus(${r.id},'declined')">Not going ahead</button>`:""}</div>
     </div>`;}).join("");
 }
 function renderSponsorship(){
@@ -1009,10 +1016,15 @@ function renderSponsorship(){
       <div class="heroTitle">Sponsorship</div>
       <div class="heroText">Put your business in the ring on Fight Night, Sat 19 Dec. Every dollar of ring sponsorship funds training at Legacy for local kids who can&rsquo;t afford it.</div>
     </div>
-    <a class="homeCard" href="/ring-sponsor" target="_blank" rel="noopener" style="${bgStyle('boxing',.55)};text-decoration:none;display:block;border:1px solid var(--gold)">
+    <a class="homeCard" href="/sponsor" target="_blank" rel="noopener" style="${bgStyle('boxing',.55)};text-decoration:none;display:block;border:1px solid var(--gold)">
       <div class="hcKicker">Fight Night Ring &middot; All Proceeds To Local Kids</div>
       <div class="hcTitle">Sponsor The Fight Night Ring</div>
-      <div class="hcSub">Centre canvas, canvas corners, corner pads, a side skirt, the ropes, or the whole ring. Pick what you want, leave your details, and we call you for your logo and payment. 100% goes to kids who can&rsquo;t afford to train.</div>
+      <div class="hcSub">Centre canvas, canvas corners, corner pads, a side skirt, the ropes, or the whole ring. Pick what you want, add your logo, and you&rsquo;re in. 100% goes to kids who can&rsquo;t afford to train.</div>
+    </a>
+    <a class="homeCard" href="/sponsor?kind=kit" target="_blank" rel="noopener" style="${bgStyle('boxing',.55)};text-decoration:none;display:block;border:1px solid #ff2d8f">
+      <div class="hcKicker" style="color:#ff2d8f">Sponsor A Fighter &middot; Singlet $250 &middot; Trunks $250 &middot; Full Kit $450</div>
+      <div class="hcTitle">Your Logo On Their Fight Kit</div>
+      <div class="hcSub">Type your fighter&rsquo;s name, drop your logo in and see it on the real kit straight away, with their name already on. Centre ring in front of hundreds of people. All funds go to keeping local kids training year round.</div>
     </a>
     <a class="homeCard" href="/sarsha-mcgurk" target="_blank" rel="noopener" style="${bgStyle('social',.55)};text-decoration:none;display:block">
       <div class="hcKicker">Pro Boxer &middot; Year-Round Partnerships</div>
@@ -1021,7 +1033,7 @@ function renderSponsorship(){
     </a>
     <div class="card" style="margin-top:14px;text-align:center;padding:18px">
       <div style="font-weight:900;letter-spacing:3px;color:var(--gold);font-size:11px;text-transform:uppercase">How it works</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6">Ring sponsorship: pick your spots, leave your name, business, email and mobile, and we call you for your logo and payment. Pro boxer: choose a package and we call you back to confirm.</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6">Ring or fighter kit: pick what you want, add your logo and your details, and pay securely or we send you a pay link. Pro boxer: choose a package and we call you back to confirm.</div>
     </div>`;
 }
 function timetableCountdownHtml(){
