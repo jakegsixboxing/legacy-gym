@@ -39,5 +39,11 @@
       "source": "/coaches-alison",
       "destination": "/pt-alison"
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/fn-ticket-email",
+      "destination": "/api/fightnight?a=ticket-email"
+    }
   ]
 }
