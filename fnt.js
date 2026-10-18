@@ -228,12 +228,14 @@ window.fntEnter=function(){if(!isAdmin()){T("Not for you, sorry.");return;}go("f
 /* ---------- hooks ---------- */
 var _render=window.render;window.render=function(){if(view==="fntix"){var m=$id("main");if(m&&!S.loaded)m.innerHTML='<div class="loadingDots">Opening Fight Night Tickets…</div>';load().then(paint);return;}return _render.apply(this,arguments);};
 function homeCard(){
-  if(view!=="home"||!isAdmin())return;var m=$id("main");if(!m||$id("fntHome"))return;
+  var ex=$id("fntHome");
+  if(!isAdmin()){if(ex&&ex.parentNode)ex.parentNode.removeChild(ex);return;} /* never leave it on screen for anyone else */
+  if(view!=="home")return;var m=$id("main");if(!m||ex)return;
   var b=document.createElement("button");b.id="fntHome";b.onclick=window.fntEnter;
   b.innerHTML='<img src="'+LOGO+'" alt=""><div><div class="k">Fight Club · Sat 19 Dec · 20% pre-release</div><div class="t">Fight Night Tickets</div><div class="s">Who\'s registered, who they\'re backing · Jake, Alison &amp; Joe</div></div><span class="a">Open ›</span>';
   var hq=$id("fnxHome");if(hq){hq.insertAdjacentElement("afterend",b);return;}
   var root=$id("lgh2");if(root)root.insertAdjacentElement("afterbegin",b);else{var first=m.querySelector(".homeCard");if(first)first.insertAdjacentElement("beforebegin",b);else m.insertAdjacentElement("afterbegin",b);}
 }
 var _home=window.renderHome;if(typeof _home==="function"){window.renderHome=function(){var r=_home.apply(this,arguments);try{homeCard();setTimeout(homeCard,150);setTimeout(homeCard,700);}catch(e){}return r;};}
-setInterval(function(){try{if(view==="home")homeCard();}catch(e){}},1500);
+setInterval(function(){try{homeCard();}catch(e){}},1500); /* also sweeps the card away if the signed-in person is not allowed it */
 })();

@@ -380,11 +380,13 @@ window.fnxEnter=function(){if(!isAdmin()){T("Not for you, sorry.");return;}go("f
 /* ---------- hooks ---------- */
 var _render=window.render;window.render=function(){if(view==="fightnight"){var m=$id("main");if(m&&!S.loaded)m.innerHTML='<div class="loadingDots">Opening Fight Night…</div>';load().then(function(){ensureQr(paint);});return;}if(S.door.scanning)stopCam();return _render.apply(this,arguments);};
 function homeCard(){
-  if(view!=="home"||!isAdmin())return;var m=$id("main");if(!m||$id("fnxHome"))return;
+  var ex=$id("fnxHome");
+  if(!isAdmin()){if(ex&&ex.parentNode)ex.parentNode.removeChild(ex);return;} /* never leave it on screen for anyone else */
+  if(view!=="home")return;var m=$id("main");if(!m||ex)return;
   var b=document.createElement("button");b.id="fnxHome";b.onclick=window.fnxEnter;
   b.innerHTML='<img src="'+LOGO+'" alt=""><div><div class="k">Fight Night HQ · Sat 19 Dec</div><div class="t">Tickets, sellers, door, money &amp; suppliers</div><div class="s">Staff only · Jake, Alison, Kelly</div></div><span class="a">Open ›</span>';
   var root=$id("lgh2");if(root)root.insertAdjacentElement("afterbegin",b);else{var first=m.querySelector(".homeCard");if(first)first.insertAdjacentElement("beforebegin",b);else m.insertAdjacentElement("afterbegin",b);}
 }
 var _home=window.renderHome;if(typeof _home==="function"){window.renderHome=function(){var r=_home.apply(this,arguments);try{homeCard();setTimeout(homeCard,120);setTimeout(homeCard,600);}catch(e){}return r;};}
-setInterval(function(){try{if(view==="home")homeCard();}catch(e){}},1500);
+setInterval(function(){try{homeCard();}catch(e){}},1500); /* also sweeps the card away if the signed-in person is not allowed it */
 })();
