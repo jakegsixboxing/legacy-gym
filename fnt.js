@@ -5,6 +5,8 @@
 "use strict";
 var ADMINS=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce","8ddade7e-691b-4c56-9f8d-8594a1c9755f"]; /* Jake, Alison, Joe */
 function isAdmin(){try{return !!(session&&session.user&&ADMINS.indexOf(session.user.id)>=0);}catch(e){return false;}}
+var BOSS=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* Jake, Alison: the sixty */
+function isBoss(){try{return !!(session&&session.user&&BOSS.indexOf(session.user.id)>=0);}catch(e){return false;}}
 var $id=function(i){return document.getElementById(i);};
 var T=function(m){try{toast(m);}catch(e){}};
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];});}
@@ -17,7 +19,7 @@ var SEAT={ga:"Standing GA",table:"Bar table & stools",catered:"Catered table"};
 function money(c){return "$"+((c||0)/100).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2}).replace(/\.00$/,"");}
 function dollars(c){return "$"+Math.round((c||0)/100).toLocaleString();}
 
-var S={loaded:false,busy:false,tally:null,rows:[],q:"",fighter:"all",seat:"all",only:"all",open:{},tab:"list",setOpen:false};
+var S={loaded:false,busy:false,tally:null,rows:[],q:"",fighter:"all",seat:"all",only:"all",open:{},tab:"pub",setOpen:false,mem:null};
 
 /* ---------- CSS (Fight Club blue & white) ---------- */
 var css=document.createElement("style");css.textContent=
@@ -40,6 +42,7 @@ var css=document.createElement("style");css.textContent=
 +".fnt .al{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:11px 12px;margin-bottom:8px}.fnt .al .h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.fnt .al b{font:600 15px Oswald,sans-serif;text-transform:uppercase;color:#fff}.fnt .al .n{font:700 15px Oswald,sans-serif;color:var(--c2);white-space:nowrap}.fnt .al .n.full{color:var(--amber)}.fnt .al .bar{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden;margin-top:7px}.fnt .al .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--c),var(--c2))}.fnt .al small{display:block;font-size:10.5px;color:var(--mute);margin-top:6px}"
 +".fnt .sz{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}.fnt .sz div{border:1px solid var(--line);border-radius:9px;padding:7px 4px;text-align:center;background:var(--panel2)}.fnt .sz small{display:block;font-size:8.5px;letter-spacing:1px;color:var(--mute);font-weight:800}.fnt .sz b{display:block;font:700 16px Oswald,sans-serif;color:#fff;margin-top:2px}"
 +".fnt .set{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.fnt .set label{display:block;font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:800;margin-bottom:4px}.fnt .set input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 10px;color:#fff;font:700 14px Montserrat,sans-serif;outline:none}.fnt .set input:focus{border-color:var(--c)}"
++".fnt .tabsx{display:flex;gap:4px;padding:4px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;margin-bottom:11px}.fnt .tabsx button{flex:1;border:0;background:transparent;color:var(--mute);border-radius:9px;padding:10px 4px;font:600 11px/1.2 Oswald,sans-serif;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;font-family:Oswald,sans-serif}.fnt .tabsx button.on{background:var(--c);color:#03141c}"
 +".fnt .warnp{border:1px solid #5a3a12;background:#1b1308;border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:11.5px;color:#e8dcc2;line-height:1.5}.fnt .warnp b{color:var(--amber)}"
 +"#fntHome{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:linear-gradient(90deg,#0b2a38,#07141b);border:1px solid #1fb6e6;border-radius:12px;padding:12px 14px;margin:0 0 11px;color:#f2f0eb;cursor:pointer;font-family:inherit;box-shadow:0 0 0 1px rgba(31,182,230,.15)}#fntHome img{height:40px;flex:none}#fntHome .k{font-size:7.5px;font-weight:800;letter-spacing:2px;color:#1fb6e6;text-transform:uppercase}#fntHome .t{font-family:Oswald,sans-serif;font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;line-height:1.1;margin-top:2px;color:#fff}#fntHome .s{font-size:10.5px;color:#8fa4ae;margin-top:2px}#fntHome .a{margin-left:auto;color:#7fe0ff;font-weight:800;font-size:12px;flex:none}";
 document.head.appendChild(css);
@@ -48,6 +51,7 @@ document.head.appendChild(css);
 async function load(){if(!isAdmin())return;S.busy=true;try{
   var a=await sb.rpc("fn_presale_tally");if(a.error)T(a.error.message);S.tally=a.data||null;
   var r=await sb.from("fn_presale").select("*").neq("status","removed").order("created_at",{ascending:false}).limit(2000);if(r.error)T(r.error.message);S.rows=r.data||[];
+  if(isBoss()){var m=await sb.rpc("fn_members_tally");if(!m.error)S.mem=m.data||null;}
  }catch(e){T("Couldn't load the list.");}S.busy=false;S.loaded=true;}
 
 function link(slug){return APP+"/fightnight"+(slug?"/"+slug:"");}
@@ -58,6 +62,54 @@ function filtered(){var q=S.q.trim().toLowerCase();return S.rows.filter(function
   if(S.only==="u18"&&!r.u18)return false;if(S.only==="msg"&&!r.message)return false;if(S.only==="song"&&!r.song)return false;
   if(q&&[r.full_name,r.email,r.mobile,r.fighter_name,r.message,r.song,r.ref].join(" ").toLowerCase().indexOf(q)<0)return false;
   return true;});}
+
+/* ---------- the sixty (Jake + Alison only) ---------- */
+function tabsHtml(){if(!isBoss())return "";
+ return '<div class="tabsx"><button class="'+(S.tab==="pub"?"on":"")+'" onclick="fntTab(\'pub\')">Public pre-sale</button>'
+ +'<button class="'+(S.tab==="mem"?"on":"")+'" onclick="fntTab(\'mem\')">The sixty</button></div>';}
+function memHtml(){var m=S.mem;
+ if(!m)return '<div class="empty">Loading the members\' room…</div>';
+ var cap=m.cap||60,held=m.held||0,left=Math.max(0,cap-held),pct=Math.min(100,Math.round(held/Math.max(1,cap)*100));
+ var rows=(m.rows||[]).filter(function(r){return r.status==="held";});
+ var dec=(m.rows||[]).filter(function(r){return r.status==="declined";}).length;
+ return '<div class="lock">🔒 You and Alison only. Joe sees the public pre-sale, not this.</div>'
+ +'<div class="kp"><div><small>Spots held</small><b class="c">'+held+'</b></div><div><small>Plus ones</small><b>'+(m.guests||0)+'</b></div><div><small>Today</small><b class="g">'+(m.today||0)+'</b></div><div><small>Said no</small><b>'+dec+'</b></div></div>'
+ +'<div class="share" style="background:linear-gradient(160deg,#0b2a38,#07141b)"><div class="k">The room</div>'
+ +'<div style="font:700 30px/1 Oswald,sans-serif;margin-top:5px">'+held+'<span style="font:700 13px Montserrat,sans-serif;color:var(--mute);margin-left:6px">of '+cap+' · '+left+' left</span></div>'
+ +'<div class="bar2" style="height:8px;border-radius:4px;background:var(--panel2);overflow:hidden;margin-top:9px"><i style="display:block;height:100%;width:'+pct+'%;background:linear-gradient(90deg,var(--c),var(--c2))"></i></div>'
+ +'<p style="color:var(--amber);font-weight:700;margin-top:8px">Members never see this. Their card only says there are '+cap+' spots.</p>'
+ +'<p>'+(held+(m.guests||0))+' heads with plus ones.'+(m.until?' Offer stops showing after '+dmy(m.until)+'.':'')+(m.open?'':' <b style="color:var(--amber)">Room is closed.</b>')+'</p>'
+ +'<div class="btns"><button class="b" onclick="memCsv()">Export the list</button><button class="b" onclick="memMobiles()">Copy mobiles</button>'
+ +'<button class="b" onclick="memCap()">Set the number</button>'
+ +'<button class="b '+(m.open?"r":"p")+'" onclick="memToggle()">'+(m.open?"Close the room":"Open it back up")+'</button></div></div>'
+ +'<div class="sec"><b>Who\'s in</b><small>newest first</small></div>'
+ +(rows.length?rows.map(memRow).join(""):'<div class="empty">Nobody yet. It shows the next time a member opens the app.</div>');}
+function memRow(r){
+ var since="";try{since=r.member_since?new Date(r.member_since).toLocaleDateString("en-AU",{month:"short",year:"numeric"}):"";}catch(e){}
+ return '<div class="row"><div class="top"><div><div class="nm">'+esc(r.full_name||"(no name on profile)")+'</div>'
+ +'<div class="ft">'+(r.guest?"Holding two · them and a guest":"Just them")+'</div></div>'
+ +'<div class="tm">'+when(r.created_at)+'</div></div>'
+ +'<div class="meta">'+(r.mobile?'<a href="tel:'+esc(String(r.mobile).replace(/\s/g,""))+'">'+esc(r.mobile)+'</a>':'no mobile')+(r.email?' · <a href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a>':'')+'</div>'
+ +'<div>'+(r.membership?'<span class="tag s">'+esc(r.membership)+'</span>':'')+(since?'<span class="tag">Member since '+esc(since)+'</span>':'')+'</div>'
+ +'<div class="btns" style="margin-top:8px">'+(r.mobile?'<a class="b sm" style="text-decoration:none" href="sms:'+esc(String(r.mobile).replace(/\s/g,""))+'">Text</a>':'')+'<button class="b sm r" onclick="memRemove('+r.id+')">Remove</button></div></div>';}
+window.fntTab=function(t){S.tab=t;paint();window.scrollTo(0,0);};
+window.memCap=async function(){var m=S.mem||{};var v=prompt("How many spots in the members' room?",String(m.cap||60));if(v===null)return;
+ var n=parseInt(v,10);if(isNaN(n)||n<1||n>500)return T("Enter a number between 1 and 500.");
+ var r=await sb.rpc("fn_members_set",{p:{members_cap:n}});if(r.error)return T(r.error.message);T("Room set to "+n+".");await load();paint();};
+window.memToggle=async function(){var m=S.mem||{};var open=!m.open;
+ if(!open&&!confirm("Close the room? The offer stops showing to members straight away."))return;
+ var r=await sb.rpc("fn_members_set",{p:{members_open:open}});if(r.error)return T(r.error.message);T(open?"Open again.":"Room closed.");await load();paint();};
+window.memRemove=async function(id){var m=S.mem||{};var row=(m.rows||[]).find(function(x){return x.id===id;});
+ if(!row||!confirm("Take "+(row.full_name||"them")+" out of the room? That frees the spot."))return;
+ var r=await sb.from("fn_members").update({status:"removed"}).eq("id",id);if(r.error)return T(r.error.message);
+ T("Removed.");await load();paint();};
+window.memMobiles=async function(){var m=S.mem||{};var L=(m.rows||[]).filter(function(r){return r.status==="held"&&r.mobile;}).map(function(r){return String(r.mobile).replace(/\s/g,"");});
+ var s0=Array.from(new Set(L)).join(", ");try{await navigator.clipboard.writeText(s0);T(L.length+" mobiles copied.");}catch(e){prompt("Copy:",s0);}};
+window.memCsv=function(){var m=S.mem||{};var L=(m.rows||[]).filter(function(r){return r.status!=="removed";});
+ var H=["status","name","mobile","email","membership","member_since","plus_one","held_at"];
+ var lines=[H.join(",")].concat(L.map(function(r){return [r.status,r.full_name||"",r.mobile||"",r.email||"",r.membership||"",r.member_since||"",r.guest?"yes":"no",r.created_at].map(function(v){v=String(v==null?"":v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(",");}));
+ var b=new Blob(["\ufeff"+lines.join("\n")],{type:"text/csv;charset=utf-8"});var a=document.createElement("a");a.href=URL.createObjectURL(b);
+ a.download="fight-night-members-"+new Date().toISOString().slice(0,10)+".csv";document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},500);};
 
 /* ---------- blocks ---------- */
 function st(){return (S.tally&&S.tally.settings)||{};}
@@ -101,12 +153,20 @@ function shirtRunHtml(t){var s0=st(),sz=t.sizes||{},th=s0.shirt_threshold||5;
 /* ---------- paint ---------- */
 function paint(){var m=$id("main");if(!m||view!=="fntix")return;
  if(!isAdmin()){m.innerHTML='<div class="fnt"><button class="back" onclick="go(\'home\')">‹ Home</button><div class="empty">Not for you, sorry.</div></div>';return;}
+ if(S.tab==="mem"&&isBoss()){
+   m.innerHTML='<div class="fnt"><button class="back" onclick="go(\'home\')">‹ Home</button>'
+   +'<div class="hd"><img src="'+LOGO+'" alt=""><div><div class="k">Fight Club · Sat 19 Dec · members</div><div class="t">The <span>sixty</span></div><div class="s">The members\' room. Ringside, private bar, plus ones.</div></div></div>'
+   +tabsHtml()+memHtml()+'</div>';
+   return;
+ }
+ if(S.tab==="mem"&&!isBoss())S.tab="pub";
  var t=S.tally||{},bf=(t.by_fighter||[]),max=Math.max.apply(null,[1].concat(bf.map(function(x){return x.n;})));
  var L=filtered();
  var fighters=Array.from(new Set(S.rows.map(function(r){return r.fighter_name;}).filter(Boolean))).sort();
  m.innerHTML='<div class="fnt">'
  +'<button class="back" onclick="go(\'home\')">‹ Home</button>'
  +'<div class="hd"><img src="'+LOGO+'" alt=""><div><div class="k">Fight Club · Sat 19 Dec · pre-release</div><div class="t">Fight Night <span>Tickets</span></div><div class="s">Who\'s registered for 20% off, who they\'re backing, and what they want.</div></div></div>'
+ +tabsHtml()
  +'<div class="lock">🔒 Jake, Alison and Joe only. Guests only ever see their own registration.</div>'
  +'<div class="share"><div class="k">The public link · share it anywhere</div><div class="u">'+link()+'</div><p>Anyone can open it, no login. A fighter\'s own link (below) opens with that fighter already picked and shows their face in the preview.</p>'
  +'<div class="btns"><button class="b p" onclick="fntCopy(\''+link()+'\')">Copy link</button><button class="b" onclick="fntShare(\''+link()+'\')">Share…</button><a class="b" href="'+link()+'" target="_blank" rel="noopener" style="text-decoration:none">Open page</a><button class="b" onclick="fntReload()">'+(S.busy?'Loading…':'Refresh')+'</button></div></div>'
