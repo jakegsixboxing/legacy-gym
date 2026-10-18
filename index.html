@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610181050";
+const LG_BUILD="202610181120";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -962,8 +962,7 @@ function renderHome(){
   updateBadges();
 startTimetableCountdown();
 startSpringCountdown();
-  t10MaybePopup();
-  reviewMaybePopup();
+  /* t10MaybePopup(); reviewMaybePopup(); — all pop-ups on open switched off (Jake, 18 Oct 2026) */
 }
 /* ---- Sponsorship hub (Fight Night ring for local kids + Sponsor A Pro Boxer) ---- */
 var SPON_ADMINS=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* Jake, Alison: the only two who see New sponsors */
@@ -10947,8 +10946,10 @@ async function alreadyOffered(){
   return RC.already;
 }
 function closeRC(){var w=document.getElementById("rcOvWrap");if(w)w.remove();RC.busy=false;}
+var RECOVERY_OFFER_ON=false; /* post-booking free-week recovery offer switched off (Jake, 18 Oct 2026) — flip to true to bring it back */
 window.maybeOfferRecovery=async function(className,classTime){
   try{
+    if(!RECOVERY_OFFER_ON)return;
     if(!session||!session.user||RC.busy)return;
     if(await alreadyOffered())return;
     RC.busy=true;
@@ -11098,7 +11099,7 @@ try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(
 <script src="/fcprofile.js?v=202610122000"></script>
 <script src="/fcrec.js?v=202610120540"></script>
 <script src="/podcast.js?v=202610181050"></script>
-<script src="/popup.js?v=202610121815"></script>
+<script src="/popup.js?v=202610181120"></script>
 <script src="/screens.js?v=202610131530"></script>
 <script src="/fightnight.js?v=202610141600"></script>
 <script src="/bluebook-rules.js?v=202610141200"></script>

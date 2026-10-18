@@ -3,7 +3,7 @@
    devices (counted in public.app_popup_views against their login). Tapping the buy button ends it early.
    To run a new promo: change POP.id, img, url, label. To retire it: set POP.until to a past date. */
 (function(){
-var POP={id:"singlet-drop-2026-10",img:"/singlet-drop.jpg",url:"https://www.legacygym.net/products/legacy-training-club-singlet",label:"Grab mine — $39.99 ›",tag:"New drop",max:2,until:"2026-11-08",delay:900};
+var POP={id:"singlet-drop-2026-10",img:"/singlet-drop.jpg",url:"https://www.legacygym.net/products/legacy-training-club-singlet",label:"Grab mine — $39.99 ›",tag:"New drop",max:2,until:"2026-10-17",delay:900}; /* retired 18 Oct 2026 (Jake: no pop-ups on open). To run a new promo set a future date. */
 var S={row:null,loaded:false,shownThisLoad:false};
 var css='.lgPop{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px;animation:lgPopIn .25s ease-out}'
 +'@keyframes lgPopIn{from{opacity:0}to{opacity:1}}'
