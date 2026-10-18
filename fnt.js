@@ -9,12 +9,15 @@ var $id=function(i){return document.getElementById(i);};
 var T=function(m){try{toast(m);}catch(e){}};
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];});}
 function when(iso){if(!iso)return "";return new Date(iso).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"});}
+function dmy(d){if(!d)return "";var x=String(d).slice(0,10).split("-");return x.length===3?x[2]+"/"+x[1]+"/"+x[0]:d;}
 function slugOf(n){return String(n||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");}
 var APP="https://legacygym-app.vercel.app";
 var LOGO=APP+"/img/fc/fc-logo.png";
 var SEAT={ga:"Standing GA",table:"Bar table & stools",catered:"Catered table"};
+function money(c){return "$"+((c||0)/100).toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2}).replace(/\.00$/,"");}
+function dollars(c){return "$"+Math.round((c||0)/100).toLocaleString();}
 
-var S={loaded:false,busy:false,tally:null,rows:[],q:"",fighter:"all",seat:"all",only:"all",open:{}};
+var S={loaded:false,busy:false,tally:null,rows:[],q:"",fighter:"all",seat:"all",only:"all",open:{},tab:"list",setOpen:false};
 
 /* ---------- CSS (Fight Club blue & white) ---------- */
 var css=document.createElement("style");css.textContent=
@@ -33,6 +36,11 @@ var css=document.createElement("style");css.textContent=
 +".fnt .tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 8px;font-size:10px;font-weight:800;letter-spacing:.5px;color:#cfd8dc;margin:6px 4px 0 0}.fnt .tag.u{border-color:var(--amber);color:var(--amber)}.fnt .tag.s{border-color:var(--c);color:var(--c2)}"
 +".fnt .q{margin-top:8px;border-left:3px solid var(--c);padding:6px 10px;background:rgba(31,182,230,.07);border-radius:0 8px 8px 0;font-size:12.5px;color:#fff;line-height:1.45}.fnt .q small{display:block;color:var(--mute);font-size:10px;margin-top:3px;font-weight:700;letter-spacing:1px;text-transform:uppercase}"
 +".fnt .empty{text-align:center;color:var(--mute);font-size:12.5px;padding:24px 10px;border:1px dashed var(--line);border-radius:12px}"
++".fnt .mny{border:1px solid var(--green);border-radius:14px;padding:12px;background:rgba(57,255,136,.06);margin-bottom:12px}.fnt .mny .k{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--green);font-weight:800}.fnt .mny b{display:block;font:700 30px/1 Oswald,sans-serif;color:#fff;margin-top:6px}.fnt .mny small{display:block;font-size:11px;color:#cfd8dc;margin-top:5px;line-height:1.5}"
++".fnt .al{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:11px 12px;margin-bottom:8px}.fnt .al .h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.fnt .al b{font:600 15px Oswald,sans-serif;text-transform:uppercase;color:#fff}.fnt .al .n{font:700 15px Oswald,sans-serif;color:var(--c2);white-space:nowrap}.fnt .al .n.full{color:var(--amber)}.fnt .al .bar{height:6px;border-radius:3px;background:var(--panel2);overflow:hidden;margin-top:7px}.fnt .al .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--c),var(--c2))}.fnt .al small{display:block;font-size:10.5px;color:var(--mute);margin-top:6px}"
++".fnt .sz{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}.fnt .sz div{border:1px solid var(--line);border-radius:9px;padding:7px 4px;text-align:center;background:var(--panel2)}.fnt .sz small{display:block;font-size:8.5px;letter-spacing:1px;color:var(--mute);font-weight:800}.fnt .sz b{display:block;font:700 16px Oswald,sans-serif;color:#fff;margin-top:2px}"
++".fnt .set{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.fnt .set label{display:block;font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute);font-weight:800;margin-bottom:4px}.fnt .set input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 10px;color:#fff;font:700 14px Montserrat,sans-serif;outline:none}.fnt .set input:focus{border-color:var(--c)}"
++".fnt .warnp{border:1px solid #5a3a12;background:#1b1308;border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:11.5px;color:#e8dcc2;line-height:1.5}.fnt .warnp b{color:var(--amber)}"
 +"#fntHome{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:linear-gradient(90deg,#0b2a38,#07141b);border:1px solid #1fb6e6;border-radius:12px;padding:12px 14px;margin:0 0 11px;color:#f2f0eb;cursor:pointer;font-family:inherit;box-shadow:0 0 0 1px rgba(31,182,230,.15)}#fntHome img{height:40px;flex:none}#fntHome .k{font-size:7.5px;font-weight:800;letter-spacing:2px;color:#1fb6e6;text-transform:uppercase}#fntHome .t{font-family:Oswald,sans-serif;font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;line-height:1.1;margin-top:2px;color:#fff}#fntHome .s{font-size:10.5px;color:#8fa4ae;margin-top:2px}#fntHome .a{margin-left:auto;color:#7fe0ff;font-weight:800;font-size:12px;flex:none}";
 document.head.appendChild(css);
 
@@ -51,6 +59,45 @@ function filtered(){var q=S.q.trim().toLowerCase();return S.rows.filter(function
   if(q&&[r.full_name,r.email,r.mobile,r.fighter_name,r.message,r.song,r.ref].join(" ").toLowerCase().indexOf(q)<0)return false;
   return true;});}
 
+/* ---------- blocks ---------- */
+function st(){return (S.tally&&S.tally.settings)||{};}
+function moneyHtml(t){var s0=st();
+ var sN=t.seats||0,hN=t.shirts||0;
+ return '<div class="mny"><div class="k">Held, not yet invoiced</div><b>'+((t.held_cents||0)>=100000?dollars(t.held_cents):money(t.held_cents||0))+'</b>'
+ +'<small>'+sN+' seat'+(sN===1?'':'s')+' at '+(s0.discount_pct||20)+'% off plus '+hN+' shirt'+(hN===1?'':'s')+' at '+money(s0.shirt_cents||4999)+'. Invoices go out the day tickets release.</small>'
+ +'<div class="btns"><button class="b" onclick="fntCsv()">Export invoice list</button></div></div>';}
+function settingsHtml(t){var s0=st();
+ if(!S.setOpen)return (s0.prices_confirmed?'':'<div class="warnp"><b>Ticket prices are still the placeholders.</b> Set them before you share a link — every held seat and invoice is worked out from them.</div>')+'<div class="btns" style="margin:0 0 12px"><button class="b'+(s0.prices_confirmed?'':' am')+'" onclick="fntSet(1)">Prices &amp; allocation</button></div>';
+ return '<div class="al" style="border-color:var(--c)"><div class="h"><b>Prices &amp; allocation</b><span class="n">'+(s0.discount_pct||20)+'% off</span></div>'
+ +'<div class="set">'
+ +'<div><label>Standing GA ($)</label><input id="sGa" type="number" step="0.01" value="'+(((s0.ga_cents||0)/100).toFixed(2))+'"></div>'
+ +'<div><label>Bar table ($)</label><input id="sTab" type="number" step="0.01" value="'+(((s0.table_cents||0)/100).toFixed(2))+'"></div>'
+ +'<div><label>Catered table ($)</label><input id="sCat" type="number" step="0.01" value="'+(((s0.catered_cents||0)/100).toFixed(2))+'"></div>'
+ +'<div><label>Team shirt ($)</label><input id="sShirt" type="number" step="0.01" value="'+(((s0.shirt_cents||0)/100).toFixed(2))+'"></div>'
+ +'<div><label>Discount %</label><input id="sPct" type="number" value="'+(s0.discount_pct||20)+'"></div>'
+ +'<div><label>Seats per fighter</label><input id="sAlloc" type="number" value="'+(s0.default_alloc||10)+'"></div>'
+ +'<div><label>Shirts to print a run</label><input id="sTh" type="number" value="'+(s0.shirt_threshold||5)+'"></div>'
+ +'<div><label>Shirt cut-off</label><input id="sCut" type="date" value="'+(s0.shirt_cutoff||"")+'"></div>'
+ +'</div><small>Seats per fighter applies to anyone you have not set a number for. The public page reads these straight away.</small>'
+ +'<div class="btns"><button class="b p" onclick="fntSaveSet()">Save</button><button class="b" onclick="fntSet(0)">Close</button></div></div>';}
+function allocHtml(x){var sl=x.fighter_id?slugOf(x.name):null,al=x.alloc||0,seats=x.seats||0,left=Math.max(0,al-seats),full=sl&&left<=0;
+ return '<div class="al"><div class="h"><b>'+esc(x.name)+'</b><span class="n'+(full?" full":"")+'">'+(sl?seats+' of '+al:x.n+' reg')+'</span></div>'
+ +(sl?'<div class="bar"><i style="width:'+Math.min(100,Math.round(100*seats/Math.max(1,al)))+'%"></i></div>':'')
+ +'<small>'+(sl?(full?'Block gone \u2014 top him up':left+' seat'+(left===1?'':'s')+' left')+' \u00b7 '+(x.shirts||0)+' shirt'+((x.shirts||0)===1?'':'s')+(x.u18?' \u00b7 '+x.u18+' U18':''):x.n+' registered, no fighter picked')+'</small>'
+ +(sl?'<div class="btns"><button class="b'+(full?" p":"")+'" onclick="fntTopUp(\''+x.fighter_id+'\','+al+')">+5 seats</button><button class="b" onclick="fntAsk(\''+x.fighter_id+'\','+al+')">Set block</button><button class="b" onclick="fntCopy(\''+link(sl)+'\')">Copy link</button></div>':'')
+ +'</div>';}
+function shirtRunHtml(t){var s0=st(),sz=t.sizes||{},th=s0.shirt_threshold||5;
+ var bf=(t.by_fighter||[]).filter(function(x){return x.fighter_id;});
+ var ready=bf.filter(function(x){return (x.shirts||0)>=th;}).length;
+ var part=bf.filter(function(x){return (x.shirts||0)>0&&(x.shirts||0)<th;});
+ var ord=["S","M","L","XL","2XL","3XL","Y12","Y14"];
+ return '<div class="sec"><b>Shirt run</b><small>'+(t.shirts||0)+' ordered'+(s0.shirt_cutoff?' \u00b7 cut-off '+dmy(s0.shirt_cutoff):'')+'</small></div>'
+ +'<div class="al"><div class="h"><b>Sizes across all teams</b><span class="n">'+(t.shirts||0)+'</span></div>'
+ +'<div class="sz">'+ord.map(function(z){return '<div><small>'+z+'</small><b>'+(sz[z]||0)+'</b></div>';}).join("")+'</div>'
+ +'<small>'+ready+' team'+(ready===1?'':'s')+' over the '+th+' needed to print'+(part.length?' \u00b7 '+part.length+' short: '+part.map(function(x){return esc(x.name.split(" ")[0])+" ("+x.shirts+")";}).join(", "):'')+'.</small>'
+ +(part.length?'<div class="btns"><button class="b am" onclick="fntShortTeams()">Copy the short teams</button></div>':'')
+ +'</div>';}
+
 /* ---------- paint ---------- */
 function paint(){var m=$id("main");if(!m||view!=="fntix")return;
  if(!isAdmin()){m.innerHTML='<div class="fnt"><button class="back" onclick="go(\'home\')">‹ Home</button><div class="empty">Not for you, sorry.</div></div>';return;}
@@ -63,10 +110,13 @@ function paint(){var m=$id("main");if(!m||view!=="fntix")return;
  +'<div class="lock">🔒 Jake, Alison and Joe only. Guests only ever see their own registration.</div>'
  +'<div class="share"><div class="k">The public link · share it anywhere</div><div class="u">'+link()+'</div><p>Anyone can open it, no login. A fighter\'s own link (below) opens with that fighter already picked and shows their face in the preview.</p>'
  +'<div class="btns"><button class="b p" onclick="fntCopy(\''+link()+'\')">Copy link</button><button class="b" onclick="fntShare(\''+link()+'\')">Share…</button><a class="b" href="'+link()+'" target="_blank" rel="noopener" style="text-decoration:none">Open page</a><button class="b" onclick="fntReload()">'+(S.busy?'Loading…':'Refresh')+'</button></div></div>'
- +'<div class="kp"><div><small>Registered</small><b>'+(t.total||0)+'</b></div><div><small>Today</small><b class="g">'+(t.today||0)+'</b></div><div><small>Under-18 noms</small><b class="c">'+(t.u18||0)+'</b></div><div><small>Messages</small><b>'+(t.messages||0)+'</b></div></div>'
+ +'<div class="kp"><div><small>Seats held</small><b class="c">'+(t.seats||0)+'</b></div><div><small>Registered</small><b>'+(t.total||0)+'</b></div><div><small>Today</small><b class="g">'+(t.today||0)+'</b></div><div><small>Shirts</small><b class="g">'+(t.shirts||0)+'</b></div></div>'
+ +moneyHtml(t)
+ +settingsHtml(t)
  +'<div class="segs"><div><b>'+(t.ga||0)+'</b><small>Standing GA</small></div><div><b>'+(t.table||0)+'</b><small>Bar table &amp; stools · text these the table link first</small></div><div><b>'+(t.catered||0)+'</b><small>Catered sit-down table · call these, highest spend</small></div><div><b>'+(t.business||0)+'</b><small>Business email · sponsorship pitch</small></div></div>'
- +'<div class="sec"><b>By fighter</b><small>registrations · under-18 noms · tap to copy their link</small></div>'
- +(bf.length?bf.map(function(x){var sl=x.fighter_id?slugOf(x.name):null;return '<div class="lb"><b>'+esc(x.name)+'</b><span><i>'+x.n+'</i> reg'+(x.u18?' · <i>'+x.u18+'</i> U18':'')+'</span>'+(sl?'<button class="b sm" onclick="fntCopy(\''+link(sl)+'\')">Copy link</button>':'<span></span>')+'<div class="bar"><i style="width:'+Math.round(100*x.n/max)+'%"></i></div></div>';}).join(""):'<div class="empty">No registrations yet. Share the link.</div>')
+ +'<div class="sec"><b>Allocations</b><small>seats claimed of their block</small></div>'
+ +(bf.length?bf.map(allocHtml).join(""):'<div class="empty">No registrations yet. Share the link.</div>')
+ +shirtRunHtml(t)
  +'<div class="sec"><b>Registrations</b><small>'+L.length+' of '+S.rows.length+'</small></div>'
  +'<div class="tools"><input placeholder="Search name, email, mobile, message" value="'+esc(S.q)+'" oninput="fntQ(this.value)">'
  +'<select onchange="fntF(\'fighter\',this.value)"><option value="all"'+(S.fighter==="all"?" selected":"")+'>All fighters</option><option value="none"'+(S.fighter==="none"?" selected":"")+'>No fighter picked</option>'+fighters.map(function(f){return '<option value="'+esc(f)+'"'+(S.fighter===f?" selected":"")+'>'+esc(f)+'</option>';}).join("")+'</select>'
@@ -78,7 +128,7 @@ function paint(){var m=$id("main");if(!m||view!=="fntix")return;
 
 function row(r){var o=S.open[r.id];return '<div class="row"><div class="top"><div><div class="nm">'+esc(r.full_name)+'</div><div class="ft">'+(r.fighter_name?'Backing '+esc(r.fighter_name):'No fighter picked')+'</div></div><div class="tm">'+when(r.created_at)+'<br>'+esc(r.ref)+'</div></div>'
  +'<div class="meta"><a href="tel:'+esc(r.mobile.replace(/\s/g,""))+'">'+esc(r.mobile)+'</a> · <a href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a></div>'
- +'<div>'+(r.seating?'<span class="tag s">'+SEAT[r.seating]+'</span>':'')+(r.u18?'<span class="tag u">Under 18'+(r.u18_note?' · '+esc(r.u18_note):'')+'</span>':'')+(r.song?'<span class="tag">♪ '+esc(r.song)+'</span>':'')+(r.source&&r.source!=="direct"?'<span class="tag">via '+esc(r.source)+'</span>':'')+'</div>'
+ +'<div>'+(r.seat_no?'<span class="tag s">Seat '+r.seat_no+' · '+(r.price_cents?money(r.price_cents):'')+'</span>':'')+((r.tier||r.seating)?'<span class="tag">'+SEAT[r.tier||r.seating]+'</span>':'')+(r.shirt?'<span class="tag s">Shirt '+esc(r.shirt_size||'?')+'</span>':'')+(r.u18?'<span class="tag u">Under 18'+(r.u18_note?' · '+esc(r.u18_note):'')+'</span>':'')+(r.song?'<span class="tag">♪ '+esc(r.song)+'</span>':'')+(r.source&&r.source!=="direct"?'<span class="tag">via '+esc(r.source)+'</span>':'')+(r.invoice_cents?'<span class="tag">Invoice '+money(r.invoice_cents)+'</span>':'')+'</div>'
  +(r.message?'<div class="q">“'+esc(r.message)+'”<small>message for '+esc((r.fighter_name||"their fighter").split(" ")[0])+'</small></div>':'')
  +'<div class="btns" style="margin-top:8px"><a class="b sm" style="text-decoration:none" href="sms:'+esc(r.mobile.replace(/\s/g,""))+'">Text</a><button class="b sm" onclick="fntOpen('+r.id+')">'+(o?'Less':'Notes')+'</button><button class="b sm r" onclick="fntRemove('+r.id+')">Remove</button></div>'
  +(o?'<div class="meta" style="margin-top:8px">Updated '+when(r.updated_at)+(r.ua?' · '+esc(r.ua.slice(0,80)):'')+'</div><div class="tools" style="margin-top:8px"><input id="fntNote'+r.id+'" placeholder="Private note (e.g. called re under 18)" value="'+esc(r.notes||"")+'"><button class="b sm p" onclick="fntNote('+r.id+')">Save</button></div>':'')
@@ -94,9 +144,25 @@ window.fntShare=async function(u){try{if(navigator.share){await navigator.share(
 window.fntNote=async function(id){var v=($id("fntNote"+id)||{}).value||"";var r=await sb.from("fn_presale").update({notes:v||null}).eq("id",id);if(r.error)return T(r.error.message);var x=S.rows.find(function(z){return z.id===id;});if(x)x.notes=v;T("Saved.");paint();};
 window.fntRemove=async function(id){var x=S.rows.find(function(z){return z.id===id;});if(!x||!confirm("Remove "+x.full_name+" from the list? They can register again."))return;var r=await sb.from("fn_presale").update({status:"removed"}).eq("id",id);if(r.error)return T(r.error.message);T("Removed.");await load();paint();};
 window.fntCopyMobiles=async function(){var L=filtered().map(function(r){return r.mobile.replace(/\s/g,"");});var s=Array.from(new Set(L)).join(", ");try{await navigator.clipboard.writeText(s);T(L.length+" mobiles copied.");}catch(e){prompt("Copy:",s);}};
-window.fntCsv=function(){var L=filtered();var H=["ref","registered","name","mobile","email","fighter","seating","under18","under18_note","message","song","source","notes"];
- var lines=[H.join(",")].concat(L.map(function(r){return [r.ref,r.created_at,r.full_name,r.mobile,r.email,r.fighter_name||"",SEAT[r.seating]||"",r.u18?"yes":"no",r.u18_note||"",r.message||"",r.song||"",r.source||"",r.notes||""].map(function(v){v=String(v==null?"":v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(",");}));
+window.fntCsv=function(){var L=filtered();var H=["ref","registered","name","mobile","email","fighter","seat_no","tier","price","shirt","shirt_size","invoice","under18","under18_note","message","song","source","notes"];
+ var lines=[H.join(",")].concat(L.map(function(r){return [r.ref,r.created_at,r.full_name,r.mobile,r.email,r.fighter_name||"",r.seat_no||"",SEAT[r.tier||r.seating]||"",r.price_cents?(r.price_cents/100).toFixed(2):"",r.shirt?"yes":"no",r.shirt_size||"",r.invoice_cents?(r.invoice_cents/100).toFixed(2):"",r.u18?"yes":"no",r.u18_note||"",r.message||"",r.song||"",r.source||"",r.notes||""].map(function(v){v=String(v==null?"":v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}).join(",");}));
  var b=new Blob(["﻿"+lines.join("\n")],{type:"text/csv;charset=utf-8"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="fight-night-presale-"+new Date().toISOString().slice(0,10)+".csv";document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},500);};
+window.fntSet=function(v){S.setOpen=!!v;paint();};
+window.fntSaveSet=async function(){
+ var g=function(i){var el=$id(i);return el?el.value:null;};
+ var c=function(v){var n=parseFloat(v);return isNaN(n)?null:Math.round(n*100);};
+ var p={ga_cents:c(g("sGa")),table_cents:c(g("sTab")),catered_cents:c(g("sCat")),shirt_cents:c(g("sShirt")),
+   discount_pct:parseInt(g("sPct"),10)||null,default_alloc:parseInt(g("sAlloc"),10)||null,
+   shirt_threshold:parseInt(g("sTh"),10)||null,shirt_cutoff:g("sCut")||null,prices_confirmed:true};
+ var r=await sb.rpc("fn_presale_set_settings",{p:p});
+ if(r.error)return T(r.error.message);
+ T("Saved. The public page uses these now.");S.setOpen=false;await load();paint();};
+window.fntTopUp=async function(id,cur){var r=await sb.rpc("fn_presale_set_alloc",{p_fighter_id:id,p_total:(cur||0)+5});if(r.error)return T(r.error.message);T("Five more seats added.");await load();paint();};
+window.fntAsk=async function(id,cur){var v=prompt("How many pre-sale seats for this fighter?",String(cur||10));if(v===null)return;var n=parseInt(v,10);if(isNaN(n)||n<0||n>200)return T("Enter a number between 0 and 200.");var r=await sb.rpc("fn_presale_set_alloc",{p_fighter_id:id,p_total:n});if(r.error)return T(r.error.message);T("Block set to "+n+".");await load();paint();};
+window.fntShortTeams=async function(){var t=S.tally||{},th=(t.settings&&t.settings.shirt_threshold)||5;
+ var part=(t.by_fighter||[]).filter(function(x){return x.fighter_id&&(x.shirts||0)>0&&(x.shirts||0)<th;});
+ var s0=part.map(function(x){return x.name+": "+x.shirts+" of "+th+" shirts, "+(th-x.shirts)+" to go \u2014 "+link(slugOf(x.name));}).join("\n");
+ try{await navigator.clipboard.writeText(s0);T("Copied "+part.length+" teams.");}catch(e){prompt("Copy:",s0);}};
 window.fntEnter=function(){if(!isAdmin()){T("Not for you, sorry.");return;}go("fntix");};
 
 /* ---------- hooks ---------- */

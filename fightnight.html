@@ -36,6 +36,39 @@ body{padding:0 0 calc(60px + env(safe-area-inset-bottom));background:radial-grad
 .offer .big{font:700 58px/1 Oswald,sans-serif;color:#fff;margin-top:6px;letter-spacing:-1px}.offer .big small{font-size:26px;color:var(--c2);letter-spacing:0;margin-left:2px}
 .offer .t{font:700 20px/1.1 Oswald,sans-serif;text-transform:uppercase;color:var(--c2);margin-top:6px}
 .offer p{font-size:13px;color:#d9d3c3;line-height:1.55;margin-top:8px}.offer p b{color:#fff}
+.alloc{border:1px solid var(--c);border-radius:16px;padding:14px;background:linear-gradient(160deg,#0b2a38,#07141b);margin-top:12px;box-shadow:0 0 0 1px rgba(31,182,230,.15),0 10px 40px rgba(31,182,230,.12)}
+.alloc .who{display:flex;gap:12px;align-items:center}
+.alloc .av{width:56px;height:56px;border-radius:50%;background:#0b2a38 center/cover no-repeat;border:2px solid var(--c);flex:none;display:grid;place-items:center;font:700 19px Oswald,sans-serif;color:var(--c2);overflow:hidden}
+.alloc .av img{width:100%;height:100%;object-fit:cover}
+.alloc .k{font-size:8.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c);font-weight:800}
+.alloc .n{font:700 24px/1 Oswald,sans-serif;text-transform:uppercase;margin-top:3px}.alloc .n span{color:var(--c2)}
+.cnt{display:flex;align-items:baseline;gap:8px;margin-top:12px}
+.cnt b{font:700 46px/1 Oswald,sans-serif;color:#fff}.cnt i{font-style:normal;font:600 13px Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--c2)}
+.seatbars{display:flex;gap:5px;margin-top:10px}.seatbars i{flex:1;height:9px;border-radius:3px;background:#2a3f4a;display:block}
+.seatbars i.g{background:linear-gradient(180deg,#8ae6ff,#1fb6e6)}.seatbars i.me{background:var(--green);box-shadow:0 0 10px rgba(57,255,136,.6)}
+.alloc p{font-size:12.5px;color:#d9d3c3;line-height:1.55;margin-top:10px}.alloc p b{color:#fff}
+.alloc.full{border-color:#5a3a12;background:linear-gradient(160deg,#241a08,#120d05)}.alloc.full .k,.alloc.full .n span,.alloc.full .cnt i{color:var(--amber)}
+.bill{border:1px solid var(--line);border-radius:12px;margin-top:12px;overflow:hidden;background:var(--panel2)}
+.bill .r{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-top:1px solid var(--line);font-size:12.5px}
+.bill .r:first-child{border-top:0}.bill .r span{color:var(--mute)}.bill .r b{color:#fff;text-align:right;white-space:nowrap}
+.bill .r .was{color:#5b7078;text-decoration:line-through;font-weight:600;margin-right:6px}
+.bill .r.tot{background:rgba(31,182,230,.1)}.bill .r.tot span{color:#fff;font-weight:800}.bill .r.tot b{color:var(--c2);font:700 17px Oswald,sans-serif}
+.shirt{border:1px solid var(--line);border-radius:16px;margin-top:12px;background:var(--panel);overflow:hidden}
+.shirt.on{border-color:var(--c)}
+.sh-top{display:flex;gap:12px;padding:13px;align-items:flex-start}
+.tee{width:76px;height:86px;flex:none;border-radius:10px;background:#0f1a21;border:1px solid var(--line);overflow:hidden}.tee svg{width:100%;height:100%;display:block}
+.sh-top .k{font-size:8.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c);font-weight:800}
+.sh-top h4{font:700 19px/1 Oswald,sans-serif;text-transform:uppercase;margin-top:3px}.sh-top h4 span{color:var(--c2)}
+.sh-top p{font-size:11.5px;color:#cfd8dc;line-height:1.5;margin-top:5px}
+.sh-top .pr{font:700 20px Oswald,sans-serif;color:#fff;margin-top:6px}.sh-top .pr small{font-size:10.5px;color:var(--mute);font-family:Montserrat;font-weight:600;margin-left:4px}
+.thresh{padding:0 13px 12px}.tb{height:8px;border-radius:4px;background:#2a3f4a;overflow:hidden}.tb i{display:block;height:100%;background:linear-gradient(90deg,var(--c),var(--c2));transition:width .3s}
+.tl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mute);font-weight:700;margin-top:6px}.tl b{color:var(--c2)}
+.sh-body{padding:0 13px 13px;display:none}.shirt.on .sh-body{display:block}
+.addb{width:100%;background:none;border:1px dashed var(--c);color:var(--c2);border-radius:11px;padding:11px;font:700 12px Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;font-family:Oswald,sans-serif}
+.addb.on{background:var(--c);color:#03141c;border-style:solid}
+.inv{border:1px solid var(--amber);border-radius:14px;padding:12px;background:rgba(245,185,66,.07);margin-top:12px;text-align:left}
+.inv .k{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--amber);font-weight:800}
+.inv p{font-size:12px;color:#e8dcc2;line-height:1.55;margin-top:6px}.inv p b{color:#fff}
 .forf{position:relative;border:1px solid var(--c);border-radius:14px;padding:12px 14px;margin-top:12px;background:rgba(31,182,230,.08);display:flex;gap:12px;align-items:center}
 .forf .av{width:44px;height:44px;border-radius:50%;background:#0b2a38;border:1px solid var(--c);display:grid;place-items:center;font:700 16px Oswald,sans-serif;color:var(--c2);flex:none;overflow:hidden}.forf .av img{width:100%;height:100%;object-fit:cover}
 .forf .k{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--c);font-weight:800}.forf b{display:block;font:700 19px/1.1 Oswald,sans-serif;text-transform:uppercase}
@@ -90,7 +123,8 @@ input:focus,textarea:focus{border-color:var(--c)}input::placeholder{color:#5b707
 
  <div id="p-reg">
   <div class="again" id="again"></div>
-  <div class="offer"><div class="k">Pre-release · open to everyone</div><div class="big">20<small>% off</small></div><div class="t">Register, buy first, save 20%</div><p>Get on the list and you buy before the public, with <b>20% off any ticket tier</b>. Nothing to pay today. One registration, one seat, your name on the door.</p></div>
+  <div class="alloc" id="alloc" style="display:none"></div>
+  <div class="offer" id="offer"><div class="k">Pre-release · open to everyone</div><div class="big">20<small>% off</small></div><div class="t">Register, buy first, save 20%</div><p>Get on the list and you buy before the public, with <b>20% off any ticket tier</b>. Nothing to pay today. One registration, one seat, your name on the door.</p></div>
   <div class="forf" id="forf" style="display:none"><div class="av" id="forfAv"></div><div><div class="k">You're coming to watch</div><b id="forfName"></b></div></div>
   <div class="form" id="form"><div class="k">Register</div>
    <label>Full name</label><input id="fName" placeholder="First and last name" autocomplete="name">
@@ -99,15 +133,29 @@ input:focus,textarea:focus{border-color:var(--c)}input::placeholder{color:#5b707
    <label>Select your fighter</label><button class="pickbtn" id="pick" onclick="openPick()"><span id="pickTxt">Who are you coming to watch?</span><span class="ar">›</span></button>
    <label>Leave <span class="ff">your fighter</span> a message <i>· optional, only they see it</i></label><input id="fMsg" placeholder="Something to read before the walkout" maxlength="400">
    <label>Suggest <span class="ff">your fighter</span>'s walkout song <i>· optional</i></label><input id="fSong" placeholder="Song and artist" maxlength="120">
-   <label>What seating are you interested in?</label>
+   <label>Which seat do you want held? <i>· your discount comes off whichever you pick</i></label>
    <div class="chips" id="seatpref"><button data-s="ga">Standing GA</button><button data-s="table" class="on">Bar table &amp; stools</button><button data-s="catered">Catered sit-down table</button></div>
+   <div class="bill" id="bill"></div>
    <label>Bringing someone under 18? <i>· optional</i></label>
    <div class="chips" id="u18c"><button data-u="no" class="on">No</button><button data-u="yes">Yes, nominate an under 18</button></div>
    <div id="u18box" style="display:none"><input id="fU18" placeholder="Their first name and age (e.g. Max, 12)" maxlength="120" style="margin-top:8px"><div class="fine">Under-18 tickets aren't sold here. Our team will be in contact with you about them before release.</div></div>
-   <div class="err" id="err"></div>
-   <button class="cta" id="go" onclick="send()">Register for 20% off</button>
-   <div class="fine">One seat per registration. Bringing others? Send them the link, everyone gets their own 20%. Your details go to the Legacy Gym team only. Nothing to pay now.</div>
   </div>
+  <div class="shirt" id="shirt" style="display:none">
+   <div class="sh-top"><div class="tee" id="teeArt"></div>
+    <div><div class="k">Wear it on the night</div><h4 id="shTitle">Team shirt</h4>
+     <p id="shBlurb">The Fight Club shirt with their name across the back. The whole corner in the same shirt, all night.</p>
+     <div class="pr" id="shPrice">$49.99<small>added to your invoice</small></div></div></div>
+   <div class="thresh"><div class="tb"><i id="tbar" style="width:0%"></i></div><div class="tl"><span id="tlab"></span><span id="tgo"></span></div></div>
+   <div style="padding:0 13px 13px"><button class="addb" id="addb" onclick="toggleShirt()">+ Add a team shirt</button></div>
+   <div class="sh-body">
+    <label style="margin-top:0">Your size</label>
+    <div class="chips" id="size"><button data-s="S">S</button><button data-s="M">M</button><button data-s="L" class="on">L</button><button data-s="XL">XL</button><button data-s="2XL">2XL</button><button data-s="3XL">3XL</button><button data-s="Y12">Youth 12</button><button data-s="Y14">Youth 14</button></div>
+    <div class="fine">Printed to order with their name on it, so no exchanges on size. Pick up at the gym in fight week, or at the shirt table on the night.</div>
+   </div>
+  </div>
+  <div class="err" id="err"></div>
+  <button class="cta" id="go" onclick="send()">Hold my seat</button>
+  <div class="fine" id="goFine">One seat per registration. Bringing others? Send them the link, everyone gets their own 20%. Your details go to the Legacy Gym team only. Nothing to pay now.</div>
   <div id="done" style="display:none"></div>
   <div class="foot">Legacy Gym · Fight Club Central Coast · Kincumber NSW</div>
  </div>
@@ -140,7 +188,7 @@ input:focus,textarea:focus{border-color:var(--c)}input::placeholder{color:#5b707
 var SB="https://jyslqxepodrseyhoppce.supabase.co";
 var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 var APP="https://legacygym-app.vercel.app";
-var S={fighters:null,sel:null,pref:"table",u18:"no",busy:false,reg:null,blob:null,url:APP+"/fightnight"};
+var S={fighters:null,sel:null,pref:"table",u18:"no",busy:false,reg:null,res:null,blob:null,url:APP+"/fightnight",cfg:null,alloc:null,shirt:false,size:"L"};
 var $=function(i){return document.getElementById(i);};
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];});}
 function ini(n){return n.split(/[\s-]+/).filter(Boolean).map(function(x){return x[0];}).join("").slice(0,2).toUpperCase();}
@@ -153,6 +201,39 @@ var WANT=(function(){var m=location.search.match(/[?&]f=([^&]+)/);if(m)return de
 async function loadFighters(){try{var j=await rpc("fn_presale_fighters");S.fighters=Array.isArray(j)?j:[];}catch(e){S.fighters=[];}
  if(WANT){var f=S.fighters.find(function(x){return x.slug===WANT||slugOf(x.name)===WANT;});if(f)pickF(f.id,true);}
  filt("");}
+async function loadCfg(slug){try{var j=await rpc("fn_presale_public",{p_slug:slug||null});S.cfg=j;S.alloc=(j&&j.fighter)||null;}catch(e){}paintAlloc();paintBill();paintShirt();}
+function money(c){return "$"+(c/100).toFixed(2).replace(/\.00$/,"");}
+function teeSvg(last){var t=(last||"TEAM").toUpperCase();var fs=t.length>8?11:(t.length>6?13:15);
+ return '<svg viewBox="0 0 100 112"><path d="M30 10 L14 20 L8 38 L20 44 L22 102 L78 102 L80 44 L92 38 L86 20 L70 10 L60 16 Q50 24 40 16 Z" fill="#0d1a22" stroke="#1fb6e6" stroke-width="2"/><text x="50" y="56" text-anchor="middle" font-family="Oswald,sans-serif" font-size="13" font-weight="700" fill="#ffffff">TEAM</text><text x="50" y="72" text-anchor="middle" font-family="Oswald,sans-serif" font-size="'+fs+'" font-weight="700" fill="#7fe0ff">'+esc(t)+'</text></svg>';}
+function seatBars(total,claimed,mine){var h="",n=Math.min(total||0,14);for(var i=0;i<n;i++){h+='<i class="'+(mine&&i===mine-1?"me":(i<claimed?"g":""))+'"></i>';}return h;}
+function paintAlloc(){var a=S.alloc,el=$("alloc");if(!el)return;if(!a){el.style.display="none";$("offer").style.display="";return;}
+ $("offer").style.display="none";el.style.display="";
+ var first=a.name.split(" ")[0],gone=a.left<=0,pct=S.cfg.discount_pct;
+ el.className="alloc"+(gone?" full":"");
+ el.innerHTML='<div class="who"><div class="av">'+(a.photo_url?'<img src="'+esc(a.photo_url)+'" alt="">':ini(a.name))+'</div><div><div class="k">'+esc(a.name)+"'s pre-sale</div><div class=\"n\">"+(gone?'Block <span>gone</span>':a.alloc+' seats <span>at '+pct+'% off</span>')+'</div></div></div>'
+ +(gone?'<p><b>'+esc(first)+"'s "+a.alloc+' discounted seats have all been claimed.</b> You can still get on the pre-release list and buy before the public at the normal price, and '+esc(first)+" may get more seats \u2014 we'll let you know if one opens up.</p>"
+       :'<div class="cnt"><b id="allocLeft">'+a.left+'</b><i>of '+esc(first)+"'s "+a.alloc+' still open</i></div>'
+        +'<div class="seatbars">'+seatBars(a.alloc,a.claimed,S.reg&&S.reg.seat_no)+'</div>'
+        +'<p>'+esc(first)+' has been given <b>'+a.alloc+" discounted seats</b> to hand out to his own people. Claim one and it's held in your name at <b>"+pct+'% off any tier</b> until tickets release. No payment today.</p>');}
+function paintBill(){var el=$("bill");if(!el)return;if(!S.cfg){el.innerHTML="";return;}
+ var p=S.cfg.prices[S.pref]||S.cfg.prices.ga,disc=!!(S.alloc&&(S.alloc.left>0||(S.res&&S.res.discounted))),price=disc?Math.round(p*(100-S.cfg.discount_pct)/100):p;
+ var nm={ga:"Standing GA",table:"Bar table & stool",catered:"Catered table"}[S.pref];
+ var h='<div class="r"><span>'+nm+(disc?' \u00b7 held in your name':'')+'</span><b>'+(disc?'<span class="was">'+money(p)+'</span>':'')+money(price)+'</b></div>';
+ if(S.shirt)h+='<div class="r"><span>Team shirt \u00b7 size '+S.size+'</span><b>'+money(S.cfg.shirt_cents)+'</b></div>';
+ h+='<div class="r tot"><span>Invoiced on release</span><b>'+money(price+(S.shirt?S.cfg.shirt_cents:0))+'</b></div>';
+ el.innerHTML=h;}
+function paintShirt(){var el=$("shirt");if(!el)return;if(!S.cfg||!S.alloc){el.style.display="none";return;}
+ el.style.display="";var a=S.alloc,n=a.shirts+(S.shirt?1:0),th=S.cfg.shirt_threshold,last=a.name.split(" ").slice(-1)[0],first=a.name.split(" ")[0];
+ $("teeArt").innerHTML=teeSvg(last);
+ $("shTitle").innerHTML='Team <span>'+esc(last)+'</span> shirt';
+ $("shBlurb").innerHTML='The Fight Club shirt with <b style="color:#fff">TEAM '+esc(last.toUpperCase())+'</b> across the back. '+esc(first)+"'s corner all in the same shirt, all night.";
+ $("shPrice").innerHTML=money(S.cfg.shirt_cents)+'<small>added to your invoice</small>';
+ $("tbar").style.width=Math.min(100,n/th*100)+"%";
+ $("tlab").innerHTML="<b>"+n+" of "+th+"</b> ordered";
+ $("tgo").textContent=n>=th?"Printing \u00b7 more welcome":"Prints at "+th+" \u00b7 "+(th-n)+" to go";
+ $("addb").textContent=S.shirt?("\u2713 Team "+last+" shirt added \u00b7 size "+S.size):("+ Add a Team "+last+" shirt");
+ $("addb").classList.toggle("on",S.shirt);el.classList.toggle("on",S.shirt);}
+window.toggleShirt=function(){S.shirt=!S.shirt;paintShirt();paintBill();};
 window.filt=function(v){var s=(v||"").trim().toLowerCase();var L=(S.fighters||[]).filter(function(f){return !s||f.name.toLowerCase().indexOf(s)>=0;});
  $("flist").innerHTML=L.map(function(f){return '<button class="fr'+(S.sel&&S.sel.id===f.id?' on':'')+'" onclick="pickF(\''+f.id+'\')"><span class="av">'+avHtml(f)+'</span><span><b>'+esc(f.name)+'</b><small>Legacy Fight Club · Fight Night 19 Dec</small></span></button>';}).join("")||'<div class="fine" style="padding:10px">No fighter by that name.</div>';};
 window.openPick=function(){$("ov").classList.add("on");$("fs").value="";filt("");setTimeout(function(){try{$("fs").focus();}catch(e){}},50);};
@@ -161,11 +242,13 @@ window.pickF=function(id,quiet){var f=(S.fighters||[]).find(function(x){return x
  $("pickTxt").textContent=f.name;$("pick").classList.add("has");
  document.querySelectorAll(".ff").forEach(function(e){e.textContent=first;});
  $("fMsg").placeholder="Something for "+first+" to read before the walkout";
- $("forf").style.display="flex";$("forfName").textContent=f.name;$("forfAv").innerHTML=avHtml(f);
+ $("forf").style.display="none";$("forfName").textContent=f.name;$("forfAv").innerHTML=avHtml(f);
+ loadCfg(f.slug||slugOf(f.name));
  if(!quiet)closePick();};
 
 /* form bits */
-document.querySelectorAll("#seatpref button").forEach(function(b){b.onclick=function(){S.pref=b.dataset.s;document.querySelectorAll("#seatpref button").forEach(function(x){x.classList.toggle("on",x===b);});};});
+document.querySelectorAll("#seatpref button").forEach(function(b){b.onclick=function(){S.pref=b.dataset.s;document.querySelectorAll("#seatpref button").forEach(function(x){x.classList.toggle("on",x===b);});paintBill();};});
+document.querySelectorAll("#size button").forEach(function(b){b.onclick=function(){S.size=b.dataset.s;document.querySelectorAll("#size button").forEach(function(x){x.classList.toggle("on",x===b);});paintShirt();paintBill();};});
 document.querySelectorAll("#u18c button").forEach(function(b){b.onclick=function(){S.u18=b.dataset.u;document.querySelectorAll("#u18c button").forEach(function(x){x.classList.toggle("on",x===b);});$("u18box").style.display=S.u18==="yes"?"":"none";};});
 window.tab=function(t){$("p-reg").style.display=t==="reg"?"":"none";$("p-about").style.display=t==="about"?"":"none";$("t-reg").classList.toggle("on",t==="reg");$("t-about").classList.toggle("on",t==="about");window.scrollTo(0,t==="about"?260:0);};
 function showErr(m){var e=$("err");e.style.display=m?"block":"none";e.textContent=m||"";}
@@ -178,19 +261,39 @@ window.send=async function(){if(S.busy)return;showErr("");
  if(!S.sel&&!confirm("No fighter picked. Register without one?"))return;
  S.busy=true;$("go").disabled=true;$("go").textContent="Registering…";
  try{
-  var j=await rpc("fn_presale_register",{p_name:n,p_mobile:m,p_email:e,p_fighter_id:S.sel?S.sel.id:null,p_message:$("fMsg").value.trim()||null,p_song:$("fSong").value.trim()||null,p_seating:S.pref,p_u18:S.u18==="yes",p_u18_note:S.u18==="yes"?($("fU18").value.trim()||null):null,p_source:WANT||"direct",p_ua:navigator.userAgent.slice(0,200)});
-  S.reg={ref:j.ref,name:n,fighter:S.sel?S.sel.name:null,fighter_id:S.sel?S.sel.id:null,slug:S.sel?S.sel.slug:null,when:Date.now()};
+  var j=await rpc("fn_presale_register",{p_name:n,p_mobile:m,p_email:e,p_fighter_id:S.sel?S.sel.id:null,p_message:$("fMsg").value.trim()||null,p_song:$("fSong").value.trim()||null,p_seating:S.pref,p_u18:S.u18==="yes",p_u18_note:S.u18==="yes"?($("fU18").value.trim()||null):null,p_source:WANT||"direct",p_ua:navigator.userAgent.slice(0,200),p_tier:S.pref,p_shirt:S.shirt,p_shirt_size:S.shirt?S.size:null});
+  S.res=j;
+  S.reg={ref:j.ref,name:n,fighter:S.sel?S.sel.name:null,fighter_id:S.sel?S.sel.id:null,slug:S.sel?S.sel.slug:null,when:Date.now(),seat_no:j.seat_no};
+  if(S.alloc){S.alloc.claimed=j.claimed;S.alloc.left=j.left;S.alloc.shirts=j.shirts;}
   try{localStorage.setItem("lg_fn_presale",JSON.stringify(S.reg));}catch(x){}
   showDone(n,m,e,$("fMsg").value.trim(),$("fSong").value.trim());
  }catch(x){showErr(x.message||"Something went wrong. Try again.");}
  S.busy=false;$("go").disabled=false;$("go").textContent="Register for 20% off";};
 
 function seatTxt(){return {ga:"Standing GA",table:"Bar table & stools",catered:"Catered sit-down table"}[S.pref];}
-function showDone(n,m,e,um,us){var f=S.sel?S.sel.name:null,first=f?f.split(" ")[0]:null;
- $("form").style.display="none";$("forf").style.display="none";var d=$("done");d.style.display="";
- d.innerHTML='<div class="done"><div class="ck">✓</div><div class="big">Congratulations</div><p>You\'ve been put on the <b>pre-release ticket list</b>. Our team will be in contact with you soon upon release, with your <b>20% off</b> ready to go.</p>'
- +'<div class="sum"><div class="r"><span>Name</span><b>'+esc(n)+'</b></div><div class="r"><span>Mobile</span><b>'+esc(m)+'</b></div><div class="r"><span>Email</span><b>'+esc(e)+'</b></div>'+(f?'<div class="r"><span>Your fighter</span><b>'+esc(f)+'</b></div>':'')+'<div class="r"><span>Seating</span><b>'+seatTxt()+'</b></div>'+(S.u18==="yes"?'<div class="r"><span>Under 18</span><b>Nominated, we\'ll be in touch</b></div>':'')+(um&&f?'<div class="r"><span>Message</span><b>Delivered to '+esc(first)+'</b></div>':'')+(us&&f?'<div class="r"><span>Walkout song</span><b>'+esc(us)+'</b></div>':'')+'<div class="r"><span>Reference</span><b>'+esc(S.reg.ref)+'</b></div></div></div>'
- +'<div class="share"><div class="k">Bring the crew</div><p>'+(f?'Everyone who registers through '+esc(first)+'\'s link gets the same 20% and can leave '+esc(first)+' a message too.':'Everyone who registers through your link gets the same 20%.')+'</p><button class="cta" style="margin-top:10px;padding:13px;font-size:14px" onclick="openPop()">Share '+(f?esc(first)+'\'s':'the')+' link ›</button></div>';
+function showDone(n,m,e,um,us){var f=S.sel?S.sel.name:null,first=f?f.split(" ")[0]:null;var r=S.res||{};
+ var pct=(S.cfg&&S.cfg.discount_pct)||20,last=f?f.split(" ").slice(-1)[0]:"";
+ $("form").style.display="none";$("forf").style.display="none";$("offer").style.display="none";
+ var sh=$("shirt");if(sh)sh.style.display="none";
+ ["go","goFine","err"].forEach(function(i){var x=$(i);if(x)x.style.display="none";});
+ var al=$("alloc");if(al&&r.seat_no)al.style.display="none";
+ var d=$("done");d.style.display="";
+ var head=r.seat_no?"Seat held":"You're on the list";
+ var lead=(r.seat_no&&f)?("You've got <b>seat "+r.seat_no+" of "+esc(first)+"'s "+(S.alloc?S.alloc.alloc:10)+"</b>, locked at <b>"+pct+"% off</b>. "+esc(first)+" can see you're in his corner.")
+   :"You've been put on the <b>pre-release ticket list</b>. Our team will be in contact with you soon upon release.";
+ d.innerHTML='<div class="done"><div class="ck">\u2713</div><div class="big">'+head+'</div><p>'+lead+'</p>'
+ +'<div class="sum"><div class="r"><span>Name</span><b>'+esc(n)+'</b></div><div class="r"><span>Mobile</span><b>'+esc(m)+'</b></div><div class="r"><span>Email</span><b>'+esc(e)+'</b></div>'
+ +(f?'<div class="r"><span>Your fighter</span><b>'+esc(f)+'</b></div>':'')
+ +'<div class="r"><span>Seating</span><b>'+seatTxt()+(r.discounted?(' \u00b7 '+pct+'% off'):'')+'</b></div>'
+ +(S.shirt?'<div class="r"><span>Team '+esc(last)+' shirt</span><b>Size '+S.size+'</b></div>':'')
+ +(S.u18==="yes"?'<div class="r"><span>Under 18</span><b>Nominated, we\'ll be in touch</b></div>':'')
+ +(um&&f?'<div class="r"><span>Message</span><b>Delivered to '+esc(first)+'</b></div>':'')
+ +(us&&f?'<div class="r"><span>Walkout song</span><b>'+esc(us)+'</b></div>':'')
+ +(r.invoice_cents?'<div class="r tot"><span>Invoice on release</span><b>'+money(r.invoice_cents)+'</b></div>':'')
+ +'<div class="r"><span>Reference</span><b>'+esc(S.reg.ref)+'</b></div></div></div>'
+ +'<div class="inv"><div class="k">What happens next</div><p>Nothing to pay today. The day tickets release we text and email you an invoice for <b>'+(r.invoice_cents?money(r.invoice_cents):'your seat')+'</b>.'+(r.seat_no?(" You'll have <b>72 hours</b> to pay before the seat goes back into "+esc(first)+"'s block."):'')+'</p></div>'
+ +((S.shirt&&S.alloc)?('<div class="inv" style="border-color:var(--c);background:rgba(31,182,230,.07)"><div class="k" style="color:var(--c2)">Team '+esc(last)+' shirt</div><p>'+((S.alloc.shirts>=S.cfg.shirt_threshold)?'That run is going to print.':("You're order <b>"+S.alloc.shirts+" of the "+S.cfg.shirt_threshold+"</b> needed to print this run, "+(S.cfg.shirt_threshold-S.alloc.shirts)+" to go."))+' Pick up at the gym in fight week.</p></div>'):'')
+ +'<div class="share"><div class="k">'+((f&&S.alloc)?(esc(first)+' has '+S.alloc.left+' seat'+(S.alloc.left===1?'':'s')+' left'):'Bring the crew')+'</div><p>'+(f?('Send '+esc(first)+"'s link to anyone who'd come. Same "+pct+'% off, and they can leave him a message too.'):('Everyone who registers through your link gets the same '+pct+'%.'))+'</p><button class="cta" style="margin-top:10px;padding:13px;font-size:14px" onclick="openPop()">Share '+(f?esc(first)+"'s":'the')+' link \u203a</button></div>';
  window.scrollTo(0,0);setTimeout(openPop,600);}
 
 /* ---- share card (drawn on canvas so it's per fighter) ---- */
@@ -210,10 +313,11 @@ async function drawCard(){var f=S.sel||(S.reg&&S.reg.fighter?{name:S.reg.fighter
  x.font="700 108px Oswald, sans-serif";var fw=x.measureText(first+" ").width,lw=x.measureText(last).width,tot=fw+lw,sx=(W-tot)/2;
  x.textAlign="left";x.fillStyle="#ffffff";x.fillText(first+" ",sx,y);x.fillStyle="#1fb6e6";x.fillText(last,sx+fw,y);x.textAlign="center";
  y+=62;x.fillStyle="#e8e2d2";x.font="600 42px Oswald, sans-serif";x.fillText(f?"IS FIGHTING. I'VE RESERVED MY SEAT.":"I'VE RESERVED MY SEAT.",W/2,y);
- y+=54;x.fillStyle="#7fe0ff";x.fillText("RESERVE YOURS AND COME WITH ME.",W/2,y);
- y+=70;x.font="700 30px Oswald, sans-serif";var pt="20% OFF PRE-RELEASE";var pw=x.measureText(pt).width+70;rr(x,(W-pw)/2,y-40,pw,62,31);x.strokeStyle="#1fb6e6";x.lineWidth=3;x.stroke();x.fillStyle="#7fe0ff";sp(x,pt,W/2,y+2,3);
+ y+=54;x.fillStyle="#7fe0ff";x.fillText((S.alloc&&S.alloc.left>0)?("I'VE GOT "+S.alloc.left+" SEAT"+(S.alloc.left===1?"":"S")+" LEFT AT "+((S.cfg&&S.cfg.discount_pct)||20)+"% OFF."):"RESERVE YOURS AND COME WITH ME.",W/2,y);
+ y+=70;x.font="700 30px Oswald, sans-serif";var pt=(S.alloc&&S.alloc.left>0)?(S.alloc.left+" OF "+S.alloc.alloc+" LEFT"):(((S.cfg&&S.cfg.discount_pct)||20)+"% OFF PRE-RELEASE");var pw=x.measureText(pt).width+70;rr(x,(W-pw)/2,y-40,pw,62,31);x.strokeStyle="#1fb6e6";x.lineWidth=3;x.stroke();x.fillStyle="#7fe0ff";sp(x,pt,W/2,y+2,3);
  y+=78;x.fillStyle="#8fa4ae";x.font="500 26px Oswald, sans-serif";sp(x,S.url.replace(/^https?:\/\//,""),W/2,y,1);
- var txt="Hey guys, "+name+(f?" is fighting at Fight Club Fight Night":" · Fight Club Fight Night")+", Sat 19 Dec at Legacy Gym Kincumber. I've reserved my pre-release ticket. Reserve yours (20% off) and come with me"+(f?" to support "+first.charAt(0)+first.slice(1).toLowerCase():"")+": "+S.url;
+ var pctT=((S.cfg&&S.cfg.discount_pct)||20);
+ var txt="Hey guys, "+name+(f?" is fighting at Fight Club Fight Night":" \u00b7 Fight Club Fight Night")+", Sat 19 Dec at Legacy Gym Kincumber. I've got my pre-release ticket at "+pctT+"% off"+((S.alloc&&S.alloc.left>0)?(" \u2014 only "+S.alloc.left+" of those seats left"):"")+". Grab one and come with me"+(f?" to support "+first.charAt(0)+first.slice(1).toLowerCase():"")+": "+S.url;
  S.txt=txt;$("scMsg").innerHTML=esc(txt).replace(esc(name),"<b>"+esc(name)+"</b>").replace(esc(S.url),"<b>"+esc(S.url)+"</b>");
  $("shSms").href="sms:?&body="+encodeURIComponent(txt);$("shWa").href="https://wa.me/?text="+encodeURIComponent(txt);$("shFb").href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(S.url);
  S.blob=await new Promise(function(res){cv.toBlob(res,"image/jpeg",.9);});}
@@ -233,7 +337,7 @@ window.shCopy=async function(msg){var t=S.txt||S.url;try{await navigator.clipboa
 
 /* returning visitor */
 (function(){try{var r=JSON.parse(localStorage.getItem("lg_fn_presale")||"null");if(r&&r.ref){S.reg=r;var a=$("again");a.style.display="block";a.innerHTML='<b>You\'re on the list, '+esc(r.name.split(" ")[0])+'.</b><small>Ref '+esc(r.ref)+(r.fighter?' · backing '+esc(r.fighter):'')+'. Registering again just updates your details.</small><button class="ghost" onclick="openPop()">Share '+(r.fighter?esc(r.fighter.split(" ")[0])+'\'s':'the')+' link again ›</button>';}}catch(e){}})();
-loadFighters();
+loadFighters();loadCfg(WANT);
 </script>
 </body>
 </html>
