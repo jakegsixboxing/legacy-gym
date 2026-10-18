@@ -3,6 +3,7 @@
 //   a=paid         Shopify orders/paid webhook → marks the sponsorship paid in the app
 //   a=setup        Jake/Alison → registers the orders/paid webhook with Shopify (run once)
 //   a=ticket-email staff   → emails a Fight Night ticket link (was /api/fn-ticket-email; vercel.json rewrites it here)
+//   a=share&f=slug GET     → /fightnight/<fighter-slug>: per-fighter link preview (OG tags) then straight on to /fightnight?f=slug
 import crypto from "crypto";
 const SB_URL = "https://jyslqxepodrseyhoppce.supabase.co";
 const SB_ANON = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
@@ -32,8 +33,9 @@ export default async function handler(req, res) {
   res.setHeader("access-control-allow-origin", "*");
   res.setHeader("access-control-allow-headers", "content-type");
   if (req.method === "OPTIONS") return res.status(204).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "post_only" });
   const a = String((req.query && req.query.a) || "");
+  if (a === "share") return share(req, res);
+  if (req.method !== "POST") return res.status(405).json({ error: "post_only" });
   const chunks = []; for await (const c of req) chunks.push(c);
   const raw = Buffer.concat(chunks);
   let body = {}; if (a !== "paid") { try { body = JSON.parse(raw.toString("utf8") || "{}"); } catch (e) { body = {}; } }
@@ -201,4 +203,37 @@ async function ticketEmail(res, body) {
     }
     return res.status(200).json({ sent, detail });
   } catch (e) { return res.status(500).json({ error: "server_error", detail: String((e && e.message) || e) }); }
+}
+
+/* ---------- a=share (GET) · per-fighter link preview for /fightnight/<slug> ---------- */
+const escH = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+async function share(req, res) {
+  const slug = String((req.query && req.query.f) || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60);
+  let name = null;
+  if (slug) {
+    try {
+      const r = await fetch(SB_URL + "/rest/v1/rpc/fn_presale_fighters", { method: "POST", headers: { apikey: SB_ANON, Authorization: "Bearer " + SB_ANON, "content-type": "application/json" }, body: "{}" });
+      const list = await r.json();
+      const f = Array.isArray(list) ? list.find(x => x.slug === slug) : null;
+      if (f) name = f.name;
+    } catch (e) {}
+  }
+  let img = APP + "/img/fc/share/og-default.jpg";
+  if (name) { try { const h = await fetch(APP + "/img/fc/share/og-" + slug + ".jpg", { method: "HEAD" }); if (h.ok) img = APP + "/img/fc/share/og-" + slug + ".jpg"; } catch (e) {} }
+  const first = name ? name.split(" ")[0] : null;
+  const title = name ? name + " is fighting · Fight Club Fight Night, Sat 19 Dec" : "Fight Night · 20% off pre-release tickets";
+  const desc = name ? "I've reserved my seat. Reserve yours, 20% off pre-release, and come support " + first + " at Legacy Gym Kincumber." : "Sat 19 December, Legacy Gym Kincumber. Register now and buy before the public with 20% off any ticket.";
+  const dest = "/fightnight" + (name ? "?f=" + encodeURIComponent(slug) : "");
+  const url = APP + "/fightnight" + (name ? "/" + slug : "");
+  const html = "<!doctype html><html lang=\"en-AU\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+    + "<title>" + escH(title) + "</title><meta name=\"description\" content=\"" + escH(desc) + "\">"
+    + "<meta property=\"og:type\" content=\"website\"><meta property=\"og:site_name\" content=\"Legacy Gym · Fight Club Central Coast\">"
+    + "<meta property=\"og:title\" content=\"" + escH(title) + "\"><meta property=\"og:description\" content=\"" + escH(desc) + "\">"
+    + "<meta property=\"og:image\" content=\"" + img + "\"><meta property=\"og:image:width\" content=\"1200\"><meta property=\"og:image:height\" content=\"630\">"
+    + "<meta property=\"og:url\" content=\"" + url + "\"><meta name=\"twitter:card\" content=\"summary_large_image\"><meta name=\"twitter:image\" content=\"" + img + "\">"
+    + "<meta http-equiv=\"refresh\" content=\"0;url=" + dest + "\"><style>body{background:#050a0d;color:#7fe0ff;font:600 15px system-ui;display:grid;place-items:center;height:100vh;margin:0}a{color:#7fe0ff}</style></head>"
+    + "<body><a href=\"" + dest + "\">Opening Fight Night pre-release tickets…</a><script>location.replace(" + JSON.stringify(dest) + ")</script></body></html>";
+  res.setHeader("content-type", "text/html; charset=utf-8");
+  res.setHeader("cache-control", "public, max-age=300, s-maxage=600");
+  return res.status(200).send(html);
 }
