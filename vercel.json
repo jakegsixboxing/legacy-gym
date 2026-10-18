@@ -44,6 +44,10 @@
     {
       "source": "/api/fn-ticket-email",
       "destination": "/api/fightnight?a=ticket-email"
+    },
+    {
+      "source": "/fightnight/:slug",
+      "destination": "/api/fightnight?a=share&f=:slug"
     }
   ]
 }
