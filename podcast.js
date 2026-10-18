@@ -1,9 +1,11 @@
-/* ===== Legacy Gym Podcast tab (11 Oct 2026) =====
+/* ===== Legacy Gym Podcast tab (11 Oct 2026, ep2 18 Oct) ===== newest episode first: EPS[0] is what the player opens on.
    Self-hosted episodes — audio files live in the repo (copied to public/ by make-icons.mjs).
    Add an episode: drop the compressed .m4a in the repo root, add it to make-icons.mjs, add a row to EPS. */
 (function(){
 var LOGO=(typeof FC_LOGO!=="undefined")?FC_LOGO:"https://www.legacygym.net/cdn/shop/t/28/assets/fightclub-logo.png";
 var EPS=[
+  {id:"fc-ep2",n:2,title:"Fight Club EP-2",date:"2026-10-18",dur:2155,src:"/fight-club-ep2.m4a",
+   blurb:"Episode two of the Legacy Gym Podcast. More from inside Fight Club as the camp rolls on towards Fight Night, Sat 19 Dec."},
   {id:"fc-ep1",n:1,title:"Fight Club EP-1",date:"2026-10-11",dur:1254,src:"/fight-club-ep1.m4a",
    blurb:"Episode one of the Legacy Gym Podcast. Jake on Fight Club — the 10-week camp, what it takes and what’s coming."}
 ];
