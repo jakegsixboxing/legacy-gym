@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610182130";
+const LG_BUILD="202610190915";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -7419,7 +7419,7 @@ const TIMETABLE_NEW=[
 ];
 const CLASS_SCHEDULE_NEW=TIMETABLE_NEW.filter(c=>c.cat!=="jnr"&&c.cat!=="blokes").map(c=>({d:c.d,t:c.t,n:c.n}));
 /* One-off extra sessions. open:true = anyone can book, no club membership or boxer profile needed, and guests can book from /book-sparring without the app. */
-const CLASS_EXTRAS=[{date:"2026-10-17",t:"09:30",n:"Open Sparring",open:true}];
+const CLASS_EXTRAS=[{date:"2026-10-24",t:"09:30",n:"Open Sparring",open:true}];
 function isOpenSession(name){return /open sparring/i.test(String(name||""));}
 function scheduleForDate(day){const iso=isoDateLocal(day);if(classDayClosed(iso))return[];const base=iso>=CAMP3_START?CLASS_SCHEDULE_NEW:CLASS_SCHEDULE_OLD;const ex=CLASS_EXTRAS.filter(e=>e.date===iso).map(e=>({d:day.getDay(),t:e.t,n:e.n,open:true}));return ex.length?base.concat(ex).sort((a,b)=>a.t<b.t?-1:a.t>b.t?1:0):base;}
 const REG_WINDOW_H=24;
