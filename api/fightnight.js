@@ -209,7 +209,7 @@ async function ticketEmail(res, body) {
    Writes the link-preview tags (poster as the image) and a shell that /fh.js fills from RPC fh_public.
    Unknown slug -> the general Fight Night page. */
 const escH = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
-const FH_V = "202610221800";
+const FH_V = "202610221830";
 async function share(req, res) {
   const slug = String((req.query && req.query.f) || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60);
   let f = null;
