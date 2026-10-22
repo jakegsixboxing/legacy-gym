@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610221800";
+const LG_BUILD="202610222100";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10009,6 +10009,7 @@ if(typeof window.openMyPT==="function"){var _openMyPT=window.openMyPT;window.ope
 try{var _clsDL=/[?&]classes=(\d{4}-\d{2}-\d{2})/.exec(location.search);if(_clsDL){var _clsDate=_clsDL[1];var _clsT=setInterval(function(){if(typeof session!=="undefined"&&session&&session.user&&typeof go==="function"&&document.getElementById("main")){clearInterval(_clsT);window.__cbSel=_clsDate;go("classes");}},400);setTimeout(function(){clearInterval(_clsT);},30000);}}catch(e){}
 /* ?tips=1 deep link (NFL tipping notices) → open the comp and clear the member's open "NFL week" notices */
 try{if(/[?&]tips=1/.test(location.search)){var _tipDL=setInterval(function(){if(window.session&&window.session.user&&typeof go==="function"&&document.getElementById("main")){clearInterval(_tipDL);go("social");}},400);setTimeout(function(){clearInterval(_tipDL);},30000);}}catch(e){}
+try{if(/[?&]myfight=1/.test(location.search)){var _mfDL=setInterval(function(){if(window.session&&window.session.user&&typeof go==="function"&&document.getElementById("main")){clearInterval(_mfDL);go("home");setTimeout(function(){var c=document.getElementById("fnhMy");if(c)c.scrollIntoView({behavior:"smooth",block:"start"});},900);}},400);setTimeout(function(){clearInterval(_mfDL);},30000);}}catch(e){}
 try{var _tipGo=window.go;window.go=function(v){if(v==="social"&&window.session&&session.user){try{sb.from("member_notices").update({seen_at:new Date().toISOString()}).eq("user_id",session.user.id).like("kind","nfl-week%").is("seen_at",null).then(function(){var m=document.getElementById("main");});}catch(e){}}return _tipGo.apply(this,arguments);};}catch(e){}
 try{if(/[?&]tbj=1/.test(location.search)){var _tbjDL=setInterval(function(){if(window.session&&window.session.user&&typeof go==="function"&&document.getElementById("main")){clearInterval(_tbjDL);go("tbj");}},400);setTimeout(function(){clearInterval(_tbjDL);},30000);}}catch(e){}
 window.tbjPaid=async function(id,val){var r=await sb.from("tbj_requests").update({paid:val,status:val?undefined:undefined}).eq("id",id);if(r.error){toast(r.error.message);return;}
@@ -11106,7 +11107,7 @@ try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(
 <script src="/screens.js?v=202610131530"></script>
 <script src="/fightnight.js?v=202610182130"></script>
 <script src="/fnt.js?v=202610182130"></script>
-<script src="/fnhold.js?v=202610221800"></script>
+<script src="/fnhold.js?v=202610222100"></script>
 <script src="/members.js?v=202610182010"></script>
 <script src="/bluebook-rules.js?v=202610141200"></script>
 <script src="/bluebook.js?v=202610141700"></script>

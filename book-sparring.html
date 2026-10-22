@@ -58,14 +58,13 @@ input{width:100%;background:#0e0e10;border:1px solid #3a3a40;border-radius:10px;
 (function(){
 var SB="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/";
 var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
-var DATE="2026-10-24", OPEN_T="09:30", CAP=20;
+var DATE="2026-10-24", OPEN_T="09:30"; /* no cap — a class is never "full" (Jake, 22 Oct) */
 /* Already signed in to the Legacy app on this phone? Go straight to Saturday in the app. */
 try{var tok=null;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k))tok=localStorage.getItem(k);}if(tok&&/access_token/.test(tok)){location.replace("/?classes="+DATE);}}catch(e){}
 var count=0, booked=null;
 function paint(){
   var c=document.getElementById("cta");
   if(booked)c.innerHTML='<div class="btn in">You\'re in ✓ · see you Saturday</div>';
-  else if(count>=CAP)c.innerHTML='<div class="btn lock">Session full</div>';
   else c.innerHTML='<button class="btn gold" onclick="openSheet()">Book me in</button>';
 }
 async function load(){try{var r=await fetch(SB+"class_open_roster",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify({p_date:DATE})});var j=await r.json();(Array.isArray(j)?j:[]).forEach(function(x){if(x.time===OPEN_T)count=x.count||0;});}catch(e){}paint();}
