@@ -3,7 +3,7 @@
 //   a=paid         Shopify orders/paid webhook → marks the sponsorship paid in the app
 //   a=setup        Jake/Alison → registers the orders/paid webhook with Shopify (run once)
 //   a=ticket-email staff   → emails a Fight Night ticket link (was /api/fn-ticket-email; vercel.json rewrites it here)
-//   a=share&f=slug GET     → /fightnight/<fighter-slug>: per-fighter link preview (OG tags) then straight on to /fightnight?f=slug
+//   a=share&f=slug GET     → /fightnight/<fighter-slug>: the fighter's "Hold Me a Ticket" page (OG tags + /fh.js shell)
 import crypto from "crypto";
 const SB_URL = "https://jyslqxepodrseyhoppce.supabase.co";
 const SB_ANON = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
@@ -205,35 +205,41 @@ async function ticketEmail(res, body) {
   } catch (e) { return res.status(500).json({ error: "server_error", detail: String((e && e.message) || e) }); }
 }
 
-/* ---------- a=share (GET) · per-fighter link preview for /fightnight/<slug> ---------- */
+/* ---------- a=share (GET) · /fightnight/<slug> = the fighter's "Hold Me a Ticket" page ----------
+   Writes the link-preview tags (poster as the image) and a shell that /fh.js fills from RPC fh_public.
+   Unknown slug -> the general Fight Night page. */
 const escH = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+const FH_V = "202610221500";
 async function share(req, res) {
   const slug = String((req.query && req.query.f) || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60);
-  let name = null;
+  let f = null;
   if (slug) {
     try {
-      const r = await fetch(SB_URL + "/rest/v1/rpc/fn_presale_fighters", { method: "POST", headers: { apikey: SB_ANON, Authorization: "Bearer " + SB_ANON, "content-type": "application/json" }, body: "{}" });
-      const list = await r.json();
-      const f = Array.isArray(list) ? list.find(x => x.slug === slug) : null;
-      if (f) name = f.name;
+      const r = await fetch(SB_URL + "/rest/v1/rpc/fh_public", { method: "POST", headers: { apikey: SB_ANON, Authorization: "Bearer " + SB_ANON, "content-type": "application/json" }, body: JSON.stringify({ p_slug: slug }) });
+      const j = await r.json();
+      if (j && j.ok && j.fighter) f = j.fighter;
     } catch (e) {}
   }
-  let img = APP + "/img/fc/share/og-default.jpg";
-  if (name) { try { const h = await fetch(APP + "/img/fc/share/og-" + slug + ".jpg", { method: "HEAD" }); if (h.ok) img = APP + "/img/fc/share/og-" + slug + ".jpg"; } catch (e) {} }
-  const first = name ? name.split(" ")[0] : null;
-  const title = name ? name + " is fighting · Fight Club Fight Night, Sat 19 Dec" : "Fight Night · 20% off pre-release tickets";
-  const desc = name ? "I've reserved my seat. Reserve yours, 20% off pre-release, and come support " + first + " at Legacy Gym Kincumber." : "Sat 19 December, Legacy Gym Kincumber. Register now and buy before the public with 20% off any ticket.";
-  const dest = "/fightnight" + (name ? "?f=" + encodeURIComponent(slug) : "");
-  const url = APP + "/fightnight" + (name ? "/" + slug : "");
-  const html = "<!doctype html><html lang=\"en-AU\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-    + "<title>" + escH(title) + "</title><meta name=\"description\" content=\"" + escH(desc) + "\">"
+  if (!f) {
+    res.setHeader("cache-control", "no-store");
+    res.statusCode = 302; res.setHeader("location", "/fightnight"); return res.end();
+  }
+  const name = f.name, first = f.first;
+  const img = f.poster || f.photo || (APP + "/img/fc/share/og-default.jpg");
+  const title = name + " · Fight Night, Sat 19 Dec · Hold me a ticket";
+  const desc = "Hold a ticket to " + first + "'s name — nothing to pay today. First shot at tickets when they release, at the pre-sale discount. Legacy Gym Kincumber.";
+  const url = APP + "/fightnight/" + f.slug;
+  const html = "<!doctype html><html lang=\"en-AU\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"theme-color\" content=\"#06080a\">"
+    + "<title>" + escH(title) + "</title><meta name=\"description\" content=\"" + escH(desc) + "\"><meta name=\"robots\" content=\"noindex\">"
     + "<meta property=\"og:type\" content=\"website\"><meta property=\"og:site_name\" content=\"Legacy Gym · Fight Club Central Coast\">"
     + "<meta property=\"og:title\" content=\"" + escH(title) + "\"><meta property=\"og:description\" content=\"" + escH(desc) + "\">"
-    + "<meta property=\"og:image\" content=\"" + img + "\"><meta property=\"og:image:width\" content=\"1200\"><meta property=\"og:image:height\" content=\"630\">"
-    + "<meta property=\"og:url\" content=\"" + url + "\"><meta name=\"twitter:card\" content=\"summary_large_image\"><meta name=\"twitter:image\" content=\"" + img + "\">"
-    + "<meta http-equiv=\"refresh\" content=\"0;url=" + dest + "\"><style>body{background:#050a0d;color:#7fe0ff;font:600 15px system-ui;display:grid;place-items:center;height:100vh;margin:0}a{color:#7fe0ff}</style></head>"
-    + "<body><a href=\"" + dest + "\">Opening Fight Night pre-release tickets…</a><script>location.replace(" + JSON.stringify(dest) + ")</script></body></html>";
+    + "<meta property=\"og:image\" content=\"" + escH(img) + "\"><meta property=\"og:url\" content=\"" + url + "\"><meta name=\"twitter:card\" content=\"summary_large_image\"><meta name=\"twitter:image\" content=\"" + escH(img) + "\">"
+    + "<link rel=\"icon\" href=\"/img/fc/fc-logo.png\"><link rel=\"preconnect\" href=\"https://fonts.googleapis.com\"><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>"
+    + "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Montserrat:wght@500;600;700;800&display=swap\">"
+    + "<style>html,body{background:#06080a;color:#eef3f5;margin:0;font-family:Montserrat,system-ui,sans-serif}</style></head>"
+    + "<body><div id=\"fh\" data-slug=\"" + escH(f.slug) + "\"><noscript>Turn on JavaScript to hold a ticket for " + escH(name) + ".</noscript></div>"
+    + "<script src=\"/fh.js?v=" + FH_V + "\"></script></body></html>";
   res.setHeader("content-type", "text/html; charset=utf-8");
-  res.setHeader("cache-control", "public, max-age=300, s-maxage=600");
+  res.setHeader("cache-control", "public, max-age=60, s-maxage=120");
   return res.status(200).send(html);
 }
