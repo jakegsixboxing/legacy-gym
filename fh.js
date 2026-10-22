@@ -72,7 +72,7 @@ function render(){
   var src=heroSrc();
   $("fhHero").innerHTML=src?'<div class="hero'+(f.poster?"":" nop")+'"><img src="'+esc(src)+'" alt="'+esc(f.name)+' — Fight Night">'+(f.poster?"":'<div class="nm"><b>'+esc(f.name)+'</b><small>Fight Club Central Coast · Fight Night</small></div>')+'</div>'
     :'<div class="hero blank"><div><img src="'+LOGO+'" alt=""><div style="margin-top:16px"><b class="oz" style="font-size:34px">'+esc(f.name)+'</b><div class="k" style="margin-top:8px">Fight Night · Sat 19 Dec</div></div></div></div>';
-  var meta=[];if(f.weight)meta.push("<span><b>"+esc(f.weight)+" kg</b></span>");if(f.suburb)meta.push("<span><b>"+esc(f.suburb)+"</b></span>");meta.push("<span>Fight Club Central Coast</span>");
+  var meta=["<span><b>Fight Club Central Coast</b></span>","<span>Fight Night · Sat 19 Dec</span>"];
   $("fhMeta").innerHTML='<div class="meta2"><span class="num">FIGHTER</span>'+meta.join("")+'</div>';
   $("fhBlock").innerHTML=blockHtml();
   $("fhMain").innerHTML=mainHtml()+'<div class="foot"><b>Fight Club Central Coast · Fight Night</b><br>Saturday 19 December · Legacy Gym Kincumber<br>Nothing charged until tickets release · 18+ ticketing, under-18s by nomination</div>';
