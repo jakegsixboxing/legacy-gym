@@ -4,6 +4,8 @@ self.addEventListener("install", e => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(clients.claim()));
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  // Public one-off pages (fighter pages, demos, guest booking) always come straight from the network.
+  if (/\/(demo|fightnight|book-sparring)(\/|\?|$)/.test(new URL(e.request.url).pathname)) return;
   // Video/audio need native range-request streaming — passing them through the
   // SW breaks playback (especially iOS). Let the browser handle them directly.
   if (e.request.headers.has("range") || e.request.destination === "video" ||
