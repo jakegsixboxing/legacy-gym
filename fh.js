@@ -42,6 +42,7 @@ var css=document.createElement("style");css.textContent=
 +".done{text-align:center;padding:6px 0}.done .tick{width:62px;height:62px;border-radius:50%;background:#0f2a1c;border:1px solid #1f5a3a;display:grid;place-items:center;margin:0 auto 12px}.done .tick svg{width:30px;height:30px;stroke:var(--green);fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}.done h3{font-size:26px}.done p{font-size:13px;color:var(--mute);margin-top:8px;line-height:1.55}.done p b{color:var(--ink)}"
 +".card{margin-top:14px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#07141b;max-width:300px;margin-left:auto;margin-right:auto}.card img{width:100%;aspect-ratio:4/5;object-fit:contain;display:block}.card .ct{padding:12px 14px 14px;border-top:1px solid var(--line);text-align:left}.card .ct small{display:block;font-size:10.5px;color:#cfdbe0;line-height:1.45}.card .ct em{font-style:normal;color:var(--c2);font-weight:800}"
 +".toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:#0f2a1c;color:var(--green);border:1px solid #1f5a3a;border-radius:99px;padding:10px 16px;font-size:12.5px;font-weight:700;opacity:0;transition:.2s;z-index:60;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}"
++".songs{display:grid;gap:6px;margin-top:12px}.song{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700}.song.more{color:var(--mute);font-weight:600;text-align:center;background:none;border-style:dashed}.hint{font-size:12px;color:var(--mute);margin-top:12px}"
 +".foot{margin:34px 0 10px;text-align:center;font-size:11px;color:var(--mute);line-height:1.7}.foot b{color:var(--ink)}.foot a{color:var(--c2)}.loading{padding:60px 20px;text-align:center;color:var(--mute);font-size:13px}"
 +"@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}";
 document.head.appendChild(css);
@@ -96,6 +97,11 @@ function mainHtml(){
   h+='</div>';
   h+='<div class="sec"><h2>'+esc(team())+' shirt</h2><div class="sub">Back '+esc(first())+' on the night in team colours. Pre-request yours now and we\'ll send payment details once the print run is confirmed.</div>'
    +'<div class="shirt"><div><div class="nm">I want a '+esc(team())+' shirt</div><div class="tag">Fight Club blue · unisex sizes · kids sizes</div></div><div class="pr"><b>'+money(d.shirt_cents)+'</b><small>per shirt</small></div><p>Pre-request only — <b style="color:var(--c2)">nothing to pay today</b>. Payment details will be sent to you with your ticket release. '+((d.shirts|0)>0?'<b style="color:var(--ink)">'+(d.shirts|0)+' requested so far.</b>':'')+'</p><button class="pick" onclick="fhShirt()">Request my shirt</button></div></div>';
+  var sg=d.songs||[];
+  h+='<div class="sec"><h2>Walkout song</h2><div class="sub">Nominate the song '+esc(first())+' should walk out to. '+esc(first())+' picks the winner.</div>'
+   +(d.walkout?'<div class="notice win"><b>Locked in:</b> '+esc(d.walkout)+'</div>':'')
+   +(sg.length?'<div class="songs">'+sg.map(function(x){return '<div class="song">'+esc(x)+'</div>';}).join("")+((d.song_count|0)>sg.length?'<div class="song more">+'+((d.song_count|0)-sg.length)+' more</div>':'')+'</div>':'<div class="hint">No suggestions yet — you could be first.</div>')
+   +'<button class="btn p" style="width:100%;margin-top:12px" onclick="fhSong()">Suggest a song</button></div>';
   h+='<div class="sec"><h2>Share '+esc(first())+'\'s page</h2><div class="sub">Send '+esc(first())+'\'s link to the people who\'d come. Every hold goes to '+esc(first())+'\'s name.</div><div class="share"><button class="btn p" onclick="fhCopy()">Copy link</button><button class="btn" onclick="fhShare()">Share</button></div></div>';
   return h;
 }
@@ -142,10 +148,22 @@ window.fhShirtGo=async function(){if(S.busy)return;var p=readPerson();if(!p)retu
   }catch(e){$("fErr").textContent=e.message||String(e);go.disabled=false;go.textContent="Request my shirt";}
   S.busy=false;};
 
+window.fhSong=function(){
+  open('<h3>Walkout song for '+esc(first())+'</h3><div class="sub">Song and artist, and your name so '+esc(first())+' knows who to thank (or blame).</div><label>Song</label><input id="fS" placeholder="Song – Artist" maxlength="120"><label>Your name</label><input id="fN" placeholder="First name is fine" maxlength="60"><div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhSongGo()">Suggest it</button><button class="cancel" onclick="closeAll()">Not now</button>');
+  setTimeout(function(){$("fS").focus();},60);
+};
+window.fhSongGo=async function(){if(S.busy)return;var sg=$("fS").value.trim(),nm=$("fN").value.trim(),err=$("fErr");
+  if(sg.length<2){err.textContent="What's the song?";return;}if(nm.length<2){err.textContent="And your name.";return;}
+  S.busy=true;var go=$("fGo");go.disabled=true;go.textContent="One sec…";
+  try{var j=await rpc("fh_song",{p_slug:SLUG,p_song:sg,p_name:nm});if(!j||!j.ok)throw new Error((j&&j.message)||"Couldn't save that. Try again.");
+    await load(false);render();closeAll();toast("Suggested — "+esc(first())+" will see it");
+  }catch(e){err.textContent=e.message||String(e);go.disabled=false;go.textContent="Suggest it";}
+  S.busy=false;};
 window.fhCopy=async function(){try{await navigator.clipboard.writeText(pageUrl());toast("Link copied");}catch(e){prompt("Copy this link:",pageUrl());}};
 window.fhShare=async function(){var t=first()+" is fighting at Legacy on Dec 19. Hold a ticket to '+first()+'\'s name — nothing to pay yet: "+pageUrl();try{if(navigator.share){await navigator.share({title:F().name+" · Fight Night",text:t,url:pageUrl()});return;}}catch(e){if(e&&e.name==="AbortError")return;}fhCopy();};
 
 async function load(paint){var j=await rpc("fh_public",{p_slug:SLUG});if(!j||!j.ok)throw new Error("no_fighter");S.d=j;if(paint!==false)render();}
+if(/[?&]preview=1/.test(location.search)){var pb=document.createElement('div');pb.style.cssText='background:#2a2211;color:#f5b942;border-bottom:1px solid #6b5520;font:800 10px/1.4 Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;text-align:center;padding:8px 12px';pb.textContent='Guest view · this is the live page — anything you submit here is real';document.body.insertBefore(pb,document.body.firstChild);}
 shell();root.querySelector("#fhMain").innerHTML='<div class="loading">Opening '+esc(SLUG.replace(/-/g," "))+'\'s page…</div>';
 load().catch(function(e){root.querySelector("#fhMain").innerHTML='<div class="loading">That fighter page isn\'t live yet.<br><br><a href="'+APP+'/fightnight" style="color:var(--c2)">See the event page</a></div>';});
 })();
