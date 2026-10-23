@@ -83,7 +83,7 @@ function ovHtml(){
    +'<div class="tg"><div><b>Launch notice</b><small>Puts a one-time “Your Fight Night page is live — Share my page” card on every fighter\'s home screen. Flip fighters ON first.</small></div><button class="b sm" onclick="fnhLaunch()">Send to all fighters</button></div>'
    +'<div class="tg"><div><b>Block size</b><small>Tickets per block. Approving a request adds one more block.</small></div><input type="number" min="1" max="50" value="'+(st.block_size|0)+'" onchange="fnhSetNum(\'block_size\',this.value)"></div>'
    +'<div class="tg"><div><b>Team shirt price</b><small>Shown on every fighter page. Pre-request only, nothing charged.</small></div><input type="number" step="0.01" min="0" value="'+((st.shirt_cents|0)/100).toFixed(2)+'" onchange="fnhSetNum(\'shirt_cents\',Math.round(parseFloat(this.value||0)*100))"></div></div>'
-   +'<div class="calm" style="margin-top:12px"><b>Tier prices and caps</b> live in the database (Gold table $199–220 · 12 tables of 10 · GA $69.99–120 · 230 across the GA areas). Tell me when pricing and the seating map are final and I\'ll set the numbers.</div>';
+   +'<div class="calm" style="margin-top:12px"><b>Tier prices and caps</b> live in the database (Gold table $199–220 · 14 tables of 10 · GA $69.99–120 · 280 across the GA areas). Tell me when pricing and the seating map are final and I\'ll set the numbers.</div>';
   return h;}
 function tg(key,on,label,sub){return '<div class="tg"><div><b>'+label+'</b><small>'+sub+'</small></div><button class="sw'+(on?" on":"")+'" onclick="fnhSet(\''+key+'\','+(on?"false":"true")+')" aria-label="'+label+'"></button></div>';}
 function frHtml(f){var img=f.poster||f.photo;var pct=f.block?Math.min(100,Math.round(100*f.held/f.block)):0;
