@@ -38,6 +38,7 @@ var css=document.createElement("style");css.textContent=
 +".share{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn{border:0;border-radius:12px;padding:14px 12px;font:700 14px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink);background:#0e2430;border:1px solid var(--line)}.btn.p{background:linear-gradient(180deg,var(--c2),var(--c));color:#04141b;border-color:transparent}.btn:disabled{opacity:.5;cursor:default}"
 +".ov{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:flex-end;justify-content:center;z-index:50;padding:10px}.ov.on{display:flex}.sheet{width:100%;max-width:520px;max-height:92vh;overflow:auto;background:#0b1319;border:1px solid #1b5b70;border-radius:20px;padding:18px;box-shadow:var(--shadow)}.sheet h3{font:600 22px/1.05 Oswald,sans-serif;text-transform:uppercase}.sheet .sub{font-size:12.5px;color:var(--mute);margin-top:5px;line-height:1.5}.sheet .sub b{color:var(--ink)}"
 +"label{display:block;font-size:10px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#cfdbe0;margin:13px 0 6px}label .o{color:var(--mute);font-weight:600;letter-spacing:0;text-transform:none}input,select,textarea{width:100%;background:#07141b;border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:12px;font-family:inherit;font-size:16px}input:focus,select:focus,textarea:focus{outline:none;border-color:var(--c)}textarea{min-height:76px;resize:vertical;font-size:14px}"
++".sheet{padding-top:0}.shbar{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 -18px 12px;padding:12px 18px;background:#0b1319;border-bottom:1px solid var(--line)}.shbar span{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mute);font-weight:800}.shbar button{background:#0e2430;border:1px solid var(--line);color:var(--c2);border-radius:99px;padding:8px 12px;font:700 12px/1 Oswald,sans-serif;letter-spacing:1.2px;text-transform:uppercase}.next{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:6px}.next .k{margin-bottom:4px}.next button{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:12px;text-align:left;font-weight:700;font-size:13px}"
 +".sizes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}.sizes button{background:#07141b;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:10px 0;font-weight:800;font-size:12px}.sizes button.on{border-color:var(--c);background:#0d2430;color:var(--c2)}"
 +".qty{display:flex;align-items:center;gap:10px;margin-top:8px}.qty button{width:40px;height:40px;border-radius:10px;background:#0e2430;border:1px solid var(--line);color:var(--ink);font-size:18px;font-weight:800}.qty b{font:600 22px/1 Oswald,sans-serif;min-width:30px;text-align:center}"
 +".consent{display:flex;gap:9px;align-items:flex-start;font-size:11px;color:var(--mute);line-height:1.5;margin-top:12px}.consent input{width:18px;height:18px;margin-top:1px;flex:none}.fine{font-size:11px;color:var(--mute);line-height:1.5;margin-top:12px}.err{color:var(--red);font-size:12px;margin-top:8px;min-height:16px}.sheet .btn{width:100%;margin-top:14px}.cancel{background:none;border:0;color:var(--mute);font-family:inherit;font-weight:800;font-size:12px;margin-top:10px;width:100%}"
@@ -59,7 +60,11 @@ function heroSrc(){return F().poster||F().photo||"";}
 
 window.toast=function(m){var t=$("fhToast");t.textContent=m;t.classList.add("on");clearTimeout(t._x);t._x=setTimeout(function(){t.classList.remove("on");},2800);};
 window.closeAll=function(){$("fhOv").classList.remove("on");};
-function open(h){$("fhSheet").innerHTML=h;$("fhOv").classList.add("on");$("fhSheet").scrollTop=0;}
+function open(h){$("fhSheet").innerHTML='<div class="shbar"><span>'+esc(first())+'\'s page</span><button type="button" onclick="closeAll()">‹ Back to page</button></div>'+h;$("fhOv").classList.add("on");$("fhSheet").scrollTop=0;}
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeAll();});
+window.fhGoto=function(id){closeAll();var el=document.getElementById(id);if(el)setTimeout(function(){el.scrollIntoView({behavior:"smooth",block:"start"});},60);};
+function nextHtml(skip){var L=[["tix","Hold a ticket"],["gear","Shirts & singlets"],["song","Walkout song"],["shareSec","Share the page"]].filter(function(x){return x[0]!==skip;});
+  return '<div class="next"><div class="k">Keep going</div>'+L.map(function(x){return '<button type="button" onclick="fhGoto(\''+x[0]+'\')">'+x[1]+' ›</button>';}).join("")+'</div>';}
 
 function shell(){
   root.innerHTML='<div class="wrap"><div class="bar"><img src="'+LOGO+'" alt="Fight Club Central Coast"><div class="ev"><span class="k">Fight Night</span><div class="t">Sat 19 December</div><div class="cd" id="fhCd"></div></div></div>'
@@ -93,22 +98,22 @@ function tk(o){
 function mainHtml(){
   var d=S.d,f=F();
   var nT=["gold","silver","ga"].filter(function(k){return d.tiers[k];}).length;
-  var h='<div class="sec"><h2>Hold me a ticket</h2><div class="sub">'+(nT===2?"Two":nT===3?"Three":"A few")+' ways to watch '+esc(first())+'. Holding a ticket doesn\'t mean you have to buy one. It puts you on the <b>early release</b> — first shot at tickets before they sell out, at the pre-sale discount. Nothing charged today.</div>';
+  var h='<div class="sec" id="tix"><h2>Hold me a ticket</h2><div class="sub">'+(nT===2?"Two":nT===3?"Three":"A few")+' ways to watch '+esc(first())+'. Holding a ticket doesn\'t mean you have to buy one. It puts you on the <b>early release</b> — first shot at tickets before they sell out, at the pre-sale discount. Nothing charged today.</div>';
   if(!d.live)h+='<div class="notice warn"><b>Holds open soon.</b> This page is being set up — check back shortly.</div>';
   h+='<div class="tix2">'+["gold","silver","ga"].filter(function(k){return d.tiers[k];}).map(tk).join("")+'</div><div class="notice"><b>Prices will be confirmed, and the seating and standing map released, with the official pricing in the coming week.</b> Everyone holding gets it first by text and email. Reserving an early-release ticket doesn\'t commit you to buying one — it gives our team a clear picture of what the crowd is after in terms of seating, so we can make the best calls for our guests.</div>';
   if(S.me)h+='<div class="notice win"><b>You\'re '+(S.me.status==="waitlist"?"on the list":"holding one")+', '+esc(S.me.first)+'.</b> '+esc(d.tiers[S.me.tier].nm)+'. We\'ll email and text you the moment tickets are available to buy.</div>';
   h+='</div>';
-  h+='<div class="sec"><h2>Supporter shirts &amp; singlets</h2><div class="sub">Get around '+esc(first())+' on the night — grab yourself one of the colourful '+esc(team())+' supporter shirts or singlets. Fight Night has no dress code bar enclosed shoes, so singlets, shirts, it\'s all welcome. Sizing runs from XS right through to 6XL.</div>'
+  h+='<div class="sec" id="gear"><h2>Supporter shirts &amp; singlets</h2><div class="sub">Get around '+esc(first())+' on the night — grab yourself one of the colourful '+esc(team())+' supporter shirts or singlets. Fight Night has no dress code bar enclosed shoes, so singlets, shirts, it\'s all welcome. Sizing runs from XS right through to 6XL.</div>'
    +'<div class="gear"><div class="gimgs">'+["indigenous","pink","yellow","grey"].map(function(c){return '<img src="'+MERCH+'shirt-'+c+'.jpg" alt="'+c+' shirt" onclick="fhGear(\'shirt\',\''+c+'\')">';}).join("")+'</div>'
    +'<div class="grow"><div><div class="nm">'+esc(team())+' gear</div><div class="tag">Shirt or singlet · 4 colourways · XS – 6XL</div></div><div class="pr"><b>'+money(d.shirt_cents)+'</b><small>each</small></div></div>'
    +'<p>Pre-request only — <b style="color:var(--c2)">nothing to pay today</b>. Pick your style, colour, size and how many, and payment details will be sent to you with your ticket release. '+((d.shirts|0)>0?'<b style="color:var(--ink)">'+(d.shirts|0)+' requested so far.</b>':'')+'</p>'
    +'<div class="gbtns"><button class="pick" onclick="fhGear(\'shirt\')">I want a shirt</button><button class="pick" onclick="fhGear(\'singlet\')">I want a singlet</button></div></div>';
   var sg=d.songs||[];
-  h+='<div class="sec"><h2>Walkout song</h2><div class="sub">Nominate the song '+esc(first())+' should walk out to. '+esc(first())+' picks the winner.</div>'
+  h+='<div class="sec" id="song"><h2>Walkout song</h2><div class="sub">Nominate the song '+esc(first())+' should walk out to. '+esc(first())+' picks the winner.</div>'
    +(d.walkout?'<div class="notice win"><b>Locked in:</b> '+esc(d.walkout)+'</div>':'')
    +(sg.length?'<div class="songs">'+sg.map(function(x){return '<div class="song">'+esc(x)+'</div>';}).join("")+((d.song_count|0)>sg.length?'<div class="song more">+'+((d.song_count|0)-sg.length)+' more</div>':'')+'</div>':'<div class="hint">No suggestions yet — you could be first.</div>')
    +'<button class="btn p" style="width:100%;margin-top:12px" onclick="fhSong()">Suggest a song</button></div>';
-  h+='<div class="sec"><h2>Share '+esc(first())+'\'s page</h2><div class="sub">Send '+esc(first())+'\'s link to the people who\'d come. Every hold goes to '+esc(first())+'\'s name.</div><div class="share"><button class="btn p" onclick="fhCopy()">Copy link</button><button class="btn" onclick="fhShare()">Share</button></div></div>';
+  h+='<div class="sec" id="shareSec"><h2>Share '+esc(first())+'\'s page</h2><div class="sub">Send '+esc(first())+'\'s link to the people who\'d come. Every hold goes to '+esc(first())+'\'s name.</div><div class="share"><button class="btn p" onclick="fhCopy()">Copy link</button><button class="btn" onclick="fhShare()">Share</button></div></div>';
   return h;
 }
 
@@ -122,7 +127,7 @@ function readPerson(){var n=$("fN").value.trim().replace(/\s+/g," "),m=$("fM").v
 window.fhPick=function(o){S.opt=o;var T=S.d.tiers[o];
   open('<h3>'+(full()?'Join the list':'Hold me a ticket')+'</h3><div class="sub"><b>'+esc(T.nm)+' · '+esc(T.price)+' '+esc(T.unit)+'.</b> '+esc(T.tag)+'. Final price and the seating map come out with the official pricing in the coming week. Holding doesn\'t commit you to buying — it puts you on the early release at the pre-sale discount and tells us what the crowd wants. One hold per person.'+(full()?' <b>'+esc(first())+'\'s block is full</b> — you\'ll be first in line when more open.':'')+'</div>'+person()
    +'<label>A few words for '+esc(first())+' <span class="o">(optional — '+esc(first())+' reads these fight week)</span></label><textarea id="fMsg" placeholder="Go on, say something."></textarea>'
-   +'<div class="consent"><input type="checkbox" id="fC" checked><span>Legacy Gym can text and email me about Fight Night. No spam, unsubscribe any time.</span></div><div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhSubmit()">'+(full()?'Put me on the list':'Hold my ticket')+'</button><div class="fine">Under 18? Hold your own and we\'ll be in touch about nominating them.</div><button class="cancel" onclick="closeAll()">Not now</button>');
+   +'<div class="consent"><input type="checkbox" id="fC" checked><span>Legacy Gym can text and email me about Fight Night. No spam, unsubscribe any time.</span></div><div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhSubmit()">'+(full()?'Put me on the list':'Hold my ticket')+'</button><div class="fine">Under 18? Hold your own and we\'ll be in touch about nominating them.</div><button class="cancel" onclick="closeAll()">‹ Back to '+esc(first())+'\'s page</button>');
   setTimeout(function(){$("fN").focus();},60);
 };
 window.fhSubmit=async function(){if(S.busy)return;var p=readPerson();if(!p)return;S.busy=true;var go=$("fGo");go.disabled=true;go.textContent="One sec…";
@@ -132,7 +137,7 @@ window.fhSubmit=async function(){if(S.busy)return;var p=readPerson();if(!p)retur
     var T=S.d.tiers[S.opt],wait=j.status==="waitlist";
     open('<div class="done"><div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></svg></div><h3 class="oz">'+(wait?"You're on the list":"Ticket held")+'</h3><p><b>'+esc(p.name)+'</b> — '+esc(T.nm.toLowerCase())+', '+(wait?'first in line for '+esc(first())+'\'s next block.':'held to '+esc(first())+'\'s name.')+' <b>An email and a text message will be sent to you as soon as your tickets are available for purchase</b> — then it\'s your call whether to buy.</p>'
      +(heroSrc()?'<div class="card"><img src="'+esc(heroSrc())+'" alt=""><div class="ct"><small><em>'+esc(p.first)+'</em> is coming to watch '+esc(first())+'. '+((S.d.left|0)>0?(S.d.left|0)+' tickets left in '+esc(first())+'\'s block.':esc(first())+'\'s block just filled.')+'</small></div></div>':'')
-     +'<div class="share"><button class="btn p" onclick="fhShare()">Share '+esc(first())+'\'s page</button><button class="btn" onclick="fhCopy()">Copy link</button></div><button class="cancel" onclick="closeAll()">Back to '+esc(first())+'\'s page</button></div>');
+     +'<button class="btn p" style="width:100%;margin-top:14px" onclick="closeAll()">‹ Back to '+esc(first())+'\'s page</button><div class="share"><button class="btn" onclick="fhShare()">Share the page</button><button class="btn" onclick="fhCopy()">Copy link</button></div>'+nextHtml("tix")+'</div>');
   }catch(e){$("fErr").textContent=e.message||String(e);go.disabled=false;go.textContent=full()?"Put me on the list":"Hold my ticket";}
   S.busy=false;};
 
@@ -155,15 +160,27 @@ window.fhGear=function(st,c){if(st)shirt.style=st;if(c)shirt.colour=c;
    +'<label>Colour</label><div class="cols" id="fCols">'+coloursHtml()+'</div>'
    +'<label>Size <span class="o">(XS – 6XL)</span></label><div class="sizes" id="fSizes">'+sizesHtml()+'</div>'
    +'<label>How many</label><div class="qty"><button type="button" onclick="fhQty(-1)">−</button><b id="fQty">'+shirt.qty+'</b><button type="button" onclick="fhQty(1)">+</button><span class="sum" id="fSum">'+gearSummary()+'</span></div>'
-   +person()+'<div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhShirtGo()">Request my '+shirt.style+'</button><button class="cancel" onclick="closeAll()">Not now</button>');
+   +person()+'<div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhShirtGo()">Request my '+shirt.style+'</button><button class="cancel" onclick="closeAll()">‹ Back to '+esc(first())+'\'s page</button>');
 };
 window.fhShirt=function(){fhGear("shirt");};
 window.fhShirtGo=async function(){if(S.busy)return;var p=readPerson();if(!p)return;S.busy=true;var go=$("fGo");go.disabled=true;go.textContent="One sec…";
   try{var j=await rpc("fh_shirt",{p_slug:SLUG,p_name:p.name,p_mobile:p.mobile,p_email:p.email,p_size:shirt.size,p_qty:shirt.qty,p_style:shirt.style,p_colour:shirt.colour});
     if(!j||!j.ok)throw new Error((j&&j.message)||"Couldn't save that. Try again.");
     await load(false);render();
-    open('<div class="done"><div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></svg></div><h3 class="oz">'+(shirt.style==="shirt"?"Shirt":"Singlet")+(shirt.qty>1?"s":"")+' requested</h3><p><b>'+esc(p.name)+'</b> — '+esc(gearSummary())+', to '+esc(first())+'\'s name. <b>Payment details will be sent to you</b> once the print run is confirmed. Nothing charged today.</p><div class="card" style="max-width:260px"><img src="'+MERCH+shirt.style+'-'+shirt.colour+'.jpg" alt="" style="aspect-ratio:auto"></div><button class="cancel" onclick="closeAll()">Back to '+esc(first())+'\'s page</button></div>');
+    open('<div class="done"><div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></svg></div><h3 class="oz">'+(shirt.style==="shirt"?"Shirt":"Singlet")+(shirt.qty>1?"s":"")+' requested</h3><p><b>'+esc(p.name)+'</b> — '+esc(gearSummary())+', to '+esc(first())+'\'s name. <b>Payment details will be sent to you</b> once the print run is confirmed. Nothing charged today.</p><div class="card" style="max-width:260px"><img src="'+MERCH+shirt.style+'-'+shirt.colour+'.jpg" alt="" style="aspect-ratio:auto"></div><button class="btn p" style="width:100%;margin-top:14px" onclick="closeAll()">‹ Back to '+esc(first())+'\'s page</button>'+nextHtml("gear")+'</div>');
   }catch(e){$("fErr").textContent=e.message||String(e);go.disabled=false;go.textContent="Request my "+shirt.style;}
+  S.busy=false;};
+window.fhSong=function(){
+  open('<h3>Walkout song for '+esc(first())+'</h3><div class="sub">Song and artist, and your name so '+esc(first())+' knows who to thank (or blame).</div><label>Song</label><input id="fS" placeholder="Song – Artist" maxlength="120"><label>Your name</label><input id="fN" placeholder="First name is fine" maxlength="60"><div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhSongGo()">Suggest it</button><button class="cancel" onclick="closeAll()">‹ Back to '+esc(first())+'\'s page</button>');
+  setTimeout(function(){$("fS").focus();},60);
+};
+window.fhSongGo=async function(){if(S.busy)return;var sg=$("fS").value.trim(),nm=$("fN").value.trim(),err=$("fErr");
+  if(sg.length<2){err.textContent="What's the song?";return;}if(nm.length<2){err.textContent="And your name.";return;}
+  S.busy=true;var go=$("fGo");go.disabled=true;go.textContent="One sec…";
+  try{var j=await rpc("fh_song",{p_slug:SLUG,p_song:sg,p_name:nm});if(!j||!j.ok)throw new Error((j&&j.message)||"Couldn't save that. Try again.");
+    await load(false);render();
+    open('<div class="done"><div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></svg></div><h3 class="oz">Song suggested</h3><p><b>'+esc(sg)+'</b> is in. '+esc(first())+' sees every suggestion and picks the walkout song.</p><button class="btn p" style="width:100%;margin-top:14px" onclick="closeAll()">‹ Back to '+esc(first())+'\'s page</button>'+nextHtml("song")+'</div>');
+  }catch(e){err.textContent=e.message||String(e);go.disabled=false;go.textContent="Suggest it";}
   S.busy=false;};
 window.fhCopy=async function(){try{await navigator.clipboard.writeText(pageUrl());toast("Link copied");}catch(e){prompt("Copy this link:",pageUrl());}};
 window.fhShare=async function(){var t=first()+" is fighting at Legacy on Dec 19. Hold a ticket to '+first()+'\'s name — nothing to pay yet: "+pageUrl();try{if(navigator.share){await navigator.share({title:F().name+" · Fight Night",text:t,url:pageUrl()});return;}}catch(e){if(e&&e.name==="AbortError")return;}fhCopy();};
