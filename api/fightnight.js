@@ -221,8 +221,11 @@ async function share(req, res) {
     } catch (e) {}
   }
   if (!f) {
-    res.setHeader("cache-control", "no-store");
-    res.statusCode = 302; res.setHeader("location", "/fightnight"); return res.end();
+    // Unknown or retired fighter: a plain dead-end card. No links anywhere else.
+    res.setHeader("content-type", "text/html; charset=utf-8"); res.setHeader("cache-control", "no-store");
+    return res.status(404).send("<!doctype html><html lang=\"en-AU\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex\"><title>Fight Night</title>"
+      + "<style>html,body{background:#06080a;color:#eef3f5;margin:0;font-family:Montserrat,system-ui,sans-serif;min-height:100vh;display:grid;place-items:center;text-align:center;padding:24px}img{height:56px;margin-bottom:18px}h1{font-size:22px;margin:0 0 8px}p{color:#8fa4ae;font-size:14px;line-height:1.5;max-width:34ch;margin:0 auto}</style></head>"
+      + "<body><div><img src=\"/img/fc/fc-logo.png\" alt=\"\"><h1>That fighter page isn\u2019t live</h1><p>Check the link you were sent \u2014 every fighter has their own page. Fight Club Central Coast \u00b7 Fight Night \u00b7 Sat 19 December.</p></div></body></html>");
   }
   const name = f.name, first = f.first;
   const img = f.poster || f.photo || (APP + "/img/fc/share/og-default.jpg");
