@@ -192,9 +192,13 @@ async function myCard(){
   if(ex)return;
   var d=S.my;if(!d||!d.fighter||view!=="home"||$id("fnhMy"))return;
   var wrap=document.createElement("div");wrap.innerHTML=hqHtml(d,false);var c=wrap.firstElementChild;
+  /* fighters: the very first thing on Home. Jake & Ali: just under the staff cards. */
+  if(!isBoss()){m.insertAdjacentElement("afterbegin",c);return;}
   var after=$id("fnhHome")||$id("fntHome")||$id("fnxHome");if(after){after.insertAdjacentElement("afterend",c);return;}
   var root=$id("lgh2");if(root)root.insertAdjacentElement("afterbegin",c);else m.insertAdjacentElement("afterbegin",c);
 }
+/* keep it on top: if anything else gets inserted above it later, move it back up (fighters only; notices from fc.js hoist above it by design) */
+setInterval(function(){try{if(view!=="home"||isBoss())return;var c=$id("fnhMy"),m=$id("main");if(!c||!m)return;var first=m.firstElementChild;while(first&&first.classList&&first.classList.contains("mnFlash"))first=first.nextElementSibling;if(first&&first!==c)m.insertBefore(c,first);}catch(e){}},2000);
 window.fnhMore=async function(){var r=await sb.rpc("fh_request_more");if(r.error||!r.data||!r.data.ok)return T((r.error&&r.error.message)||(r.data&&r.data.message)||"Couldn't send that.");T("Sent to Jake and Ali");S.my=null;S.myAt=0;S.myJson=null;var c=$id("fnhMy");if(c)c.remove();myCard();};
 var _home=window.renderHome;if(typeof _home==="function"){window.renderHome=function(){var r=_home.apply(this,arguments);try{homeCard();setTimeout(homeCard,150);setTimeout(homeCard,700);myCard();}catch(e){}return r;};}
 setInterval(function(){try{homeCard();myCard();}catch(e){}},1500); /* also sweeps the card away if the signed-in person is not allowed it */
