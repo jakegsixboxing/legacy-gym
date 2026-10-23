@@ -33,6 +33,8 @@ var css=document.createElement("style");css.textContent=
 +".tk ul{list-style:none;margin-top:12px;display:grid;gap:5px}.tk li{font-size:12.5px;color:#d6e0e4;padding-left:18px;position:relative;line-height:1.45}.tk li:before{content:\"\";position:absolute;left:0;top:7px;width:8px;height:8px;border-radius:50%;background:var(--c)}.tk li.no{color:var(--mute)}.tk li.no:before{background:#2a3a42}"
 +".tk .pick{margin-top:12px;width:100%;border-radius:11px;padding:12px;font:700 13px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;background:linear-gradient(180deg,var(--c2),var(--c));color:#04141b;border:1px solid transparent}.tk .pick:disabled{background:#0e2430;color:var(--mute);border-color:var(--line);cursor:default}"
 +".shirt{margin-top:14px;background:linear-gradient(180deg,#0c1d26,#0b1319);border:1px solid #1b5b70;border-radius:18px;padding:16px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}.shirt .nm{font:600 22px/1 Oswald,sans-serif;text-transform:uppercase}.shirt .tag{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;color:var(--mute);margin-top:5px}.shirt p{font-size:12.5px;color:#d6e0e4;margin-top:10px;line-height:1.5;grid-column:1/-1}.shirt .pr b{display:block;font:600 26px/1 Oswald,sans-serif;color:var(--c2);white-space:nowrap}.shirt .pr small{display:block;font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:800;margin-top:4px;text-align:right}.shirt .pick{grid-column:1/-1;border-radius:11px;padding:12px;font:700 13px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;background:linear-gradient(180deg,var(--c2),var(--c));color:#04141b;border:0}"
++".gear{margin-top:14px;background:linear-gradient(180deg,#0c1d26,#0b1319);border:1px solid #1b5b70;border-radius:18px;padding:14px}.gear .gimgs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.gear .gimgs img{width:100%;aspect-ratio:11/9;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:#06080a;cursor:pointer;display:block}.gear .grow{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-top:12px}.gear .nm{font:600 22px/1 Oswald,sans-serif;text-transform:uppercase}.gear .tag{font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;color:var(--mute);margin-top:5px}.gear .pr b{display:block;font:600 26px/1 Oswald,sans-serif;color:var(--c2);white-space:nowrap}.gear .pr small{display:block;font-size:9.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:800;margin-top:4px;text-align:right}.gear p{font-size:12.5px;color:#d6e0e4;margin-top:10px;line-height:1.5}.gear .gbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.gear .pick{border-radius:11px;padding:12px;font:700 13px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;background:linear-gradient(180deg,var(--c2),var(--c));color:#04141b;border:0}"
++".styles{display:grid;grid-template-columns:1fr 1fr;gap:8px}.styles .st,.cols .col{background:#07141b;border:1px solid var(--line);border-radius:12px;padding:6px;color:var(--ink);text-align:center;cursor:pointer}.styles .st img,.cols .col img{width:100%;aspect-ratio:11/9;object-fit:cover;border-radius:8px;display:block;background:#06080a}.styles .st b,.cols .col b{display:block;font:600 14px/1 Oswald,sans-serif;text-transform:uppercase;margin:8px 0 4px}.styles .st.on,.cols .col.on{border-color:var(--c);background:#0d2430;box-shadow:0 0 0 2px rgba(31,182,230,.25)}.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.cols .col b{font-size:11px}.sizes{grid-template-columns:repeat(5,1fr)}.qty .sum{flex:1;font-size:12px;color:var(--c2);font-weight:800;text-align:right;line-height:1.3}"
 +".share{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn{border:0;border-radius:12px;padding:14px 12px;font:700 14px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink);background:#0e2430;border:1px solid var(--line)}.btn.p{background:linear-gradient(180deg,var(--c2),var(--c));color:#04141b;border-color:transparent}.btn:disabled{opacity:.5;cursor:default}"
 +".ov{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:flex-end;justify-content:center;z-index:50;padding:10px}.ov.on{display:flex}.sheet{width:100%;max-width:520px;max-height:92vh;overflow:auto;background:#0b1319;border:1px solid #1b5b70;border-radius:20px;padding:18px;box-shadow:var(--shadow)}.sheet h3{font:600 22px/1.05 Oswald,sans-serif;text-transform:uppercase}.sheet .sub{font-size:12.5px;color:var(--mute);margin-top:5px;line-height:1.5}.sheet .sub b{color:var(--ink)}"
 +"label{display:block;font-size:10px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#cfdbe0;margin:13px 0 6px}label .o{color:var(--mute);font-weight:600;letter-spacing:0;text-transform:none}input,select,textarea{width:100%;background:#07141b;border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:12px;font-family:inherit;font-size:16px}input:focus,select:focus,textarea:focus{outline:none;border-color:var(--c)}textarea{min-height:76px;resize:vertical;font-size:14px}"
@@ -96,8 +98,11 @@ function mainHtml(){
   h+='<div class="tix2">'+["gold","silver","ga"].filter(function(k){return d.tiers[k];}).map(tk).join("")+'</div><div class="notice"><b>Prices will be confirmed, and the seating and standing map released, with the official pricing in the coming week.</b> Everyone holding gets it first by text and email. Reserving an early-release ticket doesn\'t commit you to buying one — it gives our team a clear picture of what the crowd is after in terms of seating, so we can make the best calls for our guests.</div>';
   if(S.me)h+='<div class="notice win"><b>You\'re '+(S.me.status==="waitlist"?"on the list":"holding one")+', '+esc(S.me.first)+'.</b> '+esc(d.tiers[S.me.tier].nm)+'. We\'ll email and text you the moment tickets are available to buy.</div>';
   h+='</div>';
-  h+='<div class="sec"><h2>'+esc(team())+' shirt</h2><div class="sub">Back '+esc(first())+' on the night in team colours. Pre-request yours now and we\'ll send payment details once the print run is confirmed.</div>'
-   +'<div class="shirt"><div><div class="nm">I want a '+esc(team())+' shirt</div><div class="tag">Fight Club blue · unisex sizes · kids sizes</div></div><div class="pr"><b>'+money(d.shirt_cents)+'</b><small>per shirt</small></div><p>Pre-request only — <b style="color:var(--c2)">nothing to pay today</b>. Payment details will be sent to you with your ticket release. '+((d.shirts|0)>0?'<b style="color:var(--ink)">'+(d.shirts|0)+' requested so far.</b>':'')+'</p><button class="pick" onclick="fhShirt()">Request my shirt</button></div></div>';
+  h+='<div class="sec"><h2>Supporter shirts &amp; singlets</h2><div class="sub">Get around '+esc(first())+' on the night — grab yourself one of the colourful '+esc(team())+' supporter shirts or singlets. Fight Night has no dress code bar enclosed shoes, so singlets, shirts, it\'s all welcome. Sizing runs from XS right through to 6XL.</div>'
+   +'<div class="gear"><div class="gimgs">'+["indigenous","pink","yellow","grey"].map(function(c){return '<img src="'+MERCH+'shirt-'+c+'.jpg" alt="'+c+' shirt" onclick="fhGear(\'shirt\',\''+c+'\')">';}).join("")+'</div>'
+   +'<div class="grow"><div><div class="nm">'+esc(team())+' gear</div><div class="tag">Shirt or singlet · 4 colourways · XS – 6XL</div></div><div class="pr"><b>'+money(d.shirt_cents)+'</b><small>each</small></div></div>'
+   +'<p>Pre-request only — <b style="color:var(--c2)">nothing to pay today</b>. Pick your style, colour, size and how many, and payment details will be sent to you with your ticket release. '+((d.shirts|0)>0?'<b style="color:var(--ink)">'+(d.shirts|0)+' requested so far.</b>':'')+'</p>'
+   +'<div class="gbtns"><button class="pick" onclick="fhGear(\'shirt\')">I want a shirt</button><button class="pick" onclick="fhGear(\'singlet\')">I want a singlet</button></div></div>';
   var sg=d.songs||[];
   h+='<div class="sec"><h2>Walkout song</h2><div class="sub">Nominate the song '+esc(first())+' should walk out to. '+esc(first())+' picks the winner.</div>'
    +(d.walkout?'<div class="notice win"><b>Locked in:</b> '+esc(d.walkout)+'</div>':'')
@@ -131,34 +136,34 @@ window.fhSubmit=async function(){if(S.busy)return;var p=readPerson();if(!p)retur
   }catch(e){$("fErr").textContent=e.message||String(e);go.disabled=false;go.textContent=full()?"Put me on the list":"Hold my ticket";}
   S.busy=false;};
 
-var SIZES=["XS","S","M","L","XL","2XL","3XL","Kids 8","Kids 10","Kids 12","Kids 14"];var shirt={size:"L",qty:1};
+var MERCH=APP+"/img/fc/merch-";
+var SIZES=["XS","S","M","L","XL","2XL","3XL","4XL","5XL","6XL"];
+var COLOURS=[["indigenous","Indigenous"],["pink","Pink"],["yellow","Yellow"],["grey","Grey"]];
+var shirt={style:"shirt",colour:"indigenous",size:"L",qty:1};
+function styleHtml(){return ["shirt","singlet"].map(function(st){return '<button type="button" class="st'+(shirt.style===st?" on":"")+'" onclick="fhStyle(\''+st+'\')"><img src="'+MERCH+st+'-'+shirt.colour+'.jpg" alt=""><b>'+(st==="shirt"?"Shirt":"Singlet")+'</b></button>';}).join("");}
+function coloursHtml(){return COLOURS.map(function(c){return '<button type="button" class="col'+(shirt.colour===c[0]?" on":"")+'" onclick="fhColour(\''+c[0]+'\')"><img src="'+MERCH+shirt.style+'-'+c[0]+'.jpg" alt=""><b>'+c[1]+'</b></button>';}).join("");}
 function sizesHtml(){return SIZES.map(function(s){return '<button type="button" class="'+(shirt.size===s?"on":"")+'" onclick="fhSize(\''+s+'\')">'+s+'</button>';}).join("");}
-window.fhSize=function(s){shirt.size=s;$("fSizes").innerHTML=sizesHtml();};
-window.fhQty=function(d){shirt.qty=Math.min(10,Math.max(1,shirt.qty+d));$("fQty").textContent=shirt.qty;};
-window.fhShirt=function(){
-  open('<h3>'+esc(team())+' shirt</h3><div class="sub"><b>'+money(S.d.shirt_cents)+' per shirt.</b> Pre-request only — nothing to pay today. Payment details will be sent to you with your ticket release, and we\'ll confirm your size before anything is printed.</div>'+person()
-   +'<label>Size</label><div class="sizes" id="fSizes">'+sizesHtml()+'</div><label>How many</label><div class="qty"><button type="button" onclick="fhQty(-1)">−</button><b id="fQty">'+shirt.qty+'</b><button type="button" onclick="fhQty(1)">+</button></div>'
-   +'<div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhShirtGo()">Request my shirt</button><button class="cancel" onclick="closeAll()">Not now</button>');
-  setTimeout(function(){$("fN").focus();},60);
+function gearSummary(){var c=COLOURS.filter(function(x){return x[0]===shirt.colour;})[0][1];return shirt.qty+' × '+c+' '+shirt.style+(shirt.qty>1?"s":"")+' · '+shirt.size+' · '+money(S.d.shirt_cents*shirt.qty);}
+function gearRefresh(){$("fStyles").innerHTML=styleHtml();$("fCols").innerHTML=coloursHtml();$("fSizes").innerHTML=sizesHtml();$("fQty").textContent=shirt.qty;$("fSum").textContent=gearSummary();$("fGo").textContent="Request "+(shirt.qty>1?shirt.qty+" ":"my ")+shirt.style+(shirt.qty>1?"s":"");}
+window.fhStyle=function(st){shirt.style=st;gearRefresh();};
+window.fhColour=function(c){shirt.colour=c;gearRefresh();};
+window.fhSize=function(s){shirt.size=s;gearRefresh();};
+window.fhQty=function(d){shirt.qty=Math.min(10,Math.max(1,shirt.qty+d));gearRefresh();};
+window.fhGear=function(st,c){if(st)shirt.style=st;if(c)shirt.colour=c;
+  open('<h3>'+esc(team())+' supporter gear</h3><div class="sub"><b>'+money(S.d.shirt_cents)+' each.</b> Pre-request only — nothing to pay today. Payment details come with your ticket release, and we confirm your size before anything is printed.</div>'
+   +'<label>Shirt or singlet</label><div class="styles" id="fStyles">'+styleHtml()+'</div>'
+   +'<label>Colour</label><div class="cols" id="fCols">'+coloursHtml()+'</div>'
+   +'<label>Size <span class="o">(XS – 6XL)</span></label><div class="sizes" id="fSizes">'+sizesHtml()+'</div>'
+   +'<label>How many</label><div class="qty"><button type="button" onclick="fhQty(-1)">−</button><b id="fQty">'+shirt.qty+'</b><button type="button" onclick="fhQty(1)">+</button><span class="sum" id="fSum">'+gearSummary()+'</span></div>'
+   +person()+'<div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhShirtGo()">Request my '+shirt.style+'</button><button class="cancel" onclick="closeAll()">Not now</button>');
 };
+window.fhShirt=function(){fhGear("shirt");};
 window.fhShirtGo=async function(){if(S.busy)return;var p=readPerson();if(!p)return;S.busy=true;var go=$("fGo");go.disabled=true;go.textContent="One sec…";
-  try{var j=await rpc("fh_shirt",{p_slug:SLUG,p_name:p.name,p_mobile:p.mobile,p_email:p.email,p_size:shirt.size,p_qty:shirt.qty});
+  try{var j=await rpc("fh_shirt",{p_slug:SLUG,p_name:p.name,p_mobile:p.mobile,p_email:p.email,p_size:shirt.size,p_qty:shirt.qty,p_style:shirt.style,p_colour:shirt.colour});
     if(!j||!j.ok)throw new Error((j&&j.message)||"Couldn't save that. Try again.");
     await load(false);render();
-    open('<div class="done"><div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></svg></div><h3 class="oz">Shirt requested</h3><p><b>'+esc(p.name)+'</b> — '+shirt.qty+' × '+esc(team())+' shirt, size '+esc(shirt.size)+', '+money(S.d.shirt_cents)+' each. <b>Payment details will be sent to you</b> once the print run is confirmed. Nothing charged today.</p><button class="cancel" onclick="closeAll()">Back to '+esc(first())+'\'s page</button></div>');
-  }catch(e){$("fErr").textContent=e.message||String(e);go.disabled=false;go.textContent="Request my shirt";}
-  S.busy=false;};
-
-window.fhSong=function(){
-  open('<h3>Walkout song for '+esc(first())+'</h3><div class="sub">Song and artist, and your name so '+esc(first())+' knows who to thank (or blame).</div><label>Song</label><input id="fS" placeholder="Song – Artist" maxlength="120"><label>Your name</label><input id="fN" placeholder="First name is fine" maxlength="60"><div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhSongGo()">Suggest it</button><button class="cancel" onclick="closeAll()">Not now</button>');
-  setTimeout(function(){$("fS").focus();},60);
-};
-window.fhSongGo=async function(){if(S.busy)return;var sg=$("fS").value.trim(),nm=$("fN").value.trim(),err=$("fErr");
-  if(sg.length<2){err.textContent="What's the song?";return;}if(nm.length<2){err.textContent="And your name.";return;}
-  S.busy=true;var go=$("fGo");go.disabled=true;go.textContent="One sec…";
-  try{var j=await rpc("fh_song",{p_slug:SLUG,p_song:sg,p_name:nm});if(!j||!j.ok)throw new Error((j&&j.message)||"Couldn't save that. Try again.");
-    await load(false);render();closeAll();toast("Suggested — "+esc(first())+" will see it");
-  }catch(e){err.textContent=e.message||String(e);go.disabled=false;go.textContent="Suggest it";}
+    open('<div class="done"><div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></svg></div><h3 class="oz">'+(shirt.style==="shirt"?"Shirt":"Singlet")+(shirt.qty>1?"s":"")+' requested</h3><p><b>'+esc(p.name)+'</b> — '+esc(gearSummary())+', to '+esc(first())+'\'s name. <b>Payment details will be sent to you</b> once the print run is confirmed. Nothing charged today.</p><div class="card" style="max-width:260px"><img src="'+MERCH+shirt.style+'-'+shirt.colour+'.jpg" alt="" style="aspect-ratio:auto"></div><button class="cancel" onclick="closeAll()">Back to '+esc(first())+'\'s page</button></div>');
+  }catch(e){$("fErr").textContent=e.message||String(e);go.disabled=false;go.textContent="Request my "+shirt.style;}
   S.busy=false;};
 window.fhCopy=async function(){try{await navigator.clipboard.writeText(pageUrl());toast("Link copied");}catch(e){prompt("Copy this link:",pageUrl());}};
 window.fhShare=async function(){var t=first()+" is fighting at Legacy on Dec 19. Hold a ticket to '+first()+'\'s name — nothing to pay yet: "+pageUrl();try{if(navigator.share){await navigator.share({title:F().name+" · Fight Night",text:t,url:pageUrl()});return;}}catch(e){if(e&&e.name==="AbortError")return;}fhCopy();};
