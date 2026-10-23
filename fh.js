@@ -86,13 +86,14 @@ function tk(o){
   var T=S.d.tiers[o],v=S.d.venue[o]||{left:0,cap:0,seats:1};var left=v.left|0;var unitsLeft=o==="ga"?left:Math.ceil(left/(v.seats||1));var gone=left<=0;
   return '<div class="tk"><div class="hd"><div><div class="nm">'+esc(T.nm)+'</div><div class="tag">'+esc(T.tag)+'</div></div><div class="pr"><b>'+esc(T.price)+'</b><small>'+esc(T.unit)+' · to be confirmed</small></div></div><ul>'+(T.pts||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join("")+(T.no||[]).map(function(x){return '<li class="no">'+esc(x)+'</li>';}).join("")+'</ul>'
    +'<div class="tag" style="margin-top:10px;color:var(--c2)">'+(o==="ga"?unitsLeft+' of '+T.cap+' tickets':unitsLeft+' of '+T.cap+' tables')+' left across the venue</div>'
-   +'<button class="pick" '+(gone?'disabled':'onclick="fhPick(\''+o+'\')"')+'>'+(gone?'Fully held':(full()?'Join the list · ':'Hold a ')+(o==="ga"?"GA ticket":T.nm.toLowerCase()+" seat"))+'</button></div>';
+   +'<button class="pick" '+(gone?'disabled':'onclick="fhPick(\''+o+'\')"')+'>'+(gone?'Fully held':(full()?'Join the list · ':'Hold a ')+(o==="ga"?"GA spot":T.nm.toLowerCase()+" seat"))+'</button></div>';
 }
 function mainHtml(){
   var d=S.d,f=F();
-  var h='<div class="sec"><h2>Hold me a ticket</h2><div class="sub">Three ways to watch '+esc(first())+'. Holding a ticket doesn\'t mean you have to buy one. It puts you on the <b>early release</b> — first shot at tickets before they sell out, at the pre-sale discount. Nothing charged today.</div>';
+  var nT=["gold","silver","ga"].filter(function(k){return d.tiers[k];}).length;
+  var h='<div class="sec"><h2>Hold me a ticket</h2><div class="sub">'+(nT===2?"Two":nT===3?"Three":"A few")+' ways to watch '+esc(first())+'. Holding a ticket doesn\'t mean you have to buy one. It puts you on the <b>early release</b> — first shot at tickets before they sell out, at the pre-sale discount. Nothing charged today.</div>';
   if(!d.live)h+='<div class="notice warn"><b>Holds open soon.</b> This page is being set up — check back shortly.</div>';
-  h+='<div class="tix2">'+tk("gold")+tk("silver")+tk("ga")+'</div><div class="notice"><b>Prices to be confirmed within the next 2 weeks</b>, pending final pricing from our suppliers — they may come down or go up a little from the ranges shown. Everyone holding gets the final price by text and email before anything goes on sale.</div>';
+  h+='<div class="tix2">'+["gold","silver","ga"].filter(function(k){return d.tiers[k];}).map(tk).join("")+'</div><div class="notice"><b>Prices will be confirmed, and the seating and standing map released, with the official pricing in the coming week.</b> Everyone holding gets it first by text and email. Reserving an early-release ticket doesn\'t commit you to buying one — it gives our team a clear picture of what the crowd is after in terms of seating, so we can make the best calls for our guests.</div>';
   if(S.me)h+='<div class="notice win"><b>You\'re '+(S.me.status==="waitlist"?"on the list":"holding one")+', '+esc(S.me.first)+'.</b> '+esc(d.tiers[S.me.tier].nm)+'. We\'ll email and text you the moment tickets are available to buy.</div>';
   h+='</div>';
   h+='<div class="sec"><h2>'+esc(team())+' shirt</h2><div class="sub">Back '+esc(first())+' on the night in team colours. Pre-request yours now and we\'ll send payment details once the print run is confirmed.</div>'
@@ -114,7 +115,7 @@ function readPerson(){var n=$("fN").value.trim().replace(/\s+/g," "),m=$("fM").v
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){err.textContent="Check the email.";return null;}
   err.textContent="";return {name:n,first:n.split(" ")[0],mobile:m,email:e};}
 window.fhPick=function(o){S.opt=o;var T=S.d.tiers[o];
-  open('<h3>'+(full()?'Join the list':'Hold me a ticket')+'</h3><div class="sub"><b>'+esc(T.nm)+' · '+esc(T.price)+' '+esc(T.unit)+'.</b> '+esc(T.tag)+'. Price to be confirmed within 2 weeks, pending supplier pricing. Holding doesn\'t commit you to buying — it puts you on the early release at the pre-sale discount. One hold per person.'+(full()?' <b>'+esc(first())+'\'s block is full</b> — you\'ll be first in line when more open.':'')+'</div>'+person()
+  open('<h3>'+(full()?'Join the list':'Hold me a ticket')+'</h3><div class="sub"><b>'+esc(T.nm)+' · '+esc(T.price)+' '+esc(T.unit)+'.</b> '+esc(T.tag)+'. Final price and the seating map come out with the official pricing in the coming week. Holding doesn\'t commit you to buying — it puts you on the early release at the pre-sale discount and tells us what the crowd wants. One hold per person.'+(full()?' <b>'+esc(first())+'\'s block is full</b> — you\'ll be first in line when more open.':'')+'</div>'+person()
    +'<label>A few words for '+esc(first())+' <span class="o">(optional — '+esc(first())+' reads these fight week)</span></label><textarea id="fMsg" placeholder="Go on, say something."></textarea>'
    +'<div class="consent"><input type="checkbox" id="fC" checked><span>Legacy Gym can text and email me about Fight Night. No spam, unsubscribe any time.</span></div><div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhSubmit()">'+(full()?'Put me on the list':'Hold my ticket')+'</button><div class="fine">Under 18? Hold your own and we\'ll be in touch about nominating them.</div><button class="cancel" onclick="closeAll()">Not now</button>');
   setTimeout(function(){$("fN").focus();},60);
