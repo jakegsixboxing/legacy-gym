@@ -128,7 +128,7 @@ window.fnhDecide=async function(id,ok){if(S.busy)return;S.busy=true;var r=await 
 window.fnhBlocks=async function(id,n){if(S.busy)return;S.busy=true;var r=await sb.rpc("fh_admin_set_blocks",{p_id:id,p_blocks:n});S.busy=false;if(r.error||!r.data||!r.data.ok)return T((r.error&&r.error.message)||"Couldn't do that.");T("Blocks set to "+n);await refresh();};
 window.fnhAskBlocks=function(id,cur){var v=prompt("How many blocks of "+(S.ov.settings.block_size|0)+" for this fighter?",String(cur||1));if(v===null)return;var n=parseInt(v,10);if(isNaN(n)||n<0||n>50)return T("0 to 50.");fnhBlocks(id,n);};
 window.fnhRemove=async function(kind,id,name){if(!confirm(kind==="song"?"Remove the suggestion \""+name+"\"?":"Remove "+name+"'s "+(kind==="hold"?"hold":"shirt request")+"? They can do it again from the page."))return;var r=await sb.rpc("fh_admin_remove",{p_kind:kind,p_id:id});if(r.error||!r.data||!r.data.ok)return T((r.error&&r.error.message)||"Couldn't remove that.");T("Removed.");await refresh();};
-window.fnhSet=async function(key,val){var p={};p[key]=val;var r=await sb.rpc("fh_admin_settings",{p:p});if(r.error||!r.data||!r.data.ok)return T((r.error&&r.error.message)||"Couldn't save.");T(key==="fighters_live"?(val?"Fighters can now see their HQ card":"Fighter HQ hidden again"):key==="public_live"?(val?"Pages open":"Pages paused"):key==="demo_fighter_id"?(val?"Demo card is on your home screen":"Demo card off"):"Saved");S.my=null;S.myAt=0;var mc=$id("fnhMy");if(mc)mc.remove();await refresh();};
+window.fnhSet=async function(key,val){var p={};p[key]=val;var r=await sb.rpc("fh_admin_settings",{p:p});if(r.error||!r.data||!r.data.ok)return T((r.error&&r.error.message)||"Couldn't save.");T(key==="fighters_live"?(val?"Fighters can now see their HQ card":"Fighter HQ hidden again"):key==="public_live"?(val?"Pages open":"Pages paused"):key==="demo_fighter_id"?(val?"Demo card is on your home screen":"Demo card off"):"Saved");S.my=null;S.myAt=0;S.myJson=null;var mc=$id("fnhMy");if(mc)mc.remove();await refresh();};
 window.fnhLaunch=async function(){var st=(S.ov&&S.ov.settings)||{};if(!st.fighters_live&&!confirm("Fighters can't see their HQ yet (switch is OFF). Send the launch notice anyway?"))return;if(!confirm("Send the “Your Fight Night page is live” notice to every fighter now?"))return;var r=await sb.rpc("fh_admin_launch_notice");if(r.error||!r.data||!r.data.ok)return T((r.error&&r.error.message)||"Couldn't send.");T("Sent to "+r.data.sent+" fighter"+(r.data.sent===1?"":"s"));await refresh();};
 window.fnhSetNum=async function(key,val){var n=parseInt(val,10);if(isNaN(n)||n<0)return T("Enter a number.");fnhSet(key,n);};
 window.fnhCopy=async function(u){try{await navigator.clipboard.writeText(u);T("Link copied.");}catch(e){prompt("Copy this link:",u);}};
@@ -182,17 +182,20 @@ document.addEventListener("click",function(e){var a=e.target.closest&&e.target.c
   var d=S.my;if(d&&d.fighter){fnhShare(link(d.fighter.slug),d.fighter.first);}else{T("Opening your page…");}
   try{sb.from("member_notices").update({seen_at:new Date().toISOString()}).eq("user_id",session.user.id).eq("kind","fn-page-live").is("seen_at",null).then(function(){var el=a.closest(".mnFlash");if(el)el.remove();});}catch(x){}
   var c=$id("fnhMy");if(c)c.scrollIntoView({behavior:"smooth",block:"start"});},true);
-window.fnhPick=async function(id){var r=await sb.rpc("fh_pick_song",{p_id:id});if(r.error||!r.data||!r.data.ok)return T((r.error&&r.error.message)||"Couldn\'t pick that.");T("Walkout song locked in: "+r.data.song);S.my=null;S.myAt=0;var c=$id("fnhMy");if(c)c.remove();myCard();};
+window.fnhPick=async function(id){var r=await sb.rpc("fh_pick_song",{p_id:id});if(r.error||!r.data||!r.data.ok)return T((r.error&&r.error.message)||"Couldn\'t pick that.");T("Walkout song locked in: "+r.data.song);S.my=null;S.myAt=0;S.myJson=null;var c=$id("fnhMy");if(c)c.remove();myCard();};
 /* fighter's own card — only renders when fh_my() returns something (Settings → fighters_live, or a boss testing) */
 async function myCard(){
-  if(view!=="home"||!session||!session.user)return;var m=$id("main");if(!m||$id("fnhMy"))return;
-  if(Date.now()-S.myAt>60000){S.myAt=Date.now();try{var r=await sb.rpc("fh_my");S.my=(r&&!r.error&&r.data)||null;}catch(e){S.my=null;}}
+  if(view!=="home"||!session||!session.user)return;var m=$id("main");if(!m)return;
+  var ex=$id("fnhMy");
+  /* re-check every 30s even while the card is on screen, so a demo switch, a new hold or an approval shows up without restarting the app */
+  if(Date.now()-S.myAt>30000||!S.myJson){S.myAt=Date.now();try{var r=await sb.rpc("fh_my");S.my=(r&&!r.error&&r.data)||null;}catch(e){S.my=null;}var j=JSON.stringify(S.my||null);if(ex&&j===S.myJson)return;S.myJson=j;if(ex&&(!S.my||!S.my.fighter)){ex.remove();return;}if(ex){ex.remove();ex=null;}}
+  if(ex)return;
   var d=S.my;if(!d||!d.fighter||view!=="home"||$id("fnhMy"))return;
   var wrap=document.createElement("div");wrap.innerHTML=hqHtml(d,false);var c=wrap.firstElementChild;
   var after=$id("fnhHome")||$id("fntHome")||$id("fnxHome");if(after){after.insertAdjacentElement("afterend",c);return;}
   var root=$id("lgh2");if(root)root.insertAdjacentElement("afterbegin",c);else m.insertAdjacentElement("afterbegin",c);
 }
-window.fnhMore=async function(){var r=await sb.rpc("fh_request_more");if(r.error||!r.data||!r.data.ok)return T((r.error&&r.error.message)||(r.data&&r.data.message)||"Couldn't send that.");T("Sent to Jake and Ali");S.my=null;S.myAt=0;var c=$id("fnhMy");if(c)c.remove();myCard();};
+window.fnhMore=async function(){var r=await sb.rpc("fh_request_more");if(r.error||!r.data||!r.data.ok)return T((r.error&&r.error.message)||(r.data&&r.data.message)||"Couldn't send that.");T("Sent to Jake and Ali");S.my=null;S.myAt=0;S.myJson=null;var c=$id("fnhMy");if(c)c.remove();myCard();};
 var _home=window.renderHome;if(typeof _home==="function"){window.renderHome=function(){var r=_home.apply(this,arguments);try{homeCard();setTimeout(homeCard,150);setTimeout(homeCard,700);myCard();}catch(e){}return r;};}
 setInterval(function(){try{homeCard();myCard();}catch(e){}},1500); /* also sweeps the card away if the signed-in person is not allowed it */
 })();
