@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610241300";
+const LG_BUILD="202610242200";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -1613,15 +1613,17 @@ async function renderClasses(){
   const cls=upcomingClasses48();
   const dates=[...new Set(cls.map(c=>c.date))];
   const now=new Date();
-  const d0=isoDateLocal(now),dY=isoDateLocal(new Date(Date.now()-86400000));
+  const d0=isoDateLocal(now),dY=isoDateLocal(new Date(Date.now()-86400000)),d7=isoDateLocal(new Date(Date.now()-7*86400000));
   const nowHM=pad(now.getHours())+":"+pad(now.getMinutes());
   let regs=[],doneRegs=[],claimedRefs=new Set(),myWait=[];
-  const q=[sb.from("class_regs").select("*").eq("user_id",session.user.id).in("class_date",[dY,d0]),
+  /* Points audit 24 Oct 2026: Submit Class used to show for yesterday + today only, so anyone who didn't open the app within a day lost the points. Now 7 days. */
+  const q=[sb.from("class_regs").select("*").eq("user_id",session.user.id).gte("class_date",d7).lte("class_date",d0).order("class_date",{ascending:false}).order("class_time",{ascending:false}),
            sb.from("points_events").select("ref").eq("user_id",session.user.id).eq("kind","class")];
   if(dates.length){q.push(sb.from("class_regs").select("*").in("class_date",dates));q.push(sb.from("class_waitlist").select("*").eq("user_id",session.user.id).in("class_date",dates));}
   const res=await Promise.all(q);
-  doneRegs=(res[0].data||[]).filter(r=>r.class_date<d0||(r.class_date===d0&&r.class_time<=nowHM));
   claimedRefs=new Set((res[1].data||[]).map(r=>r.ref));
+  /* Unclaimed classes stay on screen for 7 days; already-banked ones only show for yesterday + today so the list stays short. */
+  doneRegs=(res[0].data||[]).filter(r=>(r.class_date<d0||(r.class_date===d0&&r.class_time<=nowHM))&&(!claimedRefs.has("class:"+r.class_date+":"+r.class_time)||r.class_date>=dY));
   regs=res[2]?(res[2].data||[]):[];
   if(dates.length){try{const g=await sb.from("class_guest_regs").select("*").in("class_date",dates);(g.data||[]).forEach(r=>regs.push({user_id:"guest-"+r.id,name:r.name+" (guest)",class_name:r.class_name,class_date:r.class_date,class_time:r.class_time,created_at:r.created_at}));}catch(e){}}
   myWait=res[3]?(res[3].data||[]):[];
@@ -1660,8 +1662,10 @@ async function renderClasses(){
     html+=`<div class="cbSec"><span>Claim your class points</span></div>`;
     doneRegs.forEach(r=>{
       const ref="class:"+r.class_date+":"+r.class_time;
+      const cpts=classPointsFor(r.class_date,r.class_time),games=isGamesSession(r.class_date,r.class_time);
+      const daysAgo=Math.round((new Date(d0+"T12:00:00")-new Date(r.class_date+"T12:00:00"))/86400000);
       html+=`<div class="card" style="border-color:var(--gold-dim);margin-top:8px"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h3 style="font-size:15px">${esc(r.class_name)}</h3><span style="font-size:12px;color:var(--muted);flex-shrink:0">${fmtDateAU(r.class_date)} \u00b7 ${fmtClassTime(r.class_time)}</span></div>
-        ${claimedRefs.has(ref)?`<p style="margin-top:10px;font-weight:900;letter-spacing:2px;color:var(--ok);font-size:12px">POINT BANKED \u2713</p>`:`<button class="btnGold" style="margin-top:12px" onclick="submitClassPoint('${r.class_date}','${r.class_time}')">Submit Class \u2014 Claim 1 Point</button>`}</div>`;
+        ${claimedRefs.has(ref)?`<p style="margin-top:10px;font-weight:900;letter-spacing:2px;color:var(--ok);font-size:12px">${cpts===1?"POINT":cpts+" POINTS"} BANKED \u2713</p>`:`<button class="btnGold" style="margin-top:12px" onclick="submitClassPoint('${r.class_date}','${r.class_time}')">${games?"Submit Legacy Games \u2014 Claim 5 Points":"Submit Class \u2014 Claim "+cpts+" Point"+(cpts===1?"":"s")}</button>${daysAgo>=5?`<p style="font-size:10.5px;color:var(--muted);margin-top:6px">Unclaimed classes drop off after 7 days \u2014 ${7-daysAgo} day${7-daysAgo===1?"":"s"} left to bank this one.</p>`:""}`}</div>`;
     });
   }
   /* ---- day strip ---- */
@@ -1699,10 +1703,11 @@ async function renderClasses(){
       const cat=/fight club/i.test(c.n)&&!/sparring/i.test(c.n)?"fc":/sparring/i.test(c.n)?"spar":/s&c|grunt|strength/i.test(c.n)?"snc":"box";
       const clubOnly=(cat==="spar"||cat==="fc")&&!c.open;
       const xmas=isXmasSession(c.date,c.t); /* Tue, Thu & Sat GRUNT S&C during the Road to Xmas challenge = 2 points */
-      const catLbl=c.open?"Open session<b>+ EVERYONE WELCOME</b><span class=\"all\">Bring a mouthguard</span>":clubOnly?"Fight Club &amp; Sparring Club only":xmas?"\u2018GRUNT\u2019 Strength &amp; Conditioning<b>+ XMAS CHALLENGE</b><span class=\"all\">All members welcome</span>":cat==="snc"?"Strength &amp; Conditioning":"Boxing \u00b7 All levels";
+      const games=isGamesSession(c.date,c.t); /* Legacy Games day = 5 points flat */
+      const catLbl=c.open?"Open session<b>+ EVERYONE WELCOME</b><span class=\"all\">Bring a mouthguard</span>":clubOnly?"Fight Club &amp; Sparring Club only":games?"LEGACY GAMES<b>+ 5 POINTS</b><span class=\"all\">Teams · strength, cardio &amp; conditioning events</span>":xmas?"\u2018GRUNT\u2019 Strength &amp; Conditioning<b>+ XMAS CHALLENGE</b><span class=\"all\">All members welcome</span>":cat==="snc"?"Strength &amp; Conditioning":"Boxing \u00b7 All levels";
       const isUsual=usual&&usual===(c.d+"@"+c.t);
       const pct=Math.min(100,Math.round(these.length/20*100));
-      const badge=mine?`<span class="cbBadge ok">Booked \u2713</span>`:full?`<span class="cbBadge hot">Full</span>`:these.length>=12?`<span class="cbBadge hot">\ud83d\udd25 Filling</span>`:isUsual?`<span class="cbBadge pt">Your usual</span>`:xmas?`<span class="cbBadge pt">+2 pts</span>`:`<span class="cbBadge pt">+1 pt</span>`;
+      const badge=mine?`<span class="cbBadge ok">Booked \u2713</span>`:full?`<span class="cbBadge hot">Full</span>`:these.length>=12?`<span class="cbBadge hot">\ud83d\udd25 Filling</span>`:games?`<span class="cbBadge hot">+5 pts</span>`:isUsual?`<span class="cbBadge pt">Your usual</span>`:xmas?`<span class="cbBadge pt">+2 pts</span>`:`<span class="cbBadge pt">+1 pt</span>`;
       const tm=fmtClassTime(c.t).split(" ");
       const shown=others.slice(0,4);
       const first=n=>String(n||"").trim().split(/\s+/)[0];
@@ -1748,21 +1753,28 @@ window.closeClassRoster=function(){const el=document.getElementById("clsRosterOv
 /* Road to Xmas challenge sessions (Tue / Thu / Sat GRUNT S&C, 12 Oct – 19 Dec 2026) are worth 2 points on the members board; every other class is 1. */
 const XMAS_FROM="2026-10-12",XMAS_TO="2026-12-19";
 function isXmasSession(date,time){try{if(!date||date<XMAS_FROM||date>XMAS_TO)return false;const d=new Date(date+"T12:00:00").getDay();if(!(d===2||d===4||d===6))return false;const c=(typeof TIMETABLE_NEW!=="undefined"?TIMETABLE_NEW:[]).find(x=>x.d===d&&x.t===time);return !!(c&&(c.cat==="snc"||/s&c|grunt|strength/i.test(c.n||"")));}catch(e){return false;}}
-function classPointsFor(date,time){return isXmasSession(date,time)?2:1;}
+/* Legacy Games (Road to Christmas weeks 4 & 9): 5 points flat for the Games session — replaces the class/S&C points, does not stack. */
+const GAMES_SESSIONS={"2026-11-07":"08:30","2026-12-12":"08:30"};
+function isGamesSession(date,time){return !!date&&GAMES_SESSIONS[date]===time;}
+function classPointsFor(date,time){return isGamesSession(date,time)?5:isXmasSession(date,time)?2:1;}
 async function submitClassPoint(date,time){
   const cp=classPointsFor(date,time);
   const ok=await awardPoints("class","class:"+date+":"+time,cp);
-  let bonus=false;
+  let bonus=false,bonusErr=null;
   if(ok){
-    /* Weekly goal: 4 claimed classes in one Mon–Sun week banks a bonus point (added 26 Sep 2026) */
+    /* Weekly goal: 4 claimed classes in one Mon–Sun week banks a bonus point (added 26 Sep 2026; database rule blocked it until 24 Oct 2026 — fixed) */
     try{
       const wk=weekKey(new Date(date+"T12:00:00"));const e=new Date(wk+"T12:00:00");e.setDate(e.getDate()+6);
-      const {data}=await sb.from("points_events").select("ref").eq("user_id",session.user.id).eq("kind","class");
-      const n=(data||[]).filter(r=>{const m=/^class:(\d{4}-\d{2}-\d{2}):/.exec(r.ref);return m&&m[1]>=wk&&m[1]<=isoDateLocal(e);}).length;
-      if(n>=4)bonus=await awardPoints("bonus","weekgoal:"+wk,1);
-    }catch(e){}
+      const {data,error}=await sb.from("points_events").select("ref,kind").eq("user_id",session.user.id).in("kind",["class","bonus"]);
+      if(error)throw error;
+      const already=(data||[]).some(r=>r.kind==="bonus"&&r.ref==="weekgoal:"+wk);
+      const n=(data||[]).filter(r=>{if(r.kind!=="class")return false;const m=/^class:(\d{4}-\d{2}-\d{2}):/.exec(r.ref);return m&&m[1]>=wk&&m[1]<=isoDateLocal(e);}).length;
+      if(n>=4&&!already){bonus=await awardPoints("bonus","weekgoal:"+wk,1);if(!bonus)bonusErr=window.__lastPtsErr||"bonus not saved";}
+    }catch(e){bonusErr=(e&&e.message)||String(e);}
   }
-  toast(!ok?"Couldn't submit — try again.":bonus?"That's 4 this week — "+(cp===2?"2 challenge points":"class point")+" + weekly bonus banked! 🔥":cp===2?"Xmas challenge session — 2 points on the board!":"Class submitted — 1 point on the board!");
+  if(bonusErr){try{console.warn("weekly bonus:",bonusErr);}catch(e){}}
+  const what=cp===5?"Legacy Games — 5 points on the board!":cp===2?"GRUNT S&C — 2 points on the board!":"Class submitted — 1 point on the board!";
+  toast(!ok?"Couldn't submit — "+(window.__lastPtsErr||"check your connection and try again."):bonus?"That's 4 this week — "+(cp===5?"5 Games points":cp===2?"2 points":"1 point")+" + weekly bonus banked! 🔥":bonusErr?what+" (weekly bonus didn't save — tell Jake)":what);
   renderClasses();
 }
 function cbBringMate(encoded){
@@ -2759,8 +2771,14 @@ function installBannerHtml(){
 }
 function dismissInstallBanner(){localStorage.setItem("lg_install_dismissed","1");renderHome();}
 async function awardPoints(kind,ref,pts){
-  const {error}=await sb.from("points_events").upsert({user_id:session.user.id,kind,ref,points:pts},{onConflict:"user_id,kind,ref",ignoreDuplicates:true});
-  if(!error){ptsData.loaded=false;historyData=null;}
+  window.__lastPtsErr=null;
+  let error=null;
+  try{
+    if(!session||!session.user){throw new Error("You're signed out — log in again and resubmit.");}
+    ({error}=await sb.from("points_events").upsert({user_id:session.user.id,kind,ref,points:pts},{onConflict:"user_id,kind,ref",ignoreDuplicates:true}));
+  }catch(e){error=e;}
+  if(error){window.__lastPtsErr=(error&&error.message)||String(error);try{console.warn("awardPoints",kind,ref,pts,error);}catch(e){}}
+  else{ptsData.loaded=false;historyData=null;}
   return !error;
 }
 /* Cardio Challenges */
@@ -3968,7 +3986,8 @@ function mpFormHtml(){
   </div>`;
 }
 function ptsLabel(e){
-  if(e.kind==="class"){const p=e.ref.split(":");return e.ref.startsWith("class:lb")||e.ref.startsWith("lb:")?"Blokes training session":"Class — "+(p[1]?fmtDateAU(p[1]):"")+(p[2]?" "+fmtClassTime(p[2]):"");}
+  if(e.kind==="class"){const p=e.ref.split(":");const t=p.slice(2).join(":");return e.ref.startsWith("class:lb")||e.ref.startsWith("lb:")?"Blokes training session":(isGamesSession(p[1],t)?"Legacy Games — ":isXmasSession(p[1],t)?"GRUNT S&C — ":"Class — ")+(p[1]?fmtDateAU(p[1]):"")+(t?" "+fmtClassTime(t):"");}
+  if(e.kind==="bonus"){const p=e.ref.split(":");return "Weekly bonus — 4 classes, week of "+(p[1]?fmtDateAU(p[1]):"");}
   if(e.kind==="challenge"){const p=e.ref.split(":");return "Cardio challenge — "+(p[1]||e.ref);}
   if(e.kind==="record"){const p=e.ref.split(":");const m=MVM.find(x=>x.id===p[1]);return "Record bonus — "+(m?m.n:p[1]);}
   if(e.kind==="hyrox"){
@@ -4076,7 +4095,7 @@ async function renderLeaderboard(){
       </div>`}
     <div class="secTitle">Members Leaderboard</div>
     <div class="card">
-      <p style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:8px">Fresh season &mdash; the board reset to zero at the 5:15am class, Mon 12 Oct.</p><p style="font-size:11.5px;color:var(--muted);margin-bottom:6px">1 point a class · 1–10 points a cardio challenge (bigger mission, bigger points) · 5-point bonus for taking a club record.</p>
+      <p style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:8px">Fresh season &mdash; the board reset to zero at the 5:15am class, Mon 12 Oct.</p><p style="font-size:11.5px;color:var(--muted);margin-bottom:6px">1 point a class · 2 points for Tue, Thu &amp; Sat GRUNT S&amp;C · 4 classes in a week = +1 bonus · Legacy Games = 5 points · 1–10 points a cardio challenge · 5-point bonus for taking a club record.</p>
       ${rows.length?rows.map((r,i)=>{
         const lv=levelOf(r.p),st=TIER_STYLES[lv.tier];
         return `<div class="lbRow${r.uid===session.user.id?" me":""}">
