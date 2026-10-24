@@ -386,3 +386,11 @@ footer p b{color:var(--dim)}
 </script>
 <script>(function(){try{var t=null;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0){t=localStorage.getItem(k);break;}}
 if(!t){var as=document.querySelectorAll('a[href="/book-jake"]');for(var j=0;j<as.length;j++){as[j].setAttribute('href','/book-pt?coach=jake&book=1');}}}catch(e){}})();</script>
+
+<style>.bfBadge{display:inline-block;margin:12px 0 0;padding:8px 13px;border-radius:99px;border:1px solid #c9a44c;color:#F1D27A;font:700 11px/1 Oswald,sans-serif;letter-spacing:2.2px;text-transform:uppercase;background:rgba(201,164,76,.1)}.bfNote{margin-top:10px;color:#cfc6b0;font-size:13.5px;line-height:1.55;max-width:46ch}.btn.bfOff,.btn.bfOff:hover{pointer-events:none;opacity:.5;cursor:default}</style>
+<script>
+/* BOOKS FULL — Jake is not taking new PT until after Fight Night (set 23 Oct 2026). Remove this block to reopen. */
+(function(){function go(){var h=document.querySelector(".hname");if(h&&!document.querySelector(".bfBadge")){var b=document.createElement("div");b.className="bfBadge";b.textContent="Books are full";h.insertAdjacentElement("afterend",b);var n=document.createElement("div");n.className="bfNote";n.textContent="Jake isn\u2019t taking on new one-on-one clients for the moment while he runs the Fight Club camp \u2014 books reopen after Fight Night (Sat 19 Dec). Joe, Sarsha and Alison have sessions available.";b.insertAdjacentElement("afterend",n);}
+  document.querySelectorAll('a.btn[href*="book-jake"],a.btn[href*="coach=jake"]').forEach(function(a){if(a.classList.contains("bfOff"))return;a.textContent="Books are full";a.classList.add("bfOff");a.removeAttribute("href");});}
+  go();setTimeout(go,300);setTimeout(go,1200);})();
+</script>

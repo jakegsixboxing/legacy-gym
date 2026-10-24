@@ -88,8 +88,10 @@ function run3k(dateIso){var f=fighter();if(!f)return null;var rs=(fc().runs||[])
 function runsAll(){var f=fighter();if(!f)return [];return (fc().runs||[]).filter(function(r){return r.fighter_id===f.id&&Math.abs(Number(r.km)-3)<0.01&&r.time_text&&parseTime(r.time_text);}).map(function(r){return {d:r.run_date,s:parseTime(r.time_text)};}).sort(function(a,b){return a.d<b.d?-1:1;});}
 function bestRun(){var a=runsAll();return a.length?Math.min.apply(null,a.map(function(r){return r.s;})):null;}
 function firstRun(){var a=runsAll();return a.length?a[0].s:null;}
-function runsUpTo(w){return runsAll().filter(function(r){return weekOf(pd(r.d))<=w;}).length;}
+function runsUpTo(w){var f=fighter();if(!f)return 0;return (fc().runs||[]).filter(function(r){return r.fighter_id===f.id&&r.time_text&&weekOf(pd(r.run_date))<=w;}).length;} /* every timed run counts a point, any distance */
 function roundsTotal(uptoW){var f=fighter();if(!f)return 0;return (fc().rounds||[]).filter(function(r){return r.fighter_id===f.id&&(!uptoW||weekOf(pd(r.night_date))<=uptoW);}).length;}
+function roundsInfo(dateIso){var f=fighter();if(!f)return {n:0,min:3};var rs=(fc().rounds||[]).filter(function(r){return r.fighter_id===f.id&&r.night_date===dateIso;});var m3=rs.filter(function(r){return (r.round_min||3)===3;}).length;return {n:rs.length,min:rs.length&&m3<rs.length-m3?2:3};}
+function runsOn(dateIso){var f=fighter();if(!f)return [];return (fc().runs||[]).filter(function(r){return r.fighter_id===f.id&&r.run_date===dateIso;}).sort(function(a,b){return String(a.created_at||"").localeCompare(String(b.created_at||""));});}
 function roundsOn(dateIso){var f=fighter();if(!f)return 0;return (fc().rounds||[]).filter(function(r){return r.fighter_id===f.id&&r.night_date===dateIso;}).length;}
 function myPts(w){var p=0,b=0;for(var x=1;x<=w;x++){p+=primDone(x);b+=bonus(x);}var r=runsUpTo(w);return {p:p,b:b,r:r,total:p+b+r};}
 function primaryOrder(){var o=[];for(var w=1;w<=10;w++)[0,1,2].forEach(function(i){o.push({w:w,i:i});});return o;}
@@ -115,6 +117,8 @@ function initials(f,l){return ((f||"")[0]||"")+((l||"")[0]||"");}
 /* ---------- css ---------- */
 var G="linear-gradient(180deg,#ffe58a,#f4c95d 45%,#b8860b 55%,#ffd76a)";
 var css=document.createElement("style");css.id="fccCss";css.textContent=
+".fccLog{border:1px solid rgba(201,164,76,.55);border-radius:14px;background:rgba(0,0,0,.55);padding:12px 12px 10px;margin-top:10px}.fccLog .k2{font-size:8px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#F1D27A}.fccLog h4{font-family:Anton,Oswald,sans-serif;font-weight:400;font-size:19px;letter-spacing:.6px;text-transform:uppercase;color:#fff;margin:4px 0 2px}.fccLog p{font-size:11.5px;color:#cfc6b0;margin:0 0 8px;line-height:1.45}.fccLog .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.fccLog .fld{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.fccLog .fld span{font-size:8px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#9a968c}.fccLog input{width:100%;box-sizing:border-box;background:#0e0e10;border:1px solid #3a3a40;border-radius:9px;color:#fff;padding:10px 8px;font-size:16px;font-family:inherit}.fccLog input:focus{outline:none;border-color:#F1D27A}.fccLog .seg{display:flex;gap:4px;background:#0e0e10;border:1px solid #3a3a40;border-radius:9px;padding:3px}.fccLog .seg button{flex:1;border:0;background:transparent;color:#cfc6b0;border-radius:7px;padding:9px 4px;font-weight:800;font-size:12px;font-family:inherit}.fccLog .seg button.on{background:#F1D27A;color:#1a1200}.fccLog .go{width:100%;margin-top:8px;border:0;border-radius:10px;padding:12px;font-family:Anton,Oswald,sans-serif;font-size:14px;letter-spacing:1.8px;text-transform:uppercase;background:linear-gradient(180deg,#ffe58a,#f4c95d 45%,#b8860b 55%,#ffd76a);color:#1a1200;cursor:pointer}.fccLog .done{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#fff;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 10px;margin-top:6px}.fccLog .done small{color:#9a968c;font-size:10.5px}.fccLog .done button{background:none;border:1px solid rgba(255,140,152,.5);color:#ff8c98;border-radius:999px;padding:4px 9px;font-size:10px;font-weight:800;font-family:inherit;cursor:pointer}"+
+
  ".fcc{--gold:#f4c95d;--gold2:#c9a44c;--line:rgba(201,164,76,.45);--mute:#a89f88;--txt:#cfc6b0;color:#fff;font-family:Montserrat,sans-serif}"+
  ".fcc .k{font-size:7.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold2)}"+
  ".fccPF{position:fixed;inset:0;pointer-events:none;z-index:25;border:2.5px solid #d4a94a;box-shadow:0 0 8px rgba(244,201,93,.45),inset 0 0 8px rgba(244,201,93,.25)}"+
@@ -242,7 +246,7 @@ function exRounds(w,i){var n=roundsOn(iso(dayDate(w,dayOf(i))));return '<button 
 function frm(w,i){
   if(ST.open==="wt"+w+"_"+i)return '<div class="fccFrm"><input id="fccWtIn" type="number" step="0.1" placeholder="'+(lastWt()||'kg')+'" inputmode="decimal"><span>kg</span><button class="fccB p" onclick="fccSaveWt('+w+','+i+')">Save</button></div>';
   if(ST.open==="run"+w+"_"+i)return '<div class="fccFrm"><input id="fccRunIn" placeholder="'+(bestRun()?mmss(bestRun()):'mm:ss')+'" inputmode="numeric"><span>mm:ss</span><button class="fccB p" onclick="fccSaveRun('+w+','+i+')">Save</button></div>';
-  if(ST.open==="rd"+w+"_"+i){var n=roundsOn(iso(dayDate(w,dayOf(i))));return '<div class="fccFrm"><input id="fccRdIn" type="number" min="1" max="40" step="1" placeholder="'+(n||'rounds')+'" inputmode="numeric"><span>rounds</span><button class="fccB p" onclick="fccSaveRounds('+w+','+i+')">Bank rounds</button></div>';}
+  if(ST.open==="rd"+w+"_"+i){var n=roundsOn(iso(dayDate(w,dayOf(i))));return '<div class="fccFrm"><input id="fccRdIn" type="number" min="1" max="99" step="1" placeholder="'+(n||'rounds')+'" inputmode="numeric"><span>rounds</span><button class="fccB p" onclick="fccSaveRounds('+w+','+i+')">Bank rounds</button></div>';}
   return '';
 }
 function ses(t,ap,n,s,tr,btn){return '<div class="fccS"><div class="t">'+t+'<small>'+ap+'</small></div><div class="n">'+tier(tr)+'<b>'+n+'</b><span>'+s+'</span></div>'+btn+'</div>';}
@@ -277,14 +281,13 @@ function todayHtml(w){
       h+='<div class="fccTn'+(v===1?' ok':v===-1?' no':'')+'"><div class="k">'+(idx===0?'Today · ':'Also · ')+DAYN[d]+' '+fd(dt)+'</div>'
         +'<div class="fccTr"><div class="tt">'+x.t+'<small>'+x.ap+'</small></div><div class="n">'+tier(x.tier)+'<b>'+(x.sprint?'Sprints · week '+w:x.n)+'</b><span>'+(sp?sp[0]:x.s)+'</span></div></div>'
         +'<div class="fccTb">'+logBtns(w,x.key,x.sprint?"sprint":"train")+'</div>'
-        +(x.rounds?'<div class="fccEx">'+exRounds(w,2)+'</div>'+frm(w,2):'')
         +(sp?'<div class="fccNote"><b>'+E(sp[0])+'.</b> '+E(sp[1])+' Warm up 10 min easy jog and drills first.</div>':'')
         +whoHtml(w,d,x.key,v===1)+'</div>';
     });
     if(d===0||d===3)h+='<div class="fccTn"><div class="k">Before you train</div><div class="fccEx">'+exWt(w,d)+'</div>'+frm(w,d)+'</div>';
-    if(d===0||d===2)h+='<div class="fccTn"><div class="k">Roadwork</div><div class="fccEx">'+exRun(w,d)+'</div>'+(d===2?'':frm(w,d))+'</div>';
-    if(d===5&&SPAR_SAT_WEEKS.indexOf(w)>=0){var v5=attVal(w,15);h+='<div class="fccTn'+(v5===1?' ok':v5===-1?' no':'')+'"><div class="k">Also · Saturday sparring</div><div class="fccTr"><div class="tt">9:30<small>AM</small></div><div class="n">'+tier("b")+'<b>Sparring</b><span>On this week</span></div></div><div class="fccTb">'+logBtns(w,15,"train")+'</div><div class="fccEx">'+exRounds(w,15)+'</div>'+frm(w,15)+whoHtml(w,d,15,v5===1)+'</div>';}
+    if(d===5&&SPAR_SAT_WEEKS.indexOf(w)>=0){var v5=attVal(w,15);h+='<div class="fccTn'+(v5===1?' ok':v5===-1?' no':'')+'"><div class="k">Also · Saturday sparring</div><div class="fccTr"><div class="tt">9:30<small>AM</small></div><div class="n">'+tier("b")+'<b>Sparring</b><span>On this week</span></div></div><div class="fccTb">'+logBtns(w,15,"train")+'</div>'+whoHtml(w,d,15,v5===1)+'</div>';}
   }
+  h+=logAnyHtml(w,d);
   var st=streak(),bs=bestStreak();
   h+='<div class="fccStrip"><div><b>'+st+'</b><span>Primary streak</span></div><div><b>'+bs+'</b><span>Best streak</span></div><div><b>'+weekScore(w)+'</b><span>Week score</span></div><div><b>'+myPts(w).total+'</b><span>Points</span></div></div>';
   return h+coachHtml(w);
@@ -450,19 +453,54 @@ window.fccSaveWt=async function(w,i){if(pv()){T("Preview only · nothing saved")
   fc().wi=(fc().wi||[]).filter(function(x){return !(x.fighter_id===f.id&&x.week===w&&(x.day||0)===day);});fc().wi.push(r.data);ST.open=null;T(v+" kg recorded ✓");repaint();
 };
 window.fccSaveRun=async function(w,i){if(pv()){T("Preview only · nothing saved");return;}
-  var f=fighter(),txt=(document.getElementById("fccRunIn")||{}).value,s=parseTime(txt);if(!s||s<300||s>3600){T("Time as mm:ss, e.g. 14:30");return;}
+  var f=fighter(),txt=String((document.getElementById("fccRunIn")||{}).value||"").trim().replace(/\s+/,":"),s=parseTime(txt);if(!s&&/^\d{1,3}$/.test(txt))s=+txt*60;if(!s||s<60||s>7200){T("Time as minutes:seconds, e.g. 14:30");return;}
   var d=iso(dayDate(w,i)),old=run3k(d);
   if(old){await sb.from("fc_runs").delete().eq("id",old.id);fc().runs=fc().runs.filter(function(x){return x.id!==old.id;});}
   var r=await sb.from("fc_runs").insert({camp:CAMP,fighter_id:f.id,run_date:d,km:3,time_text:mmss(s)}).select().maybeSingle();
   if(r.error){T("Couldn't save · "+r.error.message);return;}
   fc().runs=(fc().runs||[]).concat([r.data]);ST.open=null;var b=bestRun();T("3 km · "+mmss(s)+(b===s?" · new best 🔥":" ✓"));dirty();repaint();
 };
+function logAnyHtml(w,d){
+  if(w<1)return '';var dt=iso(dayDate(w,Math.max(0,Math.min(6,d)))),ri=roundsInfo(dt),rl=runsOn(dt),rm=ST.rdMin||ri.min||3;
+  var h='<div class="fccLog"><div class="k2">Sparring · '+DAYN[Math.max(0,Math.min(6,d))]+'</div><h4>'+(ri.n?ri.n+' round'+(ri.n===1?'':'s')+' banked · '+ri.min+' min':'Log your rounds')+'</h4><p>'+(ri.n?'Change the number below and bank again to replace today\'s rounds.':'Any day you spar — how many rounds, and were they 2 or 3 minutes? No limit.')+'</p>'
+    +'<div class="row"><div class="fld"><span>Rounds</span><input id="fccRdN" type="number" min="1" max="99" step="1" inputmode="numeric" placeholder="'+(ri.n||'e.g. 6')+'"></div><div class="fld" style="flex:1.4"><span>Round length</span><div class="seg"><button type="button" class="'+(rm===2?'on':'')+'" onclick="fccRdMin(2)">2 min</button><button type="button" class="'+(rm===3?'on':'')+'" onclick="fccRdMin(3)">3 min</button></div></div></div>'
+    +'<button class="go" onclick="fccSaveRoundsAny(\''+dt+'\')">Bank rounds</button></div>';
+  h+='<div class="fccLog"><div class="k2">Roadwork · '+DAYN[Math.max(0,Math.min(6,d))]+'</div><h4>Log a run</h4><p>Any distance, any day. Kilometres plus your time in minutes and seconds.</p>'
+    +'<div class="row"><div class="fld"><span>Km</span><input id="fccRunKm" type="number" min="0.1" max="99" step="0.1" inputmode="decimal" placeholder="3"></div><div class="fld"><span>Minutes</span><input id="fccRunMin" type="number" min="0" max="300" step="1" inputmode="numeric" placeholder="14"></div><div class="fld"><span>Seconds</span><input id="fccRunSec" type="number" min="0" max="59" step="1" inputmode="numeric" placeholder="30"></div></div>'
+    +'<button class="go" onclick="fccSaveRunAny(\''+dt+'\')">Log run</button>'
+    +rl.map(function(r){return '<div class="done"><div>'+Number(r.km)+' km'+(r.time_text?' · '+E(r.time_text):'')+'<small> · logged '+(r.created_at?new Date(r.created_at).toLocaleTimeString("en-AU",{hour:"numeric",minute:"2-digit"}):'')+'</small></div><button onclick="fccDelRun('+r.id+')">Remove</button></div>';}).join('')
+    +'</div>';
+  return h;
+}
+window.fccRdMin=function(m){ST.rdMin=m;var segs=document.querySelectorAll(".fccLog .seg button");segs.forEach(function(b){b.classList.toggle("on",parseInt(b.textContent,10)===m);});};
+window.fccSaveRoundsAny=async function(d){if(pv()){T("Preview only · nothing saved");return;}
+  var f=fighter(),n=parseInt((document.getElementById("fccRdN")||{}).value,10),rm=ST.rdMin||roundsInfo(d).min||3;
+  if(!(n>0&&n<=99)){T("How many rounds? Type a number");return;}
+  var mine=(fc().rounds||[]).filter(function(r){return r.fighter_id===f.id&&r.night_date===d&&r.created_by===me();});
+  if(mine.length){var del=await sb.from("fc_spar_rounds").delete().eq("fighter_id",f.id).eq("night_date",d).eq("created_by",me());if(del.error){T("Couldn\'t replace today\'s rounds · "+del.error.message);return;}fc().rounds=fc().rounds.filter(function(r){return !(r.fighter_id===f.id&&r.night_date===d&&r.created_by===me());});}
+  var w=weekOf(pd(d)),lvl=w>=sparOpenWeek()?"Live":"Technical",rows=[];for(var k=1;k<=n;k++)rows.push({camp:CAMP,fighter_id:f.id,night_date:d,round_no:k,opponent_id:null,level:lvl,round_min:rm,created_by:me()});
+  var r=await sb.from("fc_spar_rounds").insert(rows).select();if(r.error){T("Couldn\'t save · "+r.error.message);return;}
+  fc().rounds=(fc().rounds||[]).concat(r.data||[]);
+  var tot=roundsTotal(),hit=MILES.find(function(m){return tot>=m[0]&&tot-n<m[0];});T(hit?tot+" rounds · "+hit[1]+" unlocked 🔥":n+" × "+rm+" min banked ✓ ("+tot+" total)");dirty();repaint();
+};
+window.fccSaveRunAny=async function(d){if(pv()){T("Preview only · nothing saved");return;}
+  var f=fighter(),km=parseFloat((document.getElementById("fccRunKm")||{}).value),mi=parseInt((document.getElementById("fccRunMin")||{}).value,10),se=parseInt((document.getElementById("fccRunSec")||{}).value,10);
+  if(!(km>0&&km<100)){T("How far? Put the kilometres in");return;}
+  if(isNaN(mi))mi=0;if(isNaN(se))se=0;if(se>59){T("Seconds go 0 to 59");return;}var secs=mi*60+se;
+  if(!(secs>0)){T("How long did it take? Minutes and seconds");return;}
+  var r=await sb.from("fc_runs").insert({camp:CAMP,fighter_id:f.id,run_date:d,km:Math.round(km*100)/100,time_text:mmss(secs)}).select().maybeSingle();
+  if(r.error){T("Couldn\'t save · "+r.error.message);return;}
+  fc().runs=(fc().runs||[]).concat([r.data]);var b=bestRun(),is3=Math.abs(km-3)<0.01;T(km+" km · "+mmss(secs)+(is3&&b===secs?" · new 3 km best 🔥":" ✓"));dirty();repaint();
+};
+window.fccDelRun=async function(id){if(pv()){T("Preview only · nothing saved");return;}
+  var r=await sb.from("fc_runs").delete().eq("id",id);if(r.error){T("Couldn\'t remove · "+r.error.message);return;}
+  fc().runs=(fc().runs||[]).filter(function(x){return x.id!==id;});T("Run removed");dirty();repaint();
+};
 window.fccSaveRounds=async function(w,i){if(pv()){T("Preview only · nothing saved");return;}
-  var f=fighter(),d=iso(dayDate(w,dayOf(i))),n=parseInt((document.getElementById("fccRdIn")||{}).value,10);if(!(n>0&&n<=40)){T("How many rounds? Type a number");return;}
-  var ex=(fc().rounds||[]).filter(function(r){return r.fighter_id===f.id&&r.night_date===d;});
-  if(ex.some(function(r){return r.created_by!==me();})){T("Jake logged that night · ask him to change it");return;}
-  if(ex.length){var del=await sb.from("fc_spar_rounds").delete().eq("fighter_id",f.id).eq("night_date",d);if(del.error){T("Couldn't replace that night");return;}fc().rounds=fc().rounds.filter(function(r){return !(r.fighter_id===f.id&&r.night_date===d);});}
-  var lvl=w>=sparOpenWeek()?"Live":"Technical",rows=[];for(var k=1;k<=n;k++)rows.push({camp:CAMP,fighter_id:f.id,night_date:d,round_no:k,opponent_id:null,level:lvl,created_by:me()});
+  var f=fighter(),d=iso(dayDate(w,dayOf(i))),n=parseInt((document.getElementById("fccRdIn")||{}).value,10);if(!(n>0&&n<=99)){T("How many rounds? Type a number");return;}
+  var ex=(fc().rounds||[]).filter(function(r){return r.fighter_id===f.id&&r.night_date===d&&r.created_by===me();});
+  if(ex.length){var del=await sb.from("fc_spar_rounds").delete().eq("fighter_id",f.id).eq("night_date",d).eq("created_by",me());if(del.error){T("Couldn't replace that night");return;}fc().rounds=fc().rounds.filter(function(r){return !(r.fighter_id===f.id&&r.night_date===d&&r.created_by===me());});}
+  var lvl=w>=sparOpenWeek()?"Live":"Technical",rows=[];for(var k=1;k<=n;k++)rows.push({camp:CAMP,fighter_id:f.id,night_date:d,round_no:k,opponent_id:null,level:lvl,round_min:ST.rdMin||3,created_by:me()});
   var r=await sb.from("fc_spar_rounds").insert(rows).select();if(r.error){T("Couldn't save · "+r.error.message);return;}
   fc().rounds=(fc().rounds||[]).concat(r.data||[]);
   try{var a=await sb.from("fc_attendance").upsert({camp:CAMP,fighter_id:f.id,week:w,day:i,attended:true,session_date:d,logged_by:me()},{onConflict:"camp,fighter_id,week,day"}).select().maybeSingle();if(!a.error&&a.data){fc().att=(fc().att||[]).filter(function(x){return !(x.fighter_id===f.id&&x.week===w&&x.day===i);});fc().att.push(a.data);}}catch(e){}

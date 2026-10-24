@@ -1162,5 +1162,18 @@
   boot();
 })();
 </script>
+
+<style>.bfCard{margin:14px 0 0;border:1px solid #c9a44c;background:linear-gradient(180deg,#1a160d,#0f0d08);border-radius:16px;padding:18px 16px}.bfCard .k{font:700 11px/1 Oswald,sans-serif;letter-spacing:2.5px;text-transform:uppercase;color:#F1D27A}.bfCard h3{font-family:Oswald,sans-serif;font-weight:700;font-size:24px;margin:8px 0 6px;text-transform:uppercase;letter-spacing:.5px}.bfCard p{color:#cfc6b0;font-size:13.5px;line-height:1.55;margin:0}.bfCard .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.bfCard a{display:inline-block;border:1px solid #c9a44c;color:#F1D27A;border-radius:10px;padding:10px 12px;font:700 12px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;text-decoration:none}</style>
+<script>
+/* BOOKS FULL — Jake is not taking new PT until after Fight Night (set 23 Oct 2026). Remove this block to reopen. */
+(function(){var FULL={Jake:"after Fight Night (Sat 19 Dec)"};
+  function apply(){try{if(!window.COACH&&typeof COACH==="undefined")return;var c=(typeof COACH!=="undefined"&&COACH)||null;if(!c||!FULL[c]){document.querySelectorAll(".bfCard").forEach(function(e){e.remove();});document.querySelectorAll(".step,#smart,.divider").forEach(function(e){e.style.removeProperty("display");});return;}
+    var sc=document.getElementById("scroll");if(!sc||sc.querySelector(".bfCard"))return;
+    document.querySelectorAll(".step").forEach(function(e){e.style.display="none";});var sm=document.getElementById("smart");if(sm)sm.style.display="none";
+    var pill=document.querySelector(".chips .pill");if(pill)pill.innerHTML='<span class="dot" style="background:#F1D27A"></span> Books are full';
+    var d=document.createElement("div");d.className="bfCard";d.innerHTML='<div class="k">Books are full</div><h3>Jake isn\u2019t taking new PT right now</h3><p>Jake\u2019s one-on-one books are closed for the moment while he runs the Fight Club camp. They reopen '+FULL[c]+'. Joe, Sarsha and Alison have sessions available now.</p><div class="row"><a href="/book-pt?coach=joe&book=1">Book Joe</a><a href="/book-pt?coach=sarsha&book=1">Book Sarsha</a><a href="/book-pt?coach=alison&book=1">Book Alison</a></div>';
+    var div=sc.querySelector(".divider");if(div)div.insertAdjacentElement("afterend",d);else sc.insertAdjacentElement("afterbegin",d);}catch(e){}}
+  setInterval(apply,600);})();
+</script>
 </body>
 </html>
