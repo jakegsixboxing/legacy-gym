@@ -252,7 +252,7 @@ function logIt(w,d,kind,secs,run){try{sb.rpc("rtn_log_add",{p_wk:w,p_day:d,p_kin
 function curWeek(){var n=Math.floor((Date.now()-wkDate(1,0).getTime())/6048e5)+1;return Math.max(1,Math.min(3,n));}
 async function loadState(){try{var r=await sb.rpc("rtn_state");if(r.error||!r.data)return null;var d=r.data;S.me=d;S.done={};S.runT=null;
   (d.logs||[]).forEach(function(l){var k=l.kind==="train"?key(l.wk,l.day):key(l.wk,l.day,l.kind);S.done[k]=true;if(l.kind==="run"&&l.run_secs)S.runT=l.run_secs;});
-  S.loaded=true;return d;}catch(e){return null;}}
+  S.loaded=true;if(d.staff)board();return d;}catch(e){return null;}}
 window.rtnCoach=function(on){S.coach=!!on;S.ro=false;try{boxSub="sparring";coachViewId=null;}catch(e){}renderBoxing();};
 var _rb=window.renderBoxing,_rsc=window.renderSparringClub;
 function host(){var m=document.getElementById("main");if(!m)return null;m.innerHTML='<div class="rtn"><div class="wrap" id="rtnApp"></div></div>';return rootA();}
@@ -283,6 +283,14 @@ window.openCoachFighterView=async function(uid){
   var done={},runT=null;(f.logs||[]).forEach(function(l){var k=l.kind==="train"?key(l.wk,l.day):key(l.wk,l.day,l.kind);done[k]=true;if(l.kind==="run"&&l.run_secs)runT=l.run_secs;});
   S.me={name:f.name,photo:null,staff:false,member:true};S.done=done;S.runT=runT;S.ro=true;S.mode="train";
   var c=document.getElementById("boxContent");if(!c)return;c.innerHTML='<div class="rtn"><div class="wrap" id="rtnApp"></div></div>';paint();window.scrollTo(0,0);
+};
+/* every other route into the coach's fighter view (programs board, after a tick, etc.) */
+var _rcfv=window.renderCoachFighterView;
+window.renderCoachFighterView=function(){
+  var uid=null;try{uid=coachViewId;}catch(e){}
+  if(uid&&S.me&&S.me.staff&&S.board&&S.board.some(function(x){return x.user_id===uid;})){if(!S.ro||!S.me||S.me.name!==(S.board.filter(function(x){return x.user_id===uid;})[0]||{}).name)return openCoachFighterView(uid);var c=document.getElementById("boxContent");if(c){c.innerHTML='<div class="rtn"><div class="wrap" id="rtnApp"></div></div>';paint();}return;}
+  if(uid&&S.me&&S.me.staff&&!S.board){board().then(function(B){if(B.some(function(x){return x.user_id===uid;}))openCoachFighterView(uid);});}
+  return _rcfv.apply(this,arguments);
 };
 window.rtnRoster=function(){if(S.saved){S.me=S.saved.me;S.done=S.saved.done;S.runT=S.saved.runT;S.wk=S.saved.wk;S.day=S.saved.day;S.mode=S.saved.mode;S.saved=null;}S.ro=false;S.board=null;try{coachViewId=null;}catch(e){}try{closeCoachFighterView();}catch(e){renderSparringClub();}};
 /* leaving Boxing drops coach view, so coming back lands on Road to Nationals again */
