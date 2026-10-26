@@ -122,42 +122,44 @@ input::placeholder{color:#6f666c}
 .done p{font-size:13.5px;line-height:1.55;color:#ddd5da;margin:12px auto 0;max-width:46ch}
 .foot{margin-top:30px;text-align:center;font-size:11px;color:#6f666c;line-height:1.6}
 .foot a{color:var(--mute)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
-</style>
-</head>
-<body>
-<div class="hero"><img src="/img/fc/sponsor-fighter.jpg" alt="Sponsor a fighter: singlet $250, trunks $250, full kit $450 — your logo on their fight kit, December 19" width="900" height="1005"></div>
-<main class="wrap" id="app">
-  <section class="intro">
-    <div class="eyebrow">Fight Club · Saturday 19 December · Legacy Gym Kincumber</div>
-    <h1>Put your business on a fighter</h1>
-    <p class="lead">Your logo goes on a Fight Club fighter's singlet and trunks, centre ring in front of hundreds of people. <b>Sponsor one fighter or as many as you like</b> — pick fighters you know, or let us match you.</p>
-    <div class="kids"><b>Every dollar goes to the kids.</b> Sponsorship keeps local kids who can't afford it training at Legacy, year round.</div>
-  </section>
-  <div id="view"><div class="empty" style="margin-top:24px">Loading the fighters…</div></div>
-</main>
-<div class="bar" id="bar" hidden><div class="in"><div class="info"><b id="barTot">$0</b><small id="barTxt">Nothing picked yet</small></div><button class="btn p" id="barGo" onclick="toDetails()">Continue</button></div></div>
-<script>
+
+.howmany{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+.howmany button{min-width:52px;height:52px;border-radius:14px;background:#0d0a0c;border:1px solid var(--line);color:var(--ink);font:600 20px/1 Oswald,sans-serif;padding:0 14px}
+.howmany button.on{border-color:var(--pink);background:#24101b;color:var(--pink2);box-shadow:0 0 0 2px rgba(255,45,143,.2)}
+.howmany button.more{font-size:14px;letter-spacing:1px;text-transform:uppercase}
+.slots{margin-top:10px;font-size:12.5px;color:var(--mute)}
+.slots b{color:#fff}
+.autoRow{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px dashed #7a2a55;background:#150b11;border-radius:14px;padding:13px 14px}
+.autoRow b{display:block;font:600 16px/1.1 Oswald,sans-serif;text-transform:uppercase}
+.autoRow small{display:block;font-size:11.5px;color:var(--mute);margin-top:4px;line-height:1.4}
+.pick.slot{border-style:dashed}
+.pick .av.q{color:var(--mute);border-color:var(--line)}
+.linkbtn{background:none;border:0;color:var(--pink2);font:700 12px/1 Oswald,sans-serif;letter-spacing:1.2px;text-transform:uppercase;padding:8px 0;margin-top:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:au<script>
 (function(){
 var RPC="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/";
 var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 var KIT_IMG="/img/fc/kit-base.jpg";
+var MAX=12;
 var OPTS=[{id:"singlet",name:"Singlet",price:25000,what:"Singlet back"},{id:"trunks",name:"Trunks",price:25000,what:"Waistband + legs"},{id:"kit",name:"Full kit",price:45000,what:"Every space"}];
-var S={fighters:null,q:"",showAll:false,picks:[],focus:0,form:{name:"",business:"",email:"",mobile:""},busy:false,done:null,err:""};
-var seq=0;
+// slots: one per fighter the business wants to sponsor. fid null = "pick one for me"
+var S={fighters:null,count:0,slots:[],auto:false,q:"",showAll:false,focus:0,form:{name:"",business:"",email:"",mobile:""},busy:false,done:null,err:""};
 function $(id){return document.getElementById(id);}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function money(c){return "$"+Math.round((c||0)/100).toLocaleString("en-AU");}
 async function rpc(fn,args){var r=await fetch(RPC+fn,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify(args||{})});var j=null;try{j=await r.json();}catch(e){}if(!r.ok)throw new Error((j&&(j.message||j.hint))||"Network error. Try again.");return j;}
 function fname(f){return (f.first+" "+f.last).trim();}
-function fById(id){return (S.fighters||[]).filter(function(f){return f.id===id;})[0];}
+function fById(id){return id?(S.fighters||[]).filter(function(f){return f.id===id;})[0]:null;}
 function taken(f,id){var t=f&&f.taken||{};if(t.kit)return true;if(id==="kit")return !!(t.singlet||t.trunks);return !!t[id];}
 function free(f){return OPTS.filter(function(o){return !taken(f,o.id);});}
-function availTxt(f){var a=free(f).map(function(o){return o.id;});if(!a.length)return "Fully sponsored";if(a.indexOf("kit")>=0)return "Singlet, trunks & full kit available";return (a[0]==="singlet"?"Singlet":"Trunks")+" still available";}
-function picked(id){return S.picks.some(function(p){return p.fid===id;});}
+function availTxt(f){var a=free(f).map(function(o){return o.id;});if(!a.length)return "Already sponsored";if(a.indexOf("kit")>=0)return "Singlet, trunks & full kit available";return (a[0]==="singlet"?"Singlet":"Trunks")+" still available";}
+function bestItem(f){var a=free(f);return a.some(function(o){return o.id==="kit";})?"kit":(a[0]?a[0].id:null);}
+function picked(id){return S.slots.some(function(p){return p.fid===id;});}
+function named(){return S.slots.filter(function(p){return p.fid;}).length;}
 function priceOf(p){return OPTS.filter(function(o){return o.id===p.item;})[0].price;}
-function total(){return S.picks.reduce(function(a,p){return a+priceOf(p);},0);}
-function pickName(p){var f=fById(p.fid);return f?fname(f):"Match me with a fighter";}
+function total(){return S.slots.reduce(function(a,p){return a+priceOf(p);},0);}
+function slotName(p){var f=fById(p.fid);return f?fname(f):"Picked for you";}
+function setCount(n){n=Math.max(1,Math.min(MAX,n));S.count=n;while(S.slots.length<n)S.slots.push({fid:null,item:"kit"});if(S.slots.length>n){var keep=S.slots.filter(function(p){return p.fid;}).concat(S.slots.filter(function(p){return !p.fid;}));S.slots=keep.slice(0,n);}S.focus=Math.min(S.focus,n-1);}
 
 function kitHtml(last,item){
   var showS=item==="singlet"||item==="kit",showT=item==="trunks"||item==="kit";
@@ -169,22 +171,43 @@ function kitHtml(last,item){
   if(!showT)h+='<div class="kdim bot"><span>Trunks not included</span></div>';
   return h+'</div>';
 }
-
+function countHtml(){
+  var h='<div class="step"><h2>How many fighters do you want to sponsor?</h2><div class="sub">Each fighter is their own sponsorship — singlet $250, trunks $250 or the full kit $450.</div><div class="howmany">';
+  for(var i=1;i<=6;i++)h+='<button type="button" class="'+(S.count===i?'on':'')+'" onclick="pickCount('+i+')" aria-pressed="'+(S.count===i)+'">'+i+'</button>';
+  h+='<button type="button" class="more'+(S.count>6?' on':'')+'" onclick="pickCount('+(S.count>6?S.count+1:7)+')">'+(S.count>6?S.count+' · add one':'More')+'</button></div>';
+  if(S.count>6)h+='<div class="slots">Sponsoring <b>'+S.count+' fighters</b>. <button type="button" class="linkbtn" onclick="pickCount('+(S.count-1)+')">− one</button></div>';
+  return h+'</div>';
+}
 function fighterRows(){
   var q=S.q.trim().toLowerCase(),L=(S.fighters||[]).filter(function(f){return !q||fname(f).toLowerCase().indexOf(q)>=0;});
-  if(!L.length)return '<div class="empty">No fighter by that name. Try their first name, or let us pick one for you.</div>';
-  var limit=q||S.showAll?L.length:12,h='<div class="flist">'+L.slice(0,limit).map(function(f){var on=picked(f.id),none=!free(f).length;
+  if(!L.length)return '<div class="empty">No fighter by that name. Try their first name, or leave it to us to pick.</div>';
+  var full=named()>=S.count;
+  var limit=q||S.showAll?L.length:12,h='<div class="flist">'+L.slice(0,limit).map(function(f){var on=picked(f.id),none=!free(f).length,dis=(none||(full&&!on));
     return '<div class="frow'+(on?' on':'')+'"><span class="av">'+esc((f.first[0]||"")+(f.last[0]||""))+'</span><div class="nm"><b>'+esc(fname(f))+'</b><small class="'+(none?'full':'')+'">'+esc(availTxt(f))+'</small></div>'
-      +'<button type="button" '+(none&&!on?'disabled':'onclick="togF(\''+f.id+'\')"')+' aria-pressed="'+on+'">'+(on?'Added ✓':none?'Taken':'+ Sponsor')+'</button></div>';}).join("")+'</div>';
+      +'<button type="button" '+(dis?'disabled':'onclick="togF(\''+f.id+'\')"')+' aria-pressed="'+on+'">'+(on?'Picked ✓':none?'Sponsored':'+ Pick')+'</button></div>';}).join("")+'</div>';
   if(L.length>limit)h+='<button type="button" class="btn g more" onclick="showAll()">Show all '+L.length+' fighters</button>';
   return h;
 }
-function pickCards(){
-  if(!S.picks.length)return '';
-  var foc=S.picks[Math.min(S.focus,S.picks.length-1)];
-  var h='<div class="step"><h2>Your sponsorship <i>'+S.picks.length+(S.picks.length===1?' fighter':' fighters')+'</i></h2><div class="sub">Choose singlet, trunks or the full kit for each. Tap a fighter to preview their gear.</div><div class="picks">';
-  h+=S.picks.map(function(p,i){var f=fById(p.fid);
-    return '<div class="pick'+(p===foc?' focus':'')+'" onclick="focusP('+i+')"><div class="top"><span class="av">'+(f?esc((f.first[0]||"")+(f.last[0]||"")):'?')+'</span><div class="nm"><b>'+esc(pickName(p))+'</b><small>'+(f?'Fight Club · 19 December':'We\'ll pair you with a fighter who needs a sponsor')+'</small></div><button type="button" class="x" aria-label="Remove '+esc(pickName(p))+'" onclick="event.stopPropagation();rmP('+i+')">×</button></div>'
+function chooseHtml(){
+  if(!S.count)return '';
+  var n=named(),left=S.count-n;
+  var h='<div class="step" id="choose"><h2>Choose your '+(S.count===1?'fighter':S.count+' fighters')+'</h2>';
+  if(S.auto){
+    h+='<div class="sub">Leave it with us — we\'ll pair you with '+(S.count===1?'a fighter who still needs':S.count+' fighters who still need')+' a sponsor.</div>'
+      +'<div class="autoRow"><div><b>We\'ll pick '+(S.count===1?'your fighter':'your fighters')+' ✓</b><small>Know someone fighting? You can still choose them yourself.</small></div><button type="button" class="btn g" onclick="chooseSelf()">Choose myself</button></div>';
+  }else{
+    h+='<div class="sub">Tap <b style="color:#fff">+ Pick</b> next to the fighters you know. <b style="color:#fff">'+n+' of '+S.count+' picked</b>'+(left>0?' — any you don\'t pick, we\'ll pick for you.':'.')+'</div>'
+      +'<div class="autoRow"><div><b>Don\'t know a fighter?</b><small>We\'ll pick '+(S.count===1?'one':'them')+' for you — fighters who still need a sponsor.</small></div><button type="button" class="btn p" onclick="autoAll()">Pick '+(S.count===1?'one':'them')+' for me</button></div>'
+      +'<div class="search"><input id="q" type="search" placeholder="Search fighter names" autocomplete="off" value="'+esc(S.q)+'" oninput="setQ(this.value)" aria-label="Search fighter names"></div><div id="flist">'+fighterRows()+'</div>';
+  }
+  return h+'</div>';
+}
+function slotsHtml(){
+  if(!S.count)return '';
+  var foc=S.slots[Math.min(S.focus,S.slots.length-1)];
+  var h='<div class="step" id="gear"><h2>What goes on each fighter</h2><div class="sub">Singlet, trunks or the full kit for each one. Tap a fighter to preview their gear.</div><div class="picks">';
+  h+=S.slots.map(function(p,i){var f=fById(p.fid);
+    return '<div class="pick'+(p===foc?' focus':'')+(f?'':' slot')+'" onclick="focusP('+i+')"><div class="top"><span class="av'+(f?'':' q')+'">'+(f?esc((f.first[0]||"")+(f.last[0]||"")):(i+1))+'</span><div class="nm"><b>'+esc(slotName(p))+'</b><small>'+(f?'Fight Club · 19 December':'We\'ll match a fighter who needs a sponsor')+'</small></div>'+(f?'<button type="button" class="x" aria-label="Remove '+esc(slotName(p))+'" onclick="event.stopPropagation();rmF('+i+')">×</button>':'')+'</div>'
       +'<div class="opts">'+OPTS.map(function(o){var t=f&&taken(f,o.id);return '<button type="button" class="opt'+(p.item===o.id?' on':'')+'" '+(t?'disabled':'onclick="event.stopPropagation();setItem('+i+',\''+o.id+'\')"')+'><b>'+o.name+'</b><span>'+money(o.price)+'</span><small>'+(t?'Taken':o.what)+'</small></button>';}).join("")+'</div></div>';}).join("");
   h+='</div>';
   var ff=fById(foc.fid);
@@ -193,39 +216,39 @@ function pickCards(){
   return h;
 }
 function detailsHtml(){
-  if(!S.picks.length)return '';
+  if(!S.count)return '';
   var f=S.form;
   return '<div class="step form" id="details"><h2>Your details</h2><div class="sub">So we can get in touch. Nothing is charged here.</div>'
    +'<label for="fN">Full name</label><input id="fN" autocomplete="name" placeholder="First and last" value="'+esc(f.name)+'" oninput="setF(\'name\',this.value)">'
    +'<label for="fB">Business name</label><input id="fB" autocomplete="organization" placeholder="As it should appear on the gear" maxlength="120" value="'+esc(f.business)+'" oninput="setF(\'business\',this.value)">'
    +'<label for="fE">Email</label><input id="fE" type="email" inputmode="email" autocomplete="email" placeholder="you@business.com.au" value="'+esc(f.email)+'" oninput="setF(\'email\',this.value)">'
    +'<label for="fM">Contact number</label><input id="fM" type="tel" inputmode="tel" autocomplete="tel" placeholder="04…" value="'+esc(f.mobile)+'" oninput="setF(\'mobile\',this.value)">'
-   +'<div class="sumcard">'+S.picks.map(function(p){return '<div class="r"><span>'+esc(OPTS.filter(function(o){return o.id===p.item;})[0].name)+' · '+esc(pickName(p))+'</span><b>'+money(priceOf(p))+'</b></div>';}).join("")+'<div class="t"><span>Sponsorship total</span><b>'+money(total())+'</b></div></div>'
+   +'<div class="sumcard">'+S.slots.map(function(p){return '<div class="r"><span>'+esc(OPTS.filter(function(o){return o.id===p.item;})[0].name)+' · '+esc(slotName(p))+'</span><b>'+money(priceOf(p))+'</b></div>';}).join("")+'<div class="t"><span>Sponsorship total</span><b>'+money(total())+'</b></div></div>'
    +'<div class="err" id="err">'+esc(S.err)+'</div>'
    +'<button type="button" class="btn p send" id="go" onclick="send()">Send my sponsorship request</button>'
    +'<div class="fine">We\'ll be in contact to secure your business logo, final details and invoice.</div></div>';
 }
 function paint(){
   if(S.done){paintDone();return;}
-  var v=$("view");
-  if(!S.fighters){return;}
-  var h='<div class="step"><h2>Choose your fighters</h2><div class="sub">Tap <b style="color:#fff">+ Sponsor</b> on as many fighters as you like.</div>'
-   +'<div class="match"><div><b>Don\'t know a fighter?</b><small>We\'ll pick one for you — someone who still needs a sponsor.</small></div><button type="button" class="btn p" onclick="addMatch()">Pick one for me</button></div>'
-   +'<div class="search"><input id="q" type="search" placeholder="Search fighter names" autocomplete="off" value="'+esc(S.q)+'" oninput="setQ(this.value)" aria-label="Search fighter names"></div><div id="flist">'+fighterRows()+'</div></div>'
-   +'<div id="picks">'+pickCards()+'</div><div id="det">'+detailsHtml()+'</div>';
-  v.innerHTML=h;bar();
+  if(!S.fighters)return;
+  $("view").innerHTML='<div id="cnt">'+countHtml()+'</div><div id="ch">'+chooseHtml()+'</div><div id="sl">'+slotsHtml()+'</div><div id="det">'+detailsHtml()+'</div>';bar();
 }
-function repaintPicks(){$("picks").innerHTML=pickCards();$("flist").innerHTML=fighterRows();var keep=document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#det");if(!keep)$("det").innerHTML=detailsHtml();bar();}
-function bar(){var b=$("bar");if(S.done||!S.picks.length){b.hidden=true;return;}b.hidden=false;$("barTot").textContent=money(total());
-  $("barTxt").textContent=S.picks.length+(S.picks.length===1?' fighter · ':' fighters · ')+S.picks.map(function(p){var f=fById(p.fid);return f?f.first:"matched";}).join(", ");}
-function bestItem(f){var a=free(f);return a.some(function(o){return o.id==="kit";})?"kit":(a[0]?a[0].id:null);}
-window.togF=function(id){var i=-1;S.picks.forEach(function(p,k){if(p.fid===id)i=k;});if(i>=0){S.picks.splice(i,1);S.focus=Math.max(0,S.picks.length-1);}else{var f=fById(id),it=bestItem(f);if(!it)return;S.picks.push({k:++seq,fid:id,item:it});S.focus=S.picks.length-1;}repaintPicks();};
-window.addMatch=function(){S.picks.push({k:++seq,fid:null,item:"kit"});S.focus=S.picks.length-1;repaintPicks();var el=document.querySelectorAll(".pick");if(el.length)el[el.length-1].scrollIntoView({behavior:"smooth",block:"center"});};
-window.rmP=function(i){S.picks.splice(i,1);S.focus=Math.max(0,Math.min(S.focus,S.picks.length-1));repaintPicks();};
-window.focusP=function(i){S.focus=i;$("picks").innerHTML=pickCards();};
-window.setItem=function(i,it){S.picks[i].item=it;S.focus=i;$("picks").innerHTML=pickCards();$("det").innerHTML=detailsHtml();bar();};
-window.setQ=function(q){S.q=q;$("flist").innerHTML=fighterRows();};
-window.showAll=function(){S.showAll=true;$("flist").innerHTML=fighterRows();};
+function repaint(parts){(parts||["cnt","ch","sl","det"]).forEach(function(k){var el=$(k);if(!el)return;if(k==="det"&&document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#det"))return;el.innerHTML=k==="cnt"?countHtml():k==="ch"?chooseHtml():k==="sl"?slotsHtml():detailsHtml();});bar();}
+function bar(){var b=$("bar");if(S.done||!S.count){b.hidden=true;return;}b.hidden=false;$("barTot").textContent=money(total());
+  var nm=S.slots.filter(function(p){return p.fid;}).map(function(p){return fById(p.fid).first;}),m=S.count-nm.length;
+  $("barTxt").textContent=S.count+(S.count===1?' fighter':' fighters')+' · '+nm.concat(m?[m+' picked for you']:[]).join(", ");}
+window.pickCount=function(n){var first=!S.count;setCount(n);if(first){paint();var c=$("choose");if(c)c.scrollIntoView({behavior:"smooth",block:"start"});}else repaint();};
+window.autoAll=function(){S.auto=true;S.slots.forEach(function(p){p.fid=null;});repaint();var g=$("gear");if(g)g.scrollIntoView({behavior:"smooth",block:"start"});};
+window.chooseSelf=function(){S.auto=false;repaint(["ch"]);};
+window.togF=function(id){var i=-1;S.slots.forEach(function(p,k){if(p.fid===id)i=k;});
+  if(i>=0){S.slots[i].fid=null;S.slots[i].item="kit";}
+  else{var f=fById(id),it=bestItem(f);if(!it)return;var k=-1;S.slots.forEach(function(p,x){if(k<0&&!p.fid)k=x;});if(k<0)return;S.slots[k].fid=id;S.slots[k].item=it;S.focus=k;}
+  repaint(["ch","sl","det"]);};
+window.rmF=function(i){S.slots[i].fid=null;S.slots[i].item="kit";repaint(["ch","sl","det"]);};
+window.focusP=function(i){S.focus=i;repaint(["sl"]);};
+window.setItem=function(i,it){S.slots[i].item=it;S.focus=i;repaint(["sl","det"]);};
+window.setQ=function(q){S.q=q;var el=$("flist");if(el)el.innerHTML=fighterRows();};
+window.showAll=function(){S.showAll=true;var el=$("flist");if(el)el.innerHTML=fighterRows();};
 window.setF=function(k,v){S.form[k]=v;};
 window.toDetails=function(){var d=$("details");if(d)d.scrollIntoView({behavior:"smooth",block:"start"});setTimeout(function(){var n=$("fN");if(n&&!n.value)n.focus({preventScroll:true});},450);};
 function check(){var f=S.form,n=f.name.trim().replace(/\s+/g," ");
@@ -236,23 +259,22 @@ function check(){var f=S.form,n=f.name.trim().replace(/\s+/g," ");
   return null;}
 window.send=async function(){if(S.busy)return;var c=check(),e=$("err");if(c){e.textContent=c[1];var el=$(c[0]);if(el)el.focus();return;}
   S.busy=true;var go=$("go");go.disabled=true;go.textContent="Sending…";e.textContent="";
-  try{var j=await rpc("fn_sponsor_fighters",{p_name:S.form.name.trim(),p_business:S.form.business.trim(),p_email:S.form.email.trim(),p_mobile:S.form.mobile.trim(),p_picks:S.picks.map(function(p){return {fighter_id:p.fid,item:p.item};})});
+  try{var j=await rpc("fn_sponsor_fighters",{p_name:S.form.name.trim(),p_business:S.form.business.trim(),p_email:S.form.email.trim(),p_mobile:S.form.mobile.trim(),p_picks:S.slots.map(function(p){return {fighter_id:p.fid,item:p.item};})});
     if(!j||!j.ok)throw new Error("Couldn't send that. Try again.");
-    S.done={ref:j.ref,picks:S.picks.slice(),total:total(),first:j.first||S.form.name.split(" ")[0]};S.busy=false;paint();window.scrollTo({top:0,behavior:"smooth"});
+    S.done={ref:j.ref,slots:S.slots.map(function(p){return {fid:p.fid,item:p.item};}),total:total(),first:j.first||S.form.name.split(" ")[0]};S.busy=false;paint();window.scrollTo({top:0,behavior:"smooth"});
   }catch(x){S.busy=false;go.disabled=false;go.textContent="Send my sponsorship request";e.textContent=x.message||String(x);
-    if(/taken/i.test(x.message||""))load();}
+    if(/taken|sponsored/i.test(x.message||""))load();}
 };
 function paintDone(){var d=S.done;bar();
   $("view").innerHTML='<div class="done"><div class="tick"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></svg></div><h2>Request sent</h2><div class="ref">'+esc(d.ref)+'</div>'
    +'<p>Thanks '+esc(d.first)+'. <b style="color:#fff">We\'ll be in contact to secure your business logo, final details and invoice.</b> Nothing has been charged.</p>'
-   +'<div class="sumcard" style="text-align:left">'+d.picks.map(function(p){return '<div class="r"><span>'+esc(OPTS.filter(function(o){return o.id===p.item;})[0].name)+' · '+esc(pickName(p))+'</span><b>'+money(priceOf(p))+'</b></div>';}).join("")+'<div class="t"><span>Total</span><b>'+money(d.total)+'</b></div></div>'
+   +'<div class="sumcard" style="text-align:left">'+d.slots.map(function(p){return '<div class="r"><span>'+esc(OPTS.filter(function(o){return o.id===p.item;})[0].name)+' · '+esc(slotName(p))+'</span><b>'+money(priceOf(p))+'</b></div>';}).join("")+'<div class="t"><span>Total</span><b>'+money(d.total)+'</b></div></div>'
    +'<div class="kids" style="text-align:left">Your '+money(d.total)+' keeps local kids training at Legacy, year round. See you ringside on 19 December.</div>'
    +'<button type="button" class="btn g send" onclick="shareIt()">Share with another business</button></div>';}
 window.shareIt=function(){var u="https://legacygym-app.vercel.app/sponsor-a-fighter",t="Sponsor a Fight Club fighter for Fight Night, 19 December at Legacy Gym.";
-  if(navigator.share){navigator.share({title:"Sponsor a Fighter",text:t,url:u}).catch(function(){});}else{try{navigator.clipboard.writeText(u);alertBox("Link copied.");}catch(e){}}};
-function alertBox(m){var b=document.querySelector(".done .send");if(b)b.textContent=m;}
+  if(navigator.share){navigator.share({title:"Sponsor a Fighter",text:t,url:u}).catch(function(){});}else{try{navigator.clipboard.writeText(u);var b=document.querySelector(".done .send");if(b)b.textContent="Link copied";}catch(e){}}};
 async function load(){try{var L=await rpc("fh_kit_board",{});S.fighters=Array.isArray(L)?L:[];
-    S.picks=S.picks.filter(function(p){return !p.fid||fById(p.fid);});S.picks.forEach(function(p){var f=fById(p.fid);if(f&&taken(f,p.item)){p.item=bestItem(f)||p.item;}});
+    S.slots.forEach(function(p){var f=fById(p.fid);if(p.fid&&!f){p.fid=null;p.item="kit";}else if(f&&taken(f,p.item)){var it=bestItem(f);if(it)p.item=it;else{p.fid=null;p.item="kit";}}});
   }catch(e){S.fighters=S.fighters||[];$("view").innerHTML='<div class="err">Couldn\'t load the fighters. Check your connection and refresh.</div>';return;}
   paint();}
 load();
