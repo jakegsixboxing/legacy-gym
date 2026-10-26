@@ -135,7 +135,22 @@ input::placeholder{color:#6f666c}
 .pick.slot{border-style:dashed}
 .pick .av.q{color:var(--mute);border-color:var(--line)}
 .linkbtn{background:none;border:0;color:var(--pink2);font:700 12px/1 Oswald,sans-serif;letter-spacing:1.2px;text-transform:uppercase;padding:8px 0;margin-top:6px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:au<script>
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="hero"><img src="/img/fc/sponsor-fighter.jpg" alt="Sponsor a fighter: singlet $250, trunks $250, full kit $450 — your logo on their fight kit, December 19" width="900" height="1005"></div>
+<main class="wrap" id="app">
+  <section class="intro">
+    <div class="eyebrow">Fight Club · Saturday 19 December · Legacy Gym Kincumber</div>
+    <h1>Put your business on a fighter</h1>
+    <p class="lead">Your logo goes on a Fight Club fighter's singlet and trunks, centre ring in front of hundreds of people. <b>Sponsor one fighter or several</b> — pick fighters you know, or let us pick for you.</p>
+    <div class="kids"><b>Every dollar goes to the kids.</b> Sponsorship keeps local kids who can't afford it training at Legacy, year round.</div>
+  </section>
+  <div id="view"><div class="empty" style="margin-top:24px">Loading…</div></div>
+</main>
+<div class="bar" id="bar" hidden><div class="in"><div class="info"><b id="barTot">$0</b><small id="barTxt">Nothing picked yet</small></div><button class="btn p" id="barGo" onclick="toDetails()">Continue</button></div></div>
+<script>
 (function(){
 var RPC="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/";
 var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
