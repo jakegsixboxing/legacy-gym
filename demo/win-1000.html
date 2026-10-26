@@ -1,4 +1,4 @@
-<!doctype html><html lang="en-AU"><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>Win $1,000 Cash · demo</title>
+<!doctype html><html lang="en-AU"><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>Win $1000 Cash · demo</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Montserrat:wght@500;600;700;800&display=swap">
 <style>
@@ -21,11 +21,33 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--g2);outline-off
 .steps i{width:22px;height:4px;border-radius:99px;background:var(--ln)}
 .steps i.on{background:var(--g)}
 /* hero */
+.hero.story{min-height:calc(100svh - 120px);display:flex;flex-direction:column;justify-content:center;padding:30px 22px 26px}
 .hero{position:relative;margin-top:10px;border-radius:24px;overflow:hidden;border:1px solid #3d3218;background:radial-gradient(120% 80% at 50% 0%,#3d2f10 0%,#16120a 55%,#0b0a08 100%);padding:26px 22px 22px;text-align:center}
 .hero::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(244,201,93,.05) 0 2px,transparent 2px 14px);pointer-events:none}
 .eb{font:600 11px/1 Oswald,sans-serif;letter-spacing:4px;text-transform:uppercase;color:var(--g2)}
 .cash{font:700 104px/.9 Oswald,sans-serif;letter-spacing:-1px;margin:14px 0 2px;background:linear-gradient(180deg,var(--g3) 0%,var(--g2) 45%,#b8892c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 10px 40px rgba(244,201,93,.25);font-variant-numeric:tabular-nums}
 .cash sup{font-size:.42em;vertical-align:.95em;margin-right:2px}
+.comp{display:inline-flex;align-items:center;gap:8px;font:700 11px/1 Oswald,sans-serif;letter-spacing:4px;text-transform:uppercase;color:#161307;background:linear-gradient(180deg,var(--g2),var(--g));border-radius:99px;padding:8px 14px;margin:0 auto}
+.win{font:700 64px/.9 Oswald,sans-serif;letter-spacing:6px;color:#fff;margin-top:18px;text-transform:uppercase}
+.shine{position:relative;display:inline-block}
+.shine::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 3.2s ease-in-out infinite}
+@keyframes shine{0%{background-position:150% 0}60%,100%{background-position:-60% 0}}
+.fn{margin:18px auto 0;display:inline-grid;gap:4px;border:1px solid #5a4719;background:rgba(0,0,0,.4);border-radius:14px;padding:10px 16px}
+.fn b{font:700 15px/1 Oswald,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#fff}
+.fn small{font:700 10px/1 Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--g2)}
+.elig{margin-top:12px;display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;background:#15120a;border:1px solid #3d3218;border-radius:14px;padding:12px 14px;font-size:12px;line-height:1.5;color:#ddd6c8}
+.elig i{font-style:normal;color:var(--g2);font-size:15px;line-height:1.2}
+.elig b{color:#fff}
+.lock{margin-top:14px;border-radius:16px;border:1px solid #6b5520;background:linear-gradient(160deg,#241c0b,#0f0e0b);padding:14px}
+.lock .hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.lock .hd b{font:600 16px/1.1 Oswald,sans-serif;text-transform:uppercase;color:#fff}
+.lock .hd span{font:700 11px/1 Oswald,sans-serif;letter-spacing:1.5px;color:var(--g2);text-transform:uppercase}
+.lock p{font-size:12px;color:#cfc7b4;line-height:1.5;margin-top:6px}
+.week7{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+.week7 i{height:34px;border-radius:9px;border:1px dashed #5a4719;display:grid;place-items:center;font:700 11px/1 Oswald,sans-serif;font-style:normal;color:var(--mu)}
+.week7 i.on{border:0;background:var(--ok);color:#06240f}
+.ticket.pending{background:linear-gradient(160deg,#5a4a20,#3b3016 55%,#2a2210);color:#f4e7c4}
+.ticket .stamp{position:absolute;right:14px;top:14px;font:700 10px/1 Oswald,sans-serif;letter-spacing:2px;text-transform:uppercase;border:2px solid currentColor;border-radius:8px;padding:6px 8px;transform:rotate(6deg);opacity:.85}
 .cashlbl{font:700 22px/1 Oswald,sans-serif;letter-spacing:6px;text-transform:uppercase;color:#fff}
 .lede{font-size:13.5px;line-height:1.55;color:#ddd6c8;margin:14px auto 0;max-width:32ch}
 .lede b{color:#fff}
@@ -102,7 +124,7 @@ input.bad{border-color:var(--bad)}
 .ticket{position:relative;margin-top:18px;border-radius:22px;background:linear-gradient(160deg,#f6d46c,#c9a44c 55%,#9c7a2c);color:#161307;padding:22px 20px 18px;overflow:hidden}
 .ticket::before,.ticket::after{content:"";position:absolute;top:58%;width:24px;height:24px;border-radius:50%;background:var(--bg)}
 .ticket::before{left:-12px}.ticket::after{right:-12px}
-.ticket .k{font:700 11px/1 Oswald,sans-serif;letter-spacing:3px;text-transform:uppercase;opacity:.75}
+.ticket .k{font:700 11px/1 Oswald,sans-serif;letter-spacing:3px;text-transform:uppercase;opacity:.75;padding-right:96px}
 .ticket .t{font:700 34px/1 Oswald,sans-serif;text-transform:uppercase;margin-top:8px}
 .ticket .row{display:flex;justify-content:space-between;gap:10px;border-top:2px dashed rgba(22,19,7,.35);margin-top:18px;padding-top:14px}
 .ticket .row div small{display:block;font:800 9px/1 Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;opacity:.7}
@@ -156,7 +178,7 @@ input.bad{border-color:var(--bad)}
 <script>
 (function(){
 "use strict";
-var DRAW=new Date("2026-12-18T19:00:00+11:00");          /* draw: Fri 18 Dec, live on Instagram */
+var DRAW=new Date("2026-12-19T20:00:00+11:00");          /* draw: Sat 19 Dec, live at Fight Night */
 var SITE="legacygym.net/win";
 var S={v:"entrant",step:"hero",name:"",email:"",mobile:"",member:null,trialDay:null,trialTime:null,mates:[{n:"",sent:null},{n:"",sent:null},{n:"",sent:null}],code:"",entry:0,claims:[],ref:null};
 function $(id){return document.getElementById(id);}
@@ -174,14 +196,17 @@ setInterval(function(){var el=$("cd");if(!el)return;var p=cd();[].forEach.call(e
 
 /* ---------- ENTRANT FLOW ---------- */
 function hero(){
-  return bar(0)+'<div class="hero fade"><div class="eb">Legacy Gym · Bring your crew</div><div class="cash"><sup>$</sup>1,000</div><div class="cashlbl">Cash. One winner.</div>'
-   +'<p class="lede">Send <b>three mates a free week</b> at Legacy and you\'re in the draw. Every mate who claims it gets you <b>another entry</b>.</p>'
-   +cdHtml()+'<div class="drawlbl">Drawn live on Instagram · Friday 18 December, 7 pm</div></div>'
-   +'<div class="how"><div><i>1</i><span><b>Your details</b><small>Name, email, mobile. Twenty seconds.</small></span></div>'
-   +'<div><i>2</i><span><b>Member or not?</b><small>Not a member yet? Your free 7-day trial comes with your entry.</small></span></div>'
-   +'<div><i>3</i><span><b>Send 3 mates a free week</b><small>Text, WhatsApp, Instagram. You\'re in the draw the moment the third one goes.</small></span></div></div>'
-   +'<button class="cta" onclick="go(\'details\')">Enter the draw</button>'
-   +'<div class="fine">Free to enter, no purchase needed. 18+, NSW residents. One entry per person plus one bonus entry for each friend who claims a free trial through your link. Full terms at legacygym.net/win-terms.</div>';
+  return bar(0)+'<div class="hero story fade"><div><span class="comp">🏆 Competition</span></div>'
+   +'<div class="win">Win</div><div class="cash shine"><sup>$</sup>1000</div><div class="cashlbl">Cash</div>'
+   +'<p class="lede">Send <b>three mates a free week</b> at Legacy Gym Kincumber and you\'re in. Every mate who claims it puts <b>another entry</b> in with your name on it.</p>'
+   +'<div class="fn"><b>Drawn live at Fight Night</b><small>Saturday 19 December</small></div>'
+   +cdHtml()+'</div>'
+   +'<div class="how"><div><i>1</i><span><b>Enter your details</b><small>Name, email, mobile. Twenty seconds.</small></span></div>'
+   +'<div><i>2</i><span><b>Member or not?</b><small>Members go straight through. Not a member? Your free 7-day trial is your ticket in.</small></span></div>'
+   +'<div><i>3</i><span><b>Send 3 mates a free week</b><small>Text, WhatsApp, Insta. The third one goes, your entry is in.</small></span></div></div>'
+   +'<div class="elig"><i>★</i><span>To win you must be a <b>Legacy member</b> or have <b>completed your 7-day free trial</b> by the draw.</span></div>'
+   +'<button class="cta" onclick="go(\'details\')">Enter the competition</button>'
+   +'<div class="fine">Free to enter, no purchase necessary. 18+. One entry per person, plus one bonus entry for each mate who claims a free week through your link. Winner drawn at Legacy Gym Fight Night, Saturday 19 December 2026. You don\'t need to be there, we\'ll call you. Full terms at legacygym.net/win-terms.</div>';
 }
 function details(){
   return bar(1)+'<div class="fade"><h1 class="h2">First, <span>who\'s entering?</span></h1><p class="sub">So we can tell you if you win. We never share your details.</p>'
@@ -202,16 +227,16 @@ window.saveDetails=function(){
   go("member");
 };
 function member(){
-  return bar(2)+'<div class="fade"><h1 class="h2">'+E(first())+', are you <span>a Legacy member?</span></h1><p class="sub">Either way you\'re going in the draw.</p>'
+  return bar(2)+'<div class="fade"><h1 class="h2">'+E(first())+', are you <span>a Legacy member?</span></h1><p class="sub">Either way you can win. Non-members, your free week is your way in.</p>'
    +'<div class="choice"><button onclick="setMember(true)"><i>🥊</i><span><b>Yes, I train at Legacy</b><small>Send three mates a free week and you\'re in.</small></span></button>'
-   +'<button onclick="setMember(false)"><i>🎟️</i><span><b>Not yet</b><small>Grab your own free 7-day trial, then send three mates one too.</small></span></button></div>'
+   +'<button onclick="setMember(false)"><i>🎟️</i><span><b>Not yet</b><small>Claim your free 7-day trial, send three mates one too, and finish your week to lock in your entry.</small></span></button></div>'
    +'<button class="ghost" onclick="go(\'details\')">‹ Back</button></div>';
 }
 window.setMember=function(v){S.member=v;go(v?"share":"trial");};
 function trialDays(){var out=[],d=new Date();d.setHours(12,0,0,0);while(out.length<8){d.setDate(d.getDate()+1);if(d.getDay()!==0)out.push(new Date(d));}return out;}
 function trial(){
   var D=trialDays(),DN=["SUN","MON","TUE","WED","THU","FRI","SAT"];
-  return bar(3)+'<div class="fade"><h1 class="h2">Your <span>free week</span> first</h1><p class="sub">Seven days, every class, the full gym floor, no card. Pick when you\'d like to start, we\'ll have your pass ready at the desk.</p>'
+  return bar(3)+'<div class="fade"><h1 class="h2">Your <span>free week</span> first</h1><p class="sub">Seven days, every class, the full gym floor, no card. <b>Finish your week and your entry is locked in.</b> Pick when you\'d like to start.</p>'
    +'<label>Start day</label><div class="dates">'+D.map(function(d,i){var iso=d.toISOString().slice(0,10);return '<button class="'+(S.trialDay===iso?'on':'')+'" onclick="pickDay(\''+iso+'\')">'+DN[d.getDay()]+'<b>'+d.getDate()+'</b></button>';}).join("")+'</div>'
    +'<label>Best time for you</label><div class="times">'+[["am","Morning","5:30 – 9 am"],["mid","Daytime","9 am – 4 pm"],["pm","Evening","4 – 8 pm"]].map(function(t){return '<button class="'+(S.trialTime===t[0]?'on':'')+'" onclick="pickTime(\''+t[0]+'\')">'+t[1]+'<small>'+t[2]+'</small></button>';}).join("")+'</div>'
    +'<div class="err" id="err" role="alert"></div>'
@@ -220,7 +245,7 @@ function trial(){
 window.pickDay=function(d){S.trialDay=d;render();};
 window.pickTime=function(t){S.trialTime=t;render();};
 window.claimTrial=function(){if(!S.trialDay){$("err").textContent="Pick a start day.";return;}if(!S.trialTime){$("err").textContent="Pick a time that suits.";return;}go("share");};
-function msgFor(n){var to=n.trim().split(/\s+/)[0];return (to?"Hey "+to.replace(/^./,function(c){return c.toUpperCase();})+", ":"")+"your mate "+S.name+" trains at Legacy Gym Kincumber and wants to invite you for a free week. 7 days, no card, no catch: "+link();}
+function msgFor(n){var to=n.trim().split(/\s+/)[0];return (to?"Hey "+to.replace(/^./,function(c){return c.toUpperCase();})+"! ":"")+"Join your mate "+S.name.split(" ")[0]+" for 7 days free at Legacy Gym Kincumber and you could win $1000 cash. Drawn at Fight Night, 19 Dec: "+link();}
 function share(){
   var n=sentN(),total=S.member===false?4:3,stepNo=S.member===false?4:3;
   var h=bar(stepNo)+'<div class="fade">';
@@ -254,18 +279,27 @@ window.send=function(i,how){
   m.sent=L;toast("Sent to "+nm.split(" ")[0]+" by "+L+" (demo)");
   if(sentN()===3){S.entry=1000+Math.floor(Math.random()*400);setTimeout(function(){go("done");boom();},650);}else render();
 };
+function trialDone(){return !!S.trialComplete;}
+function locked(){return S.member||trialDone();}
 function done(){
-  var h=bar(0)+'<div class="fade"><h1 class="h2">You\'re <span>in the draw</span>, '+E(first())+'</h1><p class="sub">We\'ll text '+E(S.mobile)+' if your name comes out on <b>Friday 18 December</b>.</p>'
-   +'<div class="ticket"><div class="k">Legacy Gym · $1,000 cash draw</div><div class="t">'+E(S.name)+'</div>'
-   +'<div class="row"><div><small>Entry no.</small><b>#'+S.entry+'</b></div><div><small>Your entries</small><b>'+entries()+'</b></div><div><small>Draw</small><b>18 Dec</b></div></div></div>'
-   +'<div class="boost"><div class="hd"><b>Stack more entries</b><span>+1 per mate</span></div><p>Every mate who claims their free week through your link puts <b style="color:#fff">another entry</b> in with your name on it. No limit.</p>'
+  var lk=locked(),d=S.trialDay?new Date(S.trialDay+"T12:00:00"):null,end=d?new Date(d.getTime()+6*864e5):null;
+  var h=bar(0)+'<div class="fade"><h1 class="h2">'+(lk?'You\'re <span>in</span>, '+E(first()):'Nearly there, <span>'+E(first())+'</span>')+'</h1>'
+   +'<p class="sub">'+(lk?'Your entry is locked in. We\'ll call '+E(S.mobile)+' if your name comes out at <b>Fight Night, Saturday 19 December</b>.':'Your three mates are sent. Finish your free week and your entry locks in for the draw at <b>Fight Night, 19 December</b>.')+'</p>'
+   +'<div class="ticket'+(lk?'':' pending')+'"><div class="stamp">'+(lk?'Entry locked':'Pending')+'</div><div class="k">Legacy Gym · Win $1000 cash</div><div class="t">'+E(S.name)+'</div>'
+   +'<div class="row"><div><small>Entry no.</small><b>#'+S.entry+'</b></div><div><small>Entries</small><b>'+entries()+'</b></div><div><small>Drawn</small><b>19 Dec</b></div></div></div>';
+  if(!lk){var dn=S.daysIn||0;
+    h+='<div class="lock"><div class="hd"><b>Finish your free week</b><span>'+dn+' of 7 days</span></div><p>Your week runs <b style="color:#fff">'+d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"})+' – '+end.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"})+'</b>. Swipe in and train, and the day it finishes your entry locks in.</p>'
+     +'<div class="week7">'+[0,1,2,3,4,5,6].map(function(i){return '<i class="'+(i<dn?'on':'')+'">'+(i<dn?'✓':'D'+(i+1))+'</i>';}).join("")+'</div>'
+     +'<button class="ghost" onclick="simDay()">Demo: fast-forward a day</button></div>';}
+  h+='<div class="boost"><div class="hd"><b>Stack more entries</b><span>+1 per mate</span></div><p>Every mate who claims their free week through your link puts <b style="color:#fff">another entry</b> in with your name on it. No limit.</p>'
    +'<div class="link"><code>'+E(link())+'</code><button onclick="copyLink()">Copy</button></div>'
    +'<div class="feed">'+S.mates.map(function(m){var c=S.claims.indexOf(m.n)>=0;return '<div><span>'+E(m.n.split(" ")[0])+' · sent by '+E(m.sent)+'</span><em class="'+(c?'':'w')+'">'+(c?'Claimed · +1 entry':'Waiting')+'</em></div>';}).join("")+'</div>'
    +'<button class="ghost" onclick="simClaim()">Demo: pretend a mate claims their week</button></div>'
    +'<button class="cta" onclick="moreMates()">Send more mates a free week</button>'
-   +'<div class="fine">Screenshot your ticket. Drawn live on our Instagram, Friday 18 December, 7 pm.</div></div>';
+   +'<div class="fine">Screenshot your ticket. Drawn live at Legacy Gym Fight Night, Saturday 19 December.</div></div>';
   return h;
 }
+window.simDay=function(){S.daysIn=Math.min(7,(S.daysIn||0)+1);if(S.daysIn===7){S.trialComplete=true;toast("Free week done · your entry is locked in");boom();}render();};
 window.copyLink=function(){try{navigator.clipboard.writeText("https://"+link());}catch(e){}toast("Your link's copied.");};
 window.simClaim=function(){var w=S.mates.filter(function(m){return S.claims.indexOf(m.n)<0;})[0];if(!w){toast("All three have claimed. Send more mates for more entries.");return;}S.claims.push(w.n);toast(w.n.split(" ")[0]+" claimed their free week · +1 entry");render();};
 window.moreMates=function(){S.xn="";go("extra");};
@@ -281,27 +315,30 @@ window.sendExtra=function(how){var nm=(S.xn||"").trim();if(nm.length<2){toast("T
 /* ---------- FRIEND LANDING ---------- */
 function friend(){
   var from=S.name||"Jake Williamson",f=from.split(" ")[0];
-  return bar(0)+'<div class="fade"><div class="inv"><i>'+E(f[0])+'</i><span><b>'+E(from)+'</b> trains at Legacy Gym Kincumber and sent you a <b>free week</b>.</span></div>'
-   +'<div class="hero" style="margin-top:12px"><div class="eb">Your free 7-day pass</div><div class="cash" style="font-size:78px">7 DAYS</div><div class="cashlbl">Free. No card.</div><p class="lede">Every class, the full gym floor, boxing, strength, conditioning. Claim it and you\'re also <b>in the $1,000 cash draw</b> yourself.</p></div>'
-   +'<label for="gN">Full name</label><input id="gN" placeholder="First and last">'
-   +'<label for="gM">Mobile</label><input id="gM" type="tel" inputmode="tel" placeholder="04…">'
+  return bar(0)+'<div class="fade"><div class="inv"><i>'+E(f[0])+'</i><span><b>'+E(f)+'</b> sent you this. They train at Legacy Gym Kincumber.</span></div>'
+   +'<div class="hero" style="margin-top:12px;padding:26px 20px 22px"><div class="eb">Join your mate</div><div class="win" style="font-size:44px;margin-top:12px">7 days free</div>'
+   +'<div style="font:700 22px/1 Oswald,sans-serif;letter-spacing:5px;color:#fff;margin-top:14px;text-transform:uppercase">and win</div><div class="cash shine" style="font-size:86px;margin-top:6px"><sup>$</sup>1000</div>'
+   +'<p class="lede">Train with '+E(f)+' all week, every class, no card. Finish your free week and you\'re in the draw too, <b>live at Fight Night, Saturday 19 December</b>.</p></div>'
+   +'<label for="gN">Full name</label><input id="gN" placeholder="First and last" autocomplete="name">'
+   +'<label for="gE">Email</label><input id="gE" type="email" inputmode="email" placeholder="you@email.com" autocomplete="email">'
+   +'<label for="gM">Mobile</label><input id="gM" type="tel" inputmode="tel" placeholder="04…" autocomplete="tel">'
    +'<button class="cta" onclick="friendClaim()">Claim my free week</button>'
-   +'<div class="fine">Claiming gives '+E(f)+' an extra entry in the draw, and puts you in it too once you send three mates of your own.</div></div>';
+   +'<div class="fine">Claiming gives '+E(f)+' an extra entry. Send three mates of your own after and you get your own entry too.</div></div>';
 }
-window.friendClaim=function(){toast("Claimed (demo) · "+(S.name||"Jake").split(" ")[0]+" just got +1 entry");boom();};
+window.friendClaim=function(){toast("Free week claimed (demo) · "+(S.name||"Jake").split(" ")[0]+" just got +1 entry");boom();};
 
 /* ---------- STAFF VIEW ---------- */
-var SAMPLE=[["Harley Dimech","m",3,4],["Sarah Nguyen","t",3,2],["Tom Williams","m",3,1],["Kelsey Waugh","m",3,3],["Josh Reid","t",3,0],["Mia Pal","m",3,2],["Corey Mear","m",2,0]];
+var SAMPLE=[["Harley Dimech","m",3,4,1],["Sarah Nguyen","t",3,2,1],["Tom Williams","m",3,1,1],["Kelsey Waugh","m",3,3,1],["Josh Reid","t",3,0,0],["Mia Pal","m",3,2,1],["Corey Mear","m",2,0,1]];
 function staff(){
-  var ent=SAMPLE.filter(function(r){return r[2]>=3;}),tick=ent.reduce(function(a,r){return a+1+r[3];},0),trials=SAMPLE.filter(function(r){return r[1]==="t";}).length+SAMPLE.reduce(function(a,r){return a+r[3];},0);
-  return bar(0)+'<div class="fade"><h1 class="h2">$1,000 draw · <span>Jake &amp; Ali</span></h1><p class="sub">Lives in the app under Ticket Release, next to Sponsorship inquiries. Only you two can see it.</p>'
+  var ent=SAMPLE.filter(function(r){return r[2]>=3&&r[4];}),tick=ent.reduce(function(a,r){return a+1+r[3];},0),trials=SAMPLE.filter(function(r){return r[1]==="t";}).length+SAMPLE.reduce(function(a,r){return a+r[3];},0);
+  return bar(0)+'<div class="fade"><h1 class="h2">Win $1000 · <span>Jake &amp; Ali</span></h1><p class="sub">Lives in the app under Ticket Release, next to Sponsorship inquiries. Only you two can see it.</p>'
    +'<div class="kpis"><div><b>'+ent.length+'</b><small>In the draw</small></div><div><b>'+tick+'</b><small>Total entries</small></div><div><b>'+trials+'</b><small>Free trials claimed</small></div></div>'
    +'<div class="tbl"><div class="r h"><span>Entrant</span><span></span><span>Entries</span></div>'
-   +SAMPLE.map(function(r){var inn=r[2]>=3;return '<div class="r"><span><b>'+r[0]+'</b><small>'+(inn?'3 mates sent':r[2]+' of 3 sent · not in yet')+(r[3]?' · '+r[3]+' mate'+(r[3]>1?'s':'')+' claimed':'')+'</small></span><span class="pill '+r[1]+'">'+(r[1]==="m"?'Member':'New · trial')+'</span><span class="num">'+(inn?1+r[3]:'–')+'</span></div>';}).join("")+'</div>'
+   +SAMPLE.map(function(r){var inn=r[2]>=3&&r[4];return '<div class="r"><span><b>'+r[0]+'</b><small>'+(r[2]<3?r[2]+' of 3 sent · not in yet':!r[4]?'3 sent · trial day 3 of 7 · pending':'3 mates sent')+(r[3]?' · '+r[3]+' mate'+(r[3]>1?'s':'')+' claimed':'')+'</small></span><span class="pill '+r[1]+'">'+(r[1]==="m"?'Member':'New · trial')+'</span><span class="num">'+(inn?1+r[3]:'–')+'</span></div>';}).join("")+'</div>'
    +'<button class="cta" onclick="drawIt()">Draw a winner (demo)</button>'
-   +'<div class="fine">Every free trial claimed through a link lands in Free trial sign-ups with "via Harley" etc, so the desk knows who referred who.</div></div>';
+   +'<div class="fine">Only members and people who have finished their free week go in the barrel. Every free trial claimed through a link lands in Free trial sign-ups with "via Harley" etc, so the desk knows who referred who.</div></div>';
 }
-window.drawIt=function(){var pool=[];SAMPLE.forEach(function(r){if(r[2]>=3)for(var i=0;i<1+r[3];i++)pool.push(r[0]);});var w=pool[Math.floor(Math.random()*pool.length)];toast("Winner: "+w+" (demo draw, weighted by entries)");boom();};
+window.drawIt=function(){var pool=[];SAMPLE.forEach(function(r){if(r[2]>=3&&r[4])for(var i=0;i<1+r[3];i++)pool.push(r[0]);});var w=pool[Math.floor(Math.random()*pool.length)];toast("Winner: "+w+" (demo draw, weighted by entries)");boom();};
 
 /* ---------- confetti ---------- */
 function boom(){try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;var c=$("cf"),x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;var P=[];for(var i=0;i<140;i++)P.push({x:innerWidth/2,y:innerHeight*.35,vx:(Math.random()-.5)*14,vy:-Math.random()*12-4,s:Math.random()*6+4,r:Math.random()*6,c:["#f4c95d","#c9a44c","#fff1c2","#ffffff","#4bc97a"][i%5]});var t=0;(function f(){x.clearRect(0,0,c.width,c.height);P.forEach(function(p){p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});if(++t<120)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();}catch(e){}}
