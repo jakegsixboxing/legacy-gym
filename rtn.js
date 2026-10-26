@@ -253,16 +253,26 @@ function curWeek(){var n=Math.floor((Date.now()-wkDate(1,0).getTime())/6048e5)+1
 async function loadState(){try{var r=await sb.rpc("rtn_state");if(r.error||!r.data)return null;var d=r.data;S.me=d;S.done={};S.runT=null;
   (d.logs||[]).forEach(function(l){var k=l.kind==="train"?key(l.wk,l.day):key(l.wk,l.day,l.kind);S.done[k]=true;if(l.kind==="run"&&l.run_secs)S.runT=l.run_secs;});
   S.loaded=true;return d;}catch(e){return null;}}
-window.rtnCoach=function(on){S.coach=!!on;renderSparringClub();};
-var _rsc=window.renderSparringClub;
-window.renderSparringClub=async function(){
-  var c=document.getElementById("boxContent");
-  if(!c||!window.session||!session.user)return _rsc.apply(this,arguments);
-  if(!S.loaded){c.innerHTML='<div class="loadingDots">Loading…</div>';await loadState();}
-  if(!S.me||!S.me.member||S.coach)return _rsc.apply(this,arguments);
+window.rtnCoach=function(on){S.coach=!!on;try{boxSub="sparring";}catch(e){}renderBoxing();};
+var _rb=window.renderBoxing,_rsc=window.renderSparringClub;
+function host(){var m=document.getElementById("main");if(!m)return null;m.innerHTML='<div class="rtn"><div class="wrap" id="rtnApp"></div></div>';return rootA();}
+/* Boxing tab = Road to Nationals, nothing else, for the squad */
+window.renderBoxing=async function(){
+  if(!window.session||!session.user)return _rb.apply(this,arguments);
+  if(!S.loaded){var m0=document.getElementById("main");if(m0)m0.innerHTML='<div class="loadingDots">Loading…</div>';await loadState();}
+  if(!S.me||!S.me.member||S.coach)return _rb.apply(this,arguments);
+  if(view!=="boxing")return;
   if(!S.wkSet){S.wk=curWeek();S.wkSet=true;}
-  var cc=document.getElementById("boxContent");if(!cc)return;
-  cc.innerHTML='<div class="rtn"><div class="wrap" id="rtnApp"></div></div>';paint();
+  if(host())paint();
 };
-setInterval(function(){try{var u=session&&session.user&&session.user.id;if(u!==S.uid){S.uid=u;S.loaded=false;S.coach=false;S.wkSet=false;}}catch(e){}},1500);
+window.renderSparringClub=async function(){
+  if(!window.session||!session.user)return _rsc.apply(this,arguments);
+  if(!S.loaded)await loadState();
+  if(!S.me||!S.me.member||S.coach)return _rsc.apply(this,arguments);
+  return renderBoxing();
+};
+/* their old programs: running block / sprint block rows on Home go for the squad */
+function sweep(){try{if(!S.me||!S.me.member||S.coach)return;document.querySelectorAll(".rbHome,.mspHome").forEach(function(el){el.remove();});}catch(e){}}
+try{var mo=new MutationObserver(sweep);var mainEl=document.getElementById("main");if(mainEl)mo.observe(mainEl,{childList:true,subtree:true});}catch(e){}
+setInterval(function(){try{var u=session&&session.user&&session.user.id;if(u!==S.uid){S.uid=u;S.loaded=false;S.coach=false;S.wkSet=false;if(u)loadState().then(sweep);}sweep();}catch(e){}},1500);
 })();
