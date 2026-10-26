@@ -167,7 +167,7 @@ function fname(f){return (f.first+" "+f.last).trim();}
 function fById(id){return id?(S.fighters||[]).filter(function(f){return f.id===id;})[0]:null;}
 function taken(f,id){var t=f&&f.taken||{};if(t.kit)return true;if(id==="kit")return !!(t.singlet||t.trunks);return !!t[id];}
 function free(f){return OPTS.filter(function(o){return !taken(f,o.id);});}
-function availTxt(f){var a=free(f).map(function(o){return o.id;});if(!a.length)return "Already sponsored";if(a.indexOf("kit")>=0)return "Singlet, trunks & full kit available";return (a[0]==="singlet"?"Singlet":"Trunks")+" still available";}
+function availTxt(f){var a=free(f).map(function(o){return o.id;});if(!a.length)return "Held by sponsor";if(a.indexOf("kit")>=0)return "Singlet, trunks & full kit available";return (a[0]==="singlet"?"Singlet":"Trunks")+" still available";}
 function bestItem(f){var a=free(f);return a.some(function(o){return o.id==="kit";})?"kit":(a[0]?a[0].id:null);}
 function picked(id){return S.slots.some(function(p){return p.fid===id;});}
 function named(){return S.slots.filter(function(p){return p.fid;}).length;}
@@ -199,7 +199,7 @@ function fighterRows(){
   var full=named()>=S.count;
   var limit=q||S.showAll?L.length:12,h='<div class="flist">'+L.slice(0,limit).map(function(f){var on=picked(f.id),none=!free(f).length,dis=(none||(full&&!on));
     return '<div class="frow'+(on?' on':'')+'"><span class="av">'+esc((f.first[0]||"")+(f.last[0]||""))+'</span><div class="nm"><b>'+esc(fname(f))+'</b><small class="'+(none?'full':'')+'">'+esc(availTxt(f))+'</small></div>'
-      +'<button type="button" '+(dis?'disabled':'onclick="togF(\''+f.id+'\')"')+' aria-pressed="'+on+'">'+(on?'Picked ✓':none?'Sponsored':'+ Pick')+'</button></div>';}).join("")+'</div>';
+      +'<button type="button" '+(dis?'disabled':'onclick="togF(\''+f.id+'\')"')+' aria-pressed="'+on+'">'+(on?'Picked ✓':none?'Held':'+ Pick')+'</button></div>';}).join("")+'</div>';
   if(L.length>limit)h+='<button type="button" class="btn g more" onclick="showAll()">Show all '+L.length+' fighters</button>';
   return h;
 }
@@ -223,7 +223,7 @@ function slotsHtml(){
   var h='<div class="step" id="gear"><h2>What goes on each fighter</h2><div class="sub">Singlet, trunks or the full kit for each one. Tap a fighter to preview their gear.</div><div class="picks">';
   h+=S.slots.map(function(p,i){var f=fById(p.fid);
     return '<div class="pick'+(p===foc?' focus':'')+(f?'':' slot')+'" onclick="focusP('+i+')"><div class="top"><span class="av'+(f?'':' q')+'">'+(f?esc((f.first[0]||"")+(f.last[0]||"")):(i+1))+'</span><div class="nm"><b>'+esc(slotName(p))+'</b><small>'+(f?'Fight Club · 19 December':'We\'ll match a fighter who needs a sponsor')+'</small></div>'+(f?'<button type="button" class="x" aria-label="Remove '+esc(slotName(p))+'" onclick="event.stopPropagation();rmF('+i+')">×</button>':'')+'</div>'
-      +'<div class="opts">'+OPTS.map(function(o){var t=f&&taken(f,o.id);return '<button type="button" class="opt'+(p.item===o.id?' on':'')+'" '+(t?'disabled':'onclick="event.stopPropagation();setItem('+i+',\''+o.id+'\')"')+'><b>'+o.name+'</b><span>'+money(o.price)+'</span><small>'+(t?'Taken':o.what)+'</small></button>';}).join("")+'</div></div>';}).join("");
+      +'<div class="opts">'+OPTS.map(function(o){var t=f&&taken(f,o.id);return '<button type="button" class="opt'+(p.item===o.id?' on':'')+'" '+(t?'disabled':'onclick="event.stopPropagation();setItem('+i+',\''+o.id+'\')"')+'><b>'+o.name+'</b><span>'+money(o.price)+'</span><small>'+(t?'Held by sponsor':o.what)+'</small></button>';}).join("")+'</div></div>';}).join("");
   h+='</div>';
   var ff=fById(foc.fid);
   h+='<div class="kitprev">'+kitHtml(ff?ff.last||ff.first:"",foc.item)+'<div class="kcap">'+(ff?esc(ff.first)+'\'s name goes on as shown.':'Your matched fighter\'s name goes on as shown.')+' Your logo goes in the marked sponsor spaces. The fighter picks their colours.</div></div>';

@@ -210,12 +210,12 @@ function kitPrev(sel,logo){var showS=sel==="singlet"||sel==="kit",showT=sel==="t
   function z(cls,on){return '<div class="kz '+cls+(on?' act':'')+(logo&&on?' has':'')+'">'+(logo&&on?'<img src="'+logo+'" alt="">':(on?'<span>Your<br>logo</span>':''))+'</div>';}
   return '<div class="kit"><img src="'+KITIMG+'" alt="Fight Club kit">'+(showS?'<div class="knm">'+esc(name)+'</div>':'')+z("sb",showS)+z("tb",showT)+z("tf",showT)+z("tl",showT)+'</div>';}
 function koptsHtml(pick){return KIT.map(function(k){var g=kitTaken(k.id),on=pick&&kit.sel===k.id;
-  return '<button type="button" class="kopt'+(g?' gone':'')+(on?' on':'')+(k.hot?' hot':'')+'" '+(g?'disabled':'onclick="'+(pick?'fhKitSel':'fhKit')+'(\''+k.id+'\')"')+'><span><b>'+k.name+(k.hot?' <i>Best value</i>':'')+'</b><small>'+(g?'Taken':esc(k.blurb))+'</small></span><em>'+(g?'—':money(k.price))+'</em></button>';}).join("");}
+  return '<button type="button" class="kopt'+(g?' gone':'')+(on?' on':'')+(k.hot?' hot':'')+'" '+(g?'disabled':'onclick="'+(pick?'fhKitSel':'fhKit')+'(\''+k.id+'\')"')+'><span><b>'+k.name+(k.hot?' <i>Best value</i>':'')+'</b><small>'+(g?'Held by sponsor':esc(k.blurb))+'</small></span><em>'+(g?'Held':money(k.price))+'</em></button>';}).join("");}
 function kitSecHtml(){var allGone=kitTaken("singlet")&&kitTaken("trunks");
   return '<div class="sec" id="kit"><h2>Sponsor '+esc(first())+'\'s fight gear</h2><div class="sub">Put your business on '+esc(first())+'\'s singlet and trunks on fight night. <b>Every dollar goes to keeping local kids who can\'t afford it training in the gym, year round.</b></div>'
    +'<div class="kitc"><div class="kitprev">'+kitPrev("kit",null)+'</div><div class="kopts">'+koptsHtml(false)+'</div>'
    +'<p>Your logo goes on '+esc(first())+'\'s actual fight kit. We\'ll be in contact to secure your logo and details, send you the mock-up to approve before anything is printed, and photos from the night to share. <b style="color:var(--c2)">Nothing is charged here</b> — we confirm with you first.</p>'
-   +'<button class="pick" '+(allGone?'disabled':'onclick="fhKit()"')+'>'+(allGone?esc(first())+'\'s gear is fully sponsored':'Sponsor '+esc(first())+'\'s gear')+'</button></div></div>';}
+   +'<button class="pick" '+(allGone?'disabled':'onclick="fhKit()"')+'>'+(allGone?'Held by sponsor · '+esc(first())+'\'s gear is spoken for':'Sponsor '+esc(first())+'\'s gear')+'</button></div></div>';}
 function kitSum(){var k=KIT.filter(function(x){return x.id===kit.sel;})[0];return '<span>'+k.name+' sponsor · '+esc(F().name)+'</span><b>'+money(k.price)+'</b>';}
 function kitRefresh(){$("kOpts").innerHTML=koptsHtml(true);$("kPrev").innerHTML=kitPrev(kit.sel,kit.logo);$("kSum").innerHTML=kitSum();}
 window.fhKitSel=function(id){kit.sel=id;kitRefresh();};
