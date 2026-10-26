@@ -1,0 +1,320 @@
+<!doctype html><html lang="en-AU"><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>Win $1,000 Cash · demo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Montserrat:wght@500;600;700;800&display=swap">
+<style>
+:root{--bg:#09090a;--p:#131314;--p2:#1a1a1c;--ln:#2a2a2d;--tx:#f4f1ea;--mu:#a29d92;--g:#c9a44c;--g2:#f4c95d;--g3:#fff1c2;--ok:#4bc97a;--bad:#ff7b7b}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--tx);font-family:Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh}
+button,input{font-family:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible{outline:2px solid var(--g2);outline-offset:2px}
+.demo{background:#2a2211;color:#f5b942;border-bottom:1px solid #6b5520;font:800 10px/1.5 Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;text-align:center;padding:9px 12px;display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
+.demo button{background:#3a2e14;border:1px solid #6b5520;color:#f5b942;border-radius:99px;padding:5px 10px;font:800 9.5px/1 Montserrat,sans-serif;letter-spacing:1.2px;text-transform:uppercase}
+.demo button.on{background:#f5b942;color:#2a2211}
+.wrap{max-width:460px;margin:0 auto;padding:0 18px 40px}
+/* top bar */
+.bar{display:flex;align-items:center;justify-content:space-between;padding:16px 0 6px}
+.logo{font:700 16px/1 Oswald,sans-serif;letter-spacing:4px;color:var(--g)}
+.logo small{display:block;font:600 8px/1 Montserrat,sans-serif;letter-spacing:3px;color:var(--mu);margin-top:4px}
+.steps{display:flex;gap:5px}
+.steps i{width:22px;height:4px;border-radius:99px;background:var(--ln)}
+.steps i.on{background:var(--g)}
+/* hero */
+.hero{position:relative;margin-top:10px;border-radius:24px;overflow:hidden;border:1px solid #3d3218;background:radial-gradient(120% 80% at 50% 0%,#3d2f10 0%,#16120a 55%,#0b0a08 100%);padding:26px 22px 22px;text-align:center}
+.hero::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(244,201,93,.05) 0 2px,transparent 2px 14px);pointer-events:none}
+.eb{font:600 11px/1 Oswald,sans-serif;letter-spacing:4px;text-transform:uppercase;color:var(--g2)}
+.cash{font:700 104px/.9 Oswald,sans-serif;letter-spacing:-1px;margin:14px 0 2px;background:linear-gradient(180deg,var(--g3) 0%,var(--g2) 45%,#b8892c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 10px 40px rgba(244,201,93,.25);font-variant-numeric:tabular-nums}
+.cash sup{font-size:.42em;vertical-align:.95em;margin-right:2px}
+.cashlbl{font:700 22px/1 Oswald,sans-serif;letter-spacing:6px;text-transform:uppercase;color:#fff}
+.lede{font-size:13.5px;line-height:1.55;color:#ddd6c8;margin:14px auto 0;max-width:32ch}
+.lede b{color:#fff}
+.cd{display:flex;justify-content:center;gap:8px;margin-top:18px}
+.cd div{min-width:58px;background:rgba(0,0,0,.45);border:1px solid #3d3218;border-radius:12px;padding:8px 6px}
+.cd b{display:block;font:600 24px/1 Oswald,sans-serif;font-variant-numeric:tabular-nums}
+.cd small{display:block;font:800 8.5px/1 Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);margin-top:5px}
+.drawlbl{font-size:11px;color:var(--mu);margin-top:10px;letter-spacing:.3px}
+.how{display:grid;gap:8px;margin-top:16px}
+.how div{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center;background:var(--p);border:1px solid var(--ln);border-radius:14px;padding:12px}
+.how i{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font:700 15px/1 Oswald,sans-serif;font-style:normal;color:#161307;background:var(--g)}
+.how b{display:block;font:600 15px/1.1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.3px}
+.how small{display:block;font-size:11.5px;color:var(--mu);margin-top:3px;line-height:1.4}
+/* buttons */
+.cta{display:block;width:100%;margin-top:16px;padding:17px;border:0;border-radius:15px;background:linear-gradient(180deg,var(--g2),var(--g));color:#161307;font:700 16px/1 Oswald,sans-serif;letter-spacing:2.5px;text-transform:uppercase;box-shadow:0 10px 30px rgba(201,164,76,.25)}
+.cta:disabled{opacity:.45;box-shadow:none;cursor:default}
+.ghost{display:block;width:100%;margin-top:10px;padding:14px;border-radius:15px;background:none;border:1px solid var(--ln);color:var(--mu);font:700 12px/1 Oswald,sans-serif;letter-spacing:1.8px;text-transform:uppercase}
+.fine{font-size:10.5px;color:#6f6b63;text-align:center;line-height:1.55;margin-top:14px}
+.fine a{color:var(--mu)}
+/* forms */
+.h2{font:700 30px/1.05 Oswald,sans-serif;text-transform:uppercase;margin-top:14px;text-wrap:balance}
+.h2 span{color:var(--g2)}
+.sub{font-size:13px;color:var(--mu);line-height:1.55;margin-top:8px}
+.sub b{color:#fff}
+label{display:block;font:800 10px/1 Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#d8d2c4;margin:16px 0 7px}
+input{width:100%;background:#0d0d0e;border:1px solid var(--ln);border-radius:12px;padding:15px 14px;color:var(--tx);font-size:16px}
+input::placeholder{color:#5f5b55}
+input.bad{border-color:var(--bad)}
+.err{color:var(--bad);font-size:12px;margin-top:10px;min-height:16px}
+.choice{display:grid;gap:10px;margin-top:18px}
+.choice button{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:center;text-align:left;background:var(--p);border:1.5px solid var(--ln);border-radius:16px;padding:16px;color:var(--tx)}
+.choice button i{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;font-style:normal;background:var(--p2)}
+.choice button b{display:block;font:600 18px/1.1 Oswald,sans-serif;text-transform:uppercase}
+.choice button small{display:block;font-size:12px;color:var(--mu);margin-top:4px;line-height:1.4}
+.choice button:active,.choice button.on{border-color:var(--g);background:#1b160a}
+/* trial */
+.dates{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:4px}
+.dates button,.times button{background:var(--p);border:1px solid var(--ln);border-radius:12px;padding:10px 4px;color:var(--mu);font:700 10px/1 Oswald,sans-serif;letter-spacing:1.3px;text-transform:uppercase}
+.dates button b{display:block;font:600 18px/1 Oswald,sans-serif;color:var(--tx);margin-top:5px}
+.dates button.on,.times button.on{border-color:var(--g);background:#1b160a;color:var(--g2)}
+.times{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.times button{padding:13px 4px;font-size:12px;color:var(--tx)}
+.times button small{display:block;font:600 9.5px/1 Montserrat,sans-serif;color:var(--mu);letter-spacing:.3px;text-transform:none;margin-top:5px}
+.pass{margin-top:18px;border-radius:18px;border:1px solid #2a6b45;background:linear-gradient(160deg,#0f2a1b,#0b0f0c);padding:16px;display:grid;grid-template-columns:48px 1fr;gap:14px;align-items:center}
+.pass i{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#163b26;color:#9af0bc;font-size:22px;font-style:normal}
+.pass b{display:block;font:600 17px/1.1 Oswald,sans-serif;text-transform:uppercase;color:#9af0bc}
+.pass small{display:block;font-size:12px;color:#cfe9d8;margin-top:4px;line-height:1.45}
+/* share */
+.prog{display:flex;align-items:center;gap:12px;margin-top:16px;background:var(--p);border:1px solid var(--ln);border-radius:14px;padding:12px 14px}
+.prog .dots{display:flex;gap:6px}
+.prog .dots i{width:28px;height:28px;border-radius:50%;border:1.5px dashed #4a4a4e;display:grid;place-items:center;font:700 12px/1 Oswald,sans-serif;font-style:normal;color:var(--mu)}
+.prog .dots i.on{border:0;background:var(--ok);color:#06240f}
+.prog span{font-size:12.5px;color:var(--mu);line-height:1.4}
+.prog span b{color:#fff}
+.mate{margin-top:12px;background:var(--p);border:1px solid var(--ln);border-radius:16px;padding:14px;transition:border-color .2s}
+.mate.done{border-color:#2a6b45;background:linear-gradient(160deg,#0f1f16,#121313)}
+.mate .hd{display:flex;align-items:center;gap:10px}
+.mate .hd i{width:28px;height:28px;border-radius:50%;background:var(--p2);border:1px solid var(--ln);display:grid;place-items:center;font:700 13px/1 Oswald,sans-serif;font-style:normal;color:var(--g2);flex:none}
+.mate.done .hd i{background:var(--ok);border-color:var(--ok);color:#06240f}
+.mate .hd b{font:600 15px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.3px}
+.mate .hd small{margin-left:auto;font-size:11px;color:var(--ok);font-weight:700}
+.mate input{margin-top:10px;padding:12px 13px;font-size:15px}
+.chan{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.chan button{background:var(--p2);border:1px solid var(--ln);border-radius:12px;padding:9px 2px 7px;color:var(--tx);display:grid;justify-items:center;gap:5px}
+.chan button i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-style:normal}
+.chan button small{font:700 8.5px/1 Oswald,sans-serif;letter-spacing:.8px;text-transform:uppercase;color:var(--mu)}
+.chan button:disabled{opacity:.35;cursor:default}
+.c-sms{background:#1f8a3c;color:#fff}.c-wa{background:#25d366;color:#0b2d14}.c-ms{background:linear-gradient(135deg,#0695ff,#a334fa);color:#fff}.c-ig{background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);color:#fff}.c-more{background:#3a3a3e;color:#fff}
+.sent{margin-top:8px;font-size:12px;color:#cfe9d8;line-height:1.45}
+.preview{margin-top:14px;background:#0d0d0e;border:1px solid var(--ln);border-radius:14px;padding:12px 14px;font-size:12.5px;line-height:1.5;color:#d8d2c4}
+.preview b{display:block;font:800 9.5px/1 Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);margin-bottom:7px}
+.preview u{color:var(--g2);text-decoration:none}
+/* ticket */
+.ticket{position:relative;margin-top:18px;border-radius:22px;background:linear-gradient(160deg,#f6d46c,#c9a44c 55%,#9c7a2c);color:#161307;padding:22px 20px 18px;overflow:hidden}
+.ticket::before,.ticket::after{content:"";position:absolute;top:58%;width:24px;height:24px;border-radius:50%;background:var(--bg)}
+.ticket::before{left:-12px}.ticket::after{right:-12px}
+.ticket .k{font:700 11px/1 Oswald,sans-serif;letter-spacing:3px;text-transform:uppercase;opacity:.75}
+.ticket .t{font:700 34px/1 Oswald,sans-serif;text-transform:uppercase;margin-top:8px}
+.ticket .row{display:flex;justify-content:space-between;gap:10px;border-top:2px dashed rgba(22,19,7,.35);margin-top:18px;padding-top:14px}
+.ticket .row div small{display:block;font:800 9px/1 Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;opacity:.7}
+.ticket .row div b{display:block;font:700 20px/1 Oswald,sans-serif;margin-top:5px;font-variant-numeric:tabular-nums}
+.boost{margin-top:14px;background:var(--p);border:1px solid var(--ln);border-radius:16px;padding:14px}
+.boost .hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.boost .hd b{font:600 16px/1.1 Oswald,sans-serif;text-transform:uppercase}
+.boost .hd span{font:700 12px/1 Oswald,sans-serif;color:var(--g2);letter-spacing:1px}
+.boost p{font-size:12px;color:var(--mu);line-height:1.5;margin-top:6px}
+.link{display:flex;gap:8px;margin-top:10px}
+.link code{flex:1;min-width:0;background:#0d0d0e;border:1px solid var(--ln);border-radius:10px;padding:11px 12px;font:600 12.5px/1.2 ui-monospace,Menlo,monospace;color:var(--g2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.link button{flex:none;background:var(--g);color:#161307;border:0;border-radius:10px;padding:0 14px;font:700 11px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase}
+.feed{margin-top:12px;display:grid;gap:6px}
+.feed div{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;color:#d8d2c4;background:#0f0f10;border:1px solid var(--ln);border-radius:10px;padding:9px 11px}
+.feed div em{font-style:normal;font-weight:800;color:var(--ok);font-size:11px;white-space:nowrap}
+.feed div em.w{color:var(--mu)}
+/* friend landing */
+.inv{margin-top:14px;display:flex;align-items:center;gap:12px;background:var(--p);border:1px solid #3d3218;border-radius:16px;padding:12px 14px}
+.inv i{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;background:#2a2210;border:2px solid var(--g);font:700 18px/1 Oswald,sans-serif;font-style:normal;color:var(--g2)}
+.inv span{font-size:13px;line-height:1.45;color:#ddd6c8}.inv span b{color:#fff}
+/* staff */
+.tbl{margin-top:14px;border:1px solid var(--ln);border-radius:14px;overflow:hidden}
+.tbl .r{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:11px 12px;border-bottom:1px solid var(--ln);font-size:12.5px}
+.tbl .r:last-child{border-bottom:0}
+.tbl .r.h{background:var(--p2);font:800 9.5px/1 Montserrat,sans-serif;letter-spacing:1.4px;text-transform:uppercase;color:var(--mu)}
+.tbl .r b{display:block;font-weight:700}
+.tbl .r small{display:block;color:var(--mu);font-size:11px;margin-top:2px}
+.pill{font:800 9.5px/1 Montserrat,sans-serif;letter-spacing:1px;text-transform:uppercase;border-radius:99px;padding:5px 8px;white-space:nowrap}
+.pill.m{background:#1b2a40;color:#8ab8ff}.pill.t{background:#163b26;color:#9af0bc}
+.num{font:700 18px/1 Oswald,sans-serif;color:var(--g2);text-align:right;min-width:28px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.kpis div{background:var(--p);border:1px solid var(--ln);border-radius:14px;padding:12px 8px;text-align:center}
+.kpis b{display:block;font:700 26px/1 Oswald,sans-serif;font-variant-numeric:tabular-nums}
+.kpis small{display:block;font:800 8.5px/1.3 Montserrat,sans-serif;letter-spacing:1.3px;text-transform:uppercase;color:var(--mu);margin-top:6px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#1d1d1f;color:#fff;border:1px solid #333;border-radius:12px;padding:12px 16px;font-size:12.5px;opacity:0;transition:.25s;z-index:60;max-width:90vw;text-align:center;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.fade{animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:70}
+@media (prefers-reduced-motion:reduce){.fade{animation:none}.confetti{display:none}}
+@media (max-width:360px){.cash{font-size:84px}.chan small{display:none}}
+</style></head><body>
+<div class="demo"><span>Demo · nothing is sent or saved</span>
+  <button id="vEntrant" class="on" onclick="view('entrant')">Instagram link</button>
+  <button id="vFriend" onclick="view('friend')">What a friend sees</button>
+  <button id="vStaff" onclick="view('staff')">Jake &amp; Ali</button>
+</div>
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast"></div>
+<canvas class="confetti" id="cf"></canvas>
+<script>
+(function(){
+"use strict";
+var DRAW=new Date("2026-12-18T19:00:00+11:00");          /* draw: Fri 18 Dec, live on Instagram */
+var SITE="legacygym.net/win";
+var S={v:"entrant",step:"hero",name:"",email:"",mobile:"",member:null,trialDay:null,trialTime:null,mates:[{n:"",sent:null},{n:"",sent:null},{n:"",sent:null}],code:"",entry:0,claims:[],ref:null};
+function $(id){return document.getElementById(id);}
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function first(){return (S.name.trim().split(/\s+/)[0]||"").replace(/^./,function(c){return c.toUpperCase();});}
+function toast(m){var t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(t._x);t._x=setTimeout(function(){t.classList.remove("on");},2400);}
+function link(){return SITE+"?r="+S.code;}
+function sentN(){return S.mates.filter(function(m){return m.sent;}).length;}
+function entries(){return 1+S.claims.length;}
+function stepsHtml(on){var n=S.member===false?4:3;var h='<div class="steps" aria-label="Step '+on+' of '+n+'">';for(var i=1;i<=n;i++)h+='<i class="'+(i<=on?'on':'')+'"></i>';return h+'</div>';}
+function bar(on){return '<div class="bar"><div class="logo">LEGACY<small>GYM · KINCUMBER</small></div>'+(on?stepsHtml(on):'')+'</div>';}
+function cd(){var ms=Math.max(0,DRAW-Date.now()),s=Math.floor(ms/1000);return [Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60];}
+function cdHtml(){var p=cd(),L=["days","hrs","min","sec"];return '<div class="cd" id="cd">'+p.map(function(n,i){return '<div><b>'+String(n).padStart(2,"0")+'</b><small>'+L[i]+'</small></div>';}).join("")+'</div>';}
+setInterval(function(){var el=$("cd");if(!el)return;var p=cd();[].forEach.call(el.querySelectorAll("b"),function(b,i){b.textContent=String(p[i]).padStart(2,"0");});},1000);
+
+/* ---------- ENTRANT FLOW ---------- */
+function hero(){
+  return bar(0)+'<div class="hero fade"><div class="eb">Legacy Gym · Bring your crew</div><div class="cash"><sup>$</sup>1,000</div><div class="cashlbl">Cash. One winner.</div>'
+   +'<p class="lede">Send <b>three mates a free week</b> at Legacy and you\'re in the draw. Every mate who claims it gets you <b>another entry</b>.</p>'
+   +cdHtml()+'<div class="drawlbl">Drawn live on Instagram · Friday 18 December, 7 pm</div></div>'
+   +'<div class="how"><div><i>1</i><span><b>Your details</b><small>Name, email, mobile. Twenty seconds.</small></span></div>'
+   +'<div><i>2</i><span><b>Member or not?</b><small>Not a member yet? Your free 7-day trial comes with your entry.</small></span></div>'
+   +'<div><i>3</i><span><b>Send 3 mates a free week</b><small>Text, WhatsApp, Instagram. You\'re in the draw the moment the third one goes.</small></span></div></div>'
+   +'<button class="cta" onclick="go(\'details\')">Enter the draw</button>'
+   +'<div class="fine">Free to enter, no purchase needed. 18+, NSW residents. One entry per person plus one bonus entry for each friend who claims a free trial through your link. Full terms at legacygym.net/win-terms.</div>';
+}
+function details(){
+  return bar(1)+'<div class="fade"><h1 class="h2">First, <span>who\'s entering?</span></h1><p class="sub">So we can tell you if you win. We never share your details.</p>'
+   +'<label for="fN">Full name</label><input id="fN" autocomplete="name" placeholder="First and last" value="'+E(S.name)+'">'
+   +'<label for="fE">Email</label><input id="fE" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" value="'+E(S.email)+'">'
+   +'<label for="fM">Mobile</label><input id="fM" type="tel" inputmode="tel" autocomplete="tel" placeholder="04…" value="'+E(S.mobile)+'">'
+   +'<div class="err" id="err" role="alert"></div>'
+   +'<button class="cta" onclick="saveDetails()">Next</button><button class="ghost" onclick="go(\'hero\')">‹ Back</button></div>';
+}
+window.saveDetails=function(){
+  var n=$("fN").value.trim().replace(/\s+/g," "),e=$("fE").value.trim(),m=$("fM").value.replace(/[^0-9+]/g,"").replace(/^\+?61/,"0"),err=$("err");
+  [].forEach.call(document.querySelectorAll("input"),function(i){i.classList.remove("bad");});
+  if(n.length<3||n.indexOf(" ")<0){$("fN").classList.add("bad");err.textContent="Full name please, first and last.";$("fN").focus();return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){$("fE").classList.add("bad");err.textContent="That email doesn't look right.";$("fE").focus();return;}
+  if(!/^04\d{8}$/.test(m)){$("fM").classList.add("bad");err.textContent="Mobile should be 10 digits, starting 04.";$("fM").focus();return;}
+  S.name=n;S.email=e;S.mobile=m;
+  S.code=(n.split(" ")[0].replace(/[^a-z]/gi,"").toUpperCase().slice(0,6)||"MATE")+Math.random().toString(36).slice(2,4).toUpperCase();
+  go("member");
+};
+function member(){
+  return bar(2)+'<div class="fade"><h1 class="h2">'+E(first())+', are you <span>a Legacy member?</span></h1><p class="sub">Either way you\'re going in the draw.</p>'
+   +'<div class="choice"><button onclick="setMember(true)"><i>🥊</i><span><b>Yes, I train at Legacy</b><small>Send three mates a free week and you\'re in.</small></span></button>'
+   +'<button onclick="setMember(false)"><i>🎟️</i><span><b>Not yet</b><small>Grab your own free 7-day trial, then send three mates one too.</small></span></button></div>'
+   +'<button class="ghost" onclick="go(\'details\')">‹ Back</button></div>';
+}
+window.setMember=function(v){S.member=v;go(v?"share":"trial");};
+function trialDays(){var out=[],d=new Date();d.setHours(12,0,0,0);while(out.length<8){d.setDate(d.getDate()+1);if(d.getDay()!==0)out.push(new Date(d));}return out;}
+function trial(){
+  var D=trialDays(),DN=["SUN","MON","TUE","WED","THU","FRI","SAT"];
+  return bar(3)+'<div class="fade"><h1 class="h2">Your <span>free week</span> first</h1><p class="sub">Seven days, every class, the full gym floor, no card. Pick when you\'d like to start, we\'ll have your pass ready at the desk.</p>'
+   +'<label>Start day</label><div class="dates">'+D.map(function(d,i){var iso=d.toISOString().slice(0,10);return '<button class="'+(S.trialDay===iso?'on':'')+'" onclick="pickDay(\''+iso+'\')">'+DN[d.getDay()]+'<b>'+d.getDate()+'</b></button>';}).join("")+'</div>'
+   +'<label>Best time for you</label><div class="times">'+[["am","Morning","5:30 – 9 am"],["mid","Daytime","9 am – 4 pm"],["pm","Evening","4 – 8 pm"]].map(function(t){return '<button class="'+(S.trialTime===t[0]?'on':'')+'" onclick="pickTime(\''+t[0]+'\')">'+t[1]+'<small>'+t[2]+'</small></button>';}).join("")+'</div>'
+   +'<div class="err" id="err" role="alert"></div>'
+   +'<button class="cta" onclick="claimTrial()">Claim my free week</button><button class="ghost" onclick="go(\'member\')">‹ Back</button></div>';
+}
+window.pickDay=function(d){S.trialDay=d;render();};
+window.pickTime=function(t){S.trialTime=t;render();};
+window.claimTrial=function(){if(!S.trialDay){$("err").textContent="Pick a start day.";return;}if(!S.trialTime){$("err").textContent="Pick a time that suits.";return;}go("share");};
+function msgFor(n){var to=n.trim().split(/\s+/)[0];return (to?"Hey "+to.replace(/^./,function(c){return c.toUpperCase();})+", ":"")+"your mate "+S.name+" trains at Legacy Gym Kincumber and wants to invite you for a free week. 7 days, no card, no catch: "+link();}
+function share(){
+  var n=sentN(),total=S.member===false?4:3,stepNo=S.member===false?4:3;
+  var h=bar(stepNo)+'<div class="fade">';
+  if(S.member===false){var d=new Date(S.trialDay+"T12:00:00");h+='<div class="pass"><i>✓</i><span><b>Your free week is locked in</b><small>Starts '+d.toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long"})+'. We\'ve texted your pass to '+E(S.mobile)+'.</small></span></div>';}
+  h+='<h1 class="h2">Now send <span>three mates</span> a free week</h1><p class="sub">Type a mate\'s name, tap how to send it. Three different mates and you\'re in the draw.</p>'
+   +'<div class="prog"><div class="dots">'+[0,1,2].map(function(i){return '<i class="'+(S.mates[i].sent?'on':'')+'">'+(S.mates[i].sent?'✓':i+1)+'</i>';}).join("")+'</div><span><b>'+n+' of 3 sent</b>'+(n<3?' · '+(3-n)+' to go':' · you\'re in')+'</span></div>';
+  h+=S.mates.map(function(m,i){
+    var ok=!!m.sent,dis=ok?' disabled':'';
+    return '<div class="mate'+(ok?' done':'')+'"><div class="hd"><i>'+(ok?'✓':i+1)+'</i><b>Mate '+(i+1)+(m.n&&ok?' · '+E(m.n.split(" ")[0]):'')+'</b>'+(ok?'<small>Sent by '+m.sent+'</small>':'')+'</div>'
+      +(ok?'':'<input id="m'+i+'" placeholder="Their first name" autocomplete="off" value="'+E(m.n)+'" oninput="mateName('+i+',this.value)">'
+      +'<div class="chan">'
+      +'<button'+dis+' onclick="send('+i+',\'sms\')"><i class="c-sms">💬</i><small>Text</small></button>'
+      +'<button'+dis+' onclick="send('+i+',\'wa\')"><i class="c-wa">🟢</i><small>WhatsApp</small></button>'
+      +'<button'+dis+' onclick="send('+i+',\'ig\')"><i class="c-ig">📸</i><small>Insta</small></button>'
+      +'<button'+dis+' onclick="send('+i+',\'ms\')"><i class="c-ms">✈️</i><small>Messenger</small></button>'
+      +'<button'+dis+' onclick="send('+i+',\'more\')"><i class="c-more">⋯</i><small>More</small></button></div>')
+      +'</div>';}).join("");
+  var nxt=S.mates.filter(function(m){return !m.sent;})[0];
+  h+='<div class="preview"><b>What they\'ll get</b>'+E(msgFor(nxt?nxt.n:"")).replace(E(link()),'<u>'+E(link())+'</u>')+'</div>';
+  h+='<div class="fine">Each mate has to be a different person. Your link tracks who claims their free week, so every one who does adds an entry for you.</div></div>';
+  return h;
+}
+window.mateName=function(i,v){S.mates[i].n=v;var pv=document.querySelector(".preview");if(pv){var nxt=S.mates.filter(function(m){return !m.sent;})[0];pv.innerHTML='<b>What they\'ll get</b>'+E(msgFor(nxt?nxt.n:"")).replace(E(link()),'<u>'+E(link())+'</u>');}};
+window.send=function(i,how){
+  var m=S.mates[i],nm=m.n.trim();
+  if(nm.length<2){toast("Pop in their first name first.");var el=$("m"+i);if(el){el.classList.add("bad");el.focus();}return;}
+  var dup=S.mates.some(function(x,j){return j!==i&&x.sent&&x.n.trim().toLowerCase()===nm.toLowerCase();});
+  if(dup){toast("You've already sent one to "+nm+". Three different mates.");return;}
+  var L={sms:"text",wa:"WhatsApp",ig:"Instagram",ms:"Messenger",more:"share"}[how];
+  /* real version: opens the app with the message filled in; the demo just records it */
+  m.sent=L;toast("Sent to "+nm.split(" ")[0]+" by "+L+" (demo)");
+  if(sentN()===3){S.entry=1000+Math.floor(Math.random()*400);setTimeout(function(){go("done");boom();},650);}else render();
+};
+function done(){
+  var h=bar(0)+'<div class="fade"><h1 class="h2">You\'re <span>in the draw</span>, '+E(first())+'</h1><p class="sub">We\'ll text '+E(S.mobile)+' if your name comes out on <b>Friday 18 December</b>.</p>'
+   +'<div class="ticket"><div class="k">Legacy Gym · $1,000 cash draw</div><div class="t">'+E(S.name)+'</div>'
+   +'<div class="row"><div><small>Entry no.</small><b>#'+S.entry+'</b></div><div><small>Your entries</small><b>'+entries()+'</b></div><div><small>Draw</small><b>18 Dec</b></div></div></div>'
+   +'<div class="boost"><div class="hd"><b>Stack more entries</b><span>+1 per mate</span></div><p>Every mate who claims their free week through your link puts <b style="color:#fff">another entry</b> in with your name on it. No limit.</p>'
+   +'<div class="link"><code>'+E(link())+'</code><button onclick="copyLink()">Copy</button></div>'
+   +'<div class="feed">'+S.mates.map(function(m){var c=S.claims.indexOf(m.n)>=0;return '<div><span>'+E(m.n.split(" ")[0])+' · sent by '+E(m.sent)+'</span><em class="'+(c?'':'w')+'">'+(c?'Claimed · +1 entry':'Waiting')+'</em></div>';}).join("")+'</div>'
+   +'<button class="ghost" onclick="simClaim()">Demo: pretend a mate claims their week</button></div>'
+   +'<button class="cta" onclick="moreMates()">Send more mates a free week</button>'
+   +'<div class="fine">Screenshot your ticket. Drawn live on our Instagram, Friday 18 December, 7 pm.</div></div>';
+  return h;
+}
+window.copyLink=function(){try{navigator.clipboard.writeText("https://"+link());}catch(e){}toast("Your link's copied.");};
+window.simClaim=function(){var w=S.mates.filter(function(m){return S.claims.indexOf(m.n)<0;})[0];if(!w){toast("All three have claimed. Send more mates for more entries.");return;}S.claims.push(w.n);toast(w.n.split(" ")[0]+" claimed their free week · +1 entry");render();};
+window.moreMates=function(){S.xn="";go("extra");};
+function extra(){return bar(0)+'<div class="fade"><h1 class="h2">One more <span>mate</span></h1><p class="sub">Every mate who claims their free week adds an entry to your name. No limit.</p>'
+   +'<div class="mate"><div class="hd"><i>+</i><b>Another mate</b></div><input id="xN" placeholder="Their first name" autocomplete="off" value="'+E(S.xn||"")+'" oninput="S_x(this.value)"><div class="chan">'
+   +['sms','wa','ig','ms','more'].map(function(c){var L={sms:"Text",wa:"WhatsApp",ig:"Insta",ms:"Messenger",more:"More"}[c],I={sms:"💬",wa:"🟢",ig:"📸",ms:"✈️",more:"⋯"}[c];return '<button onclick="sendExtra(\''+c+'\')"><i class="c-'+c+'">'+I+'</i><small>'+L+'</small></button>';}).join("")+'</div></div>'
+   +'<div class="preview"><b>What they\'ll get</b>'+E(msgFor(S.xn||"")).replace(E(link()),'<u>'+E(link())+'</u>')+'</div>'
+   +'<button class="ghost" onclick="go(\'done\')">‹ Back to my ticket</button></div>';}
+window.S_x=function(v){S.xn=v;var pv=document.querySelector(".preview");if(pv)pv.innerHTML='<b>What they\'ll get</b>'+E(msgFor(v)).replace(E(link()),'<u>'+E(link())+'</u>');};
+window.sendExtra=function(how){var nm=(S.xn||"").trim();if(nm.length<2){toast("Their first name first.");var el=$("xN");if(el){el.classList.add("bad");el.focus();}return;}
+  var L={sms:"text",wa:"WhatsApp",ig:"Instagram",ms:"Messenger",more:"share"}[how];S.mates.push({n:nm,sent:L});S.xn="";toast("Sent to "+nm+" by "+L+" (demo)");render();};
+
+/* ---------- FRIEND LANDING ---------- */
+function friend(){
+  var from=S.name||"Jake Williamson",f=from.split(" ")[0];
+  return bar(0)+'<div class="fade"><div class="inv"><i>'+E(f[0])+'</i><span><b>'+E(from)+'</b> trains at Legacy Gym Kincumber and sent you a <b>free week</b>.</span></div>'
+   +'<div class="hero" style="margin-top:12px"><div class="eb">Your free 7-day pass</div><div class="cash" style="font-size:78px">7 DAYS</div><div class="cashlbl">Free. No card.</div><p class="lede">Every class, the full gym floor, boxing, strength, conditioning. Claim it and you\'re also <b>in the $1,000 cash draw</b> yourself.</p></div>'
+   +'<label for="gN">Full name</label><input id="gN" placeholder="First and last">'
+   +'<label for="gM">Mobile</label><input id="gM" type="tel" inputmode="tel" placeholder="04…">'
+   +'<button class="cta" onclick="friendClaim()">Claim my free week</button>'
+   +'<div class="fine">Claiming gives '+E(f)+' an extra entry in the draw, and puts you in it too once you send three mates of your own.</div></div>';
+}
+window.friendClaim=function(){toast("Claimed (demo) · "+(S.name||"Jake").split(" ")[0]+" just got +1 entry");boom();};
+
+/* ---------- STAFF VIEW ---------- */
+var SAMPLE=[["Harley Dimech","m",3,4],["Sarah Nguyen","t",3,2],["Tom Williams","m",3,1],["Kelsey Waugh","m",3,3],["Josh Reid","t",3,0],["Mia Pal","m",3,2],["Corey Mear","m",2,0]];
+function staff(){
+  var ent=SAMPLE.filter(function(r){return r[2]>=3;}),tick=ent.reduce(function(a,r){return a+1+r[3];},0),trials=SAMPLE.filter(function(r){return r[1]==="t";}).length+SAMPLE.reduce(function(a,r){return a+r[3];},0);
+  return bar(0)+'<div class="fade"><h1 class="h2">$1,000 draw · <span>Jake &amp; Ali</span></h1><p class="sub">Lives in the app under Ticket Release, next to Sponsorship inquiries. Only you two can see it.</p>'
+   +'<div class="kpis"><div><b>'+ent.length+'</b><small>In the draw</small></div><div><b>'+tick+'</b><small>Total entries</small></div><div><b>'+trials+'</b><small>Free trials claimed</small></div></div>'
+   +'<div class="tbl"><div class="r h"><span>Entrant</span><span></span><span>Entries</span></div>'
+   +SAMPLE.map(function(r){var inn=r[2]>=3;return '<div class="r"><span><b>'+r[0]+'</b><small>'+(inn?'3 mates sent':r[2]+' of 3 sent · not in yet')+(r[3]?' · '+r[3]+' mate'+(r[3]>1?'s':'')+' claimed':'')+'</small></span><span class="pill '+r[1]+'">'+(r[1]==="m"?'Member':'New · trial')+'</span><span class="num">'+(inn?1+r[3]:'–')+'</span></div>';}).join("")+'</div>'
+   +'<button class="cta" onclick="drawIt()">Draw a winner (demo)</button>'
+   +'<div class="fine">Every free trial claimed through a link lands in Free trial sign-ups with "via Harley" etc, so the desk knows who referred who.</div></div>';
+}
+window.drawIt=function(){var pool=[];SAMPLE.forEach(function(r){if(r[2]>=3)for(var i=0;i<1+r[3];i++)pool.push(r[0]);});var w=pool[Math.floor(Math.random()*pool.length)];toast("Winner: "+w+" (demo draw, weighted by entries)");boom();};
+
+/* ---------- confetti ---------- */
+function boom(){try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;var c=$("cf"),x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;var P=[];for(var i=0;i<140;i++)P.push({x:innerWidth/2,y:innerHeight*.35,vx:(Math.random()-.5)*14,vy:-Math.random()*12-4,s:Math.random()*6+4,r:Math.random()*6,c:["#f4c95d","#c9a44c","#fff1c2","#ffffff","#4bc97a"][i%5]});var t=0;(function f(){x.clearRect(0,0,c.width,c.height);P.forEach(function(p){p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.r+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);x.restore();});if(++t<120)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();}catch(e){}}
+
+/* ---------- router ---------- */
+function render(){var a=$("app");
+  if(S.v==="friend")a.innerHTML=friend();
+  else if(S.v==="staff")a.innerHTML=staff();
+  else a.innerHTML={hero:hero,details:details,member:member,trial:trial,share:share,done:done,extra:extra}[S.step]();
+}
+window.go=function(s){S.step=s;render();window.scrollTo({top:0,behavior:"smooth"});};
+window.view=function(v){S.v=v;["entrant","friend","staff"].forEach(function(k){$("v"+k[0].toUpperCase()+k.slice(1)).classList.toggle("on",k===v);});render();window.scrollTo(0,0);};
+render();
+})();
+</script>
+</body></html>
