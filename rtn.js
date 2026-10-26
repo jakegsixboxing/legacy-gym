@@ -246,6 +246,7 @@ window.rtnStartSess=function(idx){if(S.ro){try{toast("Coach view — "+(S.me.nam
 window.rtnStartSpar=function(tag,name){if(S.ro){try{toast("Coach view — "+(S.me.name||"").split(" ")[0]+" runs this from their own phone.");}catch(e){}return;}var k=key(S.wk,S.day,tag),st=S.spar[k]||{n:6,r:30},w=S.wk,d=S.day;openTimer(sparPhases(st.n,st.r,name),FULL[S.day]+" · "+name,function(){S.done[k]=true;logIt(w,d,tag,st.n*R2,null);});};
 
 /* ---------- app wiring ---------- */
+function me(){try{return (typeof session!=="undefined"&&session&&session.user)?session.user.id:null;}catch(e){return null;}}
 function rootA(){return document.getElementById("rtnApp");}
 function rootT(){var t=document.getElementById("rtnT");if(!t){var w=document.createElement("div");w.className="rtn";w.innerHTML='<div class="tm" id="rtnT"></div>';document.body.appendChild(w);t=document.getElementById("rtnT");}return t;}
 function logIt(w,d,kind,secs,run){try{sb.rpc("rtn_log_add",{p_wk:w,p_day:d,p_kind:kind,p_secs:secs,p_run:run}).then(function(r){if(r&&r.error)console.warn(r.error);});}catch(e){}}
@@ -258,7 +259,7 @@ var _rb=window.renderBoxing,_rsc=window.renderSparringClub;
 function host(){var m=document.getElementById("main");if(!m)return null;m.innerHTML='<div class="rtn"><div class="wrap" id="rtnApp"></div></div>';return rootA();}
 /* Boxing tab = Road to Nationals, nothing else, for the squad */
 window.renderBoxing=async function(){
-  if(!window.session||!session.user)return _rb.apply(this,arguments);
+  if(!me())return _rb.apply(this,arguments);
   if(!S.loaded){var m0=document.getElementById("main");if(m0)m0.innerHTML='<div class="loadingDots">Loading…</div>';await loadState();}
   if(!S.me||!S.me.member||S.coach)return _rb.apply(this,arguments);
   if(view!=="boxing")return;
@@ -266,7 +267,7 @@ window.renderBoxing=async function(){
   if(host())paint();
 };
 window.renderSparringClub=async function(){
-  if(!window.session||!session.user)return _rsc.apply(this,arguments);
+  if(!me())return _rsc.apply(this,arguments);
   if(!S.loaded)await loadState();
   if(!S.me||!S.me.member||S.coach)return _rsc.apply(this,arguments);
   return renderBoxing();
@@ -304,7 +305,7 @@ function cardHtml(){var first=((S.me&&S.me.name)||"").split(" ")[0];var w=curWee
 function injectCard(){try{if(!S.me||!S.me.member)return;var m=document.getElementById("main");if(!m||view!=="home")return;if(document.getElementById("rtnCard"))return;
   var w=document.createElement("div");w.innerHTML=cardHtml();var card=w.firstChild;
   var top=m.querySelector(".homeWelcome, #lgh2, .homeCard");if(top)top.insertAdjacentElement("beforebegin",card);else m.insertBefore(card,m.firstChild);}catch(e){}}
-window.rtnEnter=function(){if(!window.session||!session.user){try{toast("Sign in first");}catch(e){}return;}S.coach=false;if(!S.wkSet){S.wk=curWeek();S.wkSet=true;}go("rtn");};
+window.rtnEnter=function(){if(!me()){try{toast("Sign in first");}catch(e){}return;}S.coach=false;if(!S.wkSet){S.wk=curWeek();S.wkSet=true;}go("rtn");};
 async function renderRTN(){var m=document.getElementById("main");if(!m)return;
   if(!S.loaded){m.innerHTML='<div class="loadingDots">Loading…</div>';await loadState();if(view!=="rtn")return;}
   if(!S.me||!S.me.member){m.innerHTML='<button class="backBtn" onclick="go(\'home\')">‹ Back Home</button><div class="card" style="padding:18px;text-align:center"><b>Road to Nationals</b><p style="margin-top:6px;color:var(--muted)">Squad only. Talk to Jake if you should be on it.</p></div>';return;}
@@ -323,10 +324,10 @@ window.rtnOpenFighter=async function(uid){var B=await board(),f=B.filter(functio
   S.me={name:f.name,photo:null,staff:false,member:true};S.done=done;S.runT=runT;S.ro=true;S.mode="train";S.squadView=false;S.fromSquad=true;paint();window.scrollTo(0,0);};
 var _render2=window.render;window.render=function(){if(view==="rtn")return renderRTN();return _render2.apply(this,arguments);};
 ["renderHome"].forEach(function(fn){if(typeof window[fn]!=="function")return;var o=window[fn];window[fn]=function(){var r=o.apply(this,arguments);var after=function(){injectCard();};if(r&&typeof r.then==="function")r.then(after);else setTimeout(after,30);return r;};});
-setInterval(function(){try{if(view==="home"&&session&&S.loaded&&!document.getElementById("rtnCard"))injectCard();}catch(e){}},1000);
+setInterval(function(){try{if(view==="home"&&me()&&S.loaded&&!document.getElementById("rtnCard"))injectCard();}catch(e){}},1000);
 /* their old programs: running block / sprint block rows on Home go for the squad */
 function sweep(){try{if(!S.me||!S.me.member||S.coach)return;document.querySelectorAll(".rbHome,.mspHome").forEach(function(el){el.remove();});}catch(e){}}
 try{var mo=new MutationObserver(sweep);var mainEl=document.getElementById("main");if(mainEl)mo.observe(mainEl,{childList:true,subtree:true});}catch(e){}
-try{S.uid=(session&&session.user&&session.user.id)||null;}catch(e){S.uid=null;}
-setInterval(function(){try{var u=(session&&session.user&&session.user.id)||null;if(u!==S.uid){var had=S.uid;S.uid=u;if(had!==null||u===null){S.loaded=false;S.coach=false;S.ro=false;S.saved=null;S.board=null;S.wkSet=false;}}if(u&&!S.loaded&&!S.loading){S.loading=true;loadState().then(function(){S.loading=false;sweep();injectCard();});}sweep();}catch(e){}},1500);
+S.uid=me();
+setInterval(function(){try{var u=me();if(u!==S.uid){var had=S.uid;S.uid=u;if(had!==null||u===null){S.loaded=false;S.coach=false;S.ro=false;S.saved=null;S.board=null;S.wkSet=false;}}if(u&&!S.loaded&&!S.loading){S.loading=true;loadState().then(function(){S.loading=false;sweep();injectCard();});}sweep();}catch(e){}},1500);
 })();
