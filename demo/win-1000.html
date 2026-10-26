@@ -302,7 +302,7 @@ window.send=async function(i,how){
   var dup=S.mates.some(function(x,j){return j!==i&&x.sent&&x.n.trim().toLowerCase()===nm.toLowerCase();});
   if(dup){toast("You've already sent one to "+nm+". Three different mates.");return;}
   var ok=await openShare(how,msgFor(nm));if(!ok)return;
-  var L={sms:"text",wa:"WhatsApp",ig:"Instagram",ms:"Messenger",more:"share"}[how];
+  var L={sms:"text",wa:"WhatsApp",ig:"Instagram",ms:"Messenger",more:"share",copy:"link"}[how];
   m.sent=L;try{rpc("win_demo_sent",{p_code:S.code,p_mate:nm,p_via:L});}catch(e){}
   if(sentN()===3){setTimeout(function(){go("done");boom();refresh();},900);}else render();
 };
@@ -344,7 +344,7 @@ function extra(){return bar(0)+'<div class="fade"><h1 class="h2">One more <span>
    +'<button class="ghost" onclick="go(\'done\')">‹ Back to my ticket</button></div>';}
 window.S_x=function(v){S.xn=v;var pv=document.querySelector(".preview");if(pv)pv.innerHTML='<b>What they\'ll get</b>'+E(msgFor(v)).replace(E(link()),'<u>'+E(shortLink())+'</u>');};
 window.sendExtra=async function(how){var nm=(S.xn||"").trim();if(nm.length<2){toast("Their first name first.");var el=$("xN");if(el){el.classList.add("bad");el.focus();}return;}
-  var ok=await openShare(how,msgFor(nm));if(!ok)return;var L={sms:"text",wa:"WhatsApp",ig:"Instagram",ms:"Messenger",more:"share"}[how];S.mates.push({n:nm,sent:L});S.xn="";try{rpc("win_demo_sent",{p_code:S.code,p_mate:nm,p_via:L});}catch(e){}toast("Sent to "+nm+".");render();};
+  var ok=await openShare(how,msgFor(nm));if(!ok)return;var L={sms:"text",wa:"WhatsApp",ig:"Instagram",ms:"Messenger",more:"share",copy:"link"}[how];S.mates.push({n:nm,sent:L});S.xn="";try{rpc("win_demo_sent",{p_code:S.code,p_mate:nm,p_via:L});}catch(e){}toast("Sent to "+nm+".");render();};
 
 /* ---------- FRIEND LANDING ---------- */
 function friend(){
