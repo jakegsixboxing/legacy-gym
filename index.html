@@ -584,7 +584,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610260620";
+const LG_BUILD="202610260700";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -1603,19 +1603,25 @@ function upcomingClasses48(){
 }
 async function renderClasses(){
   const canBook=tierHasClasses();
-  $("main").innerHTML=`
+  /* 26 Oct 2026: switching days no longer refetches everything (it raced — tap Tue then Wed and the slower one won, and the strip vanished behind "Loading"). Data is cached for 2 min; a stale render is dropped. */
+  const tok=(window.__cbTok=(window.__cbTok||0)+1);
+  const fast=!!(window.__cbFast&&window.__cbCache&&Date.now()-window.__cbCache.ts<120000&&$("classList"));window.__cbFast=false;
+  if(!fast)$("main").innerHTML=`
     <div class="cbTop"><button class="backBtn" style="margin:0" onclick="go('home')">‹ Home</button><button id="smWeek" class="btnLink" style="width:auto;margin:0;padding:6px 10px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800" onclick="go('timetable')">Full timetable ›</button></div>
     ${!canBook?`<div class="notice" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><b>Browsing only.</b> ${myTier()===TIER_TRIAL?"Your 7-day free trial has finished — pick a membership and you're straight back into booking. Your points carry over.":"Your membership covers the gym floor. Upgrade to book into any class below."}</div><a class="btnGold" style="flex:none;text-decoration:none;padding:10px 16px;font-size:11px" href="https://www.legacygym.net/pages/memberships" target="_blank" rel="noopener">${myTier()===TIER_TRIAL?"Join from $19.99/wk ›":"See memberships ›"}</a></div>`:""}
     <div class="secTitle" style="margin-top:6px">${canBook?"Book in · next 2 weeks":"Upcoming classes"}</div>
     <div id="classList"><div class="loadingDots">Loading upcoming classes…</div></div>`;
-  if(!ptsData.loaded){try{await loadWorld();}catch(e){}}
-  try{await loadClubMember();}catch(e){}
-  const cls=upcomingClasses48();
+  if(!fast&&!ptsData.loaded){try{await loadWorld();}catch(e){}}
+  if(!fast){try{await loadClubMember();}catch(e){}}
+  const cls=fast?window.__cbCache.cls:upcomingClasses48();
   const dates=[...new Set(cls.map(c=>c.date))];
   const now=new Date();
   const d0=isoDateLocal(now),dY=isoDateLocal(new Date(Date.now()-86400000)),d7=isoDateLocal(new Date(Date.now()-7*86400000));
   const nowHM=pad(now.getHours())+":"+pad(now.getMinutes());
   let regs=[],doneRegs=[],claimedRefs=new Set(),myWait=[];
+  let takeoverEv=null;
+  if(fast){regs=window.__cbCache.regs;doneRegs=window.__cbCache.doneRegs;claimedRefs=window.__cbCache.claimedRefs;myWait=window.__cbCache.myWait;takeoverEv=window.__cbCache.takeoverEv;}
+  else{
   /* Points audit 24 Oct 2026: Submit Class used to show for yesterday + today only, so anyone who didn't open the app within a day lost the points. Now 7 days. */
   const q=[sb.from("class_regs").select("*").eq("user_id",session.user.id).gte("class_date",d7).lte("class_date",d0).order("class_date",{ascending:false}).order("class_time",{ascending:false}),
            sb.from("points_events").select("ref").eq("user_id",session.user.id).eq("kind","class")];
@@ -1627,12 +1633,14 @@ async function renderClasses(){
   regs=res[2]?(res[2].data||[]):[];
   if(dates.length){try{const g=await sb.from("class_guest_regs").select("*").in("class_date",dates);(g.data||[]).forEach(r=>regs.push({user_id:"guest-"+r.id,name:r.name+" (guest)",class_name:r.class_name,class_date:r.class_date,class_time:r.class_time,created_at:r.created_at}));}catch(e){}}
   myWait=res[3]?(res[3].data||[]):[];
-  let takeoverEv=null;
   if(CLASS_TAKEOVER.date&&d0<=CLASS_TAKEOVER.date){
     const tr=await sb.from("social_events").select("*").eq("id",CLASS_TAKEOVER.eventId).maybeSingle();
     takeoverEv=(tr&&tr.data)||null;
   }
+  window.__cbCache={ts:Date.now(),cls,regs,doneRegs,claimedRefs,myWait,takeoverEv};
+  }
   if(view!=="classes")return;
+  if(tok!==window.__cbTok)return; /* a newer tap already took over */
   const c2=$("classList");if(!c2)return;
   let html="";
   let takeoverDone=false;
@@ -1678,7 +1686,7 @@ async function renderClasses(){
   if(!window.__cbSel||!dayList.some(d=>d.date===window.__cbSel)){const first=dayList.find(d=>d.items.length)||dayList[0];window.__cbSel=first?first.date:d0;}
   const sel=dayList.find(d=>d.date===window.__cbSel)||dayList[0];
   const DN=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  html+=`<div class="cbDays">${dayList.map(d=>`<button class="cbDay${d.date===sel.date?" on":""}${(d.closed||(d.dow===0&&!d.items.length))?" off":""}${bookedDates.has(d.date)?" has":""}" onclick="window.__cbSel='${d.date}';renderClasses()"><small>${DN[d.dow].toUpperCase()}</small><b>${+d.date.slice(8)}</b><div class="dot"></div></button>`).join("")}</div>`;
+  html+=`<div class="cbDays">${dayList.map(d=>`<button class="cbDay${d.date===sel.date?" on":""}${(d.closed||(d.dow===0&&!d.items.length))?" off":""}${bookedDates.has(d.date)?" has":""}" onclick="window.__cbSel='${d.date}';window.__cbFast=true;renderClasses()"><small>${DN[d.dow].toUpperCase()}</small><b>${+d.date.slice(8)}</b><div class="dot"></div></button>`).join("")}</div>`;
   html+=`<div class="cbStats"><div><b>\ud83d\udd25 ${streak}</b><small>Week streak</small></div><div><b>${weekN} of ${GOAL}</b><small>Weekly goal</small></div><div><b>${pts.toLocaleString()}</b><small>Legacy pts</small></div></div>`;
   /* ---- the day's sessions ---- */
   const lbl=sel.off===0?"Today":sel.off===1?"Tomorrow":DN[sel.dow];
