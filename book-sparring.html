@@ -4,85 +4,265 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#0b0b0c">
-<title>Open Sparring · Sat 31 Oct 9:30am · Legacy Gym</title>
-<meta property="og:title" content="Open Sparring · Saturday 9:30am · Legacy Gym Kincumber">
-<meta property="og:description" content="Everyone welcome. Book your spot in ten seconds — no membership needed.">
+<meta name="theme-color" content="#0a0710">
+<title>Halloween Saturday · Sat 31 Oct · Legacy Gym</title>
+<meta property="og:title" content="Halloween Saturday · Legacy Gym Kincumber">
+<meta property="og:description" content="Boxing 7:30, GRUNT 8:30, Open Sparring 9:30. Come dressed up. Everyone welcome, book in ten seconds.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Montserrat:wght@500;600;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&family=Oswald:wght@500;600;700&family=Montserrat:wght@500;600;700;800&display=swap">
 <style>
-:root{--bg:#0b0b0c;--panel:#131315;--line:#26262b;--mute:#9a9891;--ink:#f2f0eb;--gold:#C9A44C;--gold2:#F1D27A;--green:#39FF88;--red:#ff8c98}
-*{box-sizing:border-box;margin:0}
-html,body{background:var(--bg);color:var(--ink);font-family:Montserrat,system-ui,sans-serif;min-height:100%}
-body{padding:22px 16px calc(30px + env(safe-area-inset-bottom));max-width:480px;margin:0 auto;display:flex;flex-direction:column;min-height:100vh}
-.top{display:flex;align-items:center;gap:10px}.top img{height:36px}.top .k{font-size:9.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);font-weight:800}
-.card{margin-top:22px;border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:22px 20px;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.45)}
-.card .bar{position:absolute;left:0;top:0;bottom:0;width:5px;background:#d9704a}
-.badge{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:5px 9px;border-radius:99px;border:1px solid #6b5520;color:var(--gold2);background:#2a2211}
-h1{font:600 40px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px;margin-top:12px}
-.when{margin-top:10px;font:600 20px/1.2 Oswald,sans-serif;text-transform:uppercase}
-.when small{display:block;font:600 12px/1.5 Montserrat,sans-serif;text-transform:none;color:var(--mute);margin-top:6px}
-.note{margin-top:14px;font-size:12.5px;color:#d9d3c3;line-height:1.55}
-.note b{color:var(--gold2)}
-.btn{display:block;width:100%;margin-top:18px;border:0;border-radius:13px;padding:17px;font:700 17px/1 Oswald,sans-serif;letter-spacing:2px;text-transform:uppercase;cursor:pointer;text-align:center;text-decoration:none}
-.btn.gold{background:linear-gradient(180deg,#ffe58a,#f4c95d 48%,#b8860b 52%,#ffd76a);color:#1a1200}
-.btn.lock{background:#161618;color:var(--mute);border:1px solid var(--line);font-size:13px;cursor:default}
-.btn.in{background:#0f2019;color:var(--green);border:1px solid #2d5d4e;cursor:default}
-.foot{margin-top:auto;padding-top:26px;text-align:center;font-size:11px;color:var(--mute);line-height:1.6}
-.foot a{color:var(--gold2);font-weight:800}
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:flex-end;justify-content:center;z-index:9;padding:14px}.ov.on{display:flex}
-.sheet{width:100%;max-width:480px;background:#141416;border:1px solid #3a3320;border-radius:18px;padding:18px}
-.sheet h3{font:600 20px/1.1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px}.sheet p{font-size:12.5px;color:var(--mute);margin-top:6px;line-height:1.5}
-label{display:block;font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#cfc6b0;margin:14px 0 6px}
-input{width:100%;background:#0e0e10;border:1px solid #3a3a40;border-radius:10px;color:var(--ink);padding:13px 12px;font-family:inherit;font-size:16px}input:focus{outline:none;border-color:var(--gold)}input.bad{border-color:var(--red)}
-.err{color:var(--red);font-size:12px;margin-top:8px}
-.sheet .btn{margin-top:14px}.cancel{background:none;border:0;color:var(--mute);font-family:inherit;font-weight:800;font-size:12px;margin-top:10px;width:100%;cursor:pointer}
+
+:root{--bg:#0b0b0c;--panel:#121214;--line:#26262b;--gold:#c9a44c;--gold2:#f1d27a;--text:#f2f0eb;--muted:#9a9891;--ok:#4bc97a;
+ --hw-ink:#07050a;--hw-plum:#1a0f22;--hw-orange:#ff7a1a;--hw-orange2:#ffb347;--hw-bone:#efe6d2;--hw-web:rgba(239,230,210,.22);--hw-slime:#9be15d}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#050407;color:var(--text);font-family:Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible{outline:2px solid var(--hw-orange2);outline-offset:2px}
+
+/* ---------- demo frame ---------- */
+.stage{min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 16px 30px;background:radial-gradient(900px 500px at 50% -10%,#2a1206,#050407 70%)}
+.pick{display:flex;gap:6px;width:390px;max-width:100%}
+.pick button{flex:1;padding:10px 6px;border-radius:10px;border:1px solid #3d2410;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--hw-orange2);background:#120a06}
+.pick button.on{background:var(--hw-orange);color:#1a0b00;border-color:var(--hw-orange)}
+.cap{width:390px;max-width:100%;font-size:12px;color:#b9a99a;text-align:center;line-height:1.5}
+.phone{width:390px;height:844px;border-radius:52px;padding:11px;background:linear-gradient(160deg,#2b2a28,#0c0c0c);box-shadow:0 40px 90px rgba(0,0,0,.65),inset 0 0 0 1px #3c3b38;flex:none}
+.scr{position:relative;width:100%;height:100%;border-radius:42px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+@media (max-width:640px){.stage{padding:10px 0 0;gap:10px;background:#050407}.pick,.cap{padding:0 12px}.phone{width:100%;height:calc(100dvh - 96px);border-radius:0;padding:0;background:none;box-shadow:none}.scr{border-radius:0}}
+
+/* ---------- app chrome (same as the live app) ---------- */
+.hdr{flex:none;display:flex;align-items:center;justify-content:space-between;padding:44px 18px 10px;border-bottom:1px solid var(--line);position:relative;z-index:3;background:rgba(11,11,12,.92)}
+.logo{font-family:Oswald,sans-serif;line-height:.9;text-align:center;color:var(--gold)}.logo b{display:block;font-size:22px;letter-spacing:3px}.logo small{display:block;font-size:8px;letter-spacing:6px;margin-top:2px}
+.pf{display:flex;flex-direction:column;align-items:center;gap:3px}.pf i{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:#18181b;display:grid;place-items:center;font:700 14px Oswald,sans-serif;color:var(--gold);font-style:normal}.pf span{font-size:8px;font-weight:800;letter-spacing:1.5px;color:var(--gold)}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px 16px 26px;position:relative;z-index:2;scrollbar-width:none}.main::-webkit-scrollbar{display:none}
+.nav{flex:none;display:flex;border-top:1px solid var(--line);background:#0b0b0c;padding:8px 4px 22px;position:relative;z-index:3}
+.nav button{flex:1;color:#7d838b;display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 1px;position:relative}
+.nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.nav span{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.nav .on{color:var(--gold)}.nav .on::after{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:26px;height:2.5px;background:var(--gold);border-radius:0 0 3px 3px}
+
+/* ---------- home (unchanged look) ---------- */
+.hi{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:2px 0 12px}
+.hi h1{font:700 24px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px}
+.hi h1 small{display:block;font:700 8.5px Montserrat,sans-serif;letter-spacing:2.5px;color:var(--gold);margin-bottom:5px}
+.tally{display:flex;gap:6px}.tally div{text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 7px;min-width:50px}.tally b{display:block;font:700 15px/1 Oswald,sans-serif;color:var(--gold)}.tally i{display:block;font-style:normal;font-size:6.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.pair,.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px}
+.tile{display:flex;flex-direction:column;justify-content:flex-end;text-align:left;border:1.5px solid var(--gold);border-radius:14px;padding:14px 12px 12px;position:relative;overflow:hidden;background:#0d0d0d center/cover no-repeat;min-height:100px}
+.tile::before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;background:var(--gold)}
+.tile::after{content:"›";position:absolute;right:12px;top:10px;font-size:24px;font-weight:600;color:var(--gold)}
+.tile .k{font-size:7.5px;font-weight:700;letter-spacing:1.8px;color:var(--gold);text-transform:uppercase;margin-bottom:5px}
+.tile .t{font:700 16px/1.05 Oswald,sans-serif;letter-spacing:.8px;text-transform:uppercase}
+.pair .tile{min-height:150px}.pair .tile .t{font-size:19px}
+
+/* ---------- THE HALLOWEEN NOTICE on Home ---------- */
+.hwNote{position:relative;display:block;width:100%;text-align:left;border-radius:16px;overflow:hidden;margin:0 0 12px;padding:16px 16px 14px;border:1.5px solid var(--hw-orange);background:radial-gradient(120% 90% at 85% 110%,rgba(255,122,26,.35),transparent 60%),linear-gradient(160deg,#1d0f26,#0a0610 70%);box-shadow:0 0 0 1px rgba(255,122,26,.15),0 10px 30px rgba(255,90,0,.15)}
+.hwNote .web{position:absolute;right:-6px;top:-6px;width:110px;height:110px;opacity:.55}
+.hwNote .pk{position:absolute;right:14px;bottom:10px;width:58px;height:52px}
+.hwNote .bat{position:absolute;width:26px;height:14px;fill:#000;opacity:.85}
+.hwNote .k{font-size:8.5px;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:var(--hw-orange2)}
+.hwNote .t{font-family:Creepster,Oswald,cursive;font-size:30px;line-height:1;letter-spacing:1px;color:var(--hw-orange);margin-top:6px;text-shadow:0 0 14px rgba(255,122,26,.45)}
+.hwNote .s{font-size:11.5px;line-height:1.45;color:#e6dccb;margin-top:6px;max-width:78%}
+.hwNote .s b{color:#fff}
+.hwNote .go{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 12px;border-radius:9px;background:var(--hw-orange);color:#1a0b00;font:700 11px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase}
+
+/* ---------- Halloween scene: one layer, used on the Saturday page and the guest page ---------- */
+.hwScene{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;background:radial-gradient(70% 45% at 50% 108%,rgba(255,110,20,.32),transparent 70%),radial-gradient(60% 40% at 80% 6%,rgba(120,60,170,.25),transparent 70%),linear-gradient(180deg,#120a1a 0%,#0a0710 45%,#07050a 100%)}
+.hwScene svg{position:absolute}
+.hwScene .moon{right:22px;top:58px;width:64px;height:64px}
+.hwScene .webTL{left:-4px;top:-4px;width:150px;height:150px}
+.hwScene .webTR{right:-4px;top:-4px;width:120px;height:120px;transform:scaleX(-1)}
+.hwScene .webBR{right:-6px;bottom:60px;width:110px;height:110px;transform:scale(-1,-1)}
+.hwScene .spider{width:26px;height:120px;animation:drop 6s ease-in-out infinite}
+.hwScene .s1{left:66px;top:0}.hwScene .s2{right:96px;top:0;animation-delay:-2.5s;height:90px}.hwScene .s3{left:58%;top:0;animation-delay:-4s;height:150px;opacity:.75}
+@keyframes drop{0%,100%{transform:translateY(-20px)}50%{transform:translateY(10px)}}
+.hwScene .bat{width:34px;height:18px;animation:flap .5s ease-in-out infinite alternate}
+.hwScene .b1{left:28%;top:84px}.hwScene .b2{left:64%;top:140px;width:24px;animation-delay:-.2s}.hwScene .b3{left:12%;top:200px;width:20px;animation-delay:-.35s}
+@keyframes flap{to{transform:scaleY(.6) translateY(2px)}}
+.hwScene .pk1{left:-6px;bottom:4px;width:96px;height:86px}
+.hwScene .pk2{right:58px;bottom:0;width:64px;height:58px}
+.hwScene .pk3{left:86px;bottom:2px;width:46px;height:42px}
+.hwScene .skel{right:-8px;bottom:6px;width:76px;height:150px}
+.hwScene .skel2{left:30%;top:42%;width:54px;height:108px;opacity:.16}
+.hwScene .grave{left:40%;bottom:0;width:120px;height:46px;opacity:.9}
+@media (prefers-reduced-motion:reduce){.hwScene *{animation:none!important}}
+
+/* ---------- Saturday classes page ---------- */
+.hw .main{background:transparent}
+.back{color:var(--hw-orange2);font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:2px 0 12px;display:block}
+.days{display:flex;gap:6px;margin-bottom:12px}
+.day{flex:1 0 42px;text-align:center;padding:8px 0 7px;border-radius:12px;border:1px solid var(--line);background:rgba(16,16,16,.8)}
+.day small{display:block;font-size:7.5px;font-weight:800;letter-spacing:2px;color:var(--muted)}.day b{display:block;font:700 16px Oswald,sans-serif;margin-top:2px}
+.day.on{background:var(--hw-orange);border-color:var(--hw-orange);color:#1a0b00}.day.on small{color:#4a2400}
+.day.on::after{content:"🎃";display:block;font-size:10px;margin-top:1px}
+.hwHero{position:relative;border-radius:16px;padding:16px;margin-bottom:12px;border:1px solid rgba(255,122,26,.55);background:linear-gradient(160deg,rgba(40,18,52,.88),rgba(10,6,16,.9));backdrop-filter:blur(2px)}
+.hwHero .k{font-size:9px;font-weight:800;letter-spacing:2.6px;text-transform:uppercase;color:var(--hw-orange2)}
+.hwHero h2{font-family:Creepster,Oswald,cursive;font-weight:400;font-size:38px;line-height:.95;color:var(--hw-orange);margin-top:6px;text-shadow:0 0 18px rgba(255,122,26,.5)}
+.hwHero p{font-size:12.5px;line-height:1.5;color:#eadfcf;margin-top:8px}
+.hwHero p b{color:#fff}
+.scale{display:flex;align-items:center;gap:8px;margin-top:12px}
+.scale span{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#cdbfae;white-space:nowrap}
+.scale i{flex:1;height:6px;border-radius:9px;background:linear-gradient(90deg,#3a2a12,#ff7a1a,#b14cff)}
+.cls{position:relative;display:flex;align-items:center;gap:12px;border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid rgba(255,122,26,.35);background:rgba(18,12,22,.86);backdrop-filter:blur(2px);overflow:hidden}
+.cls .web{position:absolute;right:-4px;top:-4px;width:46px;height:46px;opacity:.5;pointer-events:none}
+.cls .tm{width:54px;flex:none}.cls .tm b{display:block;font:700 22px/1 Oswald,sans-serif}.cls .tm small{font-size:8px;font-weight:800;letter-spacing:1.5px;color:var(--muted)}
+.cls .grow{flex:1;min-width:0}
+.cls .nm{font:700 16px Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px}
+.cls .tag{display:inline-block;margin-top:4px;font-size:8.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:3px 7px;border-radius:99px;background:rgba(255,122,26,.16);color:var(--hw-orange2)}
+.cls .sp{font-size:10px;color:#b6a99a;margin-top:4px}
+.bk{flex:none;padding:11px 13px;border-radius:9px;background:var(--hw-orange);color:#1a0b00;font:700 11px Oswald,sans-serif;letter-spacing:1.4px;text-transform:uppercase}
+.bk.in{background:rgba(155,225,93,.16);color:var(--hw-slime);border:1px solid rgba(155,225,93,.4)}
+.tip{font-size:10.5px;color:#b6a99a;text-align:center;line-height:1.5;margin-top:8px}
+
+/* ---------- guest booking page (legacygym.net/sparring) ---------- */
+.gp{position:relative;flex:1;overflow-y:auto;scrollbar-width:none}
+.gp .in{position:relative;z-index:2;padding:52px 16px 30px;min-height:100%;display:flex;flex-direction:column}
+.gp .top{display:flex;align-items:center;gap:10px}
+.gp .top .mk{width:40px;height:40px;border-radius:10px;border:1px solid #4a2a10;display:grid;place-items:center;font:700 13px Oswald,sans-serif;color:var(--gold);background:rgba(0,0,0,.5)}
+.gp .top .k{font-size:9.5px;letter-spacing:2.5px;text-transform:uppercase;color:var(--hw-orange2);font-weight:800}
+.gcard{margin-top:18px;border:1.5px solid rgba(255,122,26,.6);background:linear-gradient(165deg,rgba(38,16,50,.9),rgba(10,6,16,.92));border-radius:20px;padding:20px 18px;position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 40px rgba(255,100,20,.12)}
+.gcard .web{position:absolute;right:-6px;top:-6px;width:90px;height:90px;opacity:.45}
+.badge{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:5px 9px;border-radius:99px;border:1px solid #7a3c10;color:var(--hw-orange2);background:#2a1206}
+.gcard .hw{font-family:Creepster,Oswald,cursive;font-size:22px;color:var(--hw-orange);margin-top:12px;letter-spacing:1px}
+.gcard h1{font:600 40px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.gcard .when{margin-top:10px;font:600 20px/1.2 Oswald,sans-serif;text-transform:uppercase}
+.gcard .when small{display:block;font:600 12px/1.5 Montserrat,sans-serif;text-transform:none;color:#b6a99a;margin-top:6px}
+.gcard .note{margin-top:12px;font-size:12.5px;color:#eadfcf;line-height:1.55}
+.gcard .note b{color:var(--hw-orange2)}
+.dress{margin-top:14px;border-radius:12px;padding:12px;background:rgba(255,122,26,.1);border:1px dashed rgba(255,122,26,.5);font-size:12px;line-height:1.5;color:#f3e7d6}
+.dress b{display:block;font:700 13px Oswald,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--hw-orange2);margin-bottom:3px}
+.gbtn{display:block;width:100%;margin-top:16px;border-radius:13px;padding:17px;font:700 17px/1 Oswald,sans-serif;letter-spacing:2px;text-transform:uppercase;text-align:center;background:linear-gradient(180deg,#ffb347,#ff7a1a 55%,#d4560a);color:#1a0b00;box-shadow:0 0 24px rgba(255,122,26,.35)}
+.gbtn.in{background:rgba(155,225,93,.14);color:var(--hw-slime);border:1px solid rgba(155,225,93,.45);box-shadow:none}
+.gfoot{margin-top:auto;padding-top:24px;text-align:center;font-size:11px;color:#b6a99a;line-height:1.6}.gfoot a{color:var(--hw-orange2);font-weight:800}
+.ov{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.72);display:none;align-items:flex-end;padding:12px}.ov.on{display:flex}
+.sheet{width:100%;background:#140c18;border:1px solid #5a2c10;border-radius:18px;padding:18px}
+.sheet h3{font:600 20px/1.1 Oswald,sans-serif;text-transform:uppercase}.sheet p{font-size:12.5px;color:#b6a99a;margin-top:6px;line-height:1.5}
+.sheet label{display:block;font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#cfc6b0;margin:14px 0 6px}
+.sheet input{width:100%;background:#0e0a10;border:1px solid #4a3040;border-radius:10px;color:var(--text);padding:13px 12px;font-family:inherit;font-size:16px}
+.sheet .cancel{margin-top:10px;width:100%;color:#b6a99a;font-weight:800;font-size:12px}
+
+/* app view: keep the scene clear of the header and nav */
+.scr.hw .hwScene .moon{display:none}
+.scr.hw .hwScene .webTL{display:none}
+.scr.hw .hwScene .webTR{top:92px;width:84px;height:84px}
+.scr.hw .hwScene .spider{top:92px}
+.scr.hw .hwScene .pk1{bottom:78px}.scr.hw .hwScene .pk2{bottom:76px}.scr.hw .hwScene .pk3{bottom:78px}
+.scr.hw .hwScene .skel{bottom:80px;opacity:.75}.scr.hw .hwScene .grave{bottom:76px}.scr.hw .hwScene .webBR{bottom:150px}
+.tip{background:rgba(7,5,10,.78);border-radius:10px;padding:8px 10px;position:relative}
+.main{padding-bottom:120px}
+/* guest view: room for the webs up top and the pumpkins down the bottom */
+.scr.g .hwScene .webTL{width:96px;height:96px}
+.scr.g .hwScene .webTR{width:84px;height:84px}
+.scr.g .hwScene .moon{top:66px}
+.gp .in{padding-top:92px;padding-bottom:20px}
+.gfoot{padding-bottom:120px}
+.gfoot span{background:rgba(7,5,10,.78);border-radius:10px;padding:8px 12px;display:inline-block}
+@media (prefers-reduced-motion:reduce){.hwScene *{animation:none!important}}
+
+.glist{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.gcls{display:flex;align-items:center;gap:12px;border-radius:12px;padding:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,122,26,.35)}
+.gcls.done{border-color:rgba(155,225,93,.5);background:rgba(155,225,93,.07)}
+.gcls .tm{width:50px;flex:none}.gcls .tm b{display:block;font:700 21px/1 Oswald,sans-serif}.gcls .tm small{font-size:8px;font-weight:800;letter-spacing:1.5px;color:#b6a99a}
+.gcls .grow{flex:1;min-width:0}.gcls .nm{font:700 16px Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px}.gcls .sp{font-size:10px;color:#b6a99a;margin-top:3px;line-height:1.35}
+.gbk{flex:none;padding:11px 14px;border-radius:9px;background:var(--hw-orange);color:#1a0b00;font:700 12px Oswald,sans-serif;letter-spacing:1.4px;text-transform:uppercase}
+.gin{flex:none;font:700 11px Oswald,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--hw-slime)}
+
+html,body{background:#07050a;min-height:100%}
+body{margin:0}
+.wrap{position:relative;min-height:100vh;max-width:520px;margin:0 auto}
+.hwScene{position:fixed}
+.gp{overflow:visible}
+.gp .in{padding-top:max(92px,calc(70px + env(safe-area-inset-top)))}
+.glist{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.gcls{display:flex;align-items:center;gap:12px;border-radius:12px;padding:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,122,26,.35)}
+.gcls.done{border-color:rgba(155,225,93,.5);background:rgba(155,225,93,.07)}
+.gcls .tm{width:50px;flex:none}.gcls .tm b{display:block;font:700 21px/1 Oswald,sans-serif}.gcls .tm small{font-size:8px;font-weight:800;letter-spacing:1.5px;color:#b6a99a}
+.gcls .grow{flex:1;min-width:0}.gcls .nm{font:700 16px Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px}.gcls .sp{font-size:10px;color:#b6a99a;margin-top:3px;line-height:1.35}
+.gbk{flex:none;padding:11px 14px;border-radius:9px;background:var(--hw-orange);color:#1a0b00;font:700 12px Oswald,sans-serif;letter-spacing:1.4px;text-transform:uppercase}
+.gin{flex:none;font:700 11px Oswald,sans-serif;letter-spacing:1px;text-transform:uppercase;color:var(--hw-slime)}
+.ov{position:fixed}
+.sheet{max-width:520px;margin:0 auto}
+.sheet input.bad{border-color:#ff8c98}
+.err{color:#ff8c98;font-size:12px;margin-top:8px;min-height:14px}
+.gp .top img{height:36px}
 </style>
 </head>
 <body>
-<div class="top"><img src="/img/fc/fc-logo.png" alt=""><div class="k">Legacy Gym Kincumber</div></div>
-
-<div class="card"><div class="bar"></div>
-  <span class="badge">Everyone welcome</span>
-  <h1>Open Sparring</h1>
-  <div class="when">Saturday 31 October · 9:30am<small>Legacy Gym, Kincumber · 45 minutes</small></div>
-  <div class="note">Members and non-members, all levels. <b>Bring a mouthguard.</b> No membership, no payment — just your name.</div>
-  <div id="cta"><button class="btn gold" onclick="openSheet()">Book me in</button></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <defs>
+  <symbol id="web" viewBox="0 0 100 100"><g fill="none" stroke="#efe6d2" stroke-width=".8" stroke-linecap="round">
+   <path d="M0 0L100 100M0 0L100 52M0 0L100 18M0 0L52 100M0 0L18 100"/>
+   <path d="M14 0Q12 7 0 14M0 14Q16 16 14 0"/><path d="M30 0Q26 15 0 30Q34 33 30 0"/><path d="M50 0Q43 24 0 50"/><path d="M0 50Q24 43 50 0"/><path d="M72 0Q62 34 0 72Q36 62 72 0"/><path d="M96 0Q82 46 0 96Q46 82 96 0"/>
+   <path d="M30 0L32 10L30 30L10 32L0 30M50 0L54 18L52 34L46 46L34 52L18 54L0 50M72 0L76 24L72 46L60 62L46 72L24 76L0 72M96 0L98 32L94 62L80 82L62 94L32 98L0 96"/></g></symbol>
+  <symbol id="spider" viewBox="0 0 26 120"><line x1="13" y1="0" x2="13" y2="96" stroke="#efe6d2" stroke-width=".7" opacity=".6"/>
+   <g transform="translate(13 104)" fill="#0a070c" stroke="#0a070c" stroke-width="1.6" stroke-linecap="round"><path d="M-4-2L-11-8L-13-2M-4 0L-12-1L-13 5M-4 2L-11 6L-11 11M4-2L11-8L13-2M4 0L12-1L13 5M4 2L11 6L11 11" fill="none"/><ellipse cx="0" cy="2" rx="5" ry="6"/><circle cx="0" cy="-5" r="3.5"/><circle cx="-1.3" cy="-5.5" r=".8" fill="#ff3b1f" stroke="none"/><circle cx="1.3" cy="-5.5" r=".8" fill="#ff3b1f" stroke="none"/></g></symbol>
+  <symbol id="bat" viewBox="0 0 64 32"><path fill="#050307" d="M32 10c2-4 4-5 6-3 2-3 5-3 7-1 3-2 8-1 11 2 2 2 5 3 8 3-4 2-7 6-8 11-2-3-5-4-8-3-1-3-4-4-6-3-2-3-5-3-7 0-1 2-2 3-3 3s-2-1-3-3c-2-3-5-3-7 0-2-1-5 0-6 3-3-1-6 0-8 3-1-5-4-9-8-11 3 0 6-1 8-3 3-3 8-4 11-2 2-2 5-2 7 1 2-2 4-1 6 3z"/></symbol>
+  <symbol id="pumpkin" viewBox="0 0 100 90"><defs><radialGradient id="pg" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#ffa53d"/><stop offset=".7" stop-color="#f06a0f"/><stop offset="1" stop-color="#a83d05"/></radialGradient><radialGradient id="pglow" cx="50%" cy="55%" r="50%"><stop offset="0" stop-color="#fff2a8"/><stop offset="1" stop-color="#ffb347"/></radialGradient></defs>
+   <path d="M47 14c0-8 3-12 8-13l3 3c-4 2-5 5-5 10z" fill="#3f5a22"/>
+   <ellipse cx="30" cy="52" rx="24" ry="33" fill="url(#pg)"/><ellipse cx="70" cy="52" rx="24" ry="33" fill="url(#pg)"/><ellipse cx="50" cy="52" rx="24" ry="35" fill="url(#pg)"/>
+   <path d="M34 22c-5 10-5 50 0 62M66 22c5 10 5 50 0 62" stroke="#b3480a" stroke-width="1.5" fill="none" opacity=".6"/>
+   <path d="M30 40l10 2-6 9zM70 40l-10 2 6 9zM46 52l4-7 4 7z" fill="url(#pglow)"/>
+   <path d="M26 62q24 18 48 0l-5 4-4-4-4 5-5-5-5 6-5-6-5 5-4-5-4 4z" fill="url(#pglow)"/></symbol>
+  <symbol id="skeleton" viewBox="0 0 60 120"><g fill="none" stroke="#efe6d2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+   <path d="M30 26v44"/><path d="M18 36q12 6 24 0M17 44q13 6 26 0M18 52q12 5 24 0M20 59q10 4 20 0"/>
+   <path d="M20 32l-10 18-2 14M40 32l10 18 2 14"/><path d="M22 72q8-4 16 0M24 74l-4 22-2 18M36 74l4 22 2 18"/></g>
+   <g fill="#efe6d2"><ellipse cx="30" cy="12" rx="11" ry="12"/><rect x="24" y="19" width="12" height="7" rx="2"/></g>
+   <g fill="#0a070c"><ellipse cx="25.5" cy="11" rx="3.4" ry="3.8"/><ellipse cx="34.5" cy="11" rx="3.4" ry="3.8"/><path d="M30 15l-2 3h4z"/><path d="M26 22v3M30 22v3M34 22v3" stroke="#0a070c" stroke-width="1"/></g></symbol>
+  <symbol id="moon" viewBox="0 0 64 64"><defs><radialGradient id="mg" cx="40%" cy="38%" r="60%"><stop offset="0" stop-color="#fff6d6"/><stop offset="1" stop-color="#e9c977"/></radialGradient></defs><circle cx="32" cy="32" r="26" fill="url(#mg)"/><circle cx="24" cy="26" r="4" fill="#d8b562" opacity=".5"/><circle cx="38" cy="38" r="6" fill="#d8b562" opacity=".4"/><circle cx="40" cy="22" r="2.5" fill="#d8b562" opacity=".5"/></symbol>
+  <symbol id="grave" viewBox="0 0 120 46"><path d="M8 46V22q0-14 16-14t16 14v24zM70 46V16q0-14 18-14t18 14v30z" fill="#1c1622"/><path d="M0 46q30-10 60-4t60 0v4z" fill="#0c0a0e"/><text x="24" y="31" text-anchor="middle" font-family="Oswald" font-size="8" fill="#3a3044">RIP</text><text x="88" y="27" text-anchor="middle" font-family="Oswald" font-size="7" fill="#3a3044">LEG DAY</text></symbol>
+ </defs>
+</svg>
+<div class="wrap">
+<div class="hwScene" aria-hidden="true">
+<svg class="moon"><use href="#moon"/></svg><svg class="webTL"><use href="#web"/></svg><svg class="webTR"><use href="#web"/></svg><svg class="webBR"><use href="#web"/></svg>
+<svg class="spider s1"><use href="#spider"/></svg><svg class="spider s2"><use href="#spider"/></svg><svg class="spider s3"><use href="#spider"/></svg>
+<svg class="bat b1"><use href="#bat"/></svg><svg class="bat b2"><use href="#bat"/></svg><svg class="bat b3"><use href="#bat"/></svg>
+<svg class="skel2"><use href="#skeleton"/></svg><svg class="grave"><use href="#grave"/></svg>
+<svg class="pk1"><use href="#pumpkin"/></svg><svg class="pk3"><use href="#pumpkin"/></svg><svg class="pk2"><use href="#pumpkin"/></svg><svg class="skel"><use href="#skeleton"/></svg>
 </div>
-
-<p class="foot">Got the Legacy app? <a href="/?classes=2026-10-31">Open it in the app</a>.</p>
-
-<div class="ov" id="ov"><div class="sheet"><h3>Book me in · Open Sparring</h3><p>Sat 31 Oct · 9:30am. We just need your full name so we know who's coming.</p><label>Full name</label><input id="fName" type="text" autocomplete="name" placeholder="First and last name"><div class="err" id="err"></div><button class="btn gold" id="go" onclick="book()">Book my spot</button><button class="cancel" onclick="closeSheet()">Cancel</button></div></div>
-
+<div class="gp"><div class="in">
+ <div class="top"><img src="/img/fc/fc-logo.png" alt=""><div class="k">Legacy Gym Kincumber</div></div>
+ <div class="gcard"><svg class="web" aria-hidden="true"><use href="#web"/></svg>
+  <span class="badge">Everyone welcome</span><div class="hw">Halloween edition</div><h1>Saturday classes</h1>
+  <div class="when">Saturday 31 October<small>Legacy Gym, Kincumber · pick one, two or all three</small></div>
+  <div class="dress"><b>Come dressed up</b>Anything but gym clothes, minimal to extravagant. Masks and loose bits come off when the gloves go on.</div>
+  <div class="glist" id="list"></div>
+  <div class="note" id="note">Members and non-members, all levels. No membership, no payment. Just your name.</div>
+ </div>
+ <p class="gfoot"><span>Got the Legacy app? <a href="/?classes=2026-10-31">Open it in the app</a>.</span></p>
+</div></div>
+</div>
+<div class="ov" id="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet"><h3 id="shT">Book me in</h3><p id="shP"></p><label for="fName">Full name</label><input id="fName" type="text" autocomplete="name" placeholder="First and last name"><div class="err" id="err"></div><button class="gbtn" id="go" onclick="book()">Book my spot</button><button class="cancel" onclick="closeSheet()">Cancel</button></div></div>
 <script>
 (function(){
 var SB="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/";
 var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
-var DATE="2026-10-31", OPEN_T="09:30"; /* no cap — a class is never "full" (Jake, 22 Oct) */
+var DATE="2026-10-31";
+var CLS=[{t:"07:30",tm:"7:30",n:"Boxing",s:"45 min · Pads, bags and partner work"},{t:"08:30",tm:"8:30",n:"GRUNT S&C",s:"45 min · Strength and conditioning circuit"},{t:"09:30",tm:"9:30",n:"Open Sparring",s:"45 min · Bring a mouthguard"}];
 /* Already signed in to the Legacy app on this phone? Go straight to Saturday in the app. */
 try{var tok=null;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k))tok=localStorage.getItem(k);}if(tok&&/access_token/.test(tok)){location.replace("/?classes="+DATE);}}catch(e){}
-var count=0, booked=null;
+var booked={},sel=null,name="";
+try{booked=JSON.parse(localStorage.getItem("hw31_booked")||"{}")||{};name=localStorage.getItem("hw31_name")||"";}catch(e){}
+function E(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function paint(){
-  var c=document.getElementById("cta");
-  if(booked)c.innerHTML='<div class="btn in">You\'re in ✓ · see you Saturday</div>';
-  else c.innerHTML='<button class="btn gold" onclick="openSheet()">Book me in</button>';
+ document.getElementById("list").innerHTML=CLS.map(function(c,i){var inn=booked[c.t];return '<div class="gcls'+(inn?' done':'')+'"><div class="tm"><b>'+c.tm+'</b><small>AM</small></div><div class="grow"><div class="nm">'+E(c.n)+'</div><div class="sp">'+E(c.s)+'</div></div>'+(inn?'<span class="gin">You\'re in ✓</span>':'<button class="gbk" onclick="openSheet('+i+')">Book</button>')+'</div>';}).join("");
+ var n=Object.keys(booked).length;
+ document.getElementById("note").innerHTML='Members and non-members, all levels. No membership, no payment. Just your name.'+(n?' <b>You\'re booked into '+n+' class'+(n>1?'es':'')+'. See you Saturday.</b>':'');
 }
-async function load(){try{var r=await fetch(SB+"class_open_roster",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify({p_date:DATE})});var j=await r.json();(Array.isArray(j)?j:[]).forEach(function(x){if(x.time===OPEN_T)count=x.count||0;});}catch(e){}paint();}
-window.openSheet=function(){document.getElementById("ov").classList.add("on");setTimeout(function(){document.getElementById("fName").focus();},50);};
+window.openSheet=function(i){sel=i;var c=CLS[i];document.getElementById("shT").textContent="Book me in · "+c.n;document.getElementById("shP").textContent="Sat 31 Oct · "+c.tm+"am. Halloween edition."+(c.t==="09:30"?" Bring a mouthguard.":"")+" We just need your full name.";var f=document.getElementById("fName");f.value=name;f.classList.remove("bad");document.getElementById("err").textContent="";document.getElementById("ov").classList.add("on");setTimeout(function(){f.focus();},50);};
 window.closeSheet=function(){document.getElementById("ov").classList.remove("on");};
 var busy=false;
 window.book=async function(){
-  if(busy)return;var inp=document.getElementById("fName"),err=document.getElementById("err"),go=document.getElementById("go");
-  var nm=inp.value.trim().replace(/\s+/g," ");
-  if(nm.length<3||nm.indexOf(" ")<0){inp.classList.add("bad");err.textContent="Full name please, first and last.";return;}
-  inp.classList.remove("bad");err.textContent="";busy=true;go.disabled=true;go.textContent="Booking…";
-  try{var r=await fetch(SB+"class_open_book",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify({p_name:nm,p_mobile:"",p_date:DATE,p_time:OPEN_T})});var j=await r.json();
-    if(!r.ok||!j||!j.ok)throw new Error((j&&(j.message||j.error))||"Couldn't book. Try again.");
-    booked=j.name;closeSheet();paint();window.scrollTo(0,0);
-  }catch(e){err.textContent=e.message||String(e);}
-  busy=false;go.disabled=false;go.textContent="Book my spot";
+ if(busy||sel===null)return;var c=CLS[sel],inp=document.getElementById("fName"),err=document.getElementById("err"),go=document.getElementById("go");
+ var nm=inp.value.trim().replace(/\s+/g," ");
+ if(nm.length<3||nm.indexOf(" ")<0){inp.classList.add("bad");err.textContent="Full name please, first and last.";return;}
+ inp.classList.remove("bad");err.textContent="";busy=true;go.disabled=true;go.textContent="Booking…";
+ try{var r=await fetch(SB+"class_open_book",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify({p_name:nm,p_mobile:"",p_date:DATE,p_time:c.t})});var j=await r.json();
+  if(!r.ok||!j||!j.ok)throw new Error((j&&(j.message||j.error))||"Couldn't book. Try again.");
+  name=nm;booked[c.t]=1;try{localStorage.setItem("hw31_booked",JSON.stringify(booked));localStorage.setItem("hw31_name",nm);}catch(e){}
+  closeSheet();paint();
+ }catch(e){err.textContent=e.message||String(e);}
+ busy=false;go.disabled=false;go.textContent="Book my spot";
 };
-paint();load();
+paint();
 })();
 </script>
 </body>
