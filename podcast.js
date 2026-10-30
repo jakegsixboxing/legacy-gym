@@ -4,6 +4,8 @@
 (function(){
 var LOGO=(typeof FC_LOGO!=="undefined")?FC_LOGO:"https://www.legacygym.net/cdn/shop/t/28/assets/fightclub-logo.png";
 var EPS=[
+  {id:"fc-ep3",n:3,title:"Fight Club Ep 3",date:"2026-10-30",dur:1798,src:"/fight-club-ep3.m4a",
+   blurb:"Week 3 of Fight Club. Where the camp's at, the honest pros and cons so far (fear, fitness, fundamentals, confidence, real ring work), and why this is the phase where people go quiet and staying in touch matters most."},
   {id:"fc-ep2",n:2,title:"Fight Club EP-2",date:"2026-10-18",dur:2155,src:"/fight-club-ep2.m4a",
    blurb:"Episode two of the Legacy Gym Podcast. More from inside Fight Club as the camp rolls on towards Fight Night, Sat 19 Dec."},
   {id:"fc-ep1",n:1,title:"Fight Club EP-1",date:"2026-10-11",dur:1254,src:"/fight-club-ep1.m4a",
