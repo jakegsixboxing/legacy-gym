@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>7 days free · Legacy Gym Kincumber</title>
+<meta name="description" content="A 7-day free trial at Legacy Gym Kincumber. Boxing, CrossFit / strength & conditioning, a full Hammer Strength weights gym, saunas, ice baths and hot water therapy. You get access to the lot.">
+<meta property="og:title" content="7 days free. The whole gym. Legacy Gym Kincumber">
+<meta property="og:description" content="Boxing, CrossFit / S&C, full Hammer Strength weights gym, saunas, ice baths and hot water therapy. Swipe pass, no card, no catch.">
+<meta property="og:image" content="https://legacygym-app.vercel.app/img/free/hero.jpg">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0b0b0d">
+<link rel="icon" href="/img/fc/fc-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#0b0b0d;--panel:#141417;--panel2:#1c1c21;--line:#2a2a31;--fg:#f4f2ee;--muted:#9a978f;--gold:#d4a533;--gold2:#f0c85a;--good:#49c97a;--warn:#f0a63a;
+ --display:"Oswald","Arial Narrow",Impact,sans-serif;--body:"Montserrat","Helvetica Neue",Arial,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:15px;line-height:1.5;padding:0 max(16px,env(safe-area-inset-left)) max(32px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-right))}
+h1,h2,h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.02em;margin:0;line-height:1.02;text-wrap:balance}
+p{margin:0}
+.page{max-width:430px;margin:0 auto;display:grid;gap:14px}
+.photo{position:relative;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end;padding:calc(18px + env(safe-area-inset-top)) 16px 18px;border-radius:0 0 22px 22px;background:#1c1c21 url(/img/free/hero.jpg) center 30%/cover no-repeat;margin:0 -16px}
+.photo::before{content:"";position:absolute;inset:0;border-radius:0 0 22px 22px;background:linear-gradient(180deg,rgba(11,11,13,.15),rgba(11,11,13,.6) 50%,var(--bg))}
+.photo>*{position:relative}
+.brand{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto}
+.lg{font-family:var(--display);font-weight:700;font-size:20px;letter-spacing:.06em}
+.lg em{color:var(--gold);font-style:normal}
+.pill{font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:rgba(212,165,51,.18);color:var(--gold2);white-space:nowrap}
+.hero h1{font-size:44px}
+.hero h1 span{color:var(--gold)}
+.hero p{color:#d8d5ce;font-size:14.5px;margin-top:8px;max-width:34ch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:10px}
+.field{display:grid;gap:4px}
+.field label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.field input{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--fg);font:500 16px var(--body);width:100%}
+.field input:focus-visible{outline:2px solid var(--gold)}
+.field input.bad{border-color:var(--warn)}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--fg);font:600 14px var(--body);cursor:pointer}
+.seg button.on{background:var(--gold);border-color:var(--gold);color:#111}
+.btn{background:var(--gold);color:#111;border:0;border-radius:12px;padding:15px 16px;font:700 16px var(--body);cursor:pointer;text-align:center;width:100%;display:block;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line);font-size:14px;padding:12px}
+.btn:disabled{opacity:.6;cursor:default}
+.fine{font-size:12.5px;color:var(--muted);text-align:center}
+.err{font-size:13px;color:var(--warn);display:none}
+.err.show{display:block}
+.what{display:grid;gap:8px}
+.w{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;font-size:14px}
+.w i{width:34px;height:34px;border-radius:10px;background:var(--panel2);display:grid;place-items:center;font:600 13px var(--display);color:var(--gold2);font-style:normal}
+.w small{display:block;color:var(--muted);font-size:12px}
+.msg{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14px;line-height:1.5;white-space:pre-wrap}
+.msg b{color:var(--gold2)}
+.ok{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:center}
+.ok i{width:44px;height:44px;border-radius:50%;background:var(--good);color:#111;display:grid;place-items:center;font:700 22px var(--body);font-style:normal}
+.ok h2{font-size:26px}
+.ok small{color:var(--muted);font-size:13px}
+.toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--gold);color:#111;font:700 13px var(--body);padding:10px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+.step{display:none}.step.on{display:contents}
+.back{background:none;border:0;color:var(--muted);font:600 13px var(--body);cursor:pointer;text-align:left;padding:0}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="step on" id="s1">
+    <div class="photo">
+      <div class="brand"><div class="lg">LEG<em>A</em>CY</div><span class="pill">Kincumber</span></div>
+      <div class="hero">
+        <h1 id="h1">7 days free.<br><span>The whole gym.</span></h1>
+        <p id="h1p">Boxing, CrossFit / strength &amp; conditioning, a full Hammer Strength weights gym, saunas, ice baths and hot water therapy. You get access to the lot. No card, no catch.</p>
+      </div>
+    </div>
+    <form class="card" id="form" novalidate>
+      <div class="field"><label for="name">Full name</label><input id="name" name="name" autocomplete="name"></div>
+      <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" inputmode="email"></div>
+      <div class="field"><label for="phone">Mobile</label><input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel"></div>
+      <div class="field"><label>Are you over 18?</label>
+        <div class="seg" id="age"><button type="button" data-v="yes">Yes</button><button type="button" data-v="no">No</button></div>
+      </div>
+      <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <p class="err" id="err">Fill in your name, email and mobile, and tell us if you're over 18.</p>
+      <button class="btn" type="submit" id="submit">Take my 7-day free trial</button>
+      <p class="fine">Takes 20 seconds. We text you a time to come in.</p>
+    </form>
+    <div class="card">
+      <div class="what">
+        <div class="w"><i>2</i><div>Levels of boxing<small>Fitness and competitive. Classes for every level, no contact</small></div></div>
+        <div class="w"><i>CF</i><div>Full CrossFit / strength &amp; conditioning area<small>Grunt S&amp;C, six days a week</small></div></div>
+        <div class="w"><i>HS</i><div>Full Hammer Strength weights gym<small>Swipe in 7 days a week</small></div></div>
+        <div class="w"><i>2</i><div>Levels of recovery<small>Saunas, ice baths, hot water therapy</small></div></div>
+        <div class="w"><i>✓</i><div>You get access to the lot<small>One swipe pass, 7 days</small></div></div>
+      </div>
+    </div>
+    <p class="fine">Legacy Gym · 12 Bilinga Rd, Kincumber NSW 2251 · <a href="https://www.legacygym.net" style="color:var(--gold2)">legacygym.net</a></p>
+  </div>
+
+  <div class="step" id="s18">
+    <div class="card">
+      <h2 style="font-size:28px">Under 18? <span style="color:var(--gold)">You're still welcome.</span></h2>
+      <p style="color:#d8d5ce">Under-18s can trial our <b>boxing and strength classes</b>, just not the weights gym or recovery.</p>
+      <p style="color:#d8d5ce">Come in with a parent or guardian for your first session so they can sign you in. That's it.</p>
+      <div class="what">
+        <div class="w"><i>8+</i><div>Ages 8–13<small>Youth Academy, 4:30pm Mon–Fri</small></div></div>
+        <div class="w"><i>14+</i><div>Ages 14–17<small>Adult boxing and Grunt S&amp;C classes, with a parent's OK</small></div></div>
+      </div>
+      <p class="fine">You're registered, <span id="u18name"></span>. We'll text <span id="u18phone"></span> with class times and what to bring.</p>
+    </div>
+  </div>
+
+  <div class="step" id="s3">
+    <div class="card">
+      <div class="ok"><i>✓</i><div><h2>You're in, <span id="okName"></span></h2><small>We'll text <span id="okPhone"></span> with a time to come in and your swipe pass.</small></div></div>
+    </div>
+    <div class="card">
+      <h2 style="font-size:30px">Legacy's better <span style="color:var(--gold)">with mates.</span></h2>
+      <p style="color:#d8d5ce">Bring them along. They get the same free week, you train together. Forward this message to your friends and family.</p>
+      <div class="msg" id="shareMsg"></div>
+      <button class="btn" id="shareBtn">Share to friends</button>
+      <p class="fine">Opens your phone's share menu: Messages, WhatsApp, Instagram, Facebook, Snapchat, whatever you use.</p>
+      <button class="btn ghost" id="copyMsg">Copy message instead</button>
+    </div>
+    <div class="card">
+      <h3 style="font-size:14px;letter-spacing:.08em;color:var(--muted)">What happens next</h3>
+      <div class="what">
+        <div class="w"><i>1</i><div>We text you today<small>A time to come in that suits you</small></div></div>
+        <div class="w"><i>2</i><div>Swipe in for 7 days<small>Boxing, S&amp;C, the weights gym, the recovery centre. The lot.</small></div></div>
+        <div class="w"><i>3</i><div>Then decide<small>Memberships from $19.99 a week. No card taken, nothing to cancel.</small></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  var API="/api/trial-lead", PAGE="https://legacygym-app.vercel.app/free";
+  var state={name:"",email:"",phone:"",over18:null,ref:""};
+
+  /* Opened from a mate's link? ?ref=sam-riley personalises the top. */
+  try{var ref=(new URLSearchParams(location.search).get("ref")||"").toLowerCase().replace(/[^a-z0-9-]/g,"").slice(0,40);
+    if(ref){state.ref=ref;var who=ref.split("-")[0];who=who.charAt(0).toUpperCase()+who.slice(1);
+      $("#h1").innerHTML=who+' is in.<br><span>Your week\'s free too.</span>';
+      $("#h1p").textContent=who+" just took a free week at Legacy. Same deal for you: 7 days, the whole gym, swipe pass, no card.";}}catch(e){}
+
+  function toast(t){var el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove("show")},2200)}
+  function go(id){["s1","s18","s3"].forEach(function(k){$("#"+k).classList.toggle("on",k===id)});window.scrollTo({top:0})}
+  function slug(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)}
+
+  $("#age").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;state.over18=b.dataset.v==="yes";$("#age").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b)})});
+
+  $("#form").addEventListener("submit",async function(e){
+    e.preventDefault();
+    state.name=$("#name").value.trim();state.email=$("#email").value.trim();state.phone=$("#phone").value.trim();
+    var bad=false;
+    [["#name",!state.name],["#email",!/^\S+@\S+\.\S+$/.test(state.email)],["#phone",state.phone.replace(/\D/g,"").length<8]].forEach(function(f){$(f[0]).classList.toggle("bad",f[1]);if(f[1])bad=true});
+    if(state.over18===null)bad=true;
+    $("#err").classList.toggle("show",bad);if(bad)return;
+    var btn=$("#submit");btn.disabled=true;btn.textContent="One sec…";
+    try{
+      var r=await fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({
+        name:state.name,email:state.email,phone:state.phone,
+        interest:state.over18?"7-day free trial · over 18":"Under 18 · classes with a parent",
+        source:state.ref?"mate:"+state.ref:"instagram",
+        website:document.querySelector(".hp").value
+      })});
+      var j=await r.json().catch(function(){return {}});
+      if(!r.ok||!j.ok){$("#err").textContent=j.error||"Something went wrong, try again.";$("#err").classList.add("show");btn.disabled=false;btn.textContent="Take my 7-day free trial";return;}
+    }catch(err){$("#err").textContent="No connection. Check your signal and try again.";$("#err").classList.add("show");btn.disabled=false;btn.textContent="Take my 7-day free trial";return;}
+    if(!state.over18){$("#u18name").textContent=state.name.split(" ")[0];$("#u18phone").textContent=state.phone;go("s18");return;}
+    confirmed();
+  });
+
+  function confirmed(){
+    var first=state.name.split(" ")[0];
+    $("#okName").textContent=first;$("#okPhone").textContent=state.phone;
+    var link=PAGE+"?ref="+slug(state.name);
+    var m="Come down to Legacy Gym Kincumber with me. I've just signed up for a full free week. This place has everything: 2 levels of boxing (fitness and competitive), a full CrossFit / strength and conditioning area, a full Hammer Strength weights gym, and 2 levels of recovery with saunas, ice baths and hot water therapy. You get access to the lot on a swipe pass, no card. It's insane.\n\nCome join me for a week, your free week's here:\n"+link+"\n\n– "+first;
+    state.msg=m;state.link=link;
+    $("#shareMsg").innerHTML=m.replace(/</g,"&lt;").replace(link,"<b>"+link+"</b>");
+    go("s3");
+  }
+  function copy(text){try{navigator.clipboard.writeText(text).then(function(){toast("Copied")},function(){toast("Press and hold the message to copy")})}catch(e){toast("Press and hold the message to copy")}}
+  $("#copyMsg").onclick=function(){copy(state.msg)};
+  $("#shareBtn").onclick=function(){
+    if(navigator.share){navigator.share({title:"Free week at Legacy Gym Kincumber",text:state.msg}).then(function(){toast("Sent")}).catch(function(){});}
+    else copy(state.msg);
+  };
+})();
+</script>
+</body>
+</html>
