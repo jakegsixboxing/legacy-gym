@@ -1,6 +1,6 @@
 /* ===== Legacy Gym · public buy page (singlets / merch) · 31 Oct 2026 =====
    Served at /shop/<slug> by api/shop.js (a=share). Data: RPC shop_public (product, sizes, what's left), shop_order_create (saves the order),
-   then POST /api/shop?a=checkout turns it into a Shopify draft order and sends the buyer to Shopify to pay. Pick up at the gym. */
+   then POST /api/fightnight?a=shop-checkout turns it into a Shopify draft order and sends the buyer to Shopify to pay. Pick up at the gym. */
 (function(){
 "use strict";
 var SB="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/";
@@ -85,7 +85,7 @@ async function pay(){
  try{
   var o=await rpc("shop_order_create",{p_slug:SLUG,p_size:S.size,p_qty:S.qty,p_name:name,p_email:email,p_mobile:mob});
   if(!o||!o.ok){S.busy=false;S.err=o&&o.error==="sold_out"?"Sorry, size "+S.size+" just sold out"+(o.left?" (only "+o.left+" left)":"")+". Pick another.":o&&o.error==="closed"?"Pre-orders just closed, sorry. The order's gone in.":o&&o.error==="not_on_sale"?"This one isn't on sale right now.":"Couldn't save that. Try again.";await load();paint();return;}
-  var r=await fetch(APP+"/api/shop?a=checkout",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({ref:o.ref,email:email})});
+  var r=await fetch(APP+"/api/fightnight?a=shop-checkout",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({ref:o.ref,email:email})});
   var j=null;try{j=await r.json();}catch(e){}
   if(!r.ok||!j||!j.url){S.busy=false;S.err=j&&j.error==="not_configured"?"Payments aren't switched on yet. Ask at the desk.":"Couldn't open the checkout ("+((j&&j.error)||r.status)+"). Try again or pay at the desk, your order ref is "+o.ref+".";paint();return;}
   try{sessionStorage.setItem("lg_shop_ref",o.ref);}catch(e){}

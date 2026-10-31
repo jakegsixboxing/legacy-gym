@@ -51,7 +51,7 @@
     },
     {
       "source": "/shop/:slug",
-      "destination": "/api/shop?a=share&s=:slug"
+      "destination": "/api/fightnight?a=shop-share&s=:slug"
     }
   ]
 }
