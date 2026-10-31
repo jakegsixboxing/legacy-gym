@@ -103,8 +103,25 @@ async function paid(req, res, raw) {
   const fin = String(order.financial_status || "").toLowerCase();
   if (fin && fin !== "paid" && fin !== "partially_paid") return res.status(200).json({ ok: true, skipped: fin });
 
+  const attrs = Array.isArray(order.note_attributes) ? order.note_attributes : [];
+  const emailAny = order.email || (order.customer && order.customer.email) || null;
+  const totalAny = Math.round(parseFloat(order.total_price || "0") * 100) || null;
+  const nameAny = order.name || (order.order_number ? "#" + order.order_number : String(order.id));
+  // Shop (singlets / merch) orders carry a "Shop ref" attribute — see api/shop.js
+  let shopRef = null;
+  for (const na of attrs) if (na && /shop ref/i.test(String(na.name || ""))) shopRef = String(na.value || "").trim().toUpperCase();
+  if (!shopRef) { const m = String(order.note || "").match(/\b(SG26-[A-Z0-9]{6})\b/i); if (m) shopRef = m[1].toUpperCase(); }
+  if (shopRef) {
+    const r2 = await fetch(SB_URL + "/rest/v1/rpc/shop_order_mark_paid", {
+      method: "POST", headers: { apikey: SB_ANON, Authorization: "Bearer " + SB_ANON, "content-type": "application/json" },
+      body: JSON.stringify({ p_ref: shopRef, p_order: nameAny, p_email: emailAny, p_total_cents: totalAny })
+    });
+    const j2 = await r2.json().catch(() => null);
+    return res.status(200).json({ ok: r2.ok, shop: shopRef, order: nameAny, result: j2 });
+  }
+
   let ref = null;
-  for (const na of (Array.isArray(order.note_attributes) ? order.note_attributes : [])) if (na && /sponsor ref/i.test(String(na.name || ""))) ref = String(na.value || "").trim().toUpperCase();
+  for (const na of attrs) if (na && /sponsor ref/i.test(String(na.name || ""))) ref = String(na.value || "").trim().toUpperCase();
   if (!ref) { const m = String(order.note || "").match(/\b((?:RS|SF)26-[A-Z0-9]{6})\b/i); if (m) ref = m[1].toUpperCase(); }
   if (!ref) return res.status(200).json({ ok: true, skipped: "not_a_sponsorship" });
   const email = order.email || (order.customer && order.customer.email) || null;
