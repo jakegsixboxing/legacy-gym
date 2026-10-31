@@ -274,7 +274,7 @@ async function share(req, res) {
 const SHOP_H = { apikey: SB_ANON, authorization: "Bearer " + SB_ANON, "content-type": "application/json" };
 const shopRpc = (fn, args) => fetch(SB_URL + "/rest/v1/rpc/" + fn, { method: "POST", headers: SHOP_H, body: JSON.stringify(args || {}) }).then(r => r.json());
 const shopMoney = c => "$" + ((c || 0) / 100).toFixed(2).replace(/\.00$/, "");
-const BUY_V = "202610311300";
+const BUY_V = "202610311340";
 const JAKE_ID = "15a011b9-e222-45f0-8eb9-d5338da935d1";
 
 /* ---------- a=shop-checkout ---------- */
@@ -352,7 +352,7 @@ async function shopShare(req, res) {
   }
   const title = p.name + (p.active && p.price_cents > 0 ? " · " + shopMoney(p.price_cents) : "") + " · Legacy Gym";
   const desc = (p.blurb || "Legacy Gym Kincumber.") + " Pick your size, pay online, pick up at the gym.";
-  const img = p.image_url || (APP + "/img/shop/therapy-og.jpg");
+  const img = p.image_url || (APP + "/img/shop/therapy.jpg");
   const url = APP + "/shop/" + p.slug;
   const html = head + "<title>" + escH(title) + "</title><meta name=\"description\" content=\"" + escH(desc) + "\">"
     + "<meta property=\"og:type\" content=\"product\"><meta property=\"og:site_name\" content=\"Legacy Gym Kincumber\"><meta property=\"og:title\" content=\"" + escH(title) + "\"><meta property=\"og:description\" content=\"" + escH(desc) + "\">"
