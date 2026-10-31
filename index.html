@@ -588,7 +588,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610311320";
+const LG_BUILD="202610311400";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10763,13 +10763,14 @@ function blueHtml(){return '<div class="rtcBlue"><div class="rtcArt">'+ART+'</di
 /* ---- home strip (replaces the Fight Club promo) ---- */
 window.fightClubHtml=function(){
   if(RTC.reg)return '<div class="rtcStrip" onclick="go(\'rtc\')"><div class="t">You\'re in ✓<small>10 Week Challenge · starts Mon 12 Oct'+(staff()&&RTC.count!=null?' · '+RTC.count+' in':'')+'</small></div><span class="p in">My challenge</span></div>';
-  return '<div class="rtcStrip" onclick="rtcOpen()"><div class="t">10 Week Challenge<small>Road to Christmas · registrations open'+(RTC.count!=null?' · '+RTC.count+' in':'')+'</small></div><span class="p">I\'m in</span></div>';
+  return '<div class="rtcStrip" onclick="rtcOpen()"><div class="t">10 Week Challenge<small>Road to Christmas · week 3 of 10'+(RTC.count!=null?' · '+RTC.count+' in':'')+'</small></div><span class="p">Info</span></div>';
 };
 /* ---- pop-up sheet on open ---- */
 function seen(){try{return sessionStorage.getItem("rtcSeen")==="1";}catch(e){return false;}}
 function markSeen(){try{sessionStorage.setItem("rtcSeen","1");}catch(e){}}
 function closeSheet(){var d=document.getElementById("rtcDim");if(d)d.remove();}
-window.rtcOpen=function(){closeSheet();if(RTC.reg){go("rtc");return;}
+window.rtcOpen=function(){closeSheet();go("rtc");return; /* register pop-up retired 31 Oct 2026 (Jake): the challenge is 3 weeks in, open the info page instead */
+  if(RTC.reg){go("rtc");return;}
   var d=document.createElement("div");d.className="rtcDim";d.id="rtcDim";
   d.innerHTML='<div class="rtcSheet"><div class="rtcGrab"></div>'+blueHtml()+
     (classMember()?'<button class="rtcW" onclick="rtcRegister(this)">Register for the challenge</button>':'<button class="rtcW" disabled>Class membership needed</button><div style="text-align:center;font-size:11px;color:#9a9891;margin-top:6px">Open Gym members — see the front desk to add classes and you\'re in.</div>')+
@@ -11147,93 +11148,7 @@ try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(
 <script src="/singlets.js?v=202610311320"></script>
 
 <script>
-/*__HALLOWEEN_SAT__ ===========================================================
-  Halloween Saturday · 31 Oct 2026 · dress-up classes (Boxing 7:30, GRUNT 8:30, Open Sparring 9:30).
-  - Home: a Halloween notice at the top until the end of Sat 31 Oct. Tap → Saturday in Book in for classes.
-  - Book in for classes: when Sat 31 Oct is the selected day, dark Halloween scene + costume tags.
-  Switches itself off after 31 Oct. Delete this block to remove it early. Nothing stored. */
-(function(){
-"use strict";
-var HW="2026-10-31";
-function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-function live(){return today()<=HW;}
-if(!live())return;
-var SPRITE='<svg width="0" height="0" style="position:absolute" aria-hidden="true">  <defs>   <symbol id="web" viewBox="0 0 100 100"><g fill="none" stroke="#efe6d2" stroke-width=".8" stroke-linecap="round">    <path d="M0 0L100 100M0 0L100 52M0 0L100 18M0 0L52 100M0 0L18 100"/>    <path d="M14 0Q12 7 0 14M0 14Q16 16 14 0"/><path d="M30 0Q26 15 0 30Q34 33 30 0"/><path d="M50 0Q43 24 0 50"/><path d="M0 50Q24 43 50 0"/><path d="M72 0Q62 34 0 72Q36 62 72 0"/><path d="M96 0Q82 46 0 96Q46 82 96 0"/>    <path d="M30 0L32 10L30 30L10 32L0 30M50 0L54 18L52 34L46 46L34 52L18 54L0 50M72 0L76 24L72 46L60 62L46 72L24 76L0 72M96 0L98 32L94 62L80 82L62 94L32 98L0 96"/></g></symbol>   <symbol id="spider" viewBox="0 0 26 120"><line x1="13" y1="0" x2="13" y2="96" stroke="#efe6d2" stroke-width=".7" opacity=".6"/>    <g transform="translate(13 104)" fill="#0a070c" stroke="#0a070c" stroke-width="1.6" stroke-linecap="round"><path d="M-4-2L-11-8L-13-2M-4 0L-12-1L-13 5M-4 2L-11 6L-11 11M4-2L11-8L13-2M4 0L12-1L13 5M4 2L11 6L11 11" fill="none"/><ellipse cx="0" cy="2" rx="5" ry="6"/><circle cx="0" cy="-5" r="3.5"/><circle cx="-1.3" cy="-5.5" r=".8" fill="#ff3b1f" stroke="none"/><circle cx="1.3" cy="-5.5" r=".8" fill="#ff3b1f" stroke="none"/></g></symbol>   <symbol id="bat" viewBox="0 0 64 32"><path fill="#050307" d="M32 10c2-4 4-5 6-3 2-3 5-3 7-1 3-2 8-1 11 2 2 2 5 3 8 3-4 2-7 6-8 11-2-3-5-4-8-3-1-3-4-4-6-3-2-3-5-3-7 0-1 2-2 3-3 3s-2-1-3-3c-2-3-5-3-7 0-2-1-5 0-6 3-3-1-6 0-8 3-1-5-4-9-8-11 3 0 6-1 8-3 3-3 8-4 11-2 2-2 5-2 7 1 2-2 4-1 6 3z"/></symbol>   <symbol id="pumpkin" viewBox="0 0 100 90"><defs><radialGradient id="pg" cx="50%" cy="40%" r="60%"><stop offset="0" stop-color="#ffa53d"/><stop offset=".7" stop-color="#f06a0f"/><stop offset="1" stop-color="#a83d05"/></radialGradient><radialGradient id="pglow" cx="50%" cy="55%" r="50%"><stop offset="0" stop-color="#fff2a8"/><stop offset="1" stop-color="#ffb347"/></radialGradient></defs>    <path d="M47 14c0-8 3-12 8-13l3 3c-4 2-5 5-5 10z" fill="#3f5a22"/>    <ellipse cx="30" cy="52" rx="24" ry="33" fill="url(#pg)"/><ellipse cx="70" cy="52" rx="24" ry="33" fill="url(#pg)"/><ellipse cx="50" cy="52" rx="24" ry="35" fill="url(#pg)"/>    <path d="M34 22c-5 10-5 50 0 62M66 22c5 10 5 50 0 62" stroke="#b3480a" stroke-width="1.5" fill="none" opacity=".6"/>    <path d="M30 40l10 2-6 9zM70 40l-10 2 6 9zM46 52l4-7 4 7z" fill="url(#pglow)"/>    <path d="M26 62q24 18 48 0l-5 4-4-4-4 5-5-5-5 6-5-6-5 5-4-5-4 4z" fill="url(#pglow)"/></symbol>   <symbol id="skeleton" viewBox="0 0 60 120"><g fill="none" stroke="#efe6d2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">    <path d="M30 26v44"/><path d="M18 36q12 6 24 0M17 44q13 6 26 0M18 52q12 5 24 0M20 59q10 4 20 0"/>    <path d="M20 32l-10 18-2 14M40 32l10 18 2 14"/><path d="M22 72q8-4 16 0M24 74l-4 22-2 18M36 74l4 22 2 18"/></g>    <g fill="#efe6d2"><ellipse cx="30" cy="12" rx="11" ry="12"/><rect x="24" y="19" width="12" height="7" rx="2"/></g>    <g fill="#0a070c"><ellipse cx="25.5" cy="11" rx="3.4" ry="3.8"/><ellipse cx="34.5" cy="11" rx="3.4" ry="3.8"/><path d="M30 15l-2 3h4z"/><path d="M26 22v3M30 22v3M34 22v3" stroke="#0a070c" stroke-width="1"/></g></symbol>   <symbol id="moon" viewBox="0 0 64 64"><defs><radialGradient id="mg" cx="40%" cy="38%" r="60%"><stop offset="0" stop-color="#fff6d6"/><stop offset="1" stop-color="#e9c977"/></radialGradient></defs><circle cx="32" cy="32" r="26" fill="url(#mg)"/><circle cx="24" cy="26" r="4" fill="#d8b562" opacity=".5"/><circle cx="38" cy="38" r="6" fill="#d8b562" opacity=".4"/><circle cx="40" cy="22" r="2.5" fill="#d8b562" opacity=".5"/></symbol>   <symbol id="grave" viewBox="0 0 120 46"><path d="M8 46V22q0-14 16-14t16 14v24zM70 46V16q0-14 18-14t18 14v30z" fill="#1c1622"/><path d="M0 46q30-10 60-4t60 0v4z" fill="#0c0a0e"/><text x="24" y="31" text-anchor="middle" font-family="Oswald" font-size="8" fill="#3a3044">RIP</text><text x="88" y="27" text-anchor="middle" font-family="Oswald" font-size="7" fill="#3a3044">LEG DAY</text></symbol>  </defs> </svg>';
-var css=document.createElement("style");css.textContent=
- ".hwNote{position:relative;display:block;width:100%;text-align:left;border-radius:16px;overflow:hidden;margin:0 0 12px;padding:16px 16px 14px;border:1.5px solid #ff7a1a;background:radial-gradient(120% 90% at 85% 110%,rgba(255,122,26,.35),transparent 60%),linear-gradient(160deg,#1d0f26,#0a0610 70%);box-shadow:0 0 0 1px rgba(255,122,26,.15),0 10px 30px rgba(255,90,0,.15);color:#f2f0eb;cursor:pointer;font-family:Montserrat,sans-serif}"
-+".hwNote .hwWeb{position:absolute;right:-6px;top:-6px;width:110px;height:110px;opacity:.55}"
-+".hwNote .hwPk{position:absolute;right:14px;bottom:10px;width:58px;height:52px}"
-+".hwNote .hwBat{position:absolute;width:26px;height:14px;opacity:.85}"
-+".hwNote .k{font-size:8.5px;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;color:#ffb347}"
-+".hwNote .t{font-family:Creepster,Oswald,cursive;font-size:30px;line-height:1;letter-spacing:1px;color:#ff7a1a;margin-top:6px;text-shadow:0 0 14px rgba(255,122,26,.45)}"
-+".hwNote .s{font-size:11.5px;line-height:1.45;color:#e6dccb;margin-top:6px;max-width:78%}.hwNote .s b{color:#fff}"
-+".hwNote .go{display:inline-block;margin-top:10px;padding:8px 12px;border-radius:9px;background:#ff7a1a;color:#1a0b00;font:700 11px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase}"
-+"#hwScene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;display:none;background:radial-gradient(70% 45% at 50% 108%,rgba(255,110,20,.32),transparent 70%),radial-gradient(60% 40% at 80% 6%,rgba(120,60,170,.25),transparent 70%),linear-gradient(180deg,#120a1a 0%,#0a0710 45%,#07050a 100%)}"
-+"body.hwSat #hwScene{display:block}body.hwSat{background:#07050a}body.hwSat #main{position:relative;z-index:1}"
-+"#hwScene svg{position:absolute}"
-+"#hwScene .webTR{right:-4px;top:70px;width:96px;height:96px;transform:scaleX(-1)}#hwScene .webBR{right:-6px;bottom:200px;width:100px;height:100px;transform:scale(-1,-1)}#hwScene .webBL{left:-6px;top:42%;width:80px;height:80px;transform:scaleY(-1);opacity:.6}"
-+"#hwScene .spider{width:26px;height:120px;top:70px;animation:hwDrop 6s ease-in-out infinite}#hwScene .s1{left:40px}#hwScene .s2{right:110px;height:90px;animation-delay:-2.5s}#hwScene .s3{left:58%;height:150px;animation-delay:-4s;opacity:.75}"
-+"@keyframes hwDrop{0%,100%{transform:translateY(-20px)}50%{transform:translateY(10px)}}"
-+"#hwScene .bat{width:34px;height:18px;animation:hwFlap .5s ease-in-out infinite alternate}#hwScene .b1{left:28%;top:150px}#hwScene .b2{left:66%;top:210px;width:24px;animation-delay:-.2s}#hwScene .b3{left:10%;top:280px;width:20px;animation-delay:-.35s}"
-+"@keyframes hwFlap{to{transform:scaleY(.6) translateY(2px)}}"
-+"#hwScene .pk1{left:-6px;bottom:calc(84px + env(safe-area-inset-bottom));width:96px;height:86px}#hwScene .pk2{right:58px;bottom:calc(80px + env(safe-area-inset-bottom));width:64px;height:58px}#hwScene .pk3{left:86px;bottom:calc(82px + env(safe-area-inset-bottom));width:46px;height:42px}"
-+"#hwScene .skel{right:-8px;bottom:calc(86px + env(safe-area-inset-bottom));width:76px;height:150px;opacity:.75}#hwScene .skel2{left:30%;top:42%;width:54px;height:108px;opacity:.14}#hwScene .grave{left:40%;bottom:calc(80px + env(safe-area-inset-bottom));width:120px;height:46px;opacity:.9}"
-+"@media (min-width:700px){#hwScene .pk1{left:calc(50% - 260px)}#hwScene .skel{right:calc(50% - 260px)}}"
-+"@media (prefers-reduced-motion:reduce){#hwScene *{animation:none!important}}"
-+"body.hwSat .cbSess{background:rgba(18,12,22,.88)!important;border-color:rgba(255,122,26,.45)!important}body.hwSat .cbSess .bar{background:#ff7a1a!important}"
-+"body.hwSat .cbHero,body.hwSat .cbStats>div,body.hwSat .cbDay{background-color:rgba(16,12,20,.85)}"
-+"body.hwSat .cbDay.on{background:#ff7a1a!important;border-color:#ff7a1a!important;color:#1a0b00!important}"
-+".hwTag{display:inline-block;margin:6px 0 2px;font-size:8.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:rgba(255,122,26,.18);color:#ffb347}"
-+".hwHero{position:relative;border-radius:16px;padding:16px;margin:4px 0 12px;border:1px solid rgba(255,122,26,.55);background:linear-gradient(160deg,rgba(40,18,52,.92),rgba(10,6,16,.94));color:#f2f0eb;font-family:Montserrat,sans-serif}"
-+".hwHero .k{font-size:9px;font-weight:800;letter-spacing:2.6px;text-transform:uppercase;color:#ffb347}"
-+".hwHero h2{font-family:Creepster,Oswald,cursive;font-weight:400;font-size:36px;line-height:.95;color:#ff7a1a;margin-top:6px;text-shadow:0 0 18px rgba(255,122,26,.5)}"
-+".hwHero p{font-size:12.5px;line-height:1.5;color:#eadfcf;margin-top:8px}.hwHero p b{color:#fff}"
-+".hwScale{display:flex;align-items:center;gap:8px;margin-top:12px}.hwScale span{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#cdbfae}.hwScale i{flex:1;height:6px;border-radius:9px;background:linear-gradient(90deg,#3a2a12,#ff7a1a,#b14cff)}"
-+".hwTip{font-size:10.5px;color:#cdbfae;text-align:center;line-height:1.5;margin:8px 0;background:rgba(7,5,10,.8);border-radius:10px;padding:8px 10px}";
-document.head.appendChild(css);
-try{var f=document.createElement("link");f.rel="stylesheet";f.href="https://fonts.googleapis.com/css2?family=Creepster&display=swap";document.head.appendChild(f);}catch(e){}
-function u(id,cls){return '<svg class="'+cls+'" aria-hidden="true"><use href="#'+id+'"/></svg>';}
-function ensureDom(){
- if(!document.getElementById("hwSprite")){var d=document.createElement("div");d.id="hwSprite";d.style.cssText="position:absolute;width:0;height:0;overflow:hidden";d.innerHTML=SPRITE;document.body.appendChild(d);}
- if(!document.getElementById("hwScene")){var s=document.createElement("div");s.id="hwScene";s.setAttribute("aria-hidden","true");s.innerHTML=u("web","webTR")+u("web","webBR")+u("web","webBL")+u("spider","spider s1")+u("spider","spider s2")+u("spider","spider s3")+u("bat","bat b1")+u("bat","bat b2")+u("bat","bat b3")+u("skeleton","skel2")+u("grave","grave")+u("pumpkin","pk1")+u("pumpkin","pk3")+u("pumpkin","pk2")+u("skeleton","skel");document.body.insertBefore(s,document.body.firstChild);}
-}
-window.hwOpenSat=function(){window.__cbSel=HW;try{go("classes");}catch(e){}};
-function noteHtml(){return '<button class="hwNote" id="hwNote" onclick="hwOpenSat()">'+u("web","hwWeb")+u("pumpkin","hwPk")+'<svg class="hwBat" style="left:58%;top:12px" aria-hidden="true"><use href="#bat"/></svg><svg class="hwBat" style="left:70%;top:30px;width:18px" aria-hidden="true"><use href="#bat"/></svg>'
- +'<div class="k">This Saturday · 31 October</div><div class="t">Halloween Saturday</div><div class="s"><b>Every Saturday class is dress-up.</b> Wear anything but gym clothes, from a mask to the full costume. Boxing 7:30, GRUNT 8:30, Open Sparring 9:30.</div><span class="go">See Saturday\'s classes ›</span></button>';}
-function apply(){
- if(!live()){document.body.classList.remove("hwSat");return;}
- var m=document.getElementById("main");if(!m)return;
- var v=(typeof view!=="undefined")?view:"";
- /* Home notice */
- if(v==="home"&&!document.getElementById("hwNote")){
-  ensureDom();
-  var anchor=document.getElementById("lgh2")||m.querySelector(".homeCard");
-  var w=document.createElement("div");w.innerHTML=noteHtml();
-  if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(w.firstChild,anchor);
- }
- /* Saturday in Book in for classes */
- var sat=v==="classes"&&window.__cbSel===HW;
- document.body.classList.toggle("hwSat",sat);
- if(!sat)return;
- ensureDom();
- var first=m.querySelector(".cbSess");
- if(first&&!document.getElementById("hwHero")){
-  var h=document.createElement("div");h.id="hwHero";h.className="hwHero";
-  h.innerHTML='<div class="k">Saturday 31 October · dress-up day</div><h2>Halloween Saturday</h2><p><b>Come to any Saturday class in costume.</b> Anything but gym clothes. A pair of horns is fine. Full zombie is better.</p><div class="hwScale"><span>Minimal</span><i></i><span>Extravagant</span></div>';
-  var sec=first.previousElementSibling&&/cbSec/.test(first.previousElementSibling.className)?first.previousElementSibling:first;
-  sec.parentNode.insertBefore(h,sec);
-  var last=m.querySelectorAll(".cbSess");last=last[last.length-1];
-  var tip=document.createElement("div");tip.className="hwTip";tip.textContent="Sparring: costume on for the warm-up, then masks and anything loose come off when the gloves go on.";
-  last.parentNode.insertBefore(tip,last.nextSibling);
- }
- m.querySelectorAll(".cbSess .cbCat").forEach(function(c){if(!c.querySelector(".hwTag")){var t=document.createElement("div");t.innerHTML='<span class="hwTag">🎃 Costume class</span>';c.appendChild(t.firstChild);}});
-}
-try{var mo=new MutationObserver(function(){apply();});var startObs=setInterval(function(){var m=document.getElementById("main");if(m){clearInterval(startObs);mo.observe(m,{childList:true,subtree:false});apply();}},300);}catch(e){}
-try{var _go=window.go;if(typeof _go==="function"){window.go=function(v){var r=_go.apply(this,arguments);setTimeout(apply,0);setTimeout(apply,400);return r;};}}catch(e){}
-setInterval(function(){try{apply();}catch(e){}},1200);
-/* ?classes=2026-10-31 deep link from the guest page: open Saturday */
-try{var q=/[?&]classes=(\d{4}-\d{2}-\d{2})/.exec(location.search);if(q&&q[1]===HW){window.__cbSel=HW;}}catch(e){}
-})();
+/* Halloween Saturday block removed 31 Oct 2026 (Jake) */
 </script>
 </body>
 </html>
