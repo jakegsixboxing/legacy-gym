@@ -1,4 +1,4 @@
-// 7-day free trial requests from the legacygym.net homepage.
+// 7-day free trial requests from the legacygym.net homepage and the Instagram free-week page.
 // 1) saves the lead in Supabase (challenge_leads, challenge = trial7) via the trial_lead_submit RPC
 // 2) emails the staff inbox(es) and sends the person a confirmation (Brevo or Resend, keys live in env)
 // 3) pushes a notification to staff phones through /api/notify-staff
@@ -7,7 +7,8 @@
 const SB_URL = "https://jyslqxepodrseyhoppce.supabase.co";
 const SB_ANON = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 
-const STAFF_TO = ["jakegsixboxing@gmail.com", "alison@legacygym.net"];
+// Everyone who handles trials. Jerson (VA) does the first contact, the gym inbox keeps the record.
+const STAFF_TO = ["jakegsixboxing@gmail.com", "alison@legacygym.net", "jerson.legacygym@gmail.com", "legacygymkincumber@gmail.com"];
 const APP_URL = "https://legacygym-app.vercel.app";
 
 function clean(s, n) { return String(s == null ? "" : s).trim().slice(0, n); }
@@ -62,13 +63,14 @@ export default async function handler(req, res) {
   try {
     const b = req.body || {};
     const name = clean(b.name, 120), phone = clean(b.phone, 30), email = clean(b.email, 120).toLowerCase(), interest = clean(b.interest, 60) || "A bit of everything";
+    const source = clean(b.source, 40) || "website"; // website | instagram | mate:<slug>
     const test = b.test === true;
     if (clean(b.website, 10)) return res.status(200).json({ ok: true }); // honeypot
 
     // 1) save the lead
     const rpc = await fetch(SB_URL + "/rest/v1/rpc/trial_lead_submit", {
       method: "POST", headers: { apikey: SB_ANON, authorization: "Bearer " + SB_ANON, "content-type": "application/json" },
-      body: JSON.stringify({ p: { name, phone, email, interest } })
+      body: JSON.stringify({ p: { name, phone, email, interest, source } })
     });
     const saved = await rpc.json().catch(() => null);
     if (!rpc.ok || !saved || !saved.ok) {
@@ -84,7 +86,8 @@ export default async function handler(req, res) {
       to: staffTo,
       subject: (test ? "[TEST] " : "") + "7-day free trial request: " + name,
       text:
-        "New 7-day free trial request from the legacygym.net homepage.\n\n" +
+        "New 7-day free trial request.\n\n" +
+        "Source: " + source + "\n" +
         "Name: " + name + "\n" +
         "Mobile: " + phone + "\n" +
         "Email: " + email + "\n" +
@@ -93,7 +96,7 @@ export default async function handler(req, res) {
         "They've been told you'll text them a start time.\n" +
         "Text them: sms:" + phone.replace(/\s/g, "") + "\n" +
         "Call them: tel:" + phone.replace(/\s/g, "") + "\n\n" +
-        "This lead is also in the app under Road to Xmas > Website sign-ups (tagged 7-day free trial): " + APP_URL + "\n",
+        "This lead is in the app under Free trial sign-ups (Jake, Alison, Jerson). Mark them contacted / joined there: " + APP_URL + "\n",
       replyTo: email
     });
     const lead = await sendMail({
