@@ -48,6 +48,10 @@
     {
       "source": "/fightnight/:slug",
       "destination": "/api/fightnight?a=share&f=:slug"
+    },
+    {
+      "source": "/shop/:slug",
+      "destination": "/api/shop?a=share&s=:slug"
     }
   ]
 }
