@@ -588,7 +588,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 const MAINTENANCE=false; /* set to false + redeploy to reopen the app */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202610311410";
+const LG_BUILD="202610311430";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -11148,6 +11148,16 @@ try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(
 
 <script>
 /* Halloween Saturday block removed 31 Oct 2026 (Jake) */
+</script>
+<script>
+/* Jake's Home de-clutter · 31 Oct 2026 (Jake). On Jake's own Home only: hides the Jake's PT / Trained by Jake coach row and the
+   10 Week Challenge strip + card. Everyone else sees them as normal. Nothing deleted; remove this block to bring them back. */
+(function(){
+var JAKE="15a011b9-e222-45f0-8eb9-d5338da935d1";
+var st=document.createElement("style");st.textContent=".jakeTidy #rtxCard,.jakeTidy .rtcStrip,.jakeTidy .smCoach,.jakeTidy #tbjHomeBtn,.jakeTidy #inHomeBtn,.jakeTidy button[onclick=\"openMyPT()\"]{display:none!important}";document.head.appendChild(st);
+function tick(){var j=false;try{j=!!(session&&session.user&&session.user.id===JAKE);}catch(e){}document.documentElement.classList.toggle("jakeTidy",j);}
+setInterval(tick,800);tick();
+})();
 </script>
 </body>
 </html>
