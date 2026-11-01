@@ -7,6 +7,7 @@
 //   a=shop-share&s=slug GET → /shop/<slug>: singlet / merch buy page (OG tags + /buy.js shell). Shop routes live here because Hobby allows 12 functions.
 //   a=shop-checkout public  → {ref,email}: saved shop order (shop_order_create) → Shopify draft order → pay link
 //   a=shop-sync     Jake    → re-checks paid shop orders in Shopify (if a webhook was missed)
+//   a=crew-sms      fighter → texts the fighter's own ticket holders via ClickSend (fh_crew_targets / fh_crew_log; numbers never leave the server)
 import crypto from "crypto";
 const SB_URL = "https://jyslqxepodrseyhoppce.supabase.co";
 const SB_ANON = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
@@ -51,6 +52,7 @@ export default async function handler(req, res) {
   if (a === "shop-checkout") return shopCheckout(res, body);
   if (a === "shop-sync") return shopSync(res, body);
   if (a === "waiver-mail") return waiverMail(res, body);
+  if (a === "crew-sms") return crewSms(req, res, body);
   return res.status(404).json({ error: "unknown_action" });
 }
 
@@ -390,3 +392,55 @@ async function waiverMail(res, body) {
     return res.status(200).json({ sent, detail });
   } catch (e) { return res.status(500).json({ error: "server_error", detail: String((e && e.message) || e) }); }
 }
+
+/* ---------- a=crew-sms : a fighter texts their own holders through ClickSend ----------
+   Body: { hold_ids:[...], template?:'crew-1' }. Auth: Authorization: Bearer <user jwt> (the fighter).
+   The user's JWT is forwarded to PostgREST so fh_crew_targets / fh_crew_log run as that fighter:
+   they only ever return / log holds under the caller's own fighter row. Mobiles stay server-side. */
+async function crewSms(req, res, body) {
+  try {
+    const auth = String(req.headers.authorization || "");
+    const token = auth.startsWith("Bearer ") ? auth.slice(7) : String(body.token || "");
+    if (!token) return res.status(401).json({ error: "bad_auth" });
+    const ids = Array.isArray(body.hold_ids) ? body.hold_ids.map(Number).filter(n => Number.isInteger(n) && n > 0).slice(0, 60) : [];
+    if (!ids.length) return res.status(400).json({ error: "no_holds" });
+    const template = String(body.template || "crew-1");
+    const H = { apikey: SB_ANON, authorization: "Bearer " + token, "content-type": "application/json" };
+    const rpc = (fn, args) => fetch(SB_URL + "/rest/v1/rpc/" + fn, { method: "POST", headers: H, body: JSON.stringify(args || {}) }).then(async r => { const j = await r.json().catch(() => null); if (!r.ok) throw new Error((j && (j.message || j.hint)) || ("rpc " + r.status)); return j; });
+
+    const crew = await rpc("fh_my_crew", {});
+    if (!crew || !crew.ok) return res.status(403).json({ error: (crew && crew.error) || "not_a_fighter" });
+    const targets = await rpc("fh_crew_targets", { p_hold_ids: ids, p_template: template });
+    if (!targets.length) return res.status(200).json({ ok: true, sent: 0, skipped: ids.length, note: "already_sent_or_not_yours" });
+
+    const USER = process.env.CLICKSEND_USER, KEY = process.env.CLICKSEND_KEY, FROM = process.env.CLICKSEND_FROM || "";
+    if (!USER || !KEY) return res.status(503).json({ error: "sms_not_configured", message: "SMS isn't connected yet. Jake needs to add the ClickSend keys in Vercel." });
+
+    const tpl = String(crew.message || "");
+    const msgs = targets.map(t => ({
+      to: "+61" + String(t.mobile).slice(1),
+      body: tpl.replace(/\{first\}/g, t.first_name).replace(/\{fighter\}/g, t.fighter_first),
+      source: "legacy-app", custom_string: "crew:" + t.hold_id,
+      ...(FROM ? { from: FROM } : {})
+    }));
+    const cs = await fetch("https://rest.clicksend.com/v3/sms/send", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: "Basic " + Buffer.from(USER + ":" + KEY).toString("base64") },
+      body: JSON.stringify({ messages: msgs })
+    }).then(r => r.json()).catch(e => ({ error: String(e) }));
+
+    const results = (cs && cs.data && Array.isArray(cs.data.messages)) ? cs.data.messages : [];
+    let sent = 0, failed = 0;
+    for (const t of targets) {
+      const r = results.find(m => m.custom_string === "crew:" + t.hold_id) || null;
+      const okStatus = r && /^(SUCCESS|QUEUED)$/i.test(String(r.status || ""));
+      const st = okStatus ? "sent" : "failed";
+      if (okStatus) sent++; else failed++;
+      const err = okStatus ? null : String((r && r.status) || (cs && (cs.response_msg || cs.error)) || "no_response").slice(0, 200);
+      const sentBody = msgs.find(m => m.custom_string === "crew:" + t.hold_id);
+      await rpc("fh_crew_log", { p_hold_id: t.hold_id, p_template: template, p_status: st, p_provider_id: r ? String(r.message_id || "") : null, p_error: err, p_body: sentBody ? sentBody.body : null }).catch(() => {});
+    }
+    return res.status(200).json({ ok: failed === 0, sent, failed, skipped: ids.length - targets.length, provider: cs && cs.response_msg });
+  } catch (e) { return res.status(500).json({ error: "server_error", detail: String((e && e.message) || e) }); }
+}
+
