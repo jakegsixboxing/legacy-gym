@@ -50,6 +50,7 @@ export default async function handler(req, res) {
   if (a === "ticket-email") return ticketEmail(res, body);
   if (a === "shop-checkout") return shopCheckout(res, body);
   if (a === "shop-sync") return shopSync(res, body);
+  if (a === "waiver-mail") return waiverMail(res, body);
   return res.status(404).json({ error: "unknown_action" });
 }
 
@@ -360,4 +361,32 @@ async function shopShare(req, res) {
     + "<body><div id=\"buy\" data-slug=\"" + escH(p.slug) + "\"><noscript>Turn on JavaScript to buy " + escH(p.name) + ".</noscript></div><script src=\"/buy.js?v=" + BUY_V + "\"></script></body></html>";
   res.setHeader("cache-control", "public, max-age=30, s-maxage=60");
   return res.status(200).send(html);
+}
+
+/* ---------- a=waiver-mail: emails Jake when someone signs the ring-use waiver (/waiver). Verifies the signature exists first. ---------- */
+async function waiverMail(res, body) {
+  try {
+    const id = String(body.id || "");
+    if (!/^[0-9a-f-]{36}$/.test(id)) return res.status(400).json({ error: "bad_request" });
+    const row = await fetch(SB_URL + "/rest/v1/rpc/waiver_get", { method: "POST", headers: { apikey: SB_ANON, authorization: "Bearer " + SB_ANON, "content-type": "application/json" }, body: JSON.stringify({ p_id: id }) }).then(r => r.json()).catch(() => null);
+    if (!row || !row.ok) return res.status(404).json({ error: "not_found" });
+    const BREVO = process.env.BREVO_API_KEY, RESEND = process.env.RESEND_API_KEY;
+    if (!BREVO && !RESEND) return res.status(200).json({ skipped: "not_configured" });
+    const when = new Date(row.signed_at).toLocaleString("en-AU", { timeZone: "Australia/Sydney", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+    const to = "jakegsixboxing@gmail.com";
+    const subject = "Waiver signed: " + row.name + " (" + when + ")";
+    const text = row.name + " signed the ring-use waiver at " + when + ".\n\nTotal signed today: " + row.today + ".\nFull list: " + APP + "/waiver?key=LGCY-RING-7731\n\n— Legacy Gym app";
+    const html = '<div style="font-family:Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;background:#0b0b0c;color:#f2f0eb;padding:24px;border-radius:16px"><div style="font-size:11px;letter-spacing:3px;color:#c9a44c;text-transform:uppercase">Ring use waiver</div><h1 style="font-size:28px;margin:8px 0 4px">' + escH(row.name) + '</h1><div style="color:#9a9891;font-size:14px">Signed ' + escH(when) + ' · total today ' + row.today + '</div><a href="' + APP + '/waiver?key=LGCY-RING-7731" style="display:block;margin-top:18px;background:#c9a44c;color:#0b0b0c;text-decoration:none;text-align:center;padding:14px;border-radius:12px;font-weight:bold">See everyone who has signed</a></div>';
+    let sent = false, detail = null;
+    if (BREVO) {
+      const from = process.env.MAIL_FROM || "jakegsixboxing@gmail.com";
+      const r = await fetch("https://api.brevo.com/v3/smtp/email", { method: "POST", headers: { "api-key": BREVO, "content-type": "application/json" }, body: JSON.stringify({ sender: { name: "Legacy Gym app", email: from }, to: [{ email: to }], subject, textContent: text, htmlContent: html }) });
+      sent = r.ok; if (!r.ok) detail = await r.text().catch(() => null);
+    } else if (RESEND) {
+      const from = process.env.MAIL_FROM || "Legacy Gym <onboarding@resend.dev>";
+      const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { authorization: "Bearer " + RESEND, "content-type": "application/json" }, body: JSON.stringify({ from, to: [to], subject, text, html }) });
+      sent = r.ok; if (!r.ok) detail = await r.text().catch(() => null);
+    }
+    return res.status(200).json({ sent, detail });
+  } catch (e) { return res.status(500).json({ error: "server_error", detail: String((e && e.message) || e) }); }
 }
