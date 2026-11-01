@@ -86,7 +86,7 @@ async function sign(){
  S.busy=true;form();
  try{var r=await rpc("waiver_sign",{p_name:name,p_version:VERSION,p_ua:navigator.userAgent});
   if(!r||!r.ok)throw new Error(r&&r.error==="full_name"?"First and last name please.":"Couldn't save, try again.");
-  var d=new Date(r.signed_at);
+  var d=new Date(r.signed_at);try{fetch('/api/fightnight?a=waiver-mail',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({id:r.id})});}catch(e){}
   app.innerHTML=head()+'<div class="done"><div class="tick">✓</div><h2>You\'re signed in, '+esc(name.split(/\s+/)[0])+'</h2><p>Recorded <b>'+d.toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"})+' '+d.toLocaleTimeString("en-AU",{hour:"numeric",minute:"2-digit"}).toLowerCase()+'</b> and sent to Legacy Gym.</p><p>By signing you\'ve confirmed you\'re not a member or paying customer, you\'re training at your own risk with other combat sports athletes, and you\'ve <b>released Legacy Gym from any claim</b> for injury, loss or damage from today\'s session or being on the premises.</p><p style="margin-top:22px">Look after each other. Have a good session.</p></div>';
  }catch(e){S.busy=false;S.err=e.message||"Couldn't save, try again.";form();}
 }
