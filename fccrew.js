@@ -1,4 +1,4 @@
-/* ===== Fight Club — "Your crew" (1 Nov 2026) =====
+/* ===== Fight Club — "Your crew" (1 Nov 2026, r2: hooks the Home "Your tickets" card) =====
    A fighter sees who is holding Fight Night tickets under their name (first names only) and texts them the
    release update with one tap. The text goes out through Fight Club's SMS (api/fightnight?a=crew-sms → ClickSend),
    worded as from the fighter. The fighter never sees a phone number; every send is logged in fn_outreach.
@@ -55,8 +55,27 @@ function cardHtml(){
   var n=holders().length,k=sentCount(),seats=holders().reduce(function(a,h){return a+(h.seats||1);},0);
   return '<div id="fcwCard" class="fcwCard"><div class="ic">'+n+'</div><div><b>Your crew · '+n+' holding'+(seats!==n?' · '+seats+' seats':'')+'</b><small>'+(k>=n&&n>0?'All texted the ticket update.':(k?k+' of '+n+' texted. ':'')+'Text them the ticket release update.')+'</small></div><button onclick="fcwOpen()">'+(k>=n&&n>0?'View':'Text them')+'</button></div>';
 }
+function hookHome(){
+  try{
+    var card=$("fnhMy");if(!card||!S.data||!holders().length)return;
+    if(!$("fcwHomeBtn")){
+      var k2=null;card.querySelectorAll(".k2").forEach(function(k){if(/Who's holding/i.test(k.textContent))k2=k;});
+      var who=k2?k2.nextElementSibling:null;
+      var d=document.createElement("div");d.className="btns";d.style.marginTop="8px";
+      var k=sentCount(),n=holders().length;
+      d.innerHTML='<button id="fcwHomeBtn" class="b p big" onclick="fcwOpen()">'+(k>=n?'Texted everyone · view':'Text my crew the ticket update'+(k?' · '+(n-k)+' to go':''))+'</button>';
+      if(who&&who.classList.contains("who"))who.insertAdjacentElement("afterend",d);else if(k2)k2.insertAdjacentElement("afterend",d);else card.appendChild(d);
+      var hint=document.createElement("p");hint.id="fcwHomeHint";hint.style.cssText="font-size:11px;color:#8fa4ae;margin:6px 0 0";hint.textContent="Tap a name to text just them. Sent from Fight Club in your name; you won't see their numbers.";d.insertAdjacentElement("afterend",hint);
+    }
+    if(!card.dataset.fcw){card.dataset.fcw="1";
+      card.addEventListener("click",function(e){var row=e.target.closest&&e.target.closest(".who > div");if(!row||!card.contains(row))return;var b=row.querySelector("b");if(!b)return;var nm=b.textContent.trim();if(!nm||/^\+\d+ more/.test(row.textContent))return;window.fcwOpen(nm);},true);
+      card.querySelectorAll(".who > div").forEach(function(r){r.style.cursor="pointer";});
+    }
+  }catch(e){}
+}
 function inject(){
   try{
+    if(curView()==="home"){hookHome();return;}
     if(curView()!=="fc"){return;}
     var old=$("fcwCard");
     if(!S.data||!holders().length){if(old)old.parentNode.removeChild(old);return;}
@@ -87,8 +106,11 @@ function paint(){
 function firstOf(id){var x=holders().filter(function(h){return h.id===id;})[0];return x?x.name.split(" ")[0]:"";}
 function fmt(ts){try{var d=new Date(ts);var hh=d.getHours(),m=d.getMinutes();return (hh%12||12)+':'+(m<10?'0':'')+m+(hh<12?'am':'pm');}catch(e){return "";}}
 
-window.fcwOpen=async function(){
+window.fcwOpen=async function(pre){
   if(!S.data){await load(true);if(!S.data)return T("Couldn't load your crew — try again.");}
+  if(typeof pre==="string"&&pre){var pf=pre.split(" ")[0].toLowerCase(),pl=(pre.split(" ")[1]||"")[0];pl=pl?pl.toLowerCase():"";
+    var m=holders().filter(function(h){var hp=h.name.split(" ");return hp[0].toLowerCase()===pf&&(!pl||(hp[1]||"")[0].toLowerCase()===pl);});
+    if(m.length===1&&!(m[0].sent_status==="sent"||m[0].sent_status==="delivered")){S.sel={};S.sel[m[0].id]=true;}}
   S.open=true;
   var ov=document.createElement("div");ov.id="fcwOv";ov.innerHTML='<div id="fcwSheet" role="dialog" aria-label="Your crew"></div>';
   ov.addEventListener("click",function(e){if(e.target===ov)window.fcwClose();});
@@ -114,10 +136,10 @@ window.fcwSend=async function(){
     var j=null;try{j=await r.json();}catch(e){}
     if(!r.ok||!j){throw new Error((j&&(j.message||j.error))||("Couldn't send ("+r.status+")"));}
     if(j.error==="sms_not_configured")throw new Error(j.message);
-    S.sel={};await load(true);
+    S.sel={};var hb=$("fcwHomeBtn");if(hb){var hw=hb.parentNode;var hh=$("fcwHomeHint");if(hh)hh.remove();hw.remove();}await load(true);
     T(j.sent?("Sent to "+j.sent+(j.sent===1?" person":" people")+(j.failed?" · "+j.failed+" failed":"")):(j.failed?"Couldn't send — "+j.failed+" failed. Try again or message Jake.":"Already sent."));
   }catch(err){T((err&&err.message)||"Couldn't send. Check your connection and try again.");}
   S.busy=false;paint();
 };
-setInterval(function(){if(curView()==="fc"){load(false);inject();}},900);
+setInterval(function(){var v=curView();if(v==="fc"||v==="home"){load(false);inject();}},900);
 })();
