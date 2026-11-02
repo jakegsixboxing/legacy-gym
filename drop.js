@@ -49,7 +49,7 @@ function unitFor(n){var u=null;tiers().forEach(function(t){if(n>=t.min)u=t.cents
 function count(){return S.cart.reduce(function(a,l){return a+l.qty;},0);}
 function item(id){return (D.items||[]).filter(function(x){return x.id===id;})[0];}
 function closesIn(){if(!D||!D.closes_at)return null;return new Date(D.closes_at).getTime()-(Date.now()+SKEW);}
-function cdTxt(ms){if(ms<=0)return "Closed";var s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),sec=s%60;return d>0?d+"d "+h+"h "+m+"m":h>0?h+"h "+String(m).padStart(2,"0")+"m "+String(sec).padStart(2,"0")+"s":m+"m "+String(sec).padStart(2,"0")+"s";}
+function cdTxt(ms){if(ms<=0)return "Closed";var s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),sec=s%60;return d>0?d+"d "+h+"h "+String(m).padStart(2,"0")+"m "+String(sec).padStart(2,"0")+"s":h>0?h+"h "+String(m).padStart(2,"0")+"m "+String(sec).padStart(2,"0")+"s":m+"m "+String(sec).padStart(2,"0")+"s";}
 function closesLabel(){var d=new Date(D.closes_at);return d.toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"})+" "+d.toLocaleTimeString("en-AU",{hour:"numeric",minute:"2-digit"}).toLowerCase().replace(" ","");}
 function tick(){var el=$("cdN");if(!el)return;var ms=closesIn();if(ms===null)return;if(ms<=0){clearInterval(TICK);TICK=null;load().then(paint);return;}el.textContent=cdTxt(ms);}
 function shell(inner){return '<div class="wrap"><div class="bar"><div class="lg">Legacy<small>Gym · Kincumber</small></div><div class="ev">Official gym store<br>Pick up at the gym</div></div>'+inner+'<div class="foot">Questions? Ask at the front desk or message the gym. Legacy Gym Kincumber.</div></div>';}
