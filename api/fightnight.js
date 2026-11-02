@@ -4,7 +4,7 @@
 //   a=setup        Jake/Alison → registers the orders/paid webhook with Shopify (run once)
 //   a=ticket-email staff   → emails a Fight Night ticket link (was /api/fn-ticket-email; vercel.json rewrites it here)
 //   a=share&f=slug GET     → /fightnight/<fighter-slug>: the fighter's "Hold Me a Ticket" page (OG tags + /fh.js shell)
-//   a=shop-share&s=slug GET → /shop/<slug>: singlet / merch buy page (OG tags + /buy.js shell). Shop routes live here because Hobby allows 12 functions.
+//   a=shop-share&s=slug GET → /shop/<slug>: singlet / merch buy page (or a multi-design drop → drop.js) (OG tags + /buy.js shell). Shop routes live here because Hobby allows 12 functions.
 //   a=shop-checkout public  → {ref,email}: saved shop order (shop_order_create) → Shopify draft order → pay link
 //   a=shop-sync     Jake    → re-checks paid shop orders in Shopify (if a webhook was missed)
 //   a=crew-sms      fighter → texts the fighter's own ticket holders via ClickSend (fh_crew_targets / fh_crew_log; numbers never leave the server)
@@ -278,6 +278,7 @@ const SHOP_H = { apikey: SB_ANON, authorization: "Bearer " + SB_ANON, "content-t
 const shopRpc = (fn, args) => fetch(SB_URL + "/rest/v1/rpc/" + fn, { method: "POST", headers: SHOP_H, body: JSON.stringify(args || {}) }).then(r => r.json());
 const shopMoney = c => "$" + ((c || 0) / 100).toFixed(2).replace(/\.00$/, "");
 const BUY_V = "202610311340";
+const DROP_V = "202611021330";
 const JAKE_ID = "15a011b9-e222-45f0-8eb9-d5338da935d1";
 
 /* ---------- a=shop-checkout ---------- */
@@ -287,6 +288,8 @@ async function shopCheckout(res, body) {
   try {
     const ref = String(body.ref || "").trim().toUpperCase(), email = String(body.email || "").trim();
     if (!/^SG26-[A-Z0-9]{6}$/.test(ref) || !/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: "bad_request" });
+    const cart = await shopRpc("shop_cart_lookup", { p_ref: ref, p_email: email }).catch(() => null);
+    if (cart && cart.ref && Array.isArray(cart.lines) && cart.lines.length) return shopCartCheckout(res, body, ref, email, cart, CS);
     const q = await shopRpc("shop_order_lookup", { p_ref: ref, p_email: email });
     if (!q || !q.ref) return res.status(404).json({ error: "not_found" });
     if (q.status === "paid") return res.status(409).json({ error: "already_paid" });
@@ -317,6 +320,36 @@ async function shopCheckout(res, body) {
   } catch (e) { return res.status(500).json({ error: "server_error", detail: String((e && e.message) || e) }); }
 }
 
+/* one Shopify draft for a whole drop cart (several designs/sizes, bundle unit price on every line) */
+async function shopCartCheckout(res, body, ref, email, q, CS) {
+  if (q.status === "paid") return res.status(409).json({ error: "already_paid" });
+  if (q.checkout_url && !body.fresh) return res.status(200).json({ ok: true, url: q.checkout_url, draft: q.shopify_draft, reused: true });
+  let sum = 0;
+  for (const l of q.lines) { if (!(l.unit_cents > 0) || !(l.qty > 0) || l.unit_cents * l.qty !== Number(l.total_cents)) return res.status(400).json({ error: "bad_items" }); sum += Number(l.total_cents); }
+  if (sum !== Number(q.total_cents)) return res.status(400).json({ error: "bad_items" });
+  const gql = await shopifyGql(CS);
+  if (!gql) return res.status(502).json({ error: "shopify_auth_failed" });
+  const summary = q.lines.map(l => `${l.product} ${l.size}×${l.qty}`).join(", ");
+  const created = await gql(
+    `mutation($input: DraftOrderInput!){ draftOrderCreate(input:$input){ draftOrder{ id name invoiceUrl } userErrors{ field message } } }`,
+    { input: {
+        email, tags: ["legacy-app", "shop", "singlet", "pickup", "singlet-drop"],
+        note: `Shop ${ref} · ${summary} · ${q.qty} singlets at ${shopMoney(q.lines[0].unit_cents)} each · ${q.name}${q.mobile ? " · " + q.mobile : ""} · pre-order, pick up at Legacy Gym`,
+        customAttributes: [{ key: "Shop ref", value: ref }, { key: "Singlets", value: String(q.qty) }, { key: "Pick up", value: "Legacy Gym Kincumber" }],
+        lineItems: q.lines.map(l => ({ title: `${l.product} singlet · Size ${l.size}`, quantity: l.qty, originalUnitPrice: (l.unit_cents / 100).toFixed(2), requiresShipping: false, taxable: true }))
+    } });
+  const d = created && created.data && created.data.draftOrderCreate;
+  if (!d || !d.draftOrder || (d.userErrors && d.userErrors.length))
+    return res.status(502).json({ error: "shopify_rejected", detail: (d && d.userErrors) || created.errors });
+  const draft = d.draftOrder;
+  await shopRpc("shop_order_set_checkout", { p_ref: ref, p_email: email, p_draft: draft.name, p_url: draft.invoiceUrl }).catch(() => {});
+  if (body.test) {
+    await gql(`mutation($input: DraftOrderDeleteInput!){ draftOrderDelete(input:$input){ deletedId userErrors{ message } } }`, { input: { id: draft.id } });
+    return res.status(200).json({ ok: true, test: true, draft: draft.name, url: draft.invoiceUrl, lines: q.lines.length, total: q.total_cents });
+  }
+  return res.status(200).json({ ok: true, url: draft.invoiceUrl, draft: draft.name });
+}
+
 /* ---------- a=shop-sync (Jake) ---------- */
 async function shopSync(res, body) {
   const CS = process.env.SHOPIFY_CLIENT_SECRET;
@@ -344,11 +377,10 @@ async function shopShare(req, res) {
   const slug = String((req.query && req.query.s) || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 80);
   let p = null;
   if (slug) { try { const j = await shopRpc("shop_public", { p_slug: slug }); if (j && j.ok) p = j; } catch (e) {} }
+  if (p && p.drop_slug) { res.setHeader("cache-control", "public, max-age=60"); res.setHeader("location", "/shop/" + p.drop_slug); return res.status(302).end(); }
+  if (!p && slug) { try { const j = await shopRpc("shop_drop_public", { p_slug: slug }); if (j && j.ok) return dropShare(res, j); } catch (e) {} }
   res.setHeader("content-type", "text/html; charset=utf-8");
-  const head = "<!doctype html><html lang=\"en-AU\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"theme-color\" content=\"#06080a\"><meta name=\"robots\" content=\"noindex\">"
-    + "<link rel=\"icon\" href=\"/icon-192.png\"><link rel=\"preconnect\" href=\"https://fonts.googleapis.com\"><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>"
-    + "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Montserrat:wght@500;600;700;800&display=swap\">"
-    + "<style>html,body{background:#06080a;color:#eef3f5;margin:0;font-family:Montserrat,system-ui,sans-serif}</style>";
+  const head = shopHead();
   if (!p) {
     res.setHeader("cache-control", "no-store");
     return res.status(404).send(head + "<title>Legacy Gym · Shop</title></head><body style=\"min-height:100vh;display:grid;place-items:center;text-align:center;padding:24px\"><div><h1 style=\"font-family:Oswald,sans-serif;text-transform:uppercase\">That link isn’t live</h1><p style=\"color:#8fa4ae\">Check the link you were sent. Legacy Gym Kincumber.</p></div></body></html>");
@@ -361,6 +393,31 @@ async function shopShare(req, res) {
     + "<meta property=\"og:type\" content=\"product\"><meta property=\"og:site_name\" content=\"Legacy Gym Kincumber\"><meta property=\"og:title\" content=\"" + escH(title) + "\"><meta property=\"og:description\" content=\"" + escH(desc) + "\">"
     + "<meta property=\"og:image\" content=\"" + escH(img) + "\"><meta property=\"og:url\" content=\"" + url + "\"><meta name=\"twitter:card\" content=\"summary_large_image\"><meta name=\"twitter:image\" content=\"" + escH(img) + "\"></head>"
     + "<body><div id=\"buy\" data-slug=\"" + escH(p.slug) + "\"><noscript>Turn on JavaScript to buy " + escH(p.name) + ".</noscript></div><script src=\"/buy.js?v=" + BUY_V + "\"></script></body></html>";
+  res.setHeader("cache-control", "public, max-age=30, s-maxage=60");
+  return res.status(200).send(html);
+}
+
+function shopHead() {
+  return "<!doctype html><html lang=\"en-AU\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><meta name=\"theme-color\" content=\"#06080a\"><meta name=\"robots\" content=\"noindex\">"
+    + "<link rel=\"icon\" href=\"/icon-192.png\"><link rel=\"preconnect\" href=\"https://fonts.googleapis.com\"><link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>"
+    + "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Montserrat:wght@500;600;700;800&display=swap\">"
+    + "<style>html,body{background:#06080a;color:#eef3f5;margin:0;font-family:Montserrat,system-ui,sans-serif}</style>";
+}
+
+/* ---------- /shop/<drop-slug>: several designs, one cart, bundle pricing (drop.js) ---------- */
+function dropShare(res, d) {
+  const t = (d.tiers || []).slice().sort((a, b) => a.min - b.min);
+  const from = t.length ? shopMoney(t[0].cents) : "";
+  const title = d.name + (d.active && from ? " · " + from + " each" : "") + " · Legacy Gym";
+  const deal = t.length > 1 ? t.slice(1).map(x => x.min + (x === t[t.length - 1] ? "+" : "") + " for " + shopMoney(x.cents) + " each").join(", ") + ". " : "";
+  const desc = (d.preorder ? "Pre-order, one run only. " : "") + deal + "Pick your designs and sizes, pay online, pick up at the gym.";
+  const img = d.image_url || (APP + "/img/shop/drop1/poster.jpg");
+  const url = APP + "/shop/" + d.slug;
+  const html = shopHead() + "<title>" + escH(title) + "</title><meta name=\"description\" content=\"" + escH(desc) + "\">"
+    + "<meta property=\"og:type\" content=\"product\"><meta property=\"og:site_name\" content=\"Legacy Gym Kincumber\"><meta property=\"og:title\" content=\"" + escH(title) + "\"><meta property=\"og:description\" content=\"" + escH(desc) + "\">"
+    + "<meta property=\"og:image\" content=\"" + escH(img) + "\"><meta property=\"og:url\" content=\"" + url + "\"><meta name=\"twitter:card\" content=\"summary_large_image\"><meta name=\"twitter:image\" content=\"" + escH(img) + "\"></head>"
+    + "<body><div id=\"buy\" data-slug=\"" + escH(d.slug) + "\"><noscript>Turn on JavaScript to order.</noscript></div><script src=\"/drop.js?v=" + DROP_V + "\"></script></body></html>";
+  res.setHeader("content-type", "text/html; charset=utf-8");
   res.setHeader("cache-control", "public, max-age=30, s-maxage=60");
   return res.status(200).send(html);
 }
