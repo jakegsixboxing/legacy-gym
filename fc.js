@@ -1380,8 +1380,8 @@ var css=document.createElement("style");css.textContent=
 +'.msRow .t{font-weight:700;font-size:13px;color:#fff;line-height:1.2}.msRow .m{font-size:10.5px;color:#9a9891;margin-top:3px}'
 +'.msRow button{border:1px solid rgba(241,210,122,.5);background:transparent;color:#F1D27A;font-size:8.5px;letter-spacing:1.2px;font-weight:800;text-transform:uppercase;padding:8px 9px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap}'
 +'.msEmpty{margin-top:14px;padding:18px;border:1px dashed #26262e;border-radius:12px;color:#6e6b74;font-size:12px;text-align:center;line-height:1.5}'
-+'#msDim{position:fixed;inset:0;z-index:9010;background:rgba(0,0,0,.74);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .3s}#msDim.on{opacity:1}'
-+'#msSheet{position:fixed;left:0;right:0;bottom:0;z-index:9011;margin:0 auto;max-width:480px;max-height:calc(100% - 80px);overflow:auto;background:#111114;border:1px solid #2a2a31;border-bottom:0;border-radius:22px 22px 0 0;padding:14px 18px calc(22px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .42s cubic-bezier(.2,.9,.25,1)}#msSheet.on{transform:none}'
++'#msDim{position:fixed;inset:0;z-index:9010;background:rgba(0,0,0,.74);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .3s;pointer-events:none}#msDim.on{opacity:1;pointer-events:auto}'
++'#msSheet{position:fixed;left:0;right:0;bottom:0;z-index:9011;margin:0 auto;max-width:480px;max-height:calc(100% - 80px);overflow:auto;background:#111114;border:1px solid #2a2a31;border-bottom:0;border-radius:22px 22px 0 0;padding:14px 18px calc(22px + env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .42s cubic-bezier(.2,.9,.25,1);pointer-events:none}#msSheet.on{transform:none;pointer-events:auto}'
 +'#msSheet .grab{width:38px;height:4px;border-radius:2px;background:#2e2e36;margin:0 auto 12px}'
 +'#msSheet .k{font-size:9px;letter-spacing:2.2px;font-weight:800;color:#F1D27A;text-transform:uppercase}#msSheet h2{margin:4px 0 0;font-family:Oswald,sans-serif;font-weight:700;font-size:20px;line-height:1.05;color:#fff}#msSheet .sub{color:#9a9891;font-size:12px;margin-top:6px;line-height:1.5}'
 +'#msSheet .done{border:1.5px solid #39FF88;background:#0d1a12;border-radius:14px;padding:12px 14px;margin-bottom:12px}#msSheet .done b{display:block;font-family:Oswald,sans-serif;font-size:18px;color:#39FF88}#msSheet .done span{display:block;font-size:12px;color:#cfe9d6;margin-top:3px;line-height:1.4}'
@@ -1450,7 +1450,8 @@ function openSheet(b,justBooked){
   s.innerHTML=sheetHtml(b,justBooked);s.scrollTop=0;
   requestAnimationFrame(function(){requestAnimationFrame(function(){d.classList.add("on");s.classList.add("on");});});
 }
-window.msSheetClose=function(){var d=document.getElementById("msDim"),s=document.getElementById("msSheet");if(d)d.classList.remove("on");if(s)s.classList.remove("on");};
+/* 4 Nov 2026 fix: closing used to leave #msDim (full-screen, invisible) on top of the app, swallowing every tap after a booking. Now it stops catching taps at once and is removed after the slide-out. */
+window.msSheetClose=function(){var d=document.getElementById("msDim"),s=document.getElementById("msSheet");if(d)d.classList.remove("on");if(s)s.classList.remove("on");setTimeout(function(){var d2=document.getElementById("msDim"),s2=document.getElementById("msSheet");if(d2&&!d2.classList.contains("on"))d2.remove();if(s2&&!s2.classList.contains("on"))s2.remove();},480);};
 window.msSeries=function(v){SERIES=v;var s=document.getElementById("msSheet");if(s&&CUR)s.innerHTML=sheetHtml(CUR);};
 window.msCal=function(id){var b=byId(id);if(b)openSheet(b);};
 window.msAdd=function(k){
