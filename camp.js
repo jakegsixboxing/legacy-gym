@@ -100,14 +100,12 @@ window.campSend=async function(){if(S.busy)return;var n=($id("campName")||{}).va
 
 /* ---------- hooks ---------- */
 var _render=window.render;window.render=function(){if(view==="camp"){if(S.mine===undefined){var m=$id("main");if(m)m.innerHTML='<div class="loadingDots">Opening…</div>';loadMine().then(paint);return;}paint();return;}return _render.apply(this,arguments);};
-function homeCard(){var ex=$id("campHome");
+function homeCard(){var ex=$id("campHome");var mm=$id("main");if(ex&&mm&&view==="home"&&mm.firstElementChild!==ex){mm.insertAdjacentElement("afterbegin",ex);return;}
   if(!session||new Date()>SHOW_UNTIL){if(ex&&ex.parentNode)ex.parentNode.removeChild(ex);return;}
   if(view!=="home")return;var m=$id("main");if(!m||ex)return;
   var b=document.createElement("button");b.id="campHome";b.onclick=window.campEnter;
   b.innerHTML='<div class="im"><span class="bd">NEW · 2027</span></div><div class="tx"><div class="k">Legacy Training Camp</div><div class="t">USA <span>×</span> Mexico</div><div class="s">8–10 days training and travelling from LA into Mexico. All levels.</div><div class="a"><span><i></i>Get a brief insight</span><span>›</span></div></div>';
-  var root=$id("lgh2");if(root)root.insertAdjacentElement("afterbegin",b);else{var first=m.querySelector(".homeCard");if(first)first.insertAdjacentElement("beforebegin",b);else m.insertAdjacentElement("afterbegin",b);}
-  /* keep it above the staff-only cards if they land first */
-  var top=m.querySelector("#fnxHome,#fntHome,#smmHome,#sglHome");if(top&&top.compareDocumentPosition(b)&Node.DOCUMENT_POSITION_FOLLOWING)top.insertAdjacentElement("beforebegin",b);
+  m.insertAdjacentElement("afterbegin",b); /* very top of Home for everyone */
 }
 var _home=window.renderHome;if(typeof _home==="function"){window.renderHome=function(){var r=_home.apply(this,arguments);try{homeCard();setTimeout(homeCard,150);setTimeout(homeCard,700);}catch(e){}return r;};}
 setInterval(function(){try{homeCard();}catch(e){}},1500);
