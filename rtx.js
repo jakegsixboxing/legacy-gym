@@ -127,7 +127,7 @@
     1:{marker:"Games format intro",stations:[{name:"Run",type:"TimeDistance"},{name:"Machine — bike/row/ski, members' choice",type:"TimeDistance"}],note:"First week — teams aren't formed yet, so this logs your own numbers only."},
     2:{marker:"Games format building",stations:[{name:"Run",type:"TimeDistance"},{name:"Machine — bike/row/ski, members' choice",type:"TimeDistance"},{name:"Farmer's Carry",type:"Time"}],note:"Carry added. Still individual-only — no team field yet."},
     3:{marker:"Near-full dress rehearsal",stations:SAT_STD4,note:"Run becomes a connecting jog between stations from here on — it's not logged on its own anymore."},
-    4:{marker:"LEGACY GAMES I",stations:SAT_STD4,note:"Teams are picked by level today, but this log stays individual — team scoring is a separate feature to add later."},
+    4:{marker:"LEGACY GAMES I",stations:[{name:"Component 1",label:"Component 1 Time",type:"Time"},{name:"Component 2",label:"Component 2 Time",type:"Time"},{name:"Overall",label:"Overall Time",type:"Time"}],team:true,note:"Legacy Games I. Log your team\u2019s time for Component 1, Component 2 and your overall time."},
     5:{marker:"Deload — team/tag game",stations:[],note:"Light team game, not station-specific — nothing to log this week."},
     6:{marker:"General (skill banked)",stations:SAT_STD4,note:""},
     7:{marker:"General",stations:SAT_STD4,note:""},
@@ -299,13 +299,13 @@
     var info=SAT_LOG[wk];
     if(!info.stations.length)return '<div class="card"><div class="role">Saturday — Games Day</div><div class="satMarker">'+E(info.marker)+'</div><div class="notlogged">'+E(info.note)+'</div></div>';
     var st=(saved&&saved.stations)||[];
-    var rows=info.stations.map(function(s,i){var sv=st[i]||{};
+    var rows=info.stations.map(function(s,i){var sv=st.filter(function(x){return x&&x.name===s.name;})[0]||(st[i]&&st[i].name===s.name?st[i]:{});
       if(s.type==="TimeDistance")return '<div class="satBlock"><div class="satName">'+E(s.name)+'<small>Time + Distance</small></div><div class="satDual">'+
         '<input class="inp" data-s="'+i+'" data-f="distance" placeholder="distance (m)" value="'+E(sv.distance||"")+'" '+(ro?"disabled":"")+'>'+
         '<input class="inp" data-s="'+i+'" data-f="time" placeholder="mm:ss" value="'+E(sv.time||"")+'" '+(ro?"disabled":"")+'></div></div>';
       var unit=s.type==="Time"?"mm:ss":"reps";
-      return '<div class="satRow"><div class="satName">'+E(s.name)+'<small>'+s.type+'</small></div><input class="inp" data-s="'+i+'" data-f="value" placeholder="'+unit+'" value="'+E(sv.value||"")+'" '+(ro?"disabled":"")+'></div>';}).join("");
-    return '<div class="card"><div class="role">Saturday — Games Day</div><div class="satMarker">'+E(info.marker)+'</div><div class="last">Individual log only.</div>'+(info.note?'<div class="last new">'+E(info.note)+'</div>':'')+rows+'</div>';
+      return '<div class="satRow"><div class="satName">'+E(s.label||s.name)+'<small>'+s.type+'</small></div><input class="inp" data-s="'+i+'" data-f="value" placeholder="'+unit+'" value="'+E(sv.value||"")+'" '+(ro?"disabled":"")+'></div>';}).join("");
+    return '<div class="card"><div class="role">Saturday — Games Day</div><div class="satMarker">'+E(info.marker)+'</div>'+(info.team?'':'<div class="last">Individual log only.</div>')+(info.note?'<div class="last new">'+E(info.note)+'</div>':'')+rows+'</div>';
   }
   function logHtml(){
     var day=RTX.day,wk=RTX.week,ro=isCoachView();
@@ -338,8 +338,8 @@
     var comments=($("rtxComments")&&$("rtxComments").value.trim())||"";
     var r;
     if(day==="Saturday"){
-      var info=SAT_LOG[wk],st=[];
-      document.querySelectorAll('#rtxPane input.inp[data-s]').forEach(function(i){var idx=Number(i.dataset.s);st[idx]=st[idx]||{name:info.stations[idx].name,type:info.stations[idx].type};st[idx][i.dataset.f]=i.value.trim();});
+      var info=SAT_LOG[wk],st=(((satFor(wk)||{}).stations)||[]).filter(function(x){return x&&x.name&&!info.stations.some(function(d){return d.name===x.name;});}); /* keep any earlier entries logged under other station names (e.g. Week 4 before Games I switched to team times) */
+      document.querySelectorAll('#rtxPane input.inp[data-s]').forEach(function(i){var idx=Number(i.dataset.s),def=info.stations[idx];var e=st.filter(function(x){return x&&x.name===def.name;})[0];if(!e){e={name:def.name,type:def.type};st.push(e);}e[i.dataset.f]=i.value.trim();});
       var filled=st.some(function(s){return s&&(s.value||s.time||s.distance);});
       if(!filled){T("Log at least one station first.");if(btn)btn.disabled=false;return;}
       r=await sb.from("rtc_saturday").upsert({user_id:uid,challenge:KEY,week:wk,stations:st,comments:comments,updated_at:new Date().toISOString()},{onConflict:"user_id,challenge,week"}).select().single();
