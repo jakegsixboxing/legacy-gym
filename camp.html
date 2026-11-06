@@ -91,7 +91,7 @@ label{display:block;font-size:10px;letter-spacing:2.5px;text-transform:uppercase
 
 <script>
 var sb=supabase.createClient("https://jyslqxepodrseyhoppce.supabase.co","sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we");
-var member=null,busy=false;try{sb.rpc('camp_view_log',{p_source:'web'});}catch(e){}
+var member=null,busy=false;try{sb.rpc('camp_view_log',{p_source:'web'}).then(function(){});}catch(e){}
 function openSheet(){document.getElementById('scrim').classList.add('on');document.body.style.overflow='hidden';setTimeout(function(){document.getElementById('nm').focus()},300);}
 function closeSheet(){document.getElementById('scrim').classList.remove('on');document.body.style.overflow='';}
 function mem(v){member=v;document.getElementById('o1').classList.toggle('on',v===true);document.getElementById('o0').classList.toggle('on',v===false);}

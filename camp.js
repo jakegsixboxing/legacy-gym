@@ -108,7 +108,7 @@ window.campSend=async function(){if(S.busy)return;var n=($id("campName")||{}).va
   paint();};
 
 /* ---------- hooks ---------- */
-var _render=window.render;window.render=function(){if(view==="camp"){if(S.mine===undefined){var m=$id("main");if(m)m.innerHTML='<div class="loadingDots">Opening…</div>';loadMine().then(paint);if(!S.logged&&!isJake()){S.logged=true;try{sb.rpc('camp_view_log',{p_source:'app'});}catch(e){}}return;}paint();return;}return _render.apply(this,arguments);};
+var _render=window.render;window.render=function(){if(view==="camp"){if(S.mine===undefined){var m=$id("main");if(m)m.innerHTML='<div class="loadingDots">Opening…</div>';loadMine().then(paint);if(!S.logged&&!isJake()){S.logged=true;try{sb.rpc('camp_view_log',{p_source:'app'}).then(function(){});}catch(e){}}return;}paint();return;}return _render.apply(this,arguments);};
 function homeCard(){var ex=$id("campHome");var mm=$id("main");if(ex&&mm&&view==="home"&&mm.firstElementChild!==ex){mm.insertAdjacentElement("afterbegin",ex);return;}
   if(!session||new Date()>SHOW_UNTIL){if(ex&&ex.parentNode)ex.parentNode.removeChild(ex);return;}
   if(view!=="home")return;var m=$id("main");if(!m||ex)return;
