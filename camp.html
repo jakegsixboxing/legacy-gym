@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Legacy Training Camp · USA × Mexico 2027</title>
+<meta property="og:title" content="Legacy Training Camp · USA × Mexico 2027">
+<meta property="og:description" content="8–10 days travelling and training from the West Coast of America down into Mexico. All levels. Register your interest.">
+<meta property="og:image" content="https://legacygym-app.vercel.app/img/camp/poster.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;700&family=Montserrat:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--ink:#09090A;--raise:#131315;--raise2:#1a1a1d;--line:#27272b;--fg:#f2eee6;--mute:#9c978e;--gold:#D2B26A}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--fg);font-family:Montserrat,system-ui,sans-serif;font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.wrap{max-width:520px;margin:0 auto;padding:0 20px 120px}
+.top{display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{font-family:Oswald,sans-serif;font-weight:500;letter-spacing:.38em;font-size:16px;color:var(--gold)}
+.top a{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--mute);text-decoration:none}
+.poster{display:block;width:100%;height:auto;border-radius:14px}
+.fl{display:flex;height:3px;margin-top:6px;border-radius:2px;overflow:hidden}.fl i{flex:1}
+.lab{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--gold)}
+.big{font-family:Oswald,sans-serif;font-weight:300;font-size:26px;line-height:1.15;text-transform:uppercase;margin:12px 0 0}.big em{font-style:normal;color:var(--gold)}
+.copy{color:var(--mute);font-size:14px;margin:12px 0 0}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:22px;background:linear-gradient(90deg,rgba(178,34,52,.12),rgba(9,9,10,0) 35%,rgba(9,9,10,0) 65%,rgba(0,104,71,.14))}.facts div{padding:14px 0;text-align:center}.facts div+div{border-left:1px solid var(--line)}.facts b{display:block;font-family:Oswald,sans-serif;font-weight:500;font-size:20px;color:#fff}.facts small{display:block;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--mute);margin-top:3px}
+h2{font-family:Oswald,sans-serif;font-weight:400;font-size:24px;text-transform:uppercase;line-height:1;margin:10px 0 0;color:#fff}.sec{margin-top:36px}
+.who{display:grid;gap:10px;margin-top:16px}.who article{background:linear-gradient(135deg,var(--raise2),var(--raise));border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid;grid-template-columns:104px 1fr;position:relative}.who article:after{content:'';position:absolute;right:0;top:0;bottom:0;width:3px}.who .us:after{background:linear-gradient(180deg,#B22234 0 33%,#F4F1EA 33% 66%,#3C3B6E 66%)}.who .mx:after{background:linear-gradient(180deg,#006847 0 33%,#F4F1EA 33% 66%,#CE1126 66%)}
+.who img{width:104px;height:100%;min-height:140px;object-fit:cover;display:block}.who .t{padding:14px}.who .tag{font-size:9px;font-weight:800;letter-spacing:2px;color:var(--gold);text-transform:uppercase}.who h3{font-family:Oswald,sans-serif;font-weight:500;font-size:17px;letter-spacing:.5px;text-transform:uppercase;margin:4px 0 0;color:#fff}.who p{color:var(--mute);font-size:12.5px;line-height:1.5;margin:6px 0 0}
+.exp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}.exp div{position:relative;min-height:160px;border-radius:14px;overflow:hidden;border:1px solid var(--line);padding:14px;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;background-size:cover;background-position:center;isolation:isolate}.exp div:before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(9,9,10,.08) 0%,rgba(9,9,10,.55) 55%,rgba(9,9,10,.92) 100%)}
+.exp .k{position:absolute;top:12px;left:14px;width:22px;height:2px;background:var(--gold)}.exp b{font-family:Oswald,sans-serif;font-weight:500;font-size:18px;letter-spacing:2px;text-transform:uppercase;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.6)}.exp small{font-size:11.5px;color:#d8d2c8;line-height:1.4;text-shadow:0 1px 8px rgba(0,0,0,.7)}
+.train{background-image:url(/img/camp/fortune-mural.jpg);background-position:center 42%}.spar{background-image:url(/img/camp/grampas-sparring.jpg);background-position:30% 35%}.eat{background-image:url(/img/camp/eat.jpg)}.explore{background-image:url(/img/camp/explore.jpg);background-position:center 55%}
+.quote{margin-top:48px;text-align:center}.quote .fl{width:60px;margin:0 auto 14px}.quote h2{font-size:30px;font-weight:500;line-height:1.05}.quote h2 span{color:var(--gold)}.quote p{color:var(--mute);font-size:13px;margin:12px auto 0;max-width:30ch}
+.cta{display:block;width:100%;min-height:52px;border:0;border-radius:12px;background:var(--gold);color:#09090A;font-family:Oswald,sans-serif;font-weight:700;font-size:16px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:22px}
+.member{margin-top:28px;text-align:center;font-size:12px;color:var(--mute)}.member a{color:var(--gold)}
+#scrim{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.66);display:none;align-items:flex-end;justify-content:center}#scrim.on{display:flex}
+#sheet{width:100%;max-width:520px;background:var(--raise);border-radius:20px 20px 0 0;border-top:1px solid var(--line);padding:12px 20px calc(26px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow-y:auto}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 20px}#sheet h3{font-family:Oswald,sans-serif;font-weight:500;font-size:26px;text-transform:uppercase;margin:8px 0 0;color:#fff}
+label{display:block;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--mute);font-weight:800;margin:18px 0 6px}input{width:100%;min-height:46px;border-radius:10px;border:1px solid var(--line);background:var(--ink);color:var(--fg);padding:0 14px;font:15px Montserrat,sans-serif}
+.opt{display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;border:1px solid var(--line);background:var(--ink);border-radius:10px;padding:12px 14px;min-height:46px;cursor:pointer;font:14px Montserrat,sans-serif;color:var(--fg);margin-top:8px}.opt i{width:18px;height:18px;border-radius:50%;border:1px solid var(--mute);flex:none}.opt.on{border-color:var(--gold)}.opt.on i{border:5px solid var(--gold)}
+.go{display:block;width:100%;min-height:50px;border:0;border-radius:12px;background:var(--gold);color:#09090A;font:600 14.5px Montserrat,sans-serif;cursor:pointer;margin-top:22px}.go[disabled]{opacity:.6}
+.ok{text-align:center;padding:16px 0 4px}.ok p{color:var(--mute);font-size:13px;margin:8px 0 0}
+.err{color:#ff8c98;font-size:12px;margin-top:10px;min-height:16px}
+.sticky{position:fixed;left:0;right:0;bottom:0;padding:0 20px calc(14px + env(safe-area-inset-bottom,0px));pointer-events:none}.sticky .cta{max-width:520px;margin:0 auto;pointer-events:auto;box-shadow:0 14px 34px rgba(0,0,0,.55)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><span class="logo">LEGACY</span><a href="https://www.legacygym.net">legacygym.net</a></div>
+  <img class="poster" src="/img/camp/poster.jpg" alt="Legacy Training Camp · USA × Mexico 2027">
+  <div class="fl"><i style="background:#3C3B6E"></i><i style="background:#F4F1EA"></i><i style="background:#B22234"></i><i style="background:#006847"></i><i style="background:#F4F1EA"></i><i style="background:#CE1126"></i></div>
+
+  <div class="sec"><div class="lab">Coming 2027</div><p class="big">8–10 days travelling and training from the West Coast of America <em>down into Mexico.</em></p>
+  <p class="copy">From some of the most famous boxing gyms in the world to hidden gems only the locals know.</p>
+  <div class="facts"><div><b>8–10</b><small>Days</small></div><div><b>LA → MX</b><small>Route</small></div><div><b>All</b><small>Levels</small></div></div></div>
+
+  <div class="sec"><div class="lab">Who it's for</div><h2>Two ways to come</h2><div class="who">
+    <article class="us"><img src="/img/camp/grampas-sparring.jpg" alt=""><div class="t"><div class="tag">Sparring camp</div><h3>Amateurs &amp; pros</h3><p>A sparring camp. Quality rounds and coaching in new gyms, against new styles.</p></div></article>
+    <article class="mx"><img src="/img/camp/fortune-gloves.jpg" alt=""><div class="t"><div class="tag">The experience</div><h3>Members &amp; sparring club</h3><p>Train in the gyms, watch the sparring and experience boxing in a different culture.</p></div></article>
+  </div></div>
+
+  <div class="sec"><div class="lab">The experience</div><h2>More than a training trip</h2><div class="exp">
+    <div class="train"><span class="k"></span><b>Train</b><small>Famous gyms and hidden gems</small></div>
+    <div class="spar"><span class="k"></span><b>Spar</b><small>Watch it, or get in the ring</small></div>
+    <div class="eat"><span class="k"></span><b>Eat</b><small>Street food and markets</small></div>
+    <div class="explore"><span class="k"></span><b>Explore</b><small>LA, the coast and Mexico</small></div>
+  </div></div>
+
+  <div class="quote"><div class="fl"><i style="background:#B22234"></i><i style="background:#F4F1EA"></i><i style="background:#006847"></i></div><h2>The trip <span>of a lifetime.</span></h2><p>Places are limited. Register your interest to hear first when dates and details drop.</p></div>
+  <p class="member">Legacy Gym · Kincumber, Central Coast NSW · <a href="https://legacygym-app.vercel.app">Members, open the app</a></p>
+</div>
+
+<div class="sticky"><button class="cta" onclick="openSheet()">Register interest</button></div>
+
+<div id="scrim" onclick="if(event.target===this)closeSheet()">
+  <div id="sheet"><div class="grab"></div>
+    <div id="form"><div class="lab">USA × Mexico 2027</div><h3>Register interest</h3>
+      <label for="nm">Name</label><input id="nm" autocomplete="name">
+      <label for="mb">Mobile</label><input id="mb" type="tel" autocomplete="tel">
+      <label>Are you a member of Legacy Gym?</label>
+      <button type="button" class="opt" id="o1" onclick="mem(true)">Yes, I'm a member of Legacy Gym<i></i></button>
+      <button type="button" class="opt" id="o0" onclick="mem(false)">No, I'm not a member of Legacy Gym<i></i></button>
+      <div class="err" id="err"></div>
+      <button type="button" class="go" id="go" onclick="send()">I'd be interested in more information</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var sb=supabase.createClient("https://jyslqxepodrseyhoppce.supabase.co","sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we");
+var member=null,busy=false;
+function openSheet(){document.getElementById('scrim').classList.add('on');document.body.style.overflow='hidden';setTimeout(function(){document.getElementById('nm').focus()},300);}
+function closeSheet(){document.getElementById('scrim').classList.remove('on');document.body.style.overflow='';}
+function mem(v){member=v;document.getElementById('o1').classList.toggle('on',v===true);document.getElementById('o0').classList.toggle('on',v===false);}
+async function send(){if(busy)return;var e=document.getElementById('err');e.textContent='';
+  var n=document.getElementById('nm').value.trim(),m=document.getElementById('mb').value.trim();
+  if(n.length<2){e.textContent='Add your name.';return;}if(m.replace(/\D/g,'').length<8){e.textContent='Add a mobile number.';return;}if(member===null){e.textContent='Are you a Legacy Gym member? Pick one.';return;}
+  busy=true;var g=document.getElementById('go');g.disabled=true;
+  var r=await sb.rpc('camp_interest_public',{p_name:n,p_mobile:m,p_member:member});busy=false;g.disabled=false;
+  if(r.error){e.textContent=r.error.message;return;}
+  document.getElementById('form').innerHTML='<div class="ok"><svg width="52" height="52" viewBox="0 0 52 52"><circle cx="26" cy="26" r="25" fill="none" stroke="#D2B26A" stroke-width="1.5"/><path d="M16 27l7 7 13-15" fill="none" stroke="#D2B26A" stroke-width="2.5" stroke-linecap="round"/></svg><h3>You\'re on the list</h3><p>We\'ll let you know first when dates and details are released.</p><button class="go" onclick="closeSheet()">Done</button></div>';
+  document.querySelector('.sticky .cta').textContent='✓ You\'re on the list';}
+</script>
+</body>
+</html>
