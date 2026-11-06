@@ -5,12 +5,13 @@
 "use strict";
 var SHOW_UNTIL=new Date("2026-11-13T23:59:00+11:00"); /* a week from launch; after this the home card goes, the page still opens */
 var ADMINS=["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"]; /* Jake, Alison */
+var JAKE="15a011b9-e222-45f0-8eb9-d5338da935d1";function isJake(){try{return !!(session&&session.user&&session.user.id===JAKE);}catch(e){return false;}}
 function isAdmin(){try{return !!(session&&session.user&&ADMINS.indexOf(session.user.id)>=0);}catch(e){return false;}}
 var $id=function(i){return document.getElementById(i);};
 var T=function(m){try{toast(m);}catch(e){}};
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];});}
 var IMG="/img/camp/";
-var S={mine:undefined,busy:false,list:null,showList:false,member:null,done:false};
+var S={mine:undefined,busy:false,list:null,showList:false,member:null,done:false,views:null,showViews:false,logged:false};
 
 /* ---------- CSS (Legacy gold) ---------- */
 var css=document.createElement("style");css.textContent=
@@ -37,6 +38,7 @@ var css=document.createElement("style");css.textContent=
 +".camp .cta{display:block;width:100%;min-height:52px;border:0;border-radius:12px;background:var(--gold);color:#09090A;font-family:Oswald,sans-serif;font-weight:700;font-size:16px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:22px}.camp .cta.done{background:var(--raise);color:var(--gold);border:1px solid var(--gold)}"
 +".camp .ad{margin-top:18px;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:12px;color:var(--mute);display:flex;justify-content:space-between;align-items:center;gap:10px}.camp .ad button{background:none;border:1px solid var(--gold);color:var(--gold);border-radius:8px;padding:6px 10px;font-family:inherit;font-weight:800;font-size:11px;cursor:pointer}"
 +".camp table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}.camp td{padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}.camp td.m{color:var(--mute);white-space:nowrap}"
++".camp .tk{margin-top:12px;border:1px solid var(--gold);border-radius:12px;padding:12px;background:linear-gradient(135deg,#1a1710,#131315)}.camp .tk .h{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;color:var(--mute)}.camp .tk .h b{color:#fff;font-family:Oswald,sans-serif;font-size:15px;letter-spacing:1px;text-transform:uppercase}.camp .tk .n{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}.camp .tk .n div{background:#09090A;border-radius:8px;padding:8px 6px;text-align:center}.camp .tk .n b{display:block;font-family:Oswald,sans-serif;font-size:22px;color:var(--gold);line-height:1}.camp .tk .n small{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute)}.camp .tk button{background:none;border:1px solid var(--gold);color:var(--gold);border-radius:8px;padding:6px 10px;font-family:inherit;font-weight:800;font-size:11px;cursor:pointer}.camp .tk td.r{color:#39FF88;font-size:10px;font-weight:800;letter-spacing:1px}"
 +"#campScrim{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.66);display:flex;align-items:flex-end;justify-content:center}#campSheet{width:100%;max-width:520px;background:#131315;border-radius:20px 20px 0 0;border-top:1px solid #27272b;padding:12px 20px calc(26px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow-y:auto;color:#f2eee6;font-family:Montserrat,sans-serif}"
 +"#campSheet .grab{width:38px;height:4px;border-radius:2px;background:#27272b;margin:0 auto 20px}#campSheet h3{font-family:Oswald,sans-serif;font-weight:500;font-size:26px;text-transform:uppercase;margin:8px 0 0;color:#fff}#campSheet .lab{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:#D2B26A}"
 +"#campSheet label{display:block;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#9c978e;font-weight:800;margin:18px 0 6px}#campSheet input{width:100%;min-height:46px;border-radius:10px;border:1px solid #27272b;background:#09090A;color:#f2eee6;padding:0 14px;font:15px Montserrat,sans-serif;box-sizing:border-box}"
@@ -67,9 +69,16 @@ function paint(){var m=$id("main");if(!m||view!=="camp")return;
   +(done?'<button class="cta done" onclick="window.campOpen()">✓ You\'re on the list · edit</button>':'<button class="cta" onclick="window.campOpen()">Register interest</button>')+'</div>'
   +(isAdmin()?adminHtml():'')+'</div>';
 }
-function adminHtml(){var h='<div class="ad"><span>Jake &amp; Alison · '+(S.list?S.list.length+' registered':'interest list')+'</span><button onclick="window.campList()">'+(S.showList?'Hide':'View list')+'</button></div>';
+function adminHtml(){var h=isJake()?trackerHtml():'';h+='<div class="ad"><span>Jake &amp; Alison · '+(S.list?S.list.length+' registered':'interest list')+'</span><button onclick="window.campList()">'+(S.showList?'Hide':'View list')+'</button></div>';
   if(S.showList&&S.list){h+='<table>'+(S.list.length?S.list.map(function(r){return '<tr><td><b>'+esc(r.name)+'</b><br><span style="color:#9c978e">'+esc(r.mobile)+'</span></td><td class="m">'+(r.is_member===true?'Member':r.is_member===false?'Not a member':'—')+'</td><td class="m">'+new Date(r.created_at).toLocaleDateString("en-AU",{day:"numeric",month:"short"})+'</td></tr>';}).join(''):'<tr><td style="color:#9c978e">No one yet.</td></tr>')+'</table>';}
   return h;}
+function fmt(iso){return new Date(iso).toLocaleString('en-AU',{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});}
+function trackerHtml(){var v=S.views;var h='<div class="tk"><div class="h"><span><b>Who\'s had a look</b><br>Only you can see this</span><button onclick="window.campViews()">'+(v?(S.showViews?'Hide':'Show list'):'Load')+'</button></div>';
+  if(v){h+='<div class="n"><div><b>'+v.total+'</b><small>Opens</small></div><div><b>'+v.people+'</b><small>Members</small></div><div><b>'+v.app+'</b><small>In app</small></div><div><b>'+v.web+'</b><small>Via link</small></div></div>';
+   if(S.showViews){h+='<table>'+((v.rows||[]).length?v.rows.map(function(r){return '<tr><td><b>'+esc(r.name)+'</b>'+(r.registered?' <span class="r">REGISTERED</span>':'')+'<br><span style="color:#9c978e">Last '+fmt(r.last_at)+(r.opens>1?' · first '+fmt(r.first_at):'')+'</span></td><td class="m">'+r.opens+'×</td></tr>';}).join(''):'<tr><td style="color:#9c978e">No members have opened it yet.</td></tr>');
+    if((v.web_days||[]).length)h+='<tr><td colspan="2" style="color:#9c978e">Via the public link: '+v.web_days.map(function(d){return d.opens+' on '+new Date(d.day).toLocaleDateString('en-AU',{day:'numeric',month:'short'});}).join(', ')+'</td></tr>';h+='</table>';}}
+  return h+'</div>';}
+window.campViews=async function(){if(!isJake())return;if(!S.views){var r=await sb.rpc('camp_views_report');if(r.error)return T(r.error.message);S.views=r.data;S.showViews=true;}else S.showViews=!S.showViews;paint();};
 window.campList=async function(){if(!isAdmin())return;if(!S.list)await loadList();S.showList=!S.showList;paint();};
 window.campEnter=function(){go("camp");};
 
@@ -99,7 +108,7 @@ window.campSend=async function(){if(S.busy)return;var n=($id("campName")||{}).va
   paint();};
 
 /* ---------- hooks ---------- */
-var _render=window.render;window.render=function(){if(view==="camp"){if(S.mine===undefined){var m=$id("main");if(m)m.innerHTML='<div class="loadingDots">Opening…</div>';loadMine().then(paint);return;}paint();return;}return _render.apply(this,arguments);};
+var _render=window.render;window.render=function(){if(view==="camp"){if(S.mine===undefined){var m=$id("main");if(m)m.innerHTML='<div class="loadingDots">Opening…</div>';loadMine().then(paint);if(!S.logged&&!isJake()){S.logged=true;try{sb.rpc('camp_view_log',{p_source:'app'});}catch(e){}}return;}paint();return;}return _render.apply(this,arguments);};
 function homeCard(){var ex=$id("campHome");var mm=$id("main");if(ex&&mm&&view==="home"&&mm.firstElementChild!==ex){mm.insertAdjacentElement("afterbegin",ex);return;}
   if(!session||new Date()>SHOW_UNTIL){if(ex&&ex.parentNode)ex.parentNode.removeChild(ex);return;}
   if(view!=="home")return;var m=$id("main");if(!m||ex)return;
