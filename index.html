@@ -587,10 +587,10 @@ const SUPABASE_ANON_KEY = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 /* ===== MAINTENANCE GATE (front-end only; no auth/password/data changes) ===== */
 /* Crew bypass: open /?crew=legacy2 once and this device skips the gate (Jake, Ali, build testing). */
 try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew","1");history.replaceState(null,"",location.pathname);}}catch(e){}
-const MAINTENANCE=(function(){try{return localStorage.getItem("lg_crew")!=="1";}catch(e){return true;}})(); /* holding screen until 5pm Sun 8 Nov; set to false + redeploy to reopen */
+const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611080400";
+const LG_BUILD="202611080500";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -630,7 +630,7 @@ function showMaint(){
  document.documentElement.style.overflow='hidden';
  (document.body||document.documentElement).appendChild(o);
  var T=new Date("2026-11-08T17:00:00+11:00").getTime();
- (function tick(){var d=T-Date.now();var el=document.getElementById('in');if(!el)return;if(d<=0){el.classList.add('done');return;}var h=Math.floor(d/3600000),m=Math.floor(d%3600000/60000),s=Math.floor(d%60000/1000);document.getElementById('h').textContent=String(h).padStart(2,'0');document.getElementById('m').textContent=String(m).padStart(2,'0');document.getElementById('s').textContent=String(s).padStart(2,'0');setTimeout(tick,1000-(Date.now()%1000));})();
+ (function tick(){var d=T-Date.now();var el=document.getElementById('in');if(!el)return;if(d<=0){location.reload();return;}var h=Math.floor(d/3600000),m=Math.floor(d%3600000/60000),s=Math.floor(d%60000/1000);document.getElementById('h').textContent=String(h).padStart(2,'0');document.getElementById('m').textContent=String(m).padStart(2,'0');document.getElementById('s').textContent=String(s).padStart(2,'0');setTimeout(tick,1000-(Date.now()%1000));})();
 }
 if(MAINTENANCE){
  if(document.body){showMaint();}else{document.addEventListener('DOMContentLoaded',showMaint);}
@@ -11145,7 +11145,7 @@ try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(
 <script src="/sparmm.js?v=202611041800"></script>
 <script src="/singlets.js?v=202611021330"></script>
 <script src="/camp.js?v=202611061630"></script>
-<script src="/lg2.js?v=202611080400"></script>
+<script src="/lg2.js?v=202611080500"></script>
 
 <script>
 /* Halloween Saturday block removed 31 Oct 2026 (Jake) */
