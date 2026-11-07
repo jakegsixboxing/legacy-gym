@@ -133,12 +133,13 @@ function dismissed(k){var d=store("dism")||{};return !!d[k];}
 function remPromptHtml(){if(REM.book.on||dismissed("remprompt"))return "";return '<div class="qa norow"><b>Forget to book in?</b><small>We can nudge you once a day at a time you pick. Nothing else, no spam.</small><div class="remrow"><select onchange="lg2RemTime(\'book\',this.value)">'+timeOpts(REM.book.time)+'</select><button class="btn sm" onclick="lg2RemOn(\'book\')">Remind me</button><button class="btn sm ghost" onclick="lg2Dism(\'remprompt\')">No thanks</button></div></div>';}
 
 /* ---------- home ---------- */
-var H={regs:null,regsAt:0,week:null};
+var H={regs:null,regsAt:0,week:null,p:null,annTried:false};
 function greet(){var h=new Date().getHours();return h<12?"Morning":h<17?"Arvo":"Evening";}
-function loadHomeData(){var uid=me();if(!uid)return Promise.resolve();if(Date.now()-H.regsAt<60000)return Promise.resolve();H.regsAt=Date.now();
+function loadHomeData(){if(H.p)return H.p;var uid=me();if(!uid){H.regs=[];H.week=[];return Promise.resolve();}
   var d0=isoLocal(new Date()),w=new Date();w.setDate(w.getDate()-((w.getDay()+6)%7));var wk=isoLocal(w);
-  return Promise.all([sb.from("class_regs").select("class_name,class_date,class_time").eq("user_id",uid).gte("class_date",d0).order("class_date").order("class_time").limit(6),
-    sb.from("class_regs").select("class_date").eq("user_id",uid).gte("class_date",wk).lte("class_date",d0)]).then(function(r){H.regs=(r[0].data||[]).filter(function(x){return x.class_date>d0||x.class_time>=new Date().toTimeString().slice(0,5);});H.week=(r[1].data||[]).map(function(x){return x.class_date;});}).catch(function(){H.regs=[];H.week=[];});}
+  H.p=Promise.all([sb.from("class_regs").select("class_name,class_date,class_time").eq("user_id",uid).gte("class_date",d0).order("class_date").order("class_time").limit(6),
+    sb.from("class_regs").select("class_date").eq("user_id",uid).gte("class_date",wk).lte("class_date",d0)]).then(function(r){H.regs=(r[0].data||[]).filter(function(x){return x.class_date>d0||x.class_time>=new Date().toTimeString().slice(0,5);});H.week=(r[1].data||[]).map(function(x){return x.class_date;});}).catch(function(){H.regs=H.regs||[];H.week=H.week||[];}).then(function(){H.p=null;H.regsAt=Date.now();});return H.p;}
+function refreshHome(){if(Date.now()-H.regsAt>60000&&!H.p){H.regs=null;}}
 function weekDots(){var days=["M","T","W","T","F","S","S"],now=new Date(),dow=(now.getDay()+6)%7,start=new Date(now);start.setDate(now.getDate()-dow);var hits=[0,0,0,0,0,0,0];(H.week||[]).forEach(function(d){var i=Math.round((new Date(d+"T00:00:00")-new Date(isoLocal(start)+"T00:00:00"))/86400000);if(i>=0&&i<7)hits[i]=1;});var n=hits.reduce(function(a,b){return a+b;},0);
   return '<div class="week"><small>'+(n?n+" this week":"This week")+'</small>'+days.map(function(d,i){return '<i class="'+(hits[i]?"on":"")+(i===dow?" today":"")+'">'+d+'</i>';}).join("")+'</div>';}
 function noticeHtml(){
@@ -154,8 +155,8 @@ function nflNudge(){try{if(typeof NFL_STATE==="undefined")return "";}catch(e){}r
 window.renderHome=function(){
   var first=prof().first_name||"";
   document.body.classList.add("lg2home");
-  if(typeof ANN==="undefined"&&typeof loadAnnouncement==="function")loadAnnouncement().then(function(){if(view==="home")renderHome();});
-  if(!H.regs){loadHomeData().then(function(){if(view==="home")renderHome();});}
+  if(!H.annTried&&typeof ANN==="undefined"&&typeof loadAnnouncement==="function"){H.annTried=true;loadAnnouncement().then(function(){if(view==="home")renderHome();}).catch(function(){});}
+  if(!H.regs&&!H.p){var pr=loadHomeData();if(H.p)pr.then(function(){if(view==="home")renderHome();});}
   remLoad().then(function(){});
   var campOn=false;try{campOn=!!(typeof SHOW_UNTIL!=="undefined"&&new Date()<SHOW_UNTIL);}catch(e){}
   var rtxOn=typeof window.renderPage==="function"||!!document.getElementById("rtxCard")||true;
@@ -180,7 +181,7 @@ window.renderHome=function(){
   try{updateBadges();}catch(e){}
 };
 /* leaving home: drop the hide-everything rule so other screens render untouched */
-var _go=window.go;window.go=function(v){if(v!=="home")document.body.classList.remove("lg2home");return _go.apply(this,arguments);};
+var _go=window.go;window.go=function(v){if(v!=="home")document.body.classList.remove("lg2home");else refreshHome();return _go.apply(this,arguments);};
 
 /* ---------- Train & Compete hubs ---------- */
 window.renderTrain=function(){
@@ -374,5 +375,6 @@ window.renderProfile=function(){var r=_renderProfile.apply(this,arguments);try{v
   extra.innerHTML='<h2 class="sec">Reminders <small>all optional</small></h2><div class="card2">'+[["book","Daily booking nudge",REM.book.on?"On · "+t12(REM.book.time):"Off"],["weigh","Weigh-in",REM.weigh.on?"On · "+REM.weigh.days.map(function(d){return DAYN[d];}).join(", "):"Off"],["meals","Log my meals",REM.meals.on?"On · "+t12(REM.meals.time):"Off"],["tips","Tipping reminder",REM.tips.on?"On · Saturday arvo":"Off"]].map(function(x){return '<div class="kv"><span>'+x[1]+'</span><button class="st '+(REM[x[0]].on?"joined":"")+'" onclick="'+(REM[x[0]].on?"lg2RemOff":"lg2RemOn")+'(\''+x[0]+'\')">'+x[2]+'</button></div>';}).join("")+'</div>'+(isOwner()?'<div class="cats" style="margin-top:12px">'+card({go:"admin",cc:"var(--c-you)",k:"Owners only",t:"Jake & Ali",s:"Trials, leads, today, money, tools, notices.",sm:true,ic:"pt"})+'</div>':'');
   var back=m.querySelector(".backBtn");if(back&&back.nextSibling)m.insertBefore(extra,back.nextSibling.nextSibling||null);else m.appendChild(extra);}catch(e){}return r;};
 /* re-render whatever is on screen when the member lands */
-if(typeof view!=="undefined"&&view==="home"){try{renderNav();renderHome();}catch(e){}}
+/* if a member is already inside the app when this loads, redraw once; never before sign-in */
+try{if(typeof session!=="undefined"&&session&&typeof view!=="undefined"&&view==="home"&&document.getElementById("appScreen")&&!document.getElementById("appScreen").classList.contains("hidden")){renderNav();renderHome();}}catch(e){}
 })();
