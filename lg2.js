@@ -135,7 +135,7 @@ function dismissed(k){var d=store("dism")||{};return !!d[k];}
 function remPromptHtml(){if(REM.book.on||dismissed("remprompt"))return "";return '<div class="qa norow"><b>Forget to book in?</b><small>We can nudge you once a day at a time you pick. Nothing else, no spam.</small><div class="remrow"><select onchange="lg2RemTime(\'book\',this.value)">'+timeOpts(REM.book.time)+'</select><button class="btn sm" onclick="lg2RemOn(\'book\')">Remind me</button><button class="btn sm ghost" onclick="lg2Dism(\'remprompt\')">No thanks</button></div></div>';}
 
 /* ---------- home ---------- */
-var H={regs:null,regsAt:0,week:null,p:null,annTried:false};
+var H={regs:null,regsAt:0,week:null,p:null,annTried:false,primed:false,watching:false};
 function greet(){var h=new Date().getHours();return h<12?"Morning":h<17?"Arvo":"Evening";}
 function loadHomeData(){if(H.p)return H.p;var uid=me();if(!uid){H.regs=[];H.week=[];return Promise.resolve();}
   var d0=isoLocal(new Date()),w=new Date();w.setDate(w.getDate()-((w.getDay()+6)%7));var wk=isoLocal(w);
@@ -156,9 +156,25 @@ function nextUpHtml(){var r=(H.regs||[])[0];
   try{var up=typeof upcomingClasses==="function"?upcomingClasses():[];if(up.length){var c=up[0];return '<div class="next"><div><div class="k">Next up · '+E(fmtDate(c.start))+'</div><b>'+E(c.n)+'</b><small>'+E(t12(c.t))+' · open for booking now</small></div><button class="btn" onclick="go(\'classes\')">Book</button></div>';}}catch(e){}
   return '<div class="next"><div><div class="k">Classes</div><b>Book in</b><small>Up to two weeks ahead. Tap in, you\'re booked.</small></div><button class="btn" onclick="go(\'classes\')">Book</button></div>';}
 function nflNudge(){try{if(typeof NFL_STATE==="undefined")return "";}catch(e){}return "";}
+/* The old home screen is still run once, into a hidden box, so every add-on that loads its data from the home render
+   (Road to Xmas registration, Fight Club, nationals squad, nutrition plans, camp) keeps working exactly as before. */
+var LEGACY_HOME=window.renderHome;
+function primeLegacy(){if(H.primed||!me())return;H.primed=true;var real=$id("main");if(!real)return;var dummy=document.createElement("div");dummy.style.display="none";real.id="main__lg2";dummy.id="main";document.body.appendChild(dummy);
+  try{LEGACY_HOME();}catch(e){}
+  dummy.id="main__legacy";real.id="main";}
+/* Anything the old add-ons inject into the home (their own cards and strips) is moved into the hidden legacy box,
+   so they still think they're on screen (no re-inject loops) while the member only sees the 2.0 home. */
+var sweepQ=false;
+function legacyBox(){var b=$id("main__legacy");if(!b){b=document.createElement("div");b.id="main__legacy";b.style.display="none";document.body.appendChild(b);}return b;}
+var reHome=0;
+function sweep(){sweepQ=false;if(!document.body.classList.contains("lg2home"))return;var m=$id("main");if(!m)return;var box=legacyBox();[].slice.call(m.children).forEach(function(c){if(!c.classList.contains("lg2wrap")&&c.id!=="nutCard")box.appendChild(c);});
+  /* an old add-on re-drew the legacy home over the top (e.g. after its data loaded): draw 2.0 again, at most a few times a minute */
+  if(view==="home"&&!m.querySelector(":scope>.lg2wrap")&&Date.now()-reHome>400){reHome=Date.now();try{renderHome();}catch(e){}}}
+function watchMain(){if(H.watching)return;var m=$id("main");if(!m)return;H.watching=true;new MutationObserver(function(){if(sweepQ)return;sweepQ=true;requestAnimationFrame(sweep);}).observe(m,{childList:true});}
 window.renderHome=function(){
   var first=prof().first_name||"";
   document.body.classList.add("lg2home");
+  primeLegacy();watchMain();
   if(!H.annTried&&typeof ANN==="undefined"&&typeof loadAnnouncement==="function"){H.annTried=true;loadAnnouncement().then(function(){if(view==="home")renderHome();}).catch(function(){});}
   if(!H.regs&&!H.p){var pr=loadHomeData();if(H.p)pr.then(function(){if(view==="home")renderHome();});}
   remLoad().then(function(){});
@@ -181,7 +197,7 @@ window.renderHome=function(){
    card({go:"shop",cc:"var(--c-shop)",k:"Official store",t:"Shop",s:"Hoodies, tees and the singlet drop.",sm:true,ic:"shop"})+
    (isOwner()?card({go:"admin",cc:"var(--c-you)",k:"Owners only · members never see this",t:"Jake & Ali",s:"Trials, leads, today\'s numbers, money, tickets, notices.",sm:true,ic:"pt"}):isStaff()?card({go:"staff",cc:"var(--c-you)",k:"Staff eyes only",t:"Staff Room",s:"Team chat, members, commissions.",sm:true,ic:"pt"}):"")+
   '</div><div style="margin-top:22px;text-align:center"><a href="#" onclick="go(\'sponsorship\');return false;" style="color:var(--lgold);text-decoration:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase">★ Sponsorship</a><div style="font-size:10.5px;color:var(--lmuted);margin-top:5px">Fight Night ring sponsorship for local kids</div></div>';
-  $id("main").innerHTML=wrap(h);settle();
+  $id("main").innerHTML=wrap(h);settle();sweep();
   try{updateBadges();}catch(e){}
 };
 /* leaving home: drop the hide-everything rule so other screens render untouched */
@@ -208,7 +224,7 @@ window.renderCompete=function(){
    '<div class="cats">'+
    card({go:"board",cc:"var(--c-compete)",k:"The ladder",t:"Leaderboard",s:"Every point, every member.",ic:"board"})+
    card({go:"social",cc:"var(--c-compete)",k:"Pick \'em · bragging rights",t:"NFL Tipping",s:"Tip every game. Locks at kick-off.",ic:"nfl"})+
-   card({go:"rtc",cc:"var(--c-rtx)",k:"12 week challenge",t:"Road to Xmas",s:"Sessions, Saturday times, your team.",ic:"xmas"})+
+   card({on:"view='home';go('rtc')",cc:"var(--c-rtx)",k:"12 week challenge",t:"Road to Xmas",s:"Sessions, Saturday times, your team.",ic:"xmas"})+
    card({go:"cardio",cc:"var(--c-compete)",k:"Stairs, runs & records",t:"Challenges",s:"StairMaster missions, iconic runs and the club record board.",ic:"compete"})+
    card({go:"hyrox",cc:"var(--c-compete)",k:"Race yourself fitter",t:"HYROX",s:"Full sessions, every station, all logged.",sm:true,ic:"train"})+
   '</div>';
