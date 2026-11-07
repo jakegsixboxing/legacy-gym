@@ -590,7 +590,7 @@ try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew",
 const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611080540";
+const LG_BUILD="202611080930";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -8708,7 +8708,10 @@ async function saveProfile(e){
   const isRecovery=(window.location.hash||"").includes("type=recovery");
   const {data}=await sb.auth.getSession();
   if(isRecovery&&data&&data.session){session=data.session;showResetScreen();}
-  else if(data&&data.session){session=data.session;await ensureProfile();await enterApp();}
+  else if(data&&data.session){session=data.session;
+    /* Owners (Jake, Alison) walk straight through the holding screen on their normal app. */
+    try{if(["15a011b9-e222-45f0-8eb9-d5338da935d1","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce"].indexOf(session.user.id)>=0){localStorage.setItem("lg_crew","1");var mo=document.getElementById("maintOv");if(mo){mo.remove();document.documentElement.style.overflow="";}}}catch(e){}
+    await ensureProfile();await enterApp();}
   else showAuth();
   sb.auth.onAuthStateChange((_e,s)=>{
     if(_e==="PASSWORD_RECOVERY"){session=s;showResetScreen();return;}
