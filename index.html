@@ -590,7 +590,7 @@ try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew",
 const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611081513";
+const LG_BUILD="202611081606";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -11127,7 +11127,7 @@ var _render=window.render;window.render=function(){if(view==="recoffers")return 
 try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(v==="home")RC2.leads=RC2.leads;return _go.apply(this,arguments);};}catch(e){}
 })();
 </script>
-<script src="/fc.js?v=202611041900"></script>
+<script src="/fc.js?v=202611081606"></script>
 <script src="/rtx.js?v=202610081330"></script>
 <script src="/programs.js?v=202609161010"></script>
 <script src="/timer.js?v=202609161010"></script>
@@ -11141,14 +11141,13 @@ try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(
 <script src="/fnt.js?v=202610182130"></script>
 <script src="/fnhold.js?v=202610260230"></script>
 <script src="/rtn.js?v=202610260620"></script>
-<script src="/friend.js?v=202610260900"></script>
 <script src="/bluebook-rules.js?v=202610141200"></script>
 <script src="/bluebook.js?v=202610141700"></script>
 <script src="/nutrition.js?v=202610101630"></script>
 <script src="/sparmm.js?v=202611041800"></script>
 <script src="/singlets.js?v=202611021330"></script>
 <script src="/camp.js?v=202611061630"></script>
-<script src="/lg2.js?v=202611081513"></script>
+<script src="/lg2.js?v=202611081606"></script>
 
 <script>
 /* Halloween Saturday block removed 31 Oct 2026 (Jake) */
