@@ -113,7 +113,7 @@ try{
   NAV.push({id:"home",label:"Home",icon:'<path d="M3 11l9-8 9 8"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>'},
    {id:"train",label:"Train",icon:'<path d="M2 12h3M19 12h3M8 12h8"/><rect x="5" y="7" width="3" height="10" rx="1"/><rect x="16" y="7" width="3" height="10" rx="1"/>'},
    {id:"compete",label:"Compete",icon:'<path d="M8 21h8M12 17v4"/><path d="M7 4h10v6a5 5 0 0 1-10 0z"/><path d="M7 5H4v2a4 4 0 0 0 3.2 3.9M17 5h3v2a4 4 0 0 1-3.2 3.9"/>'},
-   {id:"fuel",label:"Fuel",icon:'<path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/><path d="M9 15a3 3 0 0 0 3 3"/>'},
+   {id:"fuel",label:"Nutrition",icon:'<path d="M12 3c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/><path d="M9 15a3 3 0 0 0 3 3"/>'},
    {id:"profile",label:"You",icon:'<circle cx="12" cy="8" r="4"/><path d="M4 20.5c0-4 3.6-6.3 8-6.3s8 2.3 8 6.3"/>'});
   NAV_TAB.fuel="fuel";NAV_TAB.mate="home";NAV_TAB.admin="profile";NAV_TAB.shop="home";NAV_TAB.rtc="compete";NAV_TAB.rtx="compete";NAV_TAB.fc="train";NAV_TAB.camp="home";NAV_TAB.sponsorship="home";
 }catch(e){}
@@ -198,9 +198,8 @@ window.renderHome=function(){
    card({on:"go('cornerman')",cc:"var(--c-corner)",k:"Your coach between sessions",t:"Cornerman",s:"Over 480 boxing videos, 4 and 6 week blocks built for you, hand wraps.",ic:"corner"})+
    card({go:"mate",cc:"var(--c-spar)",k:"Join · casual visit · free trial",t:"Bring a Mate",s:"They scan your code, sign the waiver, pay on their phone. You swipe them in.",ic:"mate"})+
    card({go:"rtc",cc:"var(--c-rtx)",k:"12 week challenge",t:"Road to Xmas",s:"Log your sessions, your Saturday times and your team.",ic:"xmas"})+
-   (H.nfl?card({go:"social",cc:"var(--c-compete)",k:"Pick \'em · week "+H.nfl.week,t:"NFL Tipping",s:"Tip every game before kick-off.",ic:"nfl"}):"")+
-   card({go:"compete",cc:"var(--c-compete)",k:"Points, ladder & challenges",t:"Compete",s:"The ladder, stairs, runs, records and HYROX.",ic:"compete"})+
-   card({go:"fuel",cc:"var(--c-fuel)",k:"Calories, macros & weigh-ins",t:"Fuel",s:"Track what you eat, hit your number, watch the trend.",ic:"fuel"})+
+   card({go:"compete",cc:"var(--c-compete)",k:(H.nfl?"Tips open · week "+H.nfl.week:"Points, ladder & challenges"),t:"Compete + NFL Tipping",s:"Stairs, runs, records, HYROX and the NFL tipping comp.",c:(H.nfl?"Tip now":""),ic:"compete"})+
+   card({go:"fuel",cc:"var(--c-fuel)",k:"Fuel · calories, macros & weigh-ins",t:"Track Your Nutrition",s:"Log what you eat, hit your number, watch the trend.",ic:"fuel"})+
    card({go:"fc",cc:"var(--c-spar)",k:"The ultimate 10-week challenge",t:"Fight Club",s:isFighter()?"Camp, progress, sparring, Blue Book and fight night.":"Fighter profiles, extra training, sparring and fight night.",ic:"spar"})+
    card({on:"boxSub='sparring';go('boxing')",cc:"var(--c-spar)",k:"Wednesday & Saturday",t:"Sparring Club",s:"Sign up, get paired, log your rounds.",sm:true,ic:"spar"})+
    card({go:"coaches",cc:"var(--c-pt)",k:"Coaches · private sessions",t:"Book a 1-on-1",s:"Jake, Joe, Sarsha, Brent and Alison. Pick a time, you\'re in.",ic:"pt"})+
@@ -230,11 +229,11 @@ window.renderTrain=function(){
 window.renderCompete=function(){
   if(typeof ptsData!=="undefined"&&!ptsData.loaded&&typeof loadWorld==="function")loadWorld().then(function(){if(view==="compete")renderCompete();});
   var pts=null;try{if(ptsData.loaded&&me())pts=myPoints();}catch(e){}
-  var h=chead("var(--c-compete)","Compete","Compete.","Every class is points. Tip the footy, climb the stairs, run the runs.","compete")+
+  var h=chead("var(--c-compete)","Compete","Compete + NFL Tipping.","Every class is points. Tip the footy, climb the stairs, run the runs.","compete")+
    (pts!=null?'<div class="stats"><div><b>'+pts+'</b><i>Your points</i></div><div><b>'+(typeof myClassCount==="function"?myClassCount():"–")+'</b><i>Classes banked</i></div><div><b>'+(typeof myStreakWeeks==="function"?myStreakWeeks():"–")+'</b><i>Week streak</i></div></div><p class="muted" style="font-size:11.5px;margin:-4px 2px 10px;text-align:center">'+(typeof myStairsClimbed==="function"?myStairsClimbed().toLocaleString():"0")+' stairs climbed · '+(typeof myKmRun==="function"?myKmRun():"0")+' km run · your tally adds up as you train</p>':'')+
    '<div class="cats">'+
    card({go:"board",cc:"var(--c-compete)",k:"The ladder",t:"Leaderboard",s:"Every point, every member.",ic:"board"})+
-   card({go:"social",cc:"var(--c-compete)",k:"Pick \'em · bragging rights",t:"NFL Tipping",s:"Tip every game. Locks at kick-off.",ic:"nfl"})+
+   card({go:"social",cc:"var(--c-compete)",k:(H.nfl?"Tips open · week "+H.nfl.week:"Pick \'em · bragging rights"),t:"NFL Tipping",s:"Tip every game. Locks at kick-off.",c:(H.nfl?"Tip now":""),ic:"nfl"})+
    card({on:"view='home';go('rtc')",cc:"var(--c-rtx)",k:"12 week challenge",t:"Road to Xmas",s:"Sessions, Saturday times, your team.",ic:"xmas"})+
    card({go:"cardio",cc:"var(--c-compete)",k:"Stairs, runs & records",t:"Challenges",s:"StairMaster missions, iconic runs and the club record board.",ic:"compete"})+
    card({go:"hyrox",cc:"var(--c-compete)",k:"Race yourself fitter",t:"HYROX",s:"Full sessions, every station, all logged.",sm:true,ic:"train"})+
