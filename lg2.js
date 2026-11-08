@@ -201,7 +201,6 @@ window.renderHome=function(){
    card({go:"compete",cc:"var(--c-compete)",k:(H.nfl?"Tips open · week "+H.nfl.week:"Points, ladder & challenges"),t:"Compete + NFL Tipping",s:"Stairs, runs, records, HYROX and the NFL tipping comp.",c:(H.nfl?"Tip now":""),ic:"compete"})+
    card({go:"fuel",cc:"var(--c-fuel)",k:"Fuel · calories, macros & weigh-ins",t:"Track Your Nutrition",s:"Log what you eat, hit your number, watch the trend.",ic:"fuel"})+
    card({go:"fc",cc:"var(--c-spar)",k:"The ultimate 10-week challenge",t:"Fight Club",s:isFighter()?"Camp, progress, sparring, Blue Book and fight night.":"Fighter profiles, extra training, sparring and fight night.",ic:"spar"})+
-   card({on:"boxSub='sparring';go('boxing')",cc:"var(--c-spar)",k:"Wednesday & Saturday",t:"Sparring Club",s:"Sign up, get paired, log your rounds.",sm:true,ic:"spar"})+
    card({go:"coaches",cc:"var(--c-pt)",k:"Coaches · private sessions",t:"Book a 1-on-1",s:"Jake, Joe, Sarsha, Brent and Alison. Pick a time, you\'re in.",ic:"pt"})+
    card({go:"camp",cc:"var(--c-camp)",k:"USA × Mexico 2027",t:"Overseas Training Trips",s:"The camp, the itinerary, register your interest.",ic:"spar"})+
    card({go:"shop",cc:"var(--c-shop)",k:"Official store",t:"Shop",s:"Hoodies, tees and the singlet drop.",sm:true,ic:"shop"})+
@@ -219,7 +218,7 @@ window.renderTrain=function(){
    card({go:"classes",cc:"var(--c-train)",k:"Next two weeks",t:"Book Classes",s:"Tap in, you\'re booked. Waitlist if it\'s full.",ic:"cal"})+
    card({go:"timetable",cc:"var(--c-train)",k:"The full week",t:"Timetable",s:"Every class, every day.",sm:true,ic:"cal"})+
    (isFighter()?card({go:"fc",cc:"var(--c-spar)",k:"Fight Club",t:"Fight Club",s:"Camp, progress, sparring, Blue Book, fight night.",ic:"spar"}):"")+
-   card({on:"boxSub='sparring';go('boxing')",cc:"var(--c-spar)",k:"Legacy Boxing Series",t:"Sparring Club & Boxing",s:"Sparring sign-ups, session builder, Built By Jake.",ic:"spar"})+
+   card({on:"boxSub='byo';go('boxing')",cc:"var(--c-spar)",k:"Legacy Boxing Series",t:"Boxing",s:"Build your own session, Built By Jake.",ic:"spar"})+
    card({on:"go('cornerman')",cc:"var(--c-corner)",k:"Your coach between sessions",t:"Cornerman",s:"Technique videos, plans and hand wraps.",sm:true,ic:"corner"})+
    card({go:"coaches",cc:"var(--c-pt)",k:"Coaches · 1-on-1",t:"Book a Private Session",s:"Jake, Joe, Sarsha, Brent and Alison.",ic:"pt"})+
    card({go:"weights",cc:"var(--c-train)",k:"The gym floor",t:"Programs",s:"Weights and functional programs, timers built in.",sm:true,ic:"train"})+
@@ -702,4 +701,28 @@ window.lgMatePhoto=function(src){var ov=document.createElement("div");ov.style.c
 try{if(typeof NAV_TAB!=="undefined")NAV_TAB.mate="home";}catch(e){}
 var _render=window.render;
 window.render=function(){try{if(typeof view!=="undefined"&&view==="mate"){renderMate();return;}}catch(e){}if(typeof view==="undefined"||view!=="mate")stopPoll();return _render.apply(this,arguments);};
+})();
+/* ===== Sparring Club tab retired (8 Nov 2026) =====
+   The home card and the matchmaking screen go. What members actually used moves to the You tab:
+   the boxer profile + rounds log (needed to book Sparring classes), and the Road to Nationals program for the squad.
+   No data moves; the same screens render, reached from You. */
+(function(){
+"use strict";
+var $id=function(id){return document.getElementById(id);};
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function me(){try{return (typeof session!=="undefined"&&session&&session.user)?session.user.id:null;}catch(e){return null;}}
+var css=document.createElement("style");css.textContent='.sc2Tabs button[onclick*="sparTab=\'match\'"]{display:none!important}';document.head.appendChild(css);
+var ST={uid:null,bp:null,squad:false,at:0};
+function load(){var uid=me();if(!uid)return Promise.resolve();if(ST.uid===uid&&Date.now()-ST.at<120000)return Promise.resolve();ST.uid=uid;ST.at=Date.now();
+  return Promise.all([sb.from("boxer_profiles").select("user_id,current_weight,division,wins,losses,draws").eq("user_id",uid).maybeSingle(),sb.rpc("rtn_state"),
+    sb.from("class_regs").select("id").eq("user_id",uid).ilike("class_name","%spar%").gte("class_date",new Date(Date.now()-60*86400000).toISOString().slice(0,10)).limit(1)]).then(function(r){ST.bp=(r[0]&&r[0].data)||null;ST.squad=!!(r[1]&&r[1].data&&r[1].data.member);ST.spars=!!(r[2]&&r[2].data&&r[2].data.length);}).catch(function(){});}
+function cardHtml(){var h="";
+  if(ST.squad)h+='<button class="lc" style="--cc:var(--c-spar)" onclick="boxSub=\'sparring\';sparTab=\'profile\';go(\'boxing\')"><span class="k">Nationals squad</span><b>Road to Nationals</b><small>Your 3-week block, every session, every day of recovery.</small></button>';
+  if(ST.bp||ST.spars)h+='<button class="lc sm" style="--cc:var(--c-spar)" onclick="boxSub=\'sparring\';sparTab=\'profile\';go(\'boxing\')"><span class="k">'+(ST.bp?E([ST.bp.division,ST.bp.current_weight?ST.bp.current_weight+" kg":null].filter(Boolean).join(" · ")||"Boxer profile"):"Needed to book sparring")+'</span><b>Boxer Profile &amp; Rounds</b><small>'+(ST.bp?"Weight, record, stance. Log your sparring rounds.":"Set up your profile once, then book Sparring classes.")+'</small></button>';
+  return h?'<h2 class="sec">Boxing</h2><div class="cats">'+h+'</div>':"";}
+var _rp=window.renderProfile;
+if(typeof _rp==="function")window.renderProfile=function(){var r=_rp.apply(this,arguments);try{var uid=me();if(!uid)return r;load().then(function(){var m=$id("main");if(!m||typeof view==="undefined"||view!=="profile"||$id("lgSparCard"))return;var h=cardHtml();if(!h)return;var box=document.createElement("div");box.id="lgSparCard";box.className="lg2wrap lg2";box.innerHTML=h;var anchor=m.querySelector(".lg2wrap");if(anchor)anchor.parentNode.insertBefore(box,anchor);else m.appendChild(box);});}catch(e){}return r;};
+/* inside Boxing, the old "Sparring Club" sub-tab reads as what it now is */
+var _rb=window.renderBoxing;
+if(typeof _rb==="function")window.renderBoxing=function(){var r=_rb.apply(this,arguments);try{[].forEach.call(document.querySelectorAll(".subTabs button"),function(b){if(/^\s*Sparring Club\s*$/.test(b.textContent))b.textContent="Boxer Profile";});}catch(e){}return r;};
 })();
