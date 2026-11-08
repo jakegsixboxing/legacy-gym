@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0a0a0b">
+<link rel="icon" href="/icon-192.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>Your Legacy guest pass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Montserrat:wght@500;600;700;800;900&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4.1646425229/face_detection.js" crossorigin="anonymous"></script>
+<style>
+
+:root{--bg:#0a0a0b;--panel:#141312;--card:#1b1a18;--line:#2a2519;--line2:#3a3222;--gold:#c9a44c;--gold2:#f1d27a;--gold-rgb:201,164,76;--text:#f3f1ec;--muted:#a19d92;--ok:#4bc97a;--rec:#4fb3d6;--gym:#c9a44c;--trial:#9b6ddb;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{padding:20px 16px 48px;background:radial-gradient(120% 60% at 50% -10%,rgba(var(--gold-rgb),.10),transparent 60%),var(--bg)}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.back{width:36px;height:36px;border-radius:50%;border:1px solid var(--line2);background:var(--panel);color:var(--gold);font:700 22px/1 Oswald,sans-serif;display:grid;place-items:center;cursor:pointer}
+.top b{font:600 16px/1 Oswald,sans-serif;letter-spacing:2.5px;text-transform:uppercase}
+.top small{display:block;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:3px}
+.k{font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold)}
+h2{margin:4px 0 6px;font:700 28px/1 Oswald,sans-serif;text-transform:uppercase;text-wrap:balance}
+h2 span{background:linear-gradient(90deg,var(--gold2),var(--gold) 60%,#a98538);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{margin:0 0 12px;color:var(--muted);font-size:12.5px;line-height:1.55}
+.lc{position:relative;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;width:100%;text-align:left;border:1px solid var(--line);border-left:4px solid var(--cc,var(--gold));border-radius:16px;background:linear-gradient(120deg,#1a170f,#121110 60%);padding:14px;color:inherit;font-family:inherit;cursor:pointer;margin-bottom:8px}
+.lc .k{color:var(--cc,var(--gold))}
+.lc b{display:block;font:700 19px/1 Oswald,sans-serif;text-transform:uppercase;margin-top:4px}
+.lc small{display:block;color:var(--muted);font-size:11.5px;line-height:1.4;margin-top:4px}
+.lc .pr{font:700 24px/1 Oswald,sans-serif;color:var(--gold2);white-space:nowrap}
+.lc .pr i{display:block;font:800 8.5px Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-align:right;margin-top:3px;font-style:normal}
+.card{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:14px;margin-bottom:10px}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:14px;font:900 12px/1 Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#161307;cursor:pointer;margin-top:10px}
+.btn.ghost{background:var(--panel);color:var(--text);border:1px solid var(--line2)}
+.btn.pay{background:#fff;color:#000;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;letter-spacing:0;text-transform:none;font-weight:700}
+.btn:disabled{opacity:.45;cursor:default}
+.qr{display:grid;place-items:center;background:#fff;border-radius:18px;padding:14px;margin:10px 0}
+.qr img,.qr canvas{display:block;width:200px;height:200px}
+.steps{display:flex;gap:4px;margin:0 0 14px}.steps i{flex:1;height:4px;border-radius:2px;background:var(--line2)}.steps i.on{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+label{display:block;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:10px 0 5px}
+input,select{width:100%;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:12px;color:var(--text);font:600 14px Montserrat,sans-serif}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;line-height:1.45;color:var(--muted);margin-top:10px;text-transform:none;letter-spacing:0;font-weight:600}
+.chk input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--gold)}
+.pass{position:relative;overflow:hidden;border-radius:22px;border:1px solid rgba(var(--gold-rgb),.6);background:radial-gradient(120% 120% at 50% 0%,#3a2d12,#121110 62%);padding:20px 18px;text-align:center}
+.pass:before{content:"";position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent 0 70%,rgba(var(--gold-rgb),.18) 80%,transparent 90%);animation:spin 7s linear infinite;pointer-events:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pass>*{position:relative}
+.pass .code{font:700 44px/1 Oswald,sans-serif;letter-spacing:6px;margin:8px 0 2px;background:linear-gradient(180deg,#fff,var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.pass .tag{display:inline-block;margin-top:10px;font-size:10.5px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--ok);border:1px solid rgba(75,201,122,.5);border-radius:99px;padding:7px 12px;background:rgba(75,201,122,.1)}
+.pass .tag.wait{color:var(--gold2);border-color:rgba(var(--gold-rgb),.5);background:rgba(var(--gold-rgb),.1)}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:12.5px}.kv:first-child{border-top:0}
+.kv span{color:var(--muted)}.kv b{font-weight:800;text-align:right}
+.st{font-size:10px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;border-radius:7px;padding:4px 7px;border:1px solid var(--line2);color:var(--muted)}
+.st.ok{color:var(--ok);border-color:rgba(75,201,122,.5)}.st.wait{color:var(--gold2);border-color:rgba(var(--gold-rgb),.5)}.st.rec{color:var(--rec);border-color:rgba(79,179,214,.5)}.st.tri{color:#c7a9f0;border-color:rgba(155,109,219,.5)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:linear-gradient(180deg,var(--gold2),var(--gold));color:#161307;font-size:13px;font-weight:700;padding:10px 14px;border-radius:10px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}.toast.on{opacity:1}
+.pm{display:flex;gap:8px;margin-top:10px}.pm button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line2);background:var(--card);color:var(--text);font:800 11px Montserrat,sans-serif;cursor:pointer}.pm button.on{border-color:var(--gold);color:var(--gold2)}
+.age{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;border:1px solid rgba(224,74,74,.45);background:rgba(224,74,74,.08);border-radius:14px;padding:10px 12px;margin:0 0 12px}.age b{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;border:2px solid #e04a4a;color:#ff8a8a;font:700 13px/1 Oswald,sans-serif}.age span{font-size:11.5px;line-height:1.45;color:#d0ccc2}.age span b{display:inline;width:auto;height:auto;border:0;color:var(--text);font:800 11.5px Montserrat,sans-serif}
+.sharebox{border:1px solid rgba(var(--gold-rgb),.45);border-radius:18px;padding:14px;background:linear-gradient(120deg,#1a170f,#121110 60%);margin-top:10px}.sharebox .row{display:flex;gap:8px;margin-top:10px}.sharebox .row button{flex:1;padding:12px 8px;border-radius:12px;border:1px solid var(--line2);background:var(--panel);color:var(--text);font:800 11px Montserrat,sans-serif;letter-spacing:.5px;cursor:pointer;min-height:44px}.sharebox .row button.pri{background:linear-gradient(180deg,var(--gold2),var(--gold));border-color:var(--gold);color:#161307}
+.ret{display:flex;gap:8px;align-items:center;margin-top:12px}.ret input{flex:1}.ret button{padding:12px 14px;border-radius:12px;border:1px solid var(--line2);background:var(--panel);color:var(--gold2);font:800 11px Montserrat,sans-serif;cursor:pointer;min-height:44px}
+.sheet{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}.sheet.on{opacity:1;pointer-events:auto}
+.sheet .in{width:100%;background:#0f0e0d;border:1px solid rgba(var(--gold-rgb),.45);border-bottom:0;border-radius:24px 24px 0 0;padding:14px 18px 28px;transform:translateY(40px);transition:transform .3s}.sheet.on .in{transform:none}
+.spin{width:22px;height:22px;border:3px solid rgba(0,0,0,.15);border-top-color:#000;border-radius:50%;animation:rot .8s linear infinite;display:inline-block}@keyframes rot{to{transform:rotate(360deg)}}
+.cam{position:relative;width:220px;height:280px;margin:10px auto;border-radius:50%/42%;overflow:hidden;background:#000;border:3px solid var(--line2);transition:border-color .3s}.cam.ok{border-color:var(--ok);box-shadow:0 0 0 6px rgba(75,201,122,.15)}.cam.bad{border-color:#e04a4a}
+.cam video,.cam img,.cam canvas{width:100%;height:100%;object-fit:cover}.cam video{transform:scaleX(-1)}
+.cam .hint{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#fff;text-shadow:0 1px 4px #000;padding:0 10px}
+.ins{border:1px solid rgba(var(--gold-rgb),.4);border-radius:14px;padding:12px 14px;background:rgba(var(--gold-rgb),.06);font-size:12px;line-height:1.55;color:#d0ccc2;margin-top:8px}.ins b{color:var(--gold2)}
+.face{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);display:block;flex:none}.face.ph{display:grid;place-items:center;background:var(--card);font:700 15px Oswald,sans-serif;color:var(--gold2)}
+.pass .face{width:84px;height:84px;margin:4px auto 8px;border-width:3px;box-shadow:0 0 0 6px rgba(var(--gold-rgb),.15)}.card .face.c{margin:0 auto 6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+body{padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto}
+.top{margin-top:4px}
+.top .lg{font:600 18px/1 Oswald,sans-serif;letter-spacing:3px;text-transform:uppercase;background:linear-gradient(90deg,var(--gold2),var(--gold) 55%,#9a7a2e);-webkit-background-clip:text;background-clip:text;color:transparent}
+.top .lg small{display:block;font:700 9px Montserrat,sans-serif;letter-spacing:3px;margin-top:4px;-webkit-text-fill-color:var(--muted)}
+.wv{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line2);border-radius:14px;padding:12px 14px;margin-top:8px;background:var(--card)}
+.wv b{display:block;font:700 15px/1.1 Oswald,sans-serif;text-transform:uppercase}.wv small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.wv a{display:inline-block;border-radius:10px;padding:10px 12px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#161307;font:900 11px Montserrat,sans-serif;letter-spacing:1px;text-transform:uppercase;text-decoration:none;white-space:nowrap}
+.wv.ok a{background:var(--panel);color:var(--ok);border:1px solid var(--ok)}
+.err{border:1px solid rgba(224,74,74,.5);background:rgba(224,74,74,.08);border-radius:14px;padding:12px 14px;font-size:12.5px;line-height:1.5;color:#ffd7d7;margin-top:10px}
+.center{text-align:center;padding:40px 16px}
+</style>
+</head>
+<body>
+<div class="top"><div class="lg">Legacy Gym<small>Kincumber · guest pass</small></div></div>
+<div id="app"><div class="center"><div class="k">One sec</div><p class="lead" style="margin-top:8px">Loading your pass…</p></div></div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+"use strict";
+var SB_URL="https://jyslqxepodrseyhoppce.supabase.co",SB_KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+var sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false}});
+var $=function(id){return document.getElementById(id);};
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function toast(t){var el=$("toast");el.textContent=t;el.classList.add("on");clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove("on");},2200);}
+function buzz(p){try{navigator.vibrate&&navigator.vibrate(p);}catch(e){}}
+function money(c){return c?"$"+(c/100).toFixed(2).replace(/\.00$/,""):"Free";}
+function wk(n){return "$"+Number(n).toFixed(2).replace(/\.00$/,"")+"/wk";}
+var TOKEN=(new URLSearchParams(location.search).get("t")||"").trim();
+var P=null,CFG=null,STEP=0,busy=false,pollT=null,newTick=false,age18=false;
+function prod(){if(!P||!CFG)return {};if(P.kind==="membership"){var m=(CFG.memberships||[]).filter(function(x){return x.id===P.membership_id;})[0]||{};return {n:m.n||"Membership",s:m.s||"",kind:"Membership",grp:m.grp,wk:P.membership_wk,term:P.membership_term,link:P.membership_link,cents:0};}
+  var p=(CFG.products||{})[P.kind]||{};return {n:p.n,s:(p.s||"").replace("the host's",first(P.host)+"'s"),kind:p.kind,cents:P.price_cents,variant:p.variant};}
+function first(n){return (n||"").split(" ")[0]||"your mate";}
+function ageBox(){return '<div class="age" role="note"><b>18+</b><span><b>Adults only.</b> Everything here is for 18 and over. Under-18s are welcome in boxing and strength classes only, and need to come into the gym during open hours with a parent or guardian to set up.</span></div>';}
+function gateBox(){return '<div class="ins" style="border-color:rgba(var(--gold-rgb),.6);background:rgba(var(--gold-rgb),.08)"><b>The 7-day free trial is for people thinking about joining.</b> It isn\'t available to anyone who has had a trial before, been a member, or used the gym or recovery centre before, even once.<br><br><b>If that\'s you and you come in on a trial today, the member bringing you in is charged a $100 breach-of-policy fee.</b> Save them the trouble: ask '+E(first(P.host))+' for a casual pass instead.</div>';}
+function faceImg(src,ini,cls){return src&&src.length>40?'<img class="face '+(cls||"")+'" src="'+src+'" alt="">':'<span class="face ph '+(cls||"")+'">'+E(ini||"?")+'</span>';}
+function initials(){return ((P.first||"")[0]||"")+((P.last||"")[0]||"")||"?";}
+function stepFor(){if(!P)return 0;if(P.status==="done")return 5;if(P.paid||P.trial_started||P.joined_claimed)return 5;if(P.has_photo&&P.waived)return 4;if(P.waived)return 3;if(P.first)return 2;return 0;}
+function load(){return sb.rpc("guest_pass_get",{p_token:TOKEN}).then(function(r){if(r.error)throw r.error;var j=r.data;if(!j.ok)throw new Error(j.error||"Pass not found");P=j.pass;CFG=j.config;});}
+function render(){var app=$("app");if(!P){app.innerHTML='<div class="center"><div class="k">Hmm</div><h2>No pass <span>here.</span></h2><p class="lead">This link doesn\'t match a guest pass. Ask the Legacy member who invited you to send it again, or scan their code.</p></div>';return;}
+  if(P.status==="cancelled"){app.innerHTML='<div class="center"><div class="k">Cancelled</div><h2>This pass was <span>cancelled.</span></h2><p class="lead">Ask '+E(first(P.host))+' to make a new one.</p></div>';return;}
+  var p=prod(),paid=p.cents>0,mem=P.kind==="membership",tri=P.kind==="trial";
+  var head='<div class="k" style="margin-top:14px">Guest pass · '+E(P.code)+'</div><div class="steps">'+[1,2,3,4,5].map(function(i){return '<i class="'+(STEP>=i?"on":"")+'"></i>';}).join("")+'</div>';
+  var h="";
+  if(STEP===0){h=head+'<div class="k">'+E(P.host)+' has invited you</div><h2>'+E(p.n)+'<span>.</span></h2><p class="lead">'+E(p.s)+' '+(mem?"It's "+wk(p.wk)+" by direct debit, "+String(p.term||"").toLowerCase()+", set up on your phone in a minute.":paid?"It's "+money(p.cents)+", paid here before you walk in.":"No charge. We'll set your trial up in a minute.")+' Four quick steps: your details, the waiver, a photo of you, '+(mem?"then your direct debit":paid?"then payment":"and you're in")+'.</p>'+ageBox()+
+    '<div class="card"><div class="kv"><span>Where</span><b>Legacy Gym, Kincumber</b></div><div class="kv"><span>'+(mem?"Starts":"Valid")+'</span><b>'+E(new Date(P.valid_date+"T12:00:00").toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"}))+'</b></div><div class="kv"><span>Host</span><b>'+E(P.host)+'</b></div><div class="kv"><span>Price</span><b>'+(mem?wk(p.wk)+" · "+E(p.term):money(p.cents))+'</b></div></div>'+
+    (tri?gateBox()+'<label class="chk"><input type="checkbox" onchange="G.tick(this)"><span>I\'m new to Legacy: no previous trial, membership or casual visit.</span></label><button class="btn" id="goBtn" onclick="G.go()" disabled>I\'m new · start my 7-day trial</button>':'<button class="btn" onclick="G.go()">Let\'s go</button>');}
+  if(STEP===1){h=head+'<div class="k">Step 1 of 4</div><h2>Your <span>details.</span></h2><p class="lead">Once. They go on your waiver and your pass, so staff know who\'s in the building.</p>'+
+    '<div class="card" style="padding:12px 14px"><div class="k">Been here before?</div><div class="ret"><input id="retMob" inputmode="tel" placeholder="Your mobile from last time" aria-label="Mobile used on a previous visit"><button onclick="G.returning()">Find me</button></div><div class="lead" style="font-size:11px;margin:8px 0 0">Your waiver and photo are kept on file, so a return visit is just pay and go.</div></div>'+
+    '<div class="k" style="margin-top:14px">New here</div><div class="row2"><div><label for="fn">First name</label><input id="fn" autocomplete="given-name" value="'+E(P.first||"")+'"></div><div><label for="ln">Last name</label><input id="ln" autocomplete="family-name" value="'+E(P.last||"")+'"></div></div><label for="fm">Mobile</label><input id="fm" inputmode="tel" autocomplete="tel" value="'+E(P.mobile||"")+'" placeholder="04xx xxx xxx"><label for="fe">Email</label><input id="fe" inputmode="email" autocomplete="email" value="'+E(P.email||"")+'" placeholder="you@email.com">'+
+    '<label class="chk" style="margin-top:14px"><input type="checkbox" id="age18" '+(age18?"checked":"")+'><span>I declare I am <b style="color:var(--text)">18 years or older</b>. The weights room, gym floor and recovery centre are 18+. Under-18s can join classes with a parent or guardian at the desk.</span></label>'+
+    '<button class="btn" onclick="G.details()">Next: the waiver</button>';}
+  if(STEP===2){var keys=P.waiver_keys||[];h=head+'<div class="k">Step 2 of 4</div><h2>Sign the <span>waiver'+(keys.length>1?"s":"")+'.</span></h2><p class="lead">'+(keys.length>1?"This pass covers the gym and the recovery centre, so there are two short waivers.":"One short waiver.")+' Each opens in Smartwaiver with your name filled in. Sign, come back here and tap <b>Check</b>.</p>'+
+    keys.map(function(k){var w=(CFG.waivers||{})[k]||{};var u=w.url+(w.url.indexOf("?")>0?"&":"?")+"wautofill_firstname="+encodeURIComponent(P.first||"")+"&wautofill_lastname="+encodeURIComponent(P.last||"")+"&wautofill_email="+encodeURIComponent(P.email||"")+"&wautofill_phone="+encodeURIComponent(P.mobile||"")+"&wautofill_tag="+encodeURIComponent(TOKEN);return '<div class="wv'+(P.waived?" ok":"")+'"><div><b>'+E(w.name||k)+'</b><small>'+(P.waived?(P.waiver_verified?"Signed and confirmed":"Signed"):"Opens in a new tab · about 2 minutes")+'</small></div><a href="'+E(u)+'" target="_blank" rel="noopener">'+(P.waived?"Open again":"Open & sign")+'</a></div>';}).join("")+
+    (P.waived?'<button class="btn" onclick="G.next(3)">Next: your photo</button>':'<button class="btn" id="chkBtn" onclick="G.checkWaiver()">I\'ve signed · check</button><div id="wvMsg"></div><p class="lead" style="font-size:11px;margin-top:10px">Nothing moves until the waiver is on file. If Smartwaiver is slow, give it ten seconds and tap check again.</p>');}
+  if(STEP===3){h=head+'<div class="k">Step 3 of 4</div><h2>A photo of <span>you.</span></h2><p class="lead">Face in the oval, good light, no hat or sunnies. We check it\'s a real face before you can go on.</p>'+
+    '<div class="cam" id="cam">'+(P.has_photo?'<img src="'+P.photo+'" alt="">':'<video id="vid" autoplay playsinline muted></video>')+'<div class="hint" id="camHint">'+(P.has_photo?"Looking good":"Starting camera…")+'</div></div>'+
+    (P.has_photo?'<button class="btn" onclick="G.next(4)">Next: '+(mem?"set up your membership":paid?"pay "+money(p.cents):"start your trial")+'</button><button class="btn ghost" onclick="G.retake()">Retake</button>':'<button class="btn" id="snap" onclick="G.snap()" disabled>Take photo</button><label style="display:block;text-align:center;margin-top:8px"><span class="st" style="cursor:pointer">Camera blocked? Use your phone\'s camera app</span><input type="file" accept="image/*" capture="user" style="display:none" onchange="G.fromFile(this)"></label>')+
+    '<div class="ins"><b>Why we ask.</b> A photo, a signed waiver and payment are required for every casual visit, trial and guest. It\'s a condition of our insurance and part of our standards and expectations. Your photo is never shared or posted anywhere. It\'s held securely and used only for your safety and ours: matching you to your pass, and to our CCTV if we ever need to.</div>';}
+  if(STEP===4){
+    if(mem)h=head+'<div class="k">Step 4 of 4</div><h2>Set up your <span>membership.</span></h2><p class="lead">'+E(p.n)+', '+E(String(p.term).toLowerCase())+', '+wk(p.wk)+'. The direct debit form opens in a new tab with the gym\'s provider'+(p.grp==="Recovery"?" (Mindbody)":" (Debitsuccess)")+'. Finish it, come back here and tap done.</p><div class="card"><div class="kv"><span>Membership</span><b>'+E(p.n)+'</b></div><div class="kv"><span>Term</span><b>'+E(p.term)+'</b></div><div class="kv"><span>Weekly</span><b style="color:var(--gold2);font-size:16px">'+wk(p.wk)+'</b></div><div class="kv"><span>Swipe pass</span><b>'+money(CFG.swipe_pass_cents||5000)+' · collect at the desk</b></div>'+(p.grp!=="Recovery"?'<div class="kv"><span>On the form</span><b>+$1.50/wk Debitsuccess fee · $15 set-up</b></div>':'')+'<div class="kv"><span>Referred by</span><b>'+E(P.host)+'</b></div></div><a class="btn" style="text-align:center;text-decoration:none" href="'+E(p.link)+'" target="_blank" rel="noopener">Open the direct debit form ›</a><button class="btn ghost" onclick="G.join()">Done, I\'ve set it up</button>';
+    else if(tri)h=head+'<div class="k">Step 4 of 4</div><h2>Start your <span>trial.</span></h2><p class="lead">Seven days of everything: classes, the gym floor, Cornerman. You train on '+E(first(P.host))+'\'s swipe until you pick up your own pass from the desk. We\'ll be in touch with your app login.</p><div class="card"><div class="kv"><span>Trial starts</span><b>Today</b></div><div class="kv"><span>Ends</span><b>'+E(new Date(Date.now()+7*86400000).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"}))+'</b></div><div class="kv"><span>Swipe pass</span><b>Collect from the desk</b></div><div class="kv"><span>Referred by</span><b>'+E(P.host)+'</b></div></div><button class="btn" onclick="G.trial()">Start my 7-day trial</button>';
+    else{var link=(CFG.shop||"https://www.legacygym.net")+"/cart/"+p.variant+":1?attributes[pass_token]="+encodeURIComponent(TOKEN)+"&attributes[pass_code]="+encodeURIComponent(P.code)+"&attributes[guest]="+encodeURIComponent((P.first||"")+" "+(P.last||""))+"&attributes[host]="+encodeURIComponent(P.host||"")+"&checkout[email]="+encodeURIComponent(P.email||"")+"&checkout[shipping_address][first_name]="+encodeURIComponent(P.first||"")+"&checkout[shipping_address][last_name]="+encodeURIComponent(P.last||"")+"&checkout[shipping_address][phone]="+encodeURIComponent(P.mobile||"");
+      h=head+'<div class="k">Step 4 of 4</div><h2>Pay <span>'+money(p.cents)+'.</span></h2><p class="lead">Secure checkout through the Legacy Gym store (Apple Pay, Google Pay or card). Your receipt goes to '+E(P.email)+'. When it\'s paid, come back to this page and your pass appears.</p><div class="card"><div class="kv"><span>'+E(p.n)+'</span><b>'+money(p.cents)+'</b></div><div class="kv"><span>Guest of</span><b>'+E(P.host)+'</b></div><div class="kv"><span>Valid</span><b>Today only</b></div><div class="kv"><span>Total</span><b style="color:var(--gold2);font-size:16px">'+money(p.cents)+' AUD</b></div></div><a class="btn pay" href="'+E(link)+'" onclick="G.paying()">Pay '+money(p.cents)+' · Legacy store ›</a><button class="btn ghost" onclick="G.refresh()">I\'ve paid · refresh my pass</button><div id="payMsg" class="lead" style="font-size:11px;margin-top:10px">Pass code '+E(P.code)+' is attached to your order so it matches up by itself.</div>';}}
+  if(STEP===5){var who=((P.first||"")+" "+(P.last||"")).trim();h=head+'<div class="pass"><div class="k">'+(mem?"Member · welcome to Legacy":paid?"Paid · you\'re in":"Trial active · you\'re in")+'</div><div class="code">'+E(P.code)+'</div>'+faceImg(P.photo,initials())+'<div style="font:700 18px/1.1 Oswald,sans-serif;text-transform:uppercase;margin-top:4px">'+E(who)+'</div><div style="font-size:12px;color:var(--muted);margin-top:4px">'+E(p.n)+' · guest of '+E(P.host)+' · '+E(new Date(P.valid_date+"T12:00:00").toLocaleDateString("en-AU",{day:"numeric",month:"short"}))+'</div><span class="tag">Waiver '+(P.waiver_verified?"confirmed":"signed")+(mem?" · "+wk(p.wk)+" · "+E(p.term):paid?" · "+money(P.paid_cents||p.cents)+" paid"+(P.order_name?" · "+E(P.order_name):""):" · 7 days")+'</span><div style="margin-top:14px;font-size:12.5px;line-height:1.55;color:#d0ccc2">'+(mem?"You\'re a member from today. Grab your swipe pass from the desk; until then walk in with "+E(first(P.host))+".":p.kind==="Day pass"?"All day with "+E(first(P.host))+": train, take a class, then the communal sauna and ice bath. Shower before recovery, swimwear and a towel.":p.kind==="Recovery"?"Head to the recovery centre with "+E(first(P.host))+". Shower first, swimwear on, towel in hand.":tri?"Walk in with "+E(first(P.host))+" today. We\'ll text you about your app login and your own pass.":"Walk in with "+E(first(P.host))+", they swipe you through. Pick any class today or hit the floor.")+'</div></div>'+
+    '<div class="sharebox"><div class="k">Bring the crew</div><div style="font:700 18px/1.1 Oswald,sans-serif;text-transform:uppercase;margin:4px 0">'+(mem?"Tell your mates you joined":tri?"Get a mate on a trial too":"Next time, bring a mate")+'</div><div class="lead" style="margin:4px 0 0">One tap sends a message with your name and the link. Everyone 18+ is welcome; under-18s come in during open hours for classes.</div><div class="row"><button class="pri" onclick="G.share()">Share with mates</button><button onclick="G.refresh()">Refresh</button></div></div>'+
+    (paid&&!mem?'<div class="card" style="margin-top:10px"><div class="k">Liked it?</div><div style="font:700 18px/1.1 Oswald,sans-serif;text-transform:uppercase;margin:4px 0">Join within 7 days</div><div class="lead" style="margin:4px 0 0">Ask at the desk about having today\'s '+money(p.cents)+' credited to a membership. '+E(first(P.host))+' gets the referral.</div><a class="btn ghost" style="text-align:center;text-decoration:none" href="https://www.legacygym.net/pages/memberships" target="_blank" rel="noopener">See memberships</a></div>':'');}
+  app.innerHTML=h;window.scrollTo(0,0);
+  if(STEP===3&&!P.has_photo)setTimeout(startCam,80);else stopCam();
+  if(STEP===4&&!mem&&!tri)startPoll();else stopPoll();
+}
+function setStep(n){STEP=n;render();}
+var G=window.G={};
+G.tick=function(el){newTick=el.checked;$("goBtn").disabled=!newTick;};
+G.go=function(){if(P.kind==="trial"&&!newTick)return;setStep(1);};
+G.next=function(n){setStep(n);};
+G.details=function(){if(busy)return;var f=$("fn").value.trim(),l=$("ln").value.trim(),m=$("fm").value.trim(),e=$("fe").value.trim();age18=$("age18").checked;
+  if(!f||!l||!m||!e){toast("First name, last name, mobile and email please");return;}if(!age18){toast("You need to be 18 or over to use this pass");return;}
+  busy=true;sb.rpc("guest_pass_details",{p_token:TOKEN,p:{first:f,last:l,mobile:m,email:e,age18:true}}).then(function(r){busy=false;var j=r.data||{};if(r.error||!j.ok){toast((j.error)||(r.error&&r.error.message)||"Try again");return;}return load().then(function(){setStep(2);});}).catch(function(){busy=false;toast("Connection hiccup, try again");});};
+G.returning=function(){if(busy)return;var m=$("retMob").value.trim();if(m.replace(/\D/g,"").length<8){toast("Enter the mobile you used last time");return;}busy=true;
+  sb.rpc("guest_pass_returning",{p_token:TOKEN,p_mobile:m}).then(function(r){busy=false;var j=r.data||{};if(r.error||!j.ok){toast(j.error||"Try again");return;}toast("Welcome back, "+j.first+(j.waiver_ok?". Waiver and photo on file":". Photo on file, one waiver to sign"));return load().then(function(){setStep(stepFor());});}).catch(function(){busy=false;toast("Connection hiccup, try again");});};
+G.checkWaiver=function(){if(busy)return;busy=true;var b=$("chkBtn");if(b){b.disabled=true;b.textContent="Checking with Smartwaiver…";}
+  fetch(SB_URL+"/functions/v1/guest-waiver?t="+encodeURIComponent(TOKEN)).then(function(r){return r.json();}).catch(function(){return {configured:false};}).then(function(j){
+    if(j&&j.verified){busy=false;toast("Waiver confirmed");return load().then(function(){setStep(3);});}
+    if(j&&j.configured){busy=false;if(b){b.disabled=false;b.textContent="I've signed · check again";}var msg=$("wvMsg");if(msg)msg.innerHTML='<div class="err">We can\'t see your signed waiver yet'+(j.missing&&j.missing.length>1?" (both are needed)":"")+'. Make sure you tapped <b>Agree</b> at the very bottom of the Smartwaiver page, then check again.</div>';return;}
+    /* Smartwaiver check not switched on yet: record the signature as self-reported, staff confirm it */
+    return sb.rpc("guest_pass_waiver_claim",{p_token:TOKEN}).then(function(r){busy=false;var k=r.data||{};if(r.error||!k.ok){if(b){b.disabled=false;b.textContent="I've signed · check";}toast(k.error||"Try again");return;}toast("Waiver recorded");return load().then(function(){setStep(3);});});
+  }).catch(function(){busy=false;if(b){b.disabled=false;b.textContent="I've signed · check";}toast("Connection hiccup, try again");});};
+/* camera + face check */
+var cam={stream:null,det:null,detReady:false,timer:null,live:false,lastOk:false,pending:null};
+function startCam(){var v=$("vid");if(!v||cam.live)return;if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){setHint("No camera in this browser. Use the camera app button.",null);return;}
+ navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:640},height:{ideal:800}},audio:false}).then(function(st){cam.stream=st;cam.live=true;v.srcObject=st;setHint("Centre your face",null);loadDet();cam.timer=setInterval(liveCheck,700);}).catch(function(){setHint("Camera blocked here. Use the camera app button.",null);});}
+function stopCam(){clearInterval(cam.timer);cam.timer=null;if(cam.stream){cam.stream.getTracks().forEach(function(t){t.stop();});cam.stream=null;}cam.live=false;cam.lastOk=false;}
+function setHint(t,ok){var h=$("camHint"),c=$("cam"),b=$("snap");if(h)h.textContent=t;if(c){c.classList.toggle("ok",ok===true);c.classList.toggle("bad",ok===false);}if(b)b.disabled=!(ok===true);}
+function loadDet(){if(cam.det||!window.FaceDetection)return;try{cam.det=new FaceDetection({locateFile:function(f){return "https://cdn.jsdelivr.net/npm/@mediapipe/face_detection@0.4.1646425229/"+f;}});cam.det.setOptions({model:"short",minDetectionConfidence:0.6});cam.det.onResults(function(r){if(cam.pending)cam.pending(r);});cam.det.initialize().then(function(){cam.detReady=true;}).catch(function(){cam.det=null;});}catch(e){cam.det=null;}}
+/* face check: MediaPipe when it loaded, the browser's FaceDetector when it exists, else a light brightness-and-skin check (backup only) */
+function checkFace(src,w,h){return new Promise(function(res){
+ if(cam.det&&cam.detReady){var done=false;cam.pending=function(r){if(done)return;done=true;cam.pending=null;var d=(r.detections||[])[0];if(!d){res({ok:false,why:"No face found. It needs to be you, not the wall."});return;}var bb=d.boundingBox;res(bb&&bb.width<0.18?{ok:false,why:"Come closer and fill the oval."}:{ok:true,how:"MediaPipe"});};
+   cam.det.send({image:src}).catch(function(){if(!done){done=true;cam.pending=null;res(heur(src,w,h));}});setTimeout(function(){if(!done){done=true;cam.pending=null;res(heur(src,w,h));}},1500);return;}
+ if(window.FaceDetector){try{new FaceDetector({fastMode:true,maxDetectedFaces:1}).detect(src).then(function(f){res(f.length?{ok:true,how:"FaceDetector"}:{ok:false,why:"No face found. It needs to be you, not the wall."});}).catch(function(){res(heur(src,w,h));});return;}catch(e){}}
+ res(heur(src,w,h));});}
+function heur(src,w,h){var c=document.createElement("canvas");c.width=96;c.height=120;var x=c.getContext("2d");try{x.drawImage(src,0,0,96,120);}catch(e){return {ok:false,why:"Couldn't read the picture. Try again."};}
+ var d=x.getImageData(0,0,96,120).data,skin=0,n=0,sum=0,sq=0;for(var i=0;i<d.length;i+=4){var r=d[i],g=d[i+1],b=d[i+2],px=i/4,xx=px%96,yy=Math.floor(px/96),l=(r*299+g*587+b*114)/1000;sum+=l;sq+=l*l;if(xx>20&&xx<76&&yy>20&&yy<100){n++;var cb=128-0.168736*r-0.331264*g+0.5*b,cr=128+0.5*r-0.418688*g-0.081312*b;if(cr>135&&cr<175&&cb>80&&cb<125&&r>g&&r>b)skin++;}}
+ var N=d.length/4,sd=Math.sqrt(Math.max(0,sq/N-(sum/N)*(sum/N))),ratio=skin/n;if(sd<16)return {ok:false,why:"That looks like a wall or a blank surface. We need your face."};if(ratio<0.14)return {ok:false,why:"No face found. Centre your face in the oval."};return {ok:true,how:"backup check"};}
+function liveCheck(){var v=$("vid");if(!v||!cam.live||v.readyState<2)return;checkFace(v,v.videoWidth,v.videoHeight).then(function(r){cam.lastOk=r.ok;setHint(r.ok?"Face found. Hold still":r.why,r.ok);});}
+window.snap=function(){var v=$("vid");if(!v||!cam.lastOk){toast("Get your face in the oval first");return;}var c=document.createElement("canvas");c.width=360;c.height=450;var x=c.getContext("2d"),vw=v.videoWidth,vh=v.videoHeight,s=Math.max(360/vw,450/vh);x.translate(360,0);x.scale(-1,1);x.drawImage(v,(360-vw*s)/2,(450-vh*s)/2,vw*s,vh*s);acceptPhoto(c.toDataURL("image/jpeg",.7));};
+window.fromFile=function(inp){var f=inp.files&&inp.files[0];if(!f)return;var img=new Image();img.onload=function(){checkFace(img,img.naturalWidth,img.naturalHeight).then(function(r){if(!r.ok){setHint(r.why,false);toast(r.why);return;}var c=document.createElement("canvas");c.width=360;c.height=450;var x=c.getContext("2d"),s=Math.max(360/img.naturalWidth,450/img.naturalHeight);x.drawImage(img,(360-img.naturalWidth*s)/2,(450-img.naturalHeight*s)/2,img.naturalWidth*s,img.naturalHeight*s);acceptPhoto(c.toDataURL("image/jpeg",.7));});};img.src=URL.createObjectURL(f);};
+
+function acceptPhoto(url){stopCam();if(busy)return;busy=true;toast("Saving photo…");sb.rpc("guest_pass_photo",{p_token:TOKEN,p_data:url}).then(function(r){busy=false;var j=r.data||{};if(r.error||!j.ok){toast(j.error||"Photo didn't save, try again");render();return;}buzz(15);return load().then(function(){render();});}).catch(function(){busy=false;toast("Connection hiccup, try again");render();});}
+G.snap=window.snap;G.fromFile=window.fromFile;
+G.retake=function(){P.has_photo=false;P.photo=null;render();};
+G.trial=function(){if(busy)return;busy=true;sb.rpc("guest_pass_trial_start",{p_token:TOKEN}).then(function(r){busy=false;var j=r.data||{};if(r.error||!j.ok){toast(j.error||(r.error&&r.error.message)||"Try again");return;}buzz([20,30,20]);return load().then(function(){setStep(5);});}).catch(function(){busy=false;toast("Connection hiccup, try again");});};
+G.join=function(){if(busy)return;busy=true;sb.rpc("guest_pass_join_claim",{p_token:TOKEN}).then(function(r){busy=false;var j=r.data||{};if(r.error||!j.ok){toast(j.error||"Try again");return;}buzz([20,30,20]);return load().then(function(){setStep(5);});}).catch(function(){busy=false;toast("Connection hiccup, try again");});};
+G.paying=function(){try{localStorage.setItem("lg_guest_paying",TOKEN);}catch(e){}};
+G.refresh=function(){load().then(function(){var s=stepFor();if(s===5&&STEP!==5)buzz([20,30,20]);if(s>STEP||s===5)setStep(s);else toast(P.paid?"Paid":"Not paid yet. Give it a few seconds.");}).catch(function(){toast("Connection hiccup");});};
+G.share=function(){var p=prod(),name=P.first||"I",kind=P.kind;var text=kind==="membership"?name+" just signed up at Legacy Gym Kincumber. Come train with me: https://www.legacygym.net/pages/start-your-free-trial":kind==="trial"?name+" just started a free 7-day trial at Legacy Gym Kincumber. Grab yours too: https://www.legacygym.net/pages/start-your-free-trial":name+" just did a "+String(p.n||"session").toLowerCase()+" at Legacy Gym Kincumber. Come with me next time: https://www.legacygym.net/pages/start-your-free-trial";
+  if(navigator.share){navigator.share({title:"Legacy Gym",text:text}).catch(function(){});}else{try{navigator.clipboard.writeText(text);}catch(e){}toast("Message copied, paste it to your mates");}};
+function startPoll(){stopPoll();pollT=setInterval(function(){if(document.hidden)return;load().then(function(){if(stepFor()===5){stopPoll();buzz([20,30,20]);setStep(5);}}).catch(function(){});},5000);}
+function stopPoll(){clearInterval(pollT);pollT=null;}
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&P&&STEP>=4)G.refresh();});
+if(!TOKEN){P=null;render();}
+else load().then(function(){STEP=stepFor();render();}).catch(function(e){P=null;render();});
+})();
+</script>
+</body>
+</html>
