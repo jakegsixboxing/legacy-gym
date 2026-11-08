@@ -1464,7 +1464,7 @@ window.msAdd=function(k){
 };
 
 /* ---------- after a booking succeeds, offer the calendar ---------- */
-function offer(b,msg){EXTRA=[b];openSheet(b,msg);S.at=0;paintTile();}
+function offer(b,msg){/* 8 Nov 2026: no add-to-calendar sheet after a booking (Jake); the My sessions list still offers it per row */S.at=0;paintTile();}
 function wrap(fn,after){var o=window[fn];if(typeof o!=="function")return;window[fn]=function(){var args=arguments,r=o.apply(this,args);var go=function(){try{after.apply(null,args);}catch(e){}};if(r&&r.then)r.then(go,function(){});else setTimeout(go,50);return r;};}
 setTimeout(function(){
   wrap("attendClass",async function(date,time,name){var m=parseTime(time);if(m==null)return;var q=await sb.from("class_regs").select("id").eq("user_id",me()).eq("class_date",date).eq("class_time",time).maybeSingle();if(!q.data)return;
