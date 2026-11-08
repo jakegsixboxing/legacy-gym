@@ -215,7 +215,7 @@ function load(force){
       try{
         var need=(FC.F||[]).filter(function(x){return x.user_id&&!x.photo_url;});
         if(need.length){
-          var pr=await sb.from("member_profiles").select("user_id,photo_url").in("user_id",need.map(function(x){return x.user_id;}));
+          var pr=await sb.from("member_directory").select("user_id,photo_url").in("user_id",need.map(function(x){return x.user_id;}));
           (pr.data||[]).forEach(function(m){if(!m.photo_url)return;need.forEach(function(x){if(x.user_id===m.user_id){x.photo_url=m.photo_url;try{sb.from("fc_fighters").update({photo_url:m.photo_url}).eq("id",x.id).then(function(){},function(){});}catch(e2){}}});});
           if(FC.me&&!FC.me.photo_url){var mm=FC.F.find(function(x){return x.id===FC.me.id;});if(mm&&mm.photo_url)FC.me.photo_url=mm.photo_url;}
         }
