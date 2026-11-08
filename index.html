@@ -590,7 +590,7 @@ try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew",
 const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611081652";
+const LG_BUILD="202611082229";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -1637,7 +1637,7 @@ async function renderClasses(){
   /* Unclaimed classes stay on screen for 7 days; already-banked ones only show for yesterday + today so the list stays short. */
   doneRegs=(res[0].data||[]).filter(r=>(r.class_date<d0||(r.class_date===d0&&r.class_time<=nowHM))&&(!claimedRefs.has("class:"+r.class_date+":"+r.class_time)||r.class_date>=dY));
   regs=res[2]?(res[2].data||[]):[];
-  if(dates.length){try{const g=await sb.from("class_guest_regs").select("*").in("class_date",dates);(g.data||[]).forEach(r=>regs.push({user_id:"guest-"+r.id,name:r.name+" (guest)",class_name:r.class_name,class_date:r.class_date,class_time:r.class_time,created_at:r.created_at}));}catch(e){}}
+  if(dates.length){try{const g=await sb.from("class_guest_names").select("*").in("class_date",dates);(g.data||[]).forEach(r=>regs.push({user_id:"guest-"+r.id,name:r.name+" (guest)",class_name:r.class_name,class_date:r.class_date,class_time:r.class_time,created_at:r.created_at}));}catch(e){}}
   myWait=res[3]?(res[3].data||[]):[];
   if(CLASS_TAKEOVER.date&&d0<=CLASS_TAKEOVER.date){
     const tr=await sb.from("social_events").select("*").eq("id",CLASS_TAKEOVER.eventId).maybeSingle();
@@ -2289,7 +2289,7 @@ async function loadWorld(force){
   if(ptsData.loaded&&!force)return;
   const [ev,mp,ce]=await Promise.all([
     sbAll(()=>sb.from("points_events").select("id,user_id,kind,ref,points,created_at").order("created_at",{ascending:true})),
-    sb.from("member_profiles").select("*"),
+    sb.from("member_directory").select("user_id,full_name,photo_url,created_at"),
     sbAll(()=>sb.from("challenge_entries").select("*").order("created_at",{ascending:false}))]);
   ptsData={loaded:true,events:ev.data||[],mprofiles:mp.data||[],entries:ce.data||[]};
 }
@@ -11127,7 +11127,7 @@ var _render=window.render;window.render=function(){if(view==="recoffers")return 
 try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(v==="home")RC2.leads=RC2.leads;return _go.apply(this,arguments);};}catch(e){}
 })();
 </script>
-<script src="/fc.js?v=202611081606"></script>
+<script src="/fc.js?v=202611081727"></script>
 <script src="/rtx.js?v=202610081330"></script>
 <script src="/programs.js?v=202609161010"></script>
 <script src="/timer.js?v=202609161010"></script>
@@ -11147,7 +11147,7 @@ try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(
 <script src="/sparmm.js?v=202611041800"></script>
 <script src="/singlets.js?v=202611021330"></script>
 <script src="/camp.js?v=202611061630"></script>
-<script src="/lg2.js?v=202611081652"></script>
+<script src="/lg2.js?v=202611082229"></script>
 
 <script>
 /* Halloween Saturday block removed 31 Oct 2026 (Jake) */
