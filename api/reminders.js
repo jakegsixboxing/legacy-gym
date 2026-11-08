@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   if (!PUB || !PRIV) return res.status(503).json({ error: "not_configured" });
   try {
     const due = await fetch(SB_URL + "/rest/v1/rpc/reminders_due", {
-      method: "POST", headers: { apikey: SB_ANON, authorization: "Bearer " + SB_ANON, "content-type": "application/json" }, body: "{}"
+      method: "POST", headers: { apikey: SB_ANON, authorization: "Bearer " + SB_ANON, "content-type": "application/json" }, body: JSON.stringify({ p_key: String(req.headers["x-reminders-key"] || "") })
     }).then(r => r.json());
     if (!Array.isArray(due)) return res.status(500).json({ error: "rpc_failed", detail: due });
     if (!due.length) return res.status(200).json({ sent: 0, total: 0 });
