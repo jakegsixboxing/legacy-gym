@@ -48,7 +48,7 @@ var css=document.createElement("style");css.id="lg2css";css.textContent=
 '.lg2 .tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;margin:0 0 10px;padding:4px;background:var(--lpanel);border:1px solid var(--lline);border-radius:14px}.lg2 .tabs button{border:0;background:transparent;color:var(--lmuted);font-weight:800;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:10px 2px;border-radius:10px;font-family:inherit;cursor:pointer}.lg2 .tabs.scroll{display:flex;overflow-x:auto;scrollbar-width:none}.lg2 .tabs.scroll::-webkit-scrollbar{display:none}.lg2 .tabs.scroll button{flex:none;padding:10px 12px}.lg2 .tabs button.on{background:linear-gradient(180deg,color-mix(in srgb,var(--cc,var(--lgold)) 26%,transparent),color-mix(in srgb,var(--cc,var(--lgold)) 10%,transparent));color:#f3f1ec;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--cc,var(--lgold)) 45%,transparent)}'+
 '.lg2 .card2{background:var(--lpanel);border:1px solid var(--lline);border-radius:18px;padding:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}.lg2 .kv{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-top:1px solid var(--lline);font-size:13px;align-items:center}.lg2 .kv:first-child{border-top:0}.lg2 .kv span{color:var(--lmuted)}.lg2 .muted{color:var(--lmuted)}'+
 '.lg2 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.lg2 .stats div{background:var(--lpanel);border:1px solid var(--lline);border-radius:14px;padding:12px 8px;text-align:center}.lg2 .stats b{display:block;font:700 24px/1 Oswald,sans-serif;color:var(--lgold2);font-variant-numeric:tabular-nums}.lg2 .stats i{display:block;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--lmuted);margin-top:5px;line-height:1.3}'+
-'.lg2 .crumb{display:flex;align-items:center;gap:8px;margin:6px 0 8px;font-size:12px;color:var(--lmuted)}.lg2 .crumb button{background:none;border:0;color:var(--lgold);font-weight:700;font-size:12px;padding:0;font-family:inherit;cursor:pointer}'+
+'.lg2 .crumb{display:flex;align-items:center;gap:8px;margin:6px 0 8px;font-size:12px;color:var(--lmuted)}.lg2 .crumb button{background:none;border:0;color:var(--lgold);font-weight:700;font-size:12px;padding:8px 10px 8px 0;min-height:36px;position:relative;font-family:inherit;cursor:pointer}.lg2 .crumb button:after{content:"";position:absolute;inset:-6px -8px}'+
 '.lg2 .ring{position:relative}.lg2 .ring svg{width:100%;height:100%;transform:rotate(-90deg)}.lg2 .ring circle{fill:none;stroke-width:6}.lg2 .ring .bg{stroke:var(--lline2)}.lg2 .ring .fg{stroke:var(--cc,var(--lgold));stroke-linecap:round;transition:stroke-dasharray .7s ease}.lg2 .ring b{position:absolute;inset:0;display:grid;place-items:center;font:700 16px/1 Oswald,sans-serif;font-variant-numeric:tabular-nums}'+
 /* fuel */
 '.lg2 .fuelhero{position:relative;overflow:hidden;border-radius:22px;border:1px solid rgba(75,201,122,.45);background:radial-gradient(120% 140% at 100% 0%,#143a22,#121a14 55%,#0f0e0d 100%);padding:18px;display:grid;grid-template-columns:132px 1fr;gap:16px;align-items:center}.lg2 .fuelhero .ring{width:132px;height:132px}.lg2 .fuelhero .ring circle{stroke-width:9}.lg2 .fuelhero .ring b{font-size:30px}.lg2 .fuelhero .ring b small{display:block;font:800 9px Montserrat,sans-serif;letter-spacing:2px;color:var(--lmuted);text-transform:uppercase;margin-top:4px;text-align:center}.lg2 .fuelhero .k{font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--c-fuel)}.lg2 .fuelhero .big{font:700 26px/1 Oswald,sans-serif;text-transform:uppercase;margin-top:4px}.lg2 .fuelhero .sub{font-size:11.5px;color:var(--lmuted);margin-top:6px;line-height:1.45}'+
@@ -359,8 +359,9 @@ function adminLoad(){if(AD.loading)return;AD.loading=true;var d0=isoLocal(new Da
     q(sb.rpc("fn_presale_tally")),
     q(sb.from("fn_presale").select("id,status,created_at").limit(400)),
     q(sb.from("pt_bookings").select("coach,session_date,start_min,member_name,status").gte("session_date",d0).order("session_date").limit(20)),
-    q(sb.from("nutrition_requests").select("*").order("created_at",{ascending:false}).limit(100))
-  ]).then(function(r){AD.data={nutri:r[16],today:r[0],trials:r[1],leads:r[2],camp:r[3],ptreq:r[4],guests:r[5],comm:r[6],staff:r[7],spon:r[8],newm:r[9],regs30:r[10],members:r[11],ann:r[12],holds:r[13],presale:r[14],ptb:r[15]};AD.loading=false;if(view==="admin")renderAdmin();});}
+    q(sb.from("nutrition_requests").select("*").order("created_at",{ascending:false}).limit(100)),
+    q(sb.from("member_milestones").select("user_id,milestone,points,created_at,shared_at").eq("kind","hit").gte("created_at",d30).order("created_at",{ascending:false}).limit(30))
+  ]).then(function(r){AD.data={ms:r[17],nutri:r[16],today:r[0],trials:r[1],leads:r[2],camp:r[3],ptreq:r[4],guests:r[5],comm:r[6],staff:r[7],spon:r[8],newm:r[9],regs30:r[10],members:r[11],ann:r[12],holds:r[13],presale:r[14],ptb:r[15]};AD.loading=false;if(view==="admin")renderAdmin();});}
 function ago(iso){if(!iso)return "";var d=(Date.now()-new Date(iso))/3600000;return d<1?"just now":d<24?Math.round(d)+" h ago":d<48?"yesterday":Math.round(d/24)+" days ago";}
 var STATUS=[["new","New"],["contacted","Contacted"],["trial","On trial"],["done","Trial done"],["joined","Joined"],["no","No"]];
 function stLabel(st){st=st||"new";if(st==="won")st="joined";var m=STATUS.filter(function(x){return x[0]===st;})[0];return m?m[1]:st;}
@@ -389,6 +390,9 @@ window.renderAdmin=function(){
   if(s==="today"){var by={};(D.today.data||[]).forEach(function(r){var k=r.class_time+"|"+r.class_name;by[k]=(by[k]||0)+1;});var keys=Object.keys(by).sort();var total=(D.today.data||[]).length;
     var trialsOpen=(D.trials.data||[]).filter(function(t){return t.trial_started_at&&(Date.now()-new Date(t.trial_started_at))/86400000<=7;}).length;var leadsOpen=(D.leads.data||[]).filter(function(l){return !l.status||l.status==="new";}).length;
     h+='<div class="stats"><div><b>'+total+'</b><i>Booked in today</i></div><div><b>'+trialsOpen+'</b><i>Trials running</i></div><div><b>'+leadsOpen+'</b><i>Leads to call</i></div></div>';
+    var msRows=((D.ms&&D.ms.data)||[]).filter(function(x){return Date.now()-new Date(x.created_at)<14*86400000;});
+    if(msRows.length){var nmOf={};(D.members.data||[]).forEach(function(mp){nmOf[mp.user_id]=mp.full_name;});
+      h+='<div class="card2" style="margin-bottom:10px;border-color:rgba(var(--lgold-rgb),.45)"><b style="font:700 16px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--lgold)">Class milestones <small style="font:700 10px Montserrat,sans-serif;letter-spacing:1.5px;color:var(--lmuted)">last 14 days · worth a shout-out</small></b>'+msRows.map(function(x){var club=x.milestone>=100&&x.milestone%50===0;return '<div class="kv"><span><b style="color:var(--lgold2)">'+E(nmOf[x.user_id]||"Member")+'</b> · '+(club?x.milestone+" Club":x.milestone+" classes")+(x.shared_at?' · shared':'')+'</span><b>'+new Date(x.created_at).toLocaleDateString("en-AU",{day:"numeric",month:"short"})+'</b></div>';}).join("")+'</div>';}
     h+='<div class="card2"><b style="font:700 16px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:var(--lgold)">Today\'s classes</b>'+(keys.length?keys.map(function(k){var p=k.split("|"),n=by[k],pct=Math.min(100,100*n/24);return '<div class="arow"><span>'+E(t12(p[0]))+'</span><div><b>'+E(p[1])+'</b><div class="bar"><i style="width:'+pct+'%;background:'+(n>=22?"var(--lbad)":n>=14?"var(--lgold)":"var(--lok)")+'"></i></div></div><span class="num">'+n+'</span></div>';}).join(""):'<div class="muted" style="padding:10px 0;font-size:12.5px">No bookings yet today.</div>')+'</div>';
     h+='<div class="card2" style="margin-top:10px"><div class="kv"><span>Trials ending this week</span><b>'+(D.trials.data||[]).filter(function(t){var d=t.trial_started_at?(Date.now()-new Date(t.trial_started_at))/86400000:99;return d>=5&&d<=7;}).length+'</b></div><div class="kv"><span>Guests booked (upcoming)</span><b>'+(D.guests.data||[]).length+'</b></div><div class="kv"><span>PT requests · last 30 days</span><b>'+(D.ptreq.data||[]).length+'</b></div><div class="kv"><span>PT sessions coming up</span><b>'+(D.ptb.data||[]).length+'</b></div><div class="kv"><span>Fight night pre-sale regos</span><b>'+(D.presale.data||[]).length+(D.presale.error?" (no access)":"")+'</b></div></div><div class="cats" style="margin-top:12px">'+card({go:"fnhold",cc:"var(--c-you)",k:"Fight night",t:"Ticket Holds",s:"Per-fighter holds, shirts, block approvals.",sm:true,ic:"tix"})+'</div>';}
   if(s==="trials"){var T7=(D.leads.data||[]).filter(function(l){return l.challenge==="trial7";});
@@ -453,4 +457,137 @@ window.renderProfile=function(){var r=_renderProfile.apply(this,arguments);try{v
 /* re-render whatever is on screen when the member lands */
 /* if a member is already inside the app when this loads, redraw once; never before sign-in */
 try{if(typeof session!=="undefined"&&session&&typeof view!=="undefined"&&view==="home"&&document.getElementById("appScreen")&&!document.getElementById("appScreen").classList.contains("hidden")){renderNav();renderHome();}}catch(e){}
+})();
+/* ===== Class milestones (8 Nov 2026) =====
+   50 / 75 / 100 Club and every 25 after. The database creates the milestone the moment a member banks the class
+   (trigger on points_events) and adds the bonus points (50 = +2, 75 = +3, clubs = +5). This file shows the moment once,
+   keeps the badge on the You tab, offers a share to Instagram, and nudges at booking time: "X classes from the 50 Club",
+   once per step. Jake & Ali get a push from the hourly reminders job and see it in Jake & Ali → Today. */
+(function(){
+"use strict";
+var $id=function(id){return document.getElementById(id);};
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function me(){try{return (typeof session!=="undefined"&&session&&session.user)?session.user.id:null;}catch(e){return null;}}
+function prof(){try{return (typeof profile!=="undefined"&&profile)||{};}catch(e){return {};}}
+function fullName(){var p=prof();return ((p.first_name||"")+" "+(p.last_name||"")).trim()||"Legacy member";}
+function buzz(p){try{navigator.vibrate&&navigator.vibrate(p);}catch(e){}}
+function T(m){try{toast(m);}catch(e){}}
+var IG="legacy_centralcoast";
+var css=document.createElement("style");css.id="lgmscss";css.textContent=
+'#lgms{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;padding:24px;background:rgba(5,5,6,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .3s}#lgms.on{opacity:1;pointer-events:auto}'+
+'#lgms .mcard{position:relative;width:100%;max-width:360px;text-align:center;padding:38px 26px 26px;border-radius:28px;border:1px solid rgba(201,164,76,.55);background:radial-gradient(120% 120% at 50% 0%,#3a2d12,#121110 62%);box-shadow:0 0 0 10px rgba(201,164,76,.07),0 40px 90px -30px rgba(201,164,76,.6);transform:scale(.82) translateY(14px);transition:transform .5s cubic-bezier(.2,.9,.2,1.25);overflow:hidden;color:#f3f1ec;font-family:Montserrat,system-ui,sans-serif}#lgms.on .mcard{transform:none}'+
+'#lgms .mcard:before{content:"";position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent 0 70%,rgba(201,164,76,.18) 80%,transparent 90%);animation:lgmsspin 6s linear infinite;pointer-events:none}@keyframes lgmsspin{to{transform:rotate(360deg)}}#lgms .mcard>*{position:relative}'+
+'#lgms .k{font-size:11px;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:#c9a44c}'+
+'#lgms .ring{position:relative;width:150px;height:150px;margin:16px auto 10px}#lgms .ring svg{width:100%;height:100%;transform:rotate(-90deg)}#lgms .ring circle{fill:none;stroke-width:8}#lgms .ring .bg{stroke:rgba(255,255,255,.08)}#lgms .ring .fg{stroke:url(#lgmsg);stroke-linecap:round;transition:stroke-dasharray 1.6s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 0 10px rgba(201,164,76,.7))}'+
+'#lgms .num{position:absolute;inset:0;display:grid;place-items:center;font:700 58px/1 Oswald,sans-serif;background:linear-gradient(180deg,#fff,#f1d27a);-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}#lgms .num small{display:block;font:800 9px Montserrat,sans-serif;letter-spacing:3px;text-transform:uppercase;color:#a19d92;-webkit-text-fill-color:#a19d92;margin-top:2px}'+
+'#lgms h2{margin:6px 0 4px;font:700 34px/1 Oswald,sans-serif;text-transform:uppercase;text-wrap:balance;color:#f3f1ec}#lgms h2 span{background:linear-gradient(90deg,#f1d27a,#c9a44c 60%,#a98538);-webkit-background-clip:text;background-clip:text;color:transparent}'+
+'#lgms .who{font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#a19d92;margin-top:4px}#lgms .line{margin:12px auto 0;font-size:13.5px;line-height:1.55;color:#d0ccc2;max-width:30ch}'+
+'#lgms .pts{display:inline-block;margin-top:12px;font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#f1d27a;border:1px solid rgba(201,164,76,.5);border-radius:99px;padding:8px 14px;background:rgba(201,164,76,.1)}'+
+'#lgms .spark{position:absolute;left:50%;top:38%;width:7px;height:7px;border-radius:50%;background:#f1d27a;box-shadow:0 0 10px #f1d27a;animation:lgmsspark 1.3s ease-out forwards;pointer-events:none}@keyframes lgmsspark{to{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}'+
+'#lgms .mcard.club{border-color:#f1d27a;background:radial-gradient(130% 110% at 50% 0%,#4a3812,#0f0e0d 60%);box-shadow:0 0 0 12px rgba(201,164,76,.1),0 0 90px -10px rgba(201,164,76,.7)}#lgms .mcard.club:before{background:conic-gradient(from 0deg,transparent 0 60%,rgba(201,164,76,.3) 75%,transparent 90%);animation-duration:4s}'+
+'#lgms .badge{position:relative;width:150px;height:150px;margin:14px auto 8px;border-radius:50%;border:3px solid #f1d27a;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#3b2f12,#120f08 70%);box-shadow:0 0 0 8px rgba(201,164,76,.12),inset 0 0 30px rgba(201,164,76,.25),0 0 50px rgba(201,164,76,.5);animation:lgmsbadge .9s cubic-bezier(.2,.9,.2,1.3) both}#lgms .badge:after{content:"";position:absolute;inset:8px;border-radius:50%;border:1px dashed rgba(201,164,76,.55)}'+
+'#lgms .badge b{font:700 54px/1 Oswald,sans-serif;background:linear-gradient(180deg,#fff,#f1d27a 70%);-webkit-background-clip:text;background-clip:text;color:transparent}#lgms .badge small{display:block;font:800 8px Montserrat,sans-serif;letter-spacing:4px;text-transform:uppercase;color:#c9a44c;margin-top:4px}#lgms .badge .star{position:absolute;font-size:12px;color:#f1d27a}@keyframes lgmsbadge{from{transform:scale(.3) rotate(-25deg);opacity:0}to{transform:none;opacity:1}}'+
+'#lgms .engrave{margin-top:14px;padding:10px 14px;border-radius:12px;border:1px solid rgba(201,164,76,.45);background:rgba(0,0,0,.35);font:600 13px/1.4 Oswald,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#f1d27a}#lgms .engrave small{display:block;font:700 9px Montserrat,sans-serif;letter-spacing:3px;color:#a19d92;margin-bottom:4px}'+
+'#lgms .acts{display:flex;gap:8px;margin-top:18px}#lgms .ok{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:13px 10px;font-weight:900;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;background:linear-gradient(180deg,#f1d27a,#c9a44c);color:#161307;font-family:inherit;cursor:pointer;min-height:46px}#lgms .ok svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}#lgms .ok.share{background:linear-gradient(90deg,#f58529,#dd2a7b 55%,#8134af);color:#fff}#lgms .ok.ghost{background:#141312;color:#f3f1ec;border:1px solid #2a2519}'+
+'#lgms .notif{margin-top:12px;font-size:10.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#a19d92}#lgms .notif:before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#4bc97a;margin-right:7px;vertical-align:1px;box-shadow:0 0 8px #4bc97a}'+
+/* booking-time nudge sheet */
+'#lgnd{position:fixed;inset:0;z-index:8900;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}#lgnd.on{opacity:1;pointer-events:auto}'+
+'#lgnd .in{width:100%;max-width:620px;background:#0f0e0d;border:1px solid rgba(201,164,76,.45);border-bottom:0;border-radius:24px 24px 0 0;transform:translateY(60px);transition:transform .3s cubic-bezier(.2,.8,.2,1);padding:12px 18px calc(22px + env(safe-area-inset-bottom,0px));box-shadow:0 -20px 60px -20px rgba(201,164,76,.4);color:#f3f1ec;font-family:Montserrat,system-ui,sans-serif}#lgnd.on .in{transform:none}#lgnd .in:before{content:"";display:block;width:44px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);margin:0 auto 14px}'+
+'#lgnd .nd{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:center}#lgnd .ring{position:relative;width:84px;height:84px}#lgnd .ring svg{width:100%;height:100%;transform:rotate(-90deg)}#lgnd .ring circle{fill:none;stroke-width:7}#lgnd .ring .bg{stroke:#3a3222}#lgnd .ring .fg{stroke:url(#lgndg);stroke-linecap:round;transition:stroke-dasharray 1.1s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 0 6px rgba(201,164,76,.6))}'+
+'#lgnd .ring b{position:absolute;inset:0;display:grid;place-items:center;font:700 26px/1 Oswald,sans-serif;font-variant-numeric:tabular-nums}#lgnd .ring b small{display:block;font:800 8px Montserrat,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#a19d92;text-align:center;margin-top:1px}'+
+'#lgnd .k{font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:#c9a44c}#lgnd h3{margin:4px 0 4px;font:700 24px/1.05 Oswald,sans-serif;text-transform:uppercase;text-wrap:balance;color:#f3f1ec}#lgnd h3 span{background:linear-gradient(90deg,#f1d27a,#c9a44c 60%,#a98538);-webkit-background-clip:text;background-clip:text;color:transparent}#lgnd p{margin:0;font-size:12.5px;line-height:1.5;color:#a19d92}'+
+'#lgnd .steps{display:flex;gap:4px;margin-top:14px}#lgnd .steps i{flex:1;height:6px;border-radius:3px;background:#3a3222}#lgnd .steps i.on{background:linear-gradient(90deg,#c9a44c,#f1d27a);box-shadow:0 0 8px rgba(201,164,76,.5)}#lgnd .lbl{display:flex;justify-content:space-between;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#a19d92;margin-top:6px}#lgnd .lbl b{color:#f1d27a}'+
+'#lgnd .acts{display:flex;gap:8px;margin-top:14px}#lgnd .acts button{flex:1;padding:13px 8px;border-radius:12px;border:1px solid #3a3222;background:#141312;font-weight:800;font-size:12px;color:#f3f1ec;font-family:inherit;cursor:pointer;min-height:46px}#lgnd .acts .pri{background:linear-gradient(180deg,#f1d27a,#c9a44c);border-color:#c9a44c;color:#161307}'+
+/* badges on the You tab */
+'.lgbadges{display:flex;flex-wrap:wrap;gap:8px}.lgbadge{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;padding:8px 12px 8px 8px;border-radius:14px;border:1px solid rgba(201,164,76,.4);background:linear-gradient(120deg,#1a170f,#121110)}.lgbadge i{width:44px;height:44px;border-radius:50%;border:2px solid #f1d27a;display:grid;place-items:center;font:700 16px/1 Oswald,sans-serif;font-style:normal;color:#f1d27a;background:radial-gradient(circle at 35% 30%,#3b2f12,#120f08 70%)}.lgbadge b{display:block;font:700 14px/1 Oswald,sans-serif;text-transform:uppercase;color:#f3f1ec}.lgbadge small{display:block;color:#a19d92;font-size:10.5px;margin-top:3px}'+
+'@media (prefers-reduced-motion:reduce){#lgms *,#lgnd *{animation:none!important;transition:none!important}}';
+document.head.appendChild(css);
+
+function isClub(m){return m>=100&&m%50===0;}
+function mLabel(m){return isClub(m)?"the "+m+" Club":m+" classes";}
+function copy(m){
+  if(m===50)return {k:"Milestone unlocked",title:'Fifty <span>classes.</span>',line:"You're not trying boxing any more. You box. Fifty sessions tapped in, and it shows."};
+  if(m===75)return {k:"Milestone unlocked",title:'Seventy-<span>five.</span>',line:"Three-quarters of the way to the 100 Club. Keep it rolling."};
+  if(isClub(m))return {k:"Welcome to",title:'The <span>'+m+' Club.</span>',line:(m===100?"One hundred":m)+" classes at Legacy. Your name goes on the board and the badge goes on your profile."};
+  return {k:"Milestone unlocked",title:'<span>'+m+'</span> classes.',line:(m+25)+" is next, and that one's a club. Keep showing up."};
+}
+function monthYear(iso){try{var d=new Date(iso||Date.now());return d.toLocaleDateString("en-AU",{month:"short",year:"numeric"}).toUpperCase();}catch(e){return "";}}
+
+/* ---------- the moment ---------- */
+var ov=null,cardEl=null,queue=[],showing=false;
+function ensure(){if(ov)return;ov=document.createElement("div");ov.id="lgms";ov.innerHTML='<div class="mcard"></div>';ov.addEventListener("click",function(e){if(e.target===ov)hide();});document.body.appendChild(ov);cardEl=ov.firstChild;}
+function sparks(n){for(var i=0;i<n;i++){var s=document.createElement("span");s.className="spark";var a=Math.random()*Math.PI*2,d=110+Math.random()*150;s.style.setProperty("--dx",Math.cos(a)*d+"px");s.style.setProperty("--dy",Math.sin(a)*d+"px");s.style.animationDelay=(Math.random()*.35)+"s";if(i%3===0)s.style.background="#fff";cardEl.appendChild(s);}}
+var IGSVG='<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>';
+function show(row){ensure();var m=row.milestone,c=copy(m),name=fullName(),club=isClub(m),pts=row.points>0?"+"+row.points+" point"+(row.points===1?"":"s")+(club?" · "+m+" Club badge":""):"Badge unlocked";
+  showing=true;cardEl.className="mcard"+(club?" club":"");
+  if(club)cardEl.innerHTML='<div class="k">'+c.k+'</div><div class="badge"><span class="star" style="top:14px;left:50%;transform:translateX(-50%)">★</span><span class="star" style="bottom:16px;left:50%;transform:translateX(-50%)">★</span><div><b>'+m+'</b><small>Club</small></div></div><h2>'+c.title+'</h2><div class="who">'+E(name)+'</div><div class="line">'+c.line+'</div><div class="engrave"><small>Engraved</small>'+E(name.toUpperCase())+' · '+m+' CLASSES · '+monthYear(row.created_at)+'</div><div><span class="pts">'+E(pts)+'</span></div><div class="acts"><button class="ok share" data-ms-share="'+m+'">'+IGSVG+'Share to Instagram</button><button class="ok ghost" data-ms-hide="1">Let\'s go</button></div><div class="notif">Jake &amp; Ali have been notified</div>';
+  else cardEl.innerHTML='<div class="k">'+c.k+'</div><div class="ring"><svg viewBox="0 0 150 150"><defs><linearGradient id="lgmsg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1d27a"/><stop offset="1" stop-color="#c9a44c"/></linearGradient></defs><circle class="bg" cx="75" cy="75" r="66"/><circle class="fg" id="lgmsfg" cx="75" cy="75" r="66" style="stroke-dasharray:0 1000"/></svg><div class="num"><div><span id="lgmsnum">0</span><small>classes</small></div></div></div><h2>'+c.title+'</h2><div class="who">'+E(name)+'</div><div class="line">'+c.line+'</div><div><span class="pts">'+E(pts)+'</span></div><div class="acts"><button class="ok share" data-ms-share="'+m+'">'+IGSVG+'Share to Instagram</button><button class="ok ghost" data-ms-hide="1">Keep going</button></div><div class="notif">Jake &amp; Ali have been notified</div>';
+  ov.classList.add("on");buzz([30,40,30]);setTimeout(function(){sparks(club?44:28);},350);
+  if(!club){var fg=$id("lgmsfg"),C=2*Math.PI*66,numEl=$id("lgmsnum"),frac=((m%50)||50)/50;requestAnimationFrame(function(){requestAnimationFrame(function(){fg.style.strokeDasharray=(C*frac).toFixed(1)+" "+C.toFixed(1);});});
+    var t0=performance.now();(function tick(t){var k=Math.min(1,(t-t0)/1400);k=1-Math.pow(1-k,3);numEl.textContent=Math.round(m*k);if(k<1)requestAnimationFrame(tick);else{numEl.textContent=m;buzz(20);}})(t0);}
+  /* seen the moment it's on screen: it only ever fires once */
+  try{sb.from("member_milestones").update({seen_at:new Date().toISOString()}).eq("id",row.id).then(function(){});}catch(e){}
+}
+function hide(){if(!ov)return;ov.classList.remove("on");showing=false;if(queue.length){var r=queue.shift();setTimeout(function(){show(r);},500);}}
+document.addEventListener("click",function(e){var s=e.target.closest("[data-ms-share]");if(s){share(+s.getAttribute("data-ms-share"));return;}if(e.target.closest("[data-ms-hide]"))hide();});
+
+function storyImage(n){var name=fullName();var c=document.createElement("canvas");c.width=1080;c.height=1920;var x=c.getContext("2d");
+  var g=x.createRadialGradient(540,500,50,540,900,1300);g.addColorStop(0,"#3a2d12");g.addColorStop(.55,"#121110");g.addColorStop(1,"#0a0a0b");x.fillStyle=g;x.fillRect(0,0,1080,1920);
+  x.strokeStyle="rgba(201,164,76,.6)";x.lineWidth=4;x.beginPath();if(x.roundRect)x.roundRect(60,160,960,1600,56);else x.rect(60,160,960,1600);x.stroke();
+  function txt(s,y,font,col,ls){x.fillStyle=col;x.font=font;try{x.letterSpacing=(ls||0)+"px";}catch(e){}x.fillText(s,540,y);}
+  x.textAlign="center";var club=isClub(n);
+  txt("LEGACY GYM · KINCUMBER",290,"800 34px Montserrat","#c9a44c",12);
+  txt(club?"WELCOME TO":"MILESTONE UNLOCKED",560,"800 30px Montserrat","#c9a44c",10);
+  x.beginPath();x.arc(540,860,230,0,Math.PI*2);x.strokeStyle="#f1d27a";x.lineWidth=10;x.stroke();x.beginPath();x.arc(540,860,205,0,Math.PI*2);x.setLineDash([8,10]);x.strokeStyle="rgba(201,164,76,.6)";x.lineWidth=3;x.stroke();x.setLineDash([]);
+  var tg=x.createLinearGradient(0,700,0,1000);tg.addColorStop(0,"#ffffff");tg.addColorStop(1,"#f1d27a");txt(String(n),940,"700 230px Oswald",tg,0);
+  txt(club?"CLUB":"CLASSES",1010,"800 26px Montserrat","#c9a44c",10);
+  txt(club?"THE "+n+" CLUB":n+" CLASSES",1260,"700 96px Oswald","#f3f1ec",2);
+  txt(name.toUpperCase(),1350,"700 56px Oswald","#f1d27a",4);
+  txt(club?(n===100?"One hundred classes.":n+" classes.")+" Culture without chaos.":"Tapped in, every week. Culture without chaos.",1440,"600 34px Montserrat","#a19d92",0);
+  txt("@"+IG.toUpperCase(),1680,"800 28px Montserrat","#c9a44c",8);
+  return c;}
+function share(n){var c=storyImage(n);c.toBlob(function(blob){if(!blob){T("Couldn't build the image");return;}var f=new File([blob],"legacy-"+n+(isClub(n)?"-club":"-classes")+".png",{type:"image/png"});
+  try{sb.from("member_milestones").update({shared_at:new Date().toISOString()}).eq("user_id",me()).eq("milestone",n).eq("kind","hit").then(function(){});}catch(e){}
+  if(navigator.canShare&&navigator.canShare({files:[f]})&&navigator.share){navigator.share({files:[f],title:"Legacy Gym",text:(isClub(n)?"Welcome to the "+n+" Club. ":n+" classes at Legacy Gym Kincumber. ")+"@"+IG}).catch(function(){});}
+  else{var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=f.name;document.body.appendChild(a);a.click();a.remove();T("Image saved. Tag @"+IG+" on your story.");}},"image/png");}
+
+/* ---------- when to look ---------- */
+var checkedAt=0,checking=false;
+function checkUnseen(force){var uid=me();if(!uid||checking)return;if(!force&&Date.now()-checkedAt<5*60000)return;checking=true;checkedAt=Date.now();
+  sb.from("member_milestones").select("id,milestone,points,created_at").eq("user_id",uid).eq("kind","hit").is("seen_at",null).order("milestone").then(function(r){checking=false;var rows=(r&&r.data)||[];if(!rows.length)return;
+    if(showing){queue=queue.concat(rows);return;}show(rows[0]);queue=rows.slice(1);}).catch(function(){checking=false;});}
+/* right after a class is banked (points toast first, then the moment) */
+var _submit=window.submitClassPoint;
+if(typeof _submit==="function")window.submitClassPoint=function(){var r=_submit.apply(this,arguments);Promise.resolve(r).then(function(){setTimeout(function(){checkUnseen(true);},1600);});return r;};
+/* and when the home screen comes up (covers the backfilled ones and anything banked on another device) */
+var _rh=window.renderHome;
+if(typeof _rh==="function")window.renderHome=function(){var r=_rh.apply(this,arguments);setTimeout(function(){checkUnseen(false);},2500);return r;};
+
+/* ---------- booking nudge: the next milestone, once per step ---------- */
+function nextMs(n){return Math.max(50,Math.floor(n/25)*25+25);}
+var nd=null;
+function nudgeSheet(count){var n=nextMs(count),p=n-25,span=25,done=Math.max(0,count-p),pct=Math.min(1,done/span),left=n-count,club=isClub(n);
+  if(!nd){nd=document.createElement("div");nd.id="lgnd";nd.innerHTML='<div class="in"></div>';nd.addEventListener("click",function(e){if(e.target===nd||e.target.closest("[data-nd-close]"))nd.classList.remove("on");});document.body.appendChild(nd);}
+  var title=left===1?'One class from <span>'+(club?"the "+n+" Club":n)+'</span>.':'<span>'+left+' classes</span> from '+(club?"the "+n+" Club":"the "+n+" class milestone")+'.';
+  var line="Since the Legacy app began in July you've banked "+count+" class"+(count===1?"":"es")+". "+(club?"Hit "+n+" and you're in the club, badge and all.":"Keep booking and it's yours.");
+  var dots=[];for(var k=0;k<span;k+=5)dots.push('<i class="'+(done>k?"on":"")+'"></i>');
+  nd.firstChild.innerHTML='<div class="nd"><div class="ring"><svg viewBox="0 0 84 84"><defs><linearGradient id="lgndg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1d27a"/><stop offset="1" stop-color="#c9a44c"/></linearGradient></defs><circle class="bg" cx="42" cy="42" r="35"/><circle class="fg" id="lgndfg" cx="42" cy="42" r="35" style="stroke-dasharray:0 1000"/></svg><b>'+count+'<small>classes</small></b></div><div><div class="k">Your next milestone</div><h3>'+title+'</h3><p>'+line+'</p></div></div>'+
+   '<div class="steps">'+dots.join("")+'</div><div class="lbl"><span>'+p+'</span><b>'+(club?n+" Club":n+" classes")+'</b></div>'+
+   '<div class="acts"><button class="pri" data-nd-close="1">Let\'s go</button><button data-nd-close="1">Close</button></div>';
+  nd.classList.add("on");var C=2*Math.PI*35;requestAnimationFrame(function(){requestAnimationFrame(function(){var fg=$id("lgndfg");if(fg)fg.style.strokeDasharray=(C*pct).toFixed(1)+" "+C.toFixed(1);});});buzz([15,30,15]);}
+function maybeNudge(){var uid=me();if(!uid||showing)return;
+  sb.from("points_events").select("id",{count:"exact",head:true}).eq("user_id",uid).eq("kind","class").then(function(r){var count=(r&&typeof r.count==="number")?r.count:null;if(count==null)return;var n=nextMs(count);
+    return sb.from("member_milestones").select("id").eq("user_id",uid).eq("kind","nudge").eq("milestone",n).limit(1).then(function(q){if(q&&q.data&&q.data.length)return;
+      return sb.from("member_milestones").insert({user_id:uid,milestone:n,kind:"nudge"}).then(function(ins){if(ins&&ins.error)return;setTimeout(function(){nudgeSheet(count);},900);});});}).catch(function(){});}
+var _attend=window.attendClass;
+if(typeof _attend==="function")window.attendClass=function(date,time,name){var self=this,args=arguments;var r=_attend.apply(self,args);
+  Promise.resolve(r).then(function(){/* only after a booking actually landed */sb.from("class_regs").select("id").eq("user_id",me()).eq("class_date",date).eq("class_time",time).limit(1).then(function(q){if(q&&q.data&&q.data.length)maybeNudge();});}).catch(function(){});return r;};
+
+/* ---------- badges on the You tab ---------- */
+var _rp=window.renderProfile;
+if(typeof _rp==="function")window.renderProfile=function(){var r=_rp.apply(this,arguments);try{var uid=me(),m=$id("main");if(!uid||!m)return r;
+  sb.from("member_milestones").select("milestone,created_at,points").eq("user_id",uid).eq("kind","hit").order("milestone",{ascending:false}).then(function(q){var rows=(q&&q.data)||[];if(!rows.length||!$id("main"))return;if($id("lgbadgesCard"))return;
+    var box=document.createElement("div");box.id="lgbadgesCard";box.className="lg2wrap lg2";box.innerHTML='<h2 class="sec">Milestones <small>classes banked</small></h2><div class="lgbadges">'+rows.map(function(x){return '<div class="lgbadge"><i>'+x.milestone+'</i><div><b>'+(isClub(x.milestone)?x.milestone+" Club":x.milestone+" classes")+'</b><small>'+monthYear(x.created_at)+(x.points?" · +"+x.points+" pts":"")+'</small></div></div>';}).join("")+'</div>';
+    var anchor=$id("main").querySelector(".lg2wrap");if(anchor)anchor.parentNode.insertBefore(box,anchor);else $id("main").appendChild(box);});}catch(e){}return r;};
+window.LG_MS={show:show,nudge:nudgeSheet,check:checkUnseen,story:storyImage};
 })();
