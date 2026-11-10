@@ -209,6 +209,7 @@ window.renderHome=function(){
    (isOwner()?card({go:"admin",cc:"var(--c-you)",k:"Owners only · members never see this",t:"Jake & Ali",s:"Trials, leads, today\'s numbers, money, tickets, notices.",sm:true,ic:"pt"}):isStaff()?card({go:"staff",cc:"var(--c-you)",k:"Staff eyes only",t:"Staff Room",s:"Team chat, members, commissions.",sm:true,ic:"pt"}):"")+
    ((window.lgSarshaIsHer&&lgSarshaIsHer())?card({go:"sarsha",cc:"#e277c4",k:"Only you can see this",t:"Sarsha's Day",s:(window.lgSarshaSub?lgSarshaSub():"Your week, your way."),ic:"cal"}):"")+
    ((window.lgHuskyIsHer&&lgHuskyIsHer())?card({go:"husky",cc:"#7cb8ff",k:"Only you can see this",t:"Husky 125",s:(window.lgHuskySub?lgHuskySub():"Rides, money, tracks, videos"),ic:"compete"}):"")+
+   ((window.lgTomIsHim&&lgTomIsHim())?card({go:"tomsbox",cc:"#c9a44c",k:"Only you can see this",t:"Tom\'s Boxing",s:(window.lgTomSub?lgTomSub():"Your three sessions for the week."),ic:"spar"}):"")+
   '</div><div style="margin-top:22px;text-align:center"><a href="#" onclick="go(\'sponsorship\');return false;" style="color:var(--lgold);text-decoration:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase">★ Sponsorship</a><div style="font-size:10.5px;color:var(--lmuted);margin-top:5px">Fight Night ring sponsorship for local kids</div></div>';
   $id("main").innerHTML=wrap(h);settle();sweep();
   try{updateBadges();}catch(e){}
@@ -458,7 +459,7 @@ window.render=function(){
 /* You tab: add reminders + the owners' card to the existing profile page */
 var _renderProfile=window.renderProfile;
 window.renderProfile=function(){var r=_renderProfile.apply(this,arguments);try{var m=$id("main");if(!m)return r;var extra=document.createElement("div");extra.className="lg2wrap lg2";
-  extra.innerHTML='<h2 class="sec">Reminders <small>all optional</small></h2><div class="card2">'+[["book","Daily booking nudge",REM.book.on?"On · "+t12(REM.book.time):"Off"],["weigh","Weigh-in",REM.weigh.on?"On · "+REM.weigh.days.map(function(d){return DAYN[d];}).join(", "):"Off"],["meals","Log my meals",REM.meals.on?"On · "+t12(REM.meals.time):"Off"],["tips","Tipping reminder",REM.tips.on?"On · Saturday arvo":"Off"]].map(function(x){return '<div class="kv"><span>'+x[1]+'</span><button class="st '+(REM[x[0]].on?"joined":"")+'" onclick="'+(REM[x[0]].on?"lg2RemOff":"lg2RemOn")+'(\''+x[0]+'\')">'+x[2]+'</button></div>';}).join("")+'</div>'+(isOwner()?'<div class="cats" style="margin-top:12px">'+card({go:"admin",cc:"var(--c-you)",k:"Owners only",t:"Jake & Ali",s:"Trials, leads, today, money, tools, notices.",sm:true,ic:"pt"})+'</div>':'');
+  extra.innerHTML=(isOwner()?'<h2 class="sec">TV Screens <small>owners only</small></h2><div class="cats">'+card({go:"screens",cc:"var(--c-you)",k:"Gym TVs",t:"TV Screens",s:"Upload a photo, video or message to the TVs.",ic:"tv"})+'</div>':'')+'<h2 class="sec">Reminders <small>all optional</small></h2><div class="card2">'+[["book","Daily booking nudge",REM.book.on?"On · "+t12(REM.book.time):"Off"],["weigh","Weigh-in",REM.weigh.on?"On · "+REM.weigh.days.map(function(d){return DAYN[d];}).join(", "):"Off"],["meals","Log my meals",REM.meals.on?"On · "+t12(REM.meals.time):"Off"],["tips","Tipping reminder",REM.tips.on?"On · Saturday arvo":"Off"]].map(function(x){return '<div class="kv"><span>'+x[1]+'</span><button class="st '+(REM[x[0]].on?"joined":"")+'" onclick="'+(REM[x[0]].on?"lg2RemOff":"lg2RemOn")+'(\''+x[0]+'\')">'+x[2]+'</button></div>';}).join("")+'</div>'+(isOwner()?'<div class="cats" style="margin-top:12px">'+card({go:"admin",cc:"var(--c-you)",k:"Owners only",t:"Jake & Ali",s:"Trials, leads, today, money, tools, notices.",sm:true,ic:"pt"})+'</div>':'');
   var back=m.querySelector(".backBtn");if(back&&back.nextSibling)m.insertBefore(extra,back.nextSibling.nextSibling||null);else m.appendChild(extra);}catch(e){}return r;};
 /* re-render whatever is on screen when the member lands */
 /* if a member is already inside the app when this loads, redraw once; never before sign-in */
@@ -1733,6 +1734,235 @@ RP.draw=draw;
 Object.defineProperty(RP,"ST",{get:function(){return ST;}});Object.defineProperty(RP,"TM",{get:function(){return TM;}});
 try{if(typeof NAV_TAB!=="undefined")NAV_TAB.recprot="home";}catch(e){}
 var _render=window.render;
-window.render=function(){try{if(typeof view!=="undefined"&&view==="recprot"){render();return;}if(TM&&TM.h){endTimer();}}catch(e){console.error(e);}return _render.apply(this,arguments);};
-var _go=window.go;window.go=function(v){if(v==="recprot"){ST.goal=null;}return _go.apply(this,arguments);};
+window.render=function(){try{if(typeof view!=="undefined"&&view==="recovery"){view="recprot";ST.goal=null;}if(typeof view!=="undefined"&&view==="recprot"){render();return;}if(TM&&TM.h){endTimer();}}catch(e){console.error(e);}return _render.apply(this,arguments);};
+var _go=window.go;window.go=function(v){if(v==="recovery")v="recprot";/* old "Something new is brewing" page retired 9 Nov 2026 */if(v==="recprot"){ST.goal=null;}return _go.apply(this,[v].concat([].slice.call(arguments,1)));};
+})();
+/* ===== Tom's Boxing (one member only, 10 Nov 2026) =====
+   Three solo sessions from the Road to Nationals block (Mon drills, Tue individual, Thu bag + 2 km), labelled Day 1-3,
+   done any day of the week. Round timer, weekly ticks, 2 km times. Data: public.tom_boxing, RLS = his login only.
+   Built by build_toms.py from the approved demo. */
+(function(){
+"use strict";
+var TID="ce27aeab-1bfd-48c9-b099-64a0e878f91c";
+var CSS="\n\n:host{\n  color-scheme:dark;\n  --bg:#0a0a0c; --panel:#121214; --panel2:#18181b; --line:#26262b;\n  --text:#f2f0eb; --muted:#9a9891; --soft:#d9d4c7;\n  --gold:#c9a44c; --gold2:#f4c95d; --ink:#161307;\n  --ok:#4bc97a; --okbg:#0f2017; --okline:#2a6b45;\n  --max:#e05252; --maxbg:#1d1212; --maxline:#5a2a2a;\n  --rest:#4a8de6;\n  --display:Oswald,\"Arial Narrow\",Impact,sans-serif;\n  --body:Montserrat,system-ui,-apple-system,\"Segoe UI\",sans-serif;\n}\n\n\n*{box-sizing:border-box}\nbutton{font-family:inherit;cursor:pointer;color:inherit}\nbutton:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}\n\n\n\n\n\n.kick{font:600 10px/1 var(--display);letter-spacing:2.5px;text-transform:uppercase;color:var(--gold)}\nh1{font:700 34px/1 var(--display);text-transform:uppercase;letter-spacing:.5px;margin:8px 0 0;text-wrap:balance}\nh1 span{color:var(--gold2)}\nh2{font:600 22px/1.05 var(--display);text-transform:uppercase;margin:5px 0 0;text-wrap:balance}\n.sec{font:600 12px/1 var(--display);letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin:22px 2px 10px}\np{margin:0}\n.lead{font-size:12.5px;color:var(--soft);margin-top:8px}\n\n\n\n\n\n\n\n\n\n\n\n.chip{display:inline-block;margin-top:10px;padding:5px 9px;border-radius:999px;border:1px solid #3a3320;background:#0b0905;font:600 10px/1 var(--display);letter-spacing:1.5px;text-transform:uppercase;color:var(--gold2)}\n.chip.ok{border-color:var(--okline);background:var(--okbg);color:#9af0bc}\n\n\n.back{background:none;border:0;padding:6px 0;font:600 11px/1 var(--display);letter-spacing:2px;text-transform:uppercase;color:var(--muted)}\n.hero{border:1px solid #3a3320;border-radius:16px;padding:16px;margin-top:8px;background:radial-gradient(ellipse 80% 70% at 100% 0%,rgba(201,164,76,.22),transparent 60%),linear-gradient(180deg,#17140c,#0f0e0b)}\n.pips{display:flex;gap:6px;margin-top:14px}\n.pips span{flex:1;height:6px;border-radius:3px;background:#2b2618}\n.pips span.on{background:var(--ok)}\n.week{font-size:11.5px;color:var(--muted);margin-top:8px}\n.week b{color:var(--text)}\n.day{display:grid;grid-template-columns:54px 1fr auto;gap:12px;align-items:center;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}\n.day .num{width:54px;height:54px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center;text-align:center}\n.day .num small{display:block;font:600 9px/1 var(--display);letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}\n.day .num b{display:block;font:700 24px/1 var(--display);color:var(--gold2);margin-top:3px}\n.day.done .num{background:var(--okbg);border-color:var(--okline)}\n.day.done .num b{color:#9af0bc}\n.day .nm{min-width:0}\n.day .nm b{display:block;font:600 16px/1.15 var(--display);text-transform:uppercase}\n.day .nm span{display:block;font-size:11.5px;color:var(--muted);margin-top:4px}\n.day .tm{text-align:right;font:600 14px/1 var(--display);white-space:nowrap}\n.day .tm small{display:block;font:800 9px/1 var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:5px}\n.day.done .tm small{color:#9af0bc}\n.fine{font-size:11.5px;color:var(--muted);margin:14px 2px 0}\n\n\n.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:10px}\n.top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}\n.top .t{text-align:right;flex:none}\n.top .t b{display:block;font:600 20px/1 var(--display)}\n.top .t small{display:block;font:800 10px/1 var(--body);letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-top:4px}\n.sum{font-size:12px;color:var(--muted);margin-top:8px}\n.big{display:block;width:100%;margin-top:12px;padding:15px;border-radius:12px;border:0;background:var(--gold);color:var(--ink);font:700 16px/1 var(--display);letter-spacing:2px;text-transform:uppercase}\n.big.ghostb{background:var(--panel2);color:var(--text);border:1px solid var(--line)}\n.big.dn{background:#163b26;color:#9af0bc;border:1px solid var(--okline)}\n.blocks{margin-top:12px;border-top:1px solid var(--line)}\n.bk{display:grid;grid-template-columns:30px 1fr auto;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);align-items:start}\n.bk:last-child{border-bottom:0;padding-bottom:0}\n.bk .n{width:30px;height:30px;border-radius:9px;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center;font:700 13px/1 var(--display);color:var(--gold2)}\n.bk .n.gl{color:#9af0bc;border-color:var(--okline);background:var(--okbg)}\n.bk .x{min-width:0}\n.bk .x b{display:block;font:600 15px/1.1 var(--display);text-transform:uppercase}\n.bk .x small{display:block;font-size:11.5px;color:var(--muted);line-height:1.45;margin-top:4px}\n.bk .w{font:600 13px/1 var(--display);text-align:right;white-space:nowrap}\n.bk .w em{display:block;font:800 9px/1 var(--body);letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:4px;font-style:normal}\n.rounds{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}\n.rounds div{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 7px;font-size:10.5px;color:var(--soft);line-height:1.3;min-width:0}\n.rounds div b{display:block;font:700 10px/1 var(--display);color:var(--gold2);letter-spacing:1px;margin-bottom:3px}\n.rounds div.mx{border-color:var(--maxline);background:var(--maxbg)}\n.rounds div.mx b{color:#ff9d9d}\n.rec b{display:block;font:600 16px/1.1 var(--display);text-transform:uppercase;margin-top:5px}\n.rec p{font-size:12px;color:var(--muted);margin-top:6px}\n\n\n.timer{position:fixed;inset:0;z-index:3000;background:var(--bg);display:flex;flex-direction:column;padding-top:calc(14px + env(safe-area-inset-top,0px));padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));transition:background .25s}\n.timer.work{background:#0c1a11}\n.timer.max{background:#200d0d}\n.timer.rest{background:#0b1220}\n.timer.gloves{background:#17140c}\n.timer .in{max-width:460px;width:100%;margin:0 auto;flex:1;display:flex;flex-direction:column;min-height:0}\n.tbar{display:flex;justify-content:space-between;align-items:center;gap:10px}\n.tbar span{font:600 11px/1 var(--display);letter-spacing:2px;text-transform:uppercase;color:var(--muted)}\n.tbar button{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:600 11px/1 var(--display);letter-spacing:1.5px;text-transform:uppercase}\n.prog{height:4px;border-radius:2px;background:var(--line);margin-top:12px;overflow:hidden}\n.prog i{display:block;height:100%;background:var(--gold);width:0}\n.tmid{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;min-height:0;padding:10px 0}\n.state{font:700 13px/1 var(--display);letter-spacing:4px;text-transform:uppercase;color:var(--gold2)}\n.timer.work .state{color:#9af0bc}.timer.max .state{color:#ff9d9d}.timer.rest .state{color:#9fc3ff}\n.ttl{font:600 24px/1.1 var(--display);text-transform:uppercase;margin-top:10px;text-wrap:balance}\n.clock{font:700 clamp(84px,30vw,150px)/1 var(--display);font-variant-numeric:tabular-nums;letter-spacing:1px;margin-top:8px}\n.cue{display:inline-block;align-self:center;margin-top:6px;padding:8px 18px;border-radius:999px;font:700 20px/1 var(--display);letter-spacing:4px}\n.cue.go{background:var(--max);color:#fff}\n.cue.easy{background:var(--panel2);border:1px solid var(--line);color:var(--muted)}\n.note{font-size:13.5px;color:var(--soft);margin:14px auto 0;max-width:34ch}\n.next{font-size:11.5px;color:var(--muted);margin-top:12px}\n.next b{color:var(--text)}\n.ctrl{display:grid;grid-template-columns:1fr 2fr 1fr;gap:8px}\n.ctrl button{padding:16px 6px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);font:700 14px/1 var(--display);letter-spacing:2px;text-transform:uppercase}\n.ctrl button.main{background:var(--gold);border-color:var(--gold);color:var(--ink)}\n.done{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center}\n.done h1{font-size:44px}\n.done .lead{font-size:13.5px}\n@media (prefers-reduced-motion:reduce){.timer{transition:none}}\n[hidden]{display:none!important}\n#tbRoot{font:500 14px/1.5 var(--body);color:var(--text);padding:2px 2px 110px}\n.best{font-size:12px;color:var(--muted);margin-top:8px}.best b{color:var(--text)}\n";
+function me(){try{return (typeof session!=="undefined"&&session&&session.user)?session.user.id:null;}catch(e){return null;}}
+function isHim(){return me()===TID;}
+
+var R2=120, REST=30;
+
+/* The three solo sessions from the Road to Nationals block (Monday, Tuesday and Thursday nights), unchanged except the coach-run sparring and the 6:00 pm clock times are removed. */
+var DAYS=[
+{n:1,k:"Technical drills",name:"Jab, straight shots & combination drills",mins:"41 min",
+ sum:"2-minute rounds, 30 seconds between rounds and drill blocks. The 2-minute glove break replaces the rest after shadowboxing.",
+ blocks:[
+  {t:"cont",name:"Skipping",secs:600,note:"Continuous skip.",after:0},
+  {t:"rounds",name:"Shadowboxing",n:4,notes:["Footwork.","Straight shots.","Open shadow.","Open shadow."],after:"gloves"},
+  {t:"gloves"},
+  {t:"rounds",name:"Jab & feint drills",n:3,notes:["Feints and single jabs.","Double jabs.","Level-changing jabs."],after:REST},
+  {t:"rounds",name:"Straight shots",n:2,notes:["Straight punches only.","Straight punches only. Sharpen the 1-2."],after:REST},
+  {t:"rounds",name:"Combinations & level changes",n:3,notes:["Three- and four-punch combinations.","Five-punch combinations, two-phase attacks.","First and third attacks. Intent and speed."],after:0}],
+ rec:{name:"Ice bath",line:"Three minutes. Shoulders under, slow breathing out the nose."}},
+{n:2,k:"Individual training",name:"Individual technical training",mins:"53 min",
+ sum:"30 seconds after mirror shadowboxing and after each 2-minute round. Move straight from the speed ball into gut work.",
+ blocks:[
+  {t:"cont",name:"Skipping",secs:600,note:"Continuous skip.",after:0},
+  {t:"cont",name:"Mirror shadowboxing",secs:600,note:"Work at 70%. Check hands, chin and footwork. Clean straight shots, combinations, first and third attacks, two-phase attacks and creating angles. No break within this block.",after:REST},
+  {t:"rounds",name:"Slip lines",n:3,notes:["Use the lines.","Use the open space.","Lines and open space, move off after every slip."],after:REST,each:true},
+  {t:"rounds",name:"Wall bag · long range",n:2,notes:["Long, clean straight shots.","Long straight shots and long hooks."],after:REST,each:true},
+  {t:"rounds",name:"Wall bag · inside",n:2,notes:["Bent-arm punches: uppercuts, hooks and rips.","Add rolls, catches and slips between the shots."],after:REST,each:true},
+  {t:"rounds",name:"Floor-to-ceiling ball",n:2,notes:["Speed.","Build combinations."],after:REST,each:true},
+  {t:"cont",name:"Speed ball upstairs",secs:300,note:"Five minutes straight.",after:0},
+  {t:"cont",name:"Gut work",secs:300,note:"Abdominal work. Straight in from the speed ball.",after:0}],
+ rec:{name:"Sauna + ice bath",line:"Sauna 20 to 25 minutes, then straight into the ice for three minutes."}},
+{n:3,k:"Bag conditioning",name:"Heavy bag conditioning + timed 2 km run",mins:"41 min 30 + run",
+ sum:"12 × 2-minute rounds on the heavy bag, 30 seconds between. Then straight out the door for the 2 km for time.",
+ blocks:[
+  {t:"cont",name:"Skipping",secs:300,note:"Five minutes.",after:0},
+  {t:"cont",name:"Shadowboxing",secs:300,note:"Five minutes continuous.",after:0},
+  {t:"gloves"},
+  {t:"rounds",name:"Heavy bag",n:12,notes:["Straight shots only.","Bent-arm punches only.","10 on / 10 off, max effort.","Two-phase attacks.","First and third attacks.","15 on / 15 off, max effort.","Open work.","Speed.","20 on / 20 off, max effort.","Open work.","Open work.","30 on / 30 off, max effort."],iv:{2:10,5:15,8:20,11:30},after:0}],
+ run:true,
+ rec:{name:"Sauna + ice bath",line:"Sauna 20 to 25 minutes once you've cooled down from the run, then three minutes in the ice."}}
+];
+
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function mmss(s){s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
+function dur(b){if(b.t==="gloves")return R2;if(b.t==="cont")return b.secs;return b.n*R2+(b.n-1)*REST;}
+
+/* same phase builder the Nationals squad timer uses */
+function phases(p){
+  var out=[];
+  p.blocks.forEach(function(b,bi){
+    var nextB=p.blocks[bi+1];
+    if(b.t==="gloves"){out.push({k:"gloves",secs:R2,title:"Gloves on",note:"Two minutes. Wraps tight, gloves on, water. Straight into the first round."});return;}
+    if(b.t==="cont"){out.push({k:"work",secs:b.secs,title:b.name,note:b.note});}
+    else{
+      for(var r=0;r<b.n;r++){
+        var iv=b.iv&&b.iv[r];
+        out.push({k:iv?"max":"work",secs:R2,title:b.name+" · round "+(r+1)+" of "+b.n,note:b.notes[r]||"",iv:iv||0});
+        if(r<b.n-1)out.push({k:"rest",secs:REST,title:"Rest",note:"Next: "+(b.notes[r+1]||b.name)});
+      }
+    }
+    var a=b.after;
+    if(b.each&&b.t==="rounds")a=REST;
+    if(typeof a==="number"&&a>0&&nextB)out.push({k:"rest",secs:a,title:"Rest",note:"Next block: "+(nextB.t==="gloves"?"gloves on":nextB.name)});
+  });
+  if(p.run)out.push({k:"run",secs:0,title:"2 km for time",note:"Straight out the door. Tap Stop when you cross the line."});
+  return out;
+}
+
+/* ---------- his data: public.tom_boxing (RLS = Tom only), cached in this browser. Ticks are per week, Monday to Sunday. ---------- */
+function monday(){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+var KEY="lg-toms-boxing-"+TID;
+var D=null,PULLED=false,PT=null,done={};
+function wkKey(){return iso(monday());}
+function bind(){if(!D||typeof D!=="object")D={};if(!D.wk)D.wk={};if(!D.runs)D.runs=[];var k=wkKey();if(!D.wk[k])D.wk[k]={};done=D.wk[k];}
+function boot(){if(D){bind();return;}try{D=JSON.parse(localStorage.getItem(KEY)||"null");}catch(e){D=null;}bind();pullDb();}
+function pullDb(){if(!isHim())return;sb.from("tom_boxing").select("data").eq("user_id",TID).maybeSingle().then(function(r){PULLED=true;if(r&&r.data&&r.data.data&&r.data.data.wk){D=r.data.data;bind();try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}if(typeof view!=="undefined"&&view==="tomsbox"&&!T)render();}else if(r&&!r.error)pushDb();}).catch(function(){});}
+function pushDb(){if(!isHim()||!PULLED)return;clearTimeout(PT);PT=setTimeout(function(){sb.from("tom_boxing").upsert({user_id:TID,data:D,updated_at:new Date().toISOString()},{onConflict:"user_id"}).then(function(r){if(r&&r.error)console.error("tom_boxing",r.error.message);});},700);}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}pushDb();}
+function bestRun(){var b=null;(D.runs||[]).forEach(function(r){if(r&&r.s>0&&(b==null||r.s<b))b=r.s;});return b;}
+function count(){return DAYS.filter(function(d){return done[d.n];}).length;}
+function weekLabel(){var m=monday(),s=new Date(m);s.setDate(s.getDate()+6);var M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return m.getDate()+" "+M[m.getMonth()]+" to "+s.getDate()+" "+M[s.getMonth()];}
+
+var SR=null,V={view:"tab",d:null};
+function $(id){return SR?SR.getElementById(id):null;}
+function host(){var m=document.getElementById("main");if(!m)return null;var h=m.querySelector("#tbHost");if(!h||!h.shadowRoot){m.innerHTML='<div id="tbHost"></div>';h=m.firstChild;SR=h.attachShadow({mode:"open"});SR.innerHTML="<style>"+CSS+"</style><div id=\"tbRoot\"></div><div class=\"timer\" id=\"timer\" role=\"dialog\" aria-modal=\"true\" aria-label=\"Round timer\" hidden></div>";}else SR=h.shadowRoot;return SR;}
+function render(){boot();if(!host())return;document.body.classList.remove("lg2home");if(V.view==="day"&&V.d)renderDay(V.d);else renderTab();}
+
+function renderTab(){
+  var c=count();
+  var h='<button class="back" id="bk">‹ Home</button>'+
+   '<div class="hero"><span class="kick">Three sessions · any days</span>'+
+   '<h1>Tom\'s <span>Boxing</span></h1>'+
+   '<p class="lead">Day 1, Day 2 and Day 3. Pick whichever days suit you this week, hit start, and the timer runs every round and rest for you.</p>'+
+   '<div class="pips" aria-hidden="true">'+DAYS.map(function(d){return '<span class="'+(done[d.n]?"on":"")+'"></span>';}).join("")+'</div>'+
+   '<p class="week"><b>'+c+' of 3 done</b> · week of '+weekLabel()+'</p></div>'+
+   '<p class="sec">Your sessions</p>';
+  DAYS.forEach(function(d){
+    h+='<button class="day'+(done[d.n]?" done":"")+'" data-d="'+d.n+'">'+
+       '<span class="num"><span><small>Day</small><b>'+d.n+'</b></span></span>'+
+       '<span class="nm"><b>'+E(d.name)+'</b><span>'+E(d.k)+'</span></span>'+
+       '<span class="tm">'+E(d.mins)+'<small>'+(done[d.n]?"Done ✓":"To do")+'</small></span></button>';
+  });
+  h+='<p class="fine">Ticks clear every Monday so the three days start fresh each week.</p>';
+  $("tbRoot").innerHTML=h;
+  $("bk").onclick=function(){window.go("home");};
+  Array.prototype.forEach.call($("tbRoot").querySelectorAll(".day"),function(b){b.onclick=function(){go("day",+b.getAttribute("data-d"));};});
+}
+
+function renderDay(n){
+  var d=DAYS[n-1],i=0;
+  var h='<button class="back" id="bk">‹ Tom\'s Boxing</button>'+
+   '<div class="card" style="margin-top:8px"><div class="top"><div><span class="kick">Day '+d.n+' · '+E(d.k)+'</span><h2>'+E(d.name)+'</h2></div>'+
+   '<div class="t"><b>'+E(d.mins)+'</b><small>Total</small></div></div>'+
+   '<p class="sum">'+E(d.sum)+'</p>'+
+   (d.run&&bestRun()!=null?'<p class="best">Your best 2 km so far: <b>'+mmss(bestRun())+'</b></p>':'')+'<button class="big" id="start">Start session</button>'+
+   '<div class="blocks">';
+  d.blocks.forEach(function(b){
+    if(b.t==="gloves"){h+='<div class="bk"><span class="n gl">+</span><span class="x"><b>Gloves on</b><small>Wraps tight, gloves on, water.</small></span><span class="w">2:00<em>Break</em></span></div>';return;}
+    i++;
+    h+='<div class="bk"><span class="n">'+i+'</span><span class="x"><b>'+E(b.name)+'</b>';
+    if(b.t==="cont")h+='<small>'+E(b.note)+'</small>';
+    else{h+='<div class="rounds">'+b.notes.map(function(t,r){var mx=b.iv&&b.iv[r];return '<div class="'+(mx?"mx":"")+'"><b>R'+(r+1)+'</b>'+E(t)+'</div>';}).join("")+'</div>';}
+    h+='</span><span class="w">'+(b.t==="cont"?mmss(b.secs):b.n+' × 2:00')+'<em>'+(b.t==="cont"?"Straight":"30s rest")+'</em></span></div>';
+  });
+  if(d.run)h+='<div class="bk"><span class="n">'+(i+1)+'</span><span class="x"><b>2 km run for time</b><small>Straight after the last bag round. The timer turns into a stopwatch.</small></span><span class="w">Timed<em>Your best</em></span></div>';
+  h+='</div></div>'+
+   '<div class="card rec"><span class="kick">Recovery after</span><b>'+E(d.rec.name)+'</b><p>'+E(d.rec.line)+'</p></div>'+
+   '<button class="big '+(done[n]?"dn":"ghostb")+'" id="tick">'+(done[n]?"Done this week ✓ · tap to undo":"Mark Day "+n+" done")+'</button>';
+  $("tbRoot").innerHTML=h;
+  $("bk").onclick=function(){go("tab");};
+  $("start").onclick=function(){startTimer(d);};
+  $("tick").onclick=function(){done[n]=!done[n];save();renderDay(n);};
+}
+
+function go(v,d){V.view=v;V.d=d||null;render();window.scrollTo(0,0);}
+
+/* ---------- sound (starts from the Start button, so browsers allow it) ---------- */
+var AC=null;
+function ac(){try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();}catch(e){}return AC;}
+function tone(f,t,len,type,g){var c=ac();if(!c)return;try{var o=c.createOscillator(),v=c.createGain();o.type=type||"sine";o.frequency.value=f;o.connect(v);v.connect(c.destination);var st=c.currentTime+(t||0);v.gain.setValueAtTime(0,st);v.gain.linearRampToValueAtTime(g||.5,st+.01);v.gain.exponentialRampToValueAtTime(.001,st+len);o.start(st);o.stop(st+len+.05);}catch(e){}}
+function bell(n){for(var i=0;i<(n||1);i++){[523,1046,1568].forEach(function(f,k){tone(f,i*.5,1-k*.2,k?"sine":"triangle",[.6,.4,.25][k]);});}}
+function pips(){[0,.15,.3].forEach(function(t){tone(1500,t,.1,"square",.3);});}
+function goTone(){[[880,0],[1320,.12],[1760,.24]].forEach(function(x){tone(x[0],x[1],.25,"square",.35);});}
+function easyTone(){[0,.28].forEach(function(t){tone(200,t,.22,"sawtooth",.35);});}
+var wake=null;
+function keepAwake(){try{if(navigator.wakeLock)navigator.wakeLock.request("screen").then(function(w){wake=w;}).catch(function(){});}catch(e){}}
+function letSleep(){try{if(wake)wake.release();}catch(e){}wake=null;}
+
+/* ---------- the round timer ---------- */
+
+var T=null;
+function startTimer(d){
+  T={d:d,ph:phases(d),i:0,left:0,up:0,on:true,last:Date.now(),warned:false,cue:null,runTime:null,fin:false};
+  ac();keepAwake();
+  enter(0);
+  $("timer").hidden=false;try{document.body.style.overflow="hidden";}catch(e){}
+  T.int=setInterval(tick,200);
+}
+function enter(i){
+  T.i=i;var p=T.ph[i];T.left=p.secs;T.up=0;T.warned=false;T.cue=null;T.last=Date.now();
+  if(p.k==="rest")bell(1);else if(p.k==="gloves")bell(1);else bell(i===0?1:2);
+  paint();
+}
+function tick(){
+  if(!T||T.fin)return;
+  var now=Date.now(),dt=(now-T.last)/1000;T.last=now;
+  if(!T.on)return;
+  var p=T.ph[T.i];
+  if(p.k==="run"){T.up+=dt;paintClock();return;}
+  T.left-=dt;T.up+=dt;
+  if(!T.warned&&T.left<=10&&p.secs>20){T.warned=true;pips();}
+  if(p.iv){var c=Math.floor(T.up/p.iv)%2===0?"go":"easy";if(c!==T.cue){T.cue=c;if(c==="go")goTone();else easyTone();paint();}}
+  if(T.left<=0){nextPhase();return;}
+  paintClock();
+}
+function nextPhase(){if(T.i>=T.ph.length-1){finish();}else enter(T.i+1);}
+function finish(){
+  T.fin=true;clearInterval(T.int);bell(3);letSleep();
+  done[T.d.n]=true;if(T.runTime!=null&&T.runTime>60)D.runs.push({d:iso(new Date()),s:Math.round(T.runTime)});save();
+  $("timer").className="timer";
+  $("timer").innerHTML='<div class="in"><div class="done"><span class="kick">Day '+T.d.n+' complete</span><h1>Session <span>done</span></h1>'+
+    (T.runTime!=null?'<p class="lead">2 km in <b>'+mmss(T.runTime)+'</b>.</p>':'')+
+    '<p class="lead">Ticked off for this week. Recovery: '+E(T.d.rec.name.toLowerCase())+'.</p></div>'+
+    '<button class="big" id="tdone">Back to Tom\'s Boxing</button></div>';
+  $("tdone").onclick=closeTimer;
+}
+function stopTimer(){if(T&&T.int)clearInterval(T.int);letSleep();T=null;try{document.body.style.overflow="";}catch(e){}var t=$("timer");if(t){t.hidden=true;t.innerHTML="";}}
+function closeTimer(){stopTimer();go("tab");}
+function label(k){return {work:"Work",max:"Max effort",rest:"Rest",gloves:"Gloves on",run:"Run"}[k];}
+function paint(){
+  var p=T.ph[T.i],nx=T.ph[T.i+1];
+  $("timer").className="timer "+(p.k==="run"?"work":p.k);
+  $("timer").innerHTML='<div class="in"><div class="tbar"><span>Day '+T.d.n+' · '+(T.i+1)+' of '+T.ph.length+'</span><button id="tend">End session</button></div>'+
+   '<div class="prog"><i style="width:'+Math.round(T.i/T.ph.length*100)+'%"></i></div>'+
+   '<div class="tmid"><span class="state">'+label(p.k)+'</span><div class="ttl">'+E(p.title)+'</div>'+
+   '<div class="clock" id="clk"></div>'+
+   (p.iv?'<span class="cue '+(T.cue||"go")+'">'+((T.cue||"go")==="go"?"GO":"EASY")+'</span>':'')+
+   '<p class="note">'+E(p.note)+'</p>'+
+   '<p class="next">'+(nx?'Up next: <b>'+E(nx.title)+'</b>':'Last one. Finish strong.')+'</p></div>'+
+   (p.k==="run"
+     ?'<div class="ctrl" style="grid-template-columns:1fr"><button class="main" id="tstop">Stop · save my 2 km time</button></div>'
+     :'<div class="ctrl"><button id="tprev">Back</button><button class="main" id="tpause">'+(T.on?"Pause":"Resume")+'</button><button id="tskip">Skip</button></div>')+
+   '</div>';
+  paintClock();
+  $("tend").onclick=closeTimer;
+  if(p.k==="run"){$("tstop").onclick=function(){T.runTime=T.up;finish();};}
+  else{
+    $("tpause").onclick=function(){T.on=!T.on;T.last=Date.now();paint();};
+    $("tskip").onclick=nextPhase;
+    $("tprev").onclick=function(){enter(Math.max(0,T.i-(T.up<3?1:0)));};
+  }
+}
+function paintClock(){var c=$("clk");if(!c)return;var p=T.ph[T.i];c.textContent=p.k==="run"?mmss(Math.floor(T.up)):mmss(T.left);}
+
+
+try{if(typeof NAV_TAB!=="undefined")NAV_TAB.tomsbox="home";}catch(e){}
+var _render=window.render;
+window.render=function(){try{if(typeof view!=="undefined"&&view==="tomsbox"){if(!isHim()){view="home";}else{render();return;}}else if(T){stopTimer();}}catch(e){console.error(e);}return _render.apply(this,arguments);};
+var _go=window.go;window.go=function(v){if(v==="tomsbox"){V.view="tab";V.d=null;}return _go.apply(this,arguments);};
+window.lgTomIsHim=isHim;
+window.lgTomSub=function(){try{boot();return count()+" of 3 done this week · any days you like";}catch(e){return "Your three sessions for the week.";}};
 })();
