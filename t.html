@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0b0b0c">
+<title>Your Fight Night tickets · Fight Club</title>
+<meta property="og:title" content="Your Fight Night tickets · Sat 19 Dec · Legacy Gym">
+<meta property="og:description" content="Your personal link to buy your Fight Night tickets.">
+<meta property="og:image" content="https://legacygym-app.vercel.app/img/fc/fc-logo.png">
+<link rel="icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Oswald:wght@500;600;700&display=swap">
+<style>
+:root{--page:#060606;--bg:#0b0b0c;--panel:#141312;--card:#1b1a18;--line:#2a2519;--line2:#3a3222;--text:#f3f1ec;--soft:#d8d2c8;--muted:#a19d92;--gold:#c9a44c;--gold2:#f1d27a;--fc:#1fb6e6;--ok:#4bc97a;--bad:#ff6b7a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--text);font-family:Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.w{max-width:520px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-left,0px)) calc(110px + env(safe-area-inset-bottom,0px))}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+.top{display:flex;align-items:center;gap:12px;padding:6px 0 14px}
+.top img{width:46px;height:46px;object-fit:contain}
+.top .k{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--fc)}
+.top .d{font-size:12px;color:var(--muted);margin-top:3px}
+h1{margin:0;font:700 36px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.3px;text-wrap:balance}
+h1 span{color:var(--gold2)}
+h2{margin:24px 0 10px;font:700 13px/1 Oswald,sans-serif;letter-spacing:3px;text-transform:uppercase;color:var(--gold)}
+.lead{font-size:14px;line-height:1.55;color:var(--soft);margin:10px 0 0}
+.badge{display:inline-block;font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;border-radius:7px;padding:5px 8px;border:1px solid var(--line2);color:var(--muted)}
+.badge.test{border-color:#ff6b7a;color:#ff8a95;background:rgba(255,107,122,.08)}
+.badge.open{border-color:rgba(75,201,122,.6);color:var(--ok)}
+.hold{margin-top:14px;border:1px solid var(--line2);border-radius:16px;background:var(--panel);padding:14px}
+.hold .row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:13.5px}
+.hold .row span{color:var(--muted)}
+.hold .row b{text-align:right}
+.win{margin-top:12px;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;border:1px solid rgba(31,182,230,.45);background:rgba(31,182,230,.07);color:#cfefff}
+.win b{color:#fff}
+.opt{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line2);border-radius:16px;background:var(--panel);padding:14px;margin-bottom:8px}
+.opt.on{border-color:var(--gold)}
+.opt .t{font:600 18px/1.1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.3px}
+.opt .s{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4}
+.opt .p{font:700 17px/1 Oswald,sans-serif;color:var(--gold2);margin-top:6px}
+.opt .tag{display:inline-block;font-size:9.5px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--fc);margin-bottom:4px}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:40px;height:40px;border-radius:12px;border:1px solid var(--line2);background:var(--card);color:var(--text);font:700 20px/1 Montserrat,sans-serif}
+.step button:disabled{opacity:.35}
+.step b{min-width:28px;text-align:center;font:700 20px/1 Oswald,sans-serif;font-variant-numeric:tabular-nums}
+.shirt{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:8px}
+select,input[type=text]{width:100%;min-width:0;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:12px 10px;color:var(--text);font:600 15px Montserrat,sans-serif}
+.x{width:40px;height:44px;border-radius:12px;border:1px solid var(--line2);background:none;color:var(--muted);font-size:18px}
+.ghost{display:block;width:100%;border:1px dashed var(--line2);border-radius:14px;background:none;color:var(--gold2);font-weight:800;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:13px}
+.note{font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0}
+.names input{margin-bottom:6px}
+.agree{border:1px solid var(--line2);border-radius:16px;background:var(--panel);padding:14px;font-size:12.5px;line-height:1.6;color:var(--soft)}
+.tick{display:flex;gap:10px;align-items:flex-start;margin:12px 0 10px;font-size:13.5px;font-weight:700;color:var(--text)}
+.tick input{width:22px;height:22px;flex:none;margin:0;accent-color:var(--gold)}
+.sum{border:1px solid var(--line2);border-radius:16px;background:var(--panel);padding:6px 14px}
+.sum .l{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.sum .l:last-child{border-bottom:0;font-weight:800;font-size:15px}
+.sum .l b{color:var(--gold2);white-space:nowrap}
+.err{color:#ffb3bc;font-size:13px;font-weight:600;margin-top:10px;min-height:18px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(6,6,6,.96) 26%);padding:24px 16px calc(14px + env(safe-area-inset-bottom,0px))}
+.bar .in{max-width:520px;margin:0 auto}
+.pay{display:block;width:100%;border:0;border-radius:14px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#161307;font:800 15px/1 Montserrat,sans-serif;letter-spacing:1.2px;text-transform:uppercase;padding:18px 12px;text-align:center;text-decoration:none}
+.pay:disabled{opacity:.5}
+.paid{border:1px solid rgba(75,201,122,.55);border-radius:16px;background:rgba(75,201,122,.06);padding:14px;margin-top:12px}
+.paid .h{font:700 20px/1.1 Oswald,sans-serif;text-transform:uppercase;color:var(--ok)}
+.foot{text-align:center;font-size:11px;color:var(--muted);margin-top:26px;line-height:1.6}
+.load{padding:60px 0;text-align:center;color:var(--muted)}
+@media (max-width:360px){h1{font-size:30px}.shirt{grid-template-columns:1fr 1fr auto}.shirt select:nth-child(3){grid-column:1/3}}
+</style>
+</head>
+<body>
+<div class="w" id="app"><div class="load">Loading your tickets…</div></div>
+<div class="bar" id="bar" hidden><div class="in" id="barIn"></div></div>
+<script>
+(function(){
+var SB="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/";
+var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+var API="/api/fightnight?a=buy-checkout";
+var COLS=["Indigenous","Pink","Yellow","Grey","Black"],SIZES=["XS","S","M","L","XL","2XL","3XL","4XL","5XL","6XL"];
+var OPTS=[
+ {k:"front",tag:"Tier 1 · ringside table",t:"Front row table seat",s:"Front row of the tables. Food served to the table plus 6 drinks."},
+ {k:"rows",tag:"Tier 1 · table",t:"Table seat, rows 2 & 3",s:"Reserved table seat. Food served to the table plus 5 drinks."},
+ {k:"ga1",tag:"Tier 2 · ringside GA",t:"Ringside GA",s:"Bar tables, stools and standing, 7 to 18 metres from the ring."},
+ {k:"ga2",tag:"Tier 3 · roaming GA",t:"Roaming GA",s:"Standing room and bar area, 19 to 30 metres from the ring."}
+];
+var tok=(location.pathname.match(/\/t\/([0-9a-f]{16,64})/i)||[])[1]||new URLSearchParams(location.search).get("k")||"";
+var V=null,C={front:0,rows:0,ga1:0,ga2:0,meals:0,shirts:[],names:[]},agreeTick=false,agreeName="",busy=false,err="";
+var app=document.getElementById("app"),bar=document.getElementById("bar"),barIn=document.getElementById("barIn");
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function $m(c){c=Number(c||0);return "$"+(c/100).toFixed(2).replace(/\.00$/,"");}
+async function rpc(fn,args){var r=await fetch(SB+fn,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify(args||{})});var j=await r.json().catch(function(){return null;});if(!r.ok)throw new Error((j&&(j.message||j.error))||"Something went wrong. Try again.");return j;}
+function tickets(){return C.front+C.rows+C.ga1+C.ga2;}
+function ga(){return C.ga1+C.ga2;}
+function total(){var p=V.prices;return C.front*p.front+C.rows*p.rows+C.ga1*p.ga1+C.ga2*p.ga2+C.meals*p.meal+C.shirts.length*p.shirt;}
+function parseShirt(s){var m=String(s||"").match(/^(\S+)\s+(shirt|singlet)\s+(\S+)$/i);if(!m)return null;var c=COLS.filter(function(x){return x.toLowerCase()===m[1].toLowerCase();})[0],z=SIZES.filter(function(x){return x.toLowerCase()===m[3].toLowerCase();})[0];return c&&z?{c:c,s:z,t:m[2].toLowerCase()}:null;}
+function head(){
+ return '<div class="top"><img src="/img/fc/fc-logo.png" alt="Fight Club"><div><div class="k">Fight Club Central Coast</div><div class="d">Fight Night · Sat 19 Dec 2026 · Legacy Gym, Kincumber</div></div></div>'
+  +(V&&V.test?'<div style="margin-bottom:10px"><span class="badge test">Test link · always open · refund after</span></div>':'');
+}
+function holdBox(){
+ return '<div class="hold"><div class="row"><span>Held for</span><b>'+E(V.full)+'</b></div><div class="row"><span>Your hold</span><b>'+E(V.held&&V.held.label)+'</b></div>'
+  +(V.fighter?'<div class="row"><span>Supporting</span><b>'+E(V.fighter)+'</b></div>':'')
+  +(V.preorder_shirt?'<div class="row"><span>Pre-ordered</span><b>'+E(V.preorder_shirt)+'</b></div>':'')
+  +'<div class="row"><span>Your window</span><b>'+E(V.opens)+' to '+E(V.closes)+'</b></div></div>';
+}
+function ordersHtml(){
+ var o=(V.orders||[]),h="";
+ o.filter(function(x){return x.status==="paid";}).forEach(function(x){
+  var n=x.front+x.rows+x.ga1+x.ga2,names=x.names||[];
+  h+='<div class="paid"><div class="h">Paid ✓ · '+E(x.ref)+'</div><div class="note" style="color:var(--soft)">'+(x.items||[]).map(function(i){return i.qty+' × '+E(i.title);}).join('<br>')+'<br><b style="color:var(--text)">Total '+$m(x.total_cents)+'</b></div>'
+   +'<div class="note">Your QR tickets are emailed on <b>Wed 9 Dec</b>. Add a name for every ticket before then. Passing a ticket to a friend or family member? Just change the name here.</div>'
+   +(n?'<h2 style="margin-top:14px">Names on your tickets</h2><div class="names">'+Array.from({length:n},function(_,i){return '<input type="text" data-pn="'+E(x.ref)+'" value="'+E(names[i]||"")+'" placeholder="Ticket '+(i+1)+': first and last name" autocomplete="off">';}).join("")+'</div><button class="ghost" data-save="'+E(x.ref)+'">Save names</button><div class="err" id="pe_'+E(x.ref)+'"></div>':'')
+   +'</div>';
+ });
+ o.filter(function(x){return x.status==="pending"&&x.checkout_url;}).slice(0,1).forEach(function(x){
+  h+='<div class="hold" style="border-color:var(--gold)"><div class="row"><span>Order '+E(x.ref)+'</span><b>'+$m(x.total_cents)+' · not paid yet</b></div><div class="note">Already paid? It can take a minute to show here. Otherwise finish paying below, or build a new order.</div>'
+   +(V.state==="open"?'<a class="pay" style="margin-top:10px" href="'+E(x.checkout_url)+'">Finish paying '+$m(x.total_cents)+'</a>':'')+'</div>';
+ });
+ return h;
+}
+function optHtml(o){
+ var q=C[o.k],p=V.prices[o.k];
+ return '<div class="opt'+(q?' on':'')+'"><div><div class="tag">'+o.tag+'</div><div class="t">'+o.t+'</div><div class="s">'+o.s+'</div><div class="p">'+$m(p)+' <span style="font:600 11px Montserrat;color:var(--muted)">each</span></div></div>'
+  +'<div class="step"><button data-q="'+o.k+'" data-d="-1" aria-label="One less '+o.t+'"'+(q?'':' disabled')+'>−</button><b>'+q+'</b><button data-q="'+o.k+'" data-d="1" aria-label="One more '+o.t+'">+</button></div></div>';
+}
+function buildHtml(){
+ var p=V.prices,n=tickets(),h="";
+ h+='<h2>Your tickets</h2>';
+ h+='<p class="note" style="margin:-2px 0 10px">Your held spot is already in. Switch areas, or add tickets for your crew.</p>';
+ h+=OPTS.map(optHtml).join("");
+ h+='<h2>Extras</h2>';
+ h+='<div class="opt'+(C.meals?' on':'')+'"><div><div class="tag">GA only</div><div class="t">GA food & drink pack</div><div class="s">One per GA ticket. Table seats already include food and drinks.</div><div class="p">'+$m(p.meal)+' <span style="font:600 11px Montserrat;color:var(--muted)">each</span></div></div>'
+  +'<div class="step"><button data-q="meals" data-d="-1"'+(C.meals?'':' disabled')+' aria-label="One less food pack">−</button><b>'+C.meals+'</b><button data-q="meals" data-d="1"'+(C.meals<ga()?'':' disabled')+' aria-label="One more food pack">+</button></div></div>';
+ h+='<div class="opt'+(C.shirts.length?' on':'')+'" style="display:block"><div class="tag">Collect on the night</div><div class="t">Supporter shirt or singlet</div><div class="s">'+$m(p.shirt)+' each. Pick colour, style and size.</div><div style="margin-top:10px">'
+  +C.shirts.map(function(s,i){return '<div class="shirt"><select data-sh="'+i+'" data-f="c" aria-label="Colour">'+COLS.map(function(c){return '<option'+(s.c===c?' selected':'')+'>'+c+'</option>';}).join("")+'</select><select data-sh="'+i+'" data-f="t" aria-label="Style"><option value="shirt"'+(s.t==="shirt"?' selected':'')+'>Shirt</option><option value="singlet"'+(s.t==="singlet"?' selected':'')+'>Singlet</option></select><select data-sh="'+i+'" data-f="s" aria-label="Size">'+SIZES.map(function(z){return '<option'+(s.s===z?' selected':'')+'>'+z+'</option>';}).join("")+'</select><button class="x" data-rm="'+i+'" aria-label="Remove shirt">×</button></div>';}).join("")
+  +(C.shirts.length<10?'<button class="ghost" data-add="shirt">+ Add a shirt</button>':'')+'</div></div>';
+ if(n){h+='<h2>Names on tickets</h2><p class="note" style="margin:-2px 0 10px">Optional now. Every ticket needs a name before <b>Wed 9 Dec</b>, when the QR tickets are emailed. You can add or change names on this link after you pay.</p><div class="names">'
+  +Array.from({length:n},function(_,i){return '<input type="text" data-nm="'+i+'" value="'+E(C.names[i]||"")+'" placeholder="Ticket '+(i+1)+': first and last name (optional)" autocomplete="off">';}).join("")+'</div>';}
+ h+='<h2>The agreement</h2><div class="agree">'+E(V.agreement.text)
+  +'<label class="tick"><input type="checkbox" id="agT"'+(agreeTick?' checked':'')+'> I have read and agree to these terms.</label>'
+  +'<input type="text" id="agN" value="'+E(agreeName)+'" placeholder="Type your full name to agree" autocomplete="name"></div>';
+ h+='<h2>Your order</h2><div class="sum">'+summary()+'</div>';
+ h+='<p class="note">No QR codes at purchase: your QR tickets are emailed on Wed 9 Dec. You pay securely through the Legacy Gym Shopify checkout.</p>';
+ h+='<div class="err" id="err">'+E(err)+'</div>';
+ return h;
+}
+function summary(){
+ var p=V.prices,L=[];
+ OPTS.forEach(function(o){if(C[o.k])L.push([C[o.k]+' × '+o.t,C[o.k]*p[o.k]]);});
+ if(C.meals)L.push([C.meals+' × GA food & drink pack',C.meals*p.meal]);
+ C.shirts.forEach(function(s){L.push(['Supporter '+s.t+' · '+s.c+' · '+s.s,p.shirt]);});
+ if(!L.length)return '<div class="l"><span>Nothing in your order yet</span><b>$0</b></div>';
+ return L.map(function(x){return '<div class="l"><span>'+E(x[0])+'</span><b>'+$m(x[1])+'</b></div>';}).join("")+'<div class="l"><span>Total</span><b>'+$m(total())+'</b></div>';
+}
+function paint(){
+ if(!V){return;}
+ var h=head(),st=V.state,paidAny=(V.orders||[]).some(function(x){return x.status==="paid";});
+ if(st==="before"){
+  h+='<h1>Your tickets, <span>'+E(V.first||"")+'</span></h1>'+holdBox()
+   +'<div class="win"><b>Your buying window opens '+E(V.opens)+'</b> and stays open for 24 hours, until '+E(V.closes)+'. Come back to this link then. Your spot is held until your window closes.</div>'
+   +'<h2>Prices</h2><div class="sum">'+OPTS.map(function(o){return '<div class="l"><span>'+o.t+'</span><b>'+$m(V.prices[o.k])+'</b></div>';}).join("")+'<div class="l" style="font-weight:600;font-size:13.5px"><span>GA food & drink pack</span><b>'+$m(V.prices.meal)+'</b></div><div class="l" style="font-weight:600;font-size:13.5px"><span>Supporter shirt or singlet</span><b>'+$m(V.prices.shirt)+'</b></div></div>'
+   +'<p class="note">No QR codes at purchase: your QR tickets are emailed Wed 9 Dec. Names are optional at checkout and needed before 9 Dec. Can\'t make it? You can pass your ticket to a friend or family member.</p>'+ordersHtml();
+  bar.hidden=true;
+ }else if(st==="closed"){
+  h+='<h1>Your tickets, <span>'+E(V.first||"")+'</span></h1>'+holdBox()
+   +(paidAny?'':'<div class="win"><b>Your buying window closed '+E(V.closes)+'.</b> Unclaimed held spots go back into general sale. Keep an eye on Fight Club for general sale tickets.</div>')+ordersHtml();
+  bar.hidden=true;
+ }else{
+  h+='<h1>You\'re open, <span>'+E(V.first||"")+'</span></h1>'+holdBox()
+   +'<div class="win"><span class="badge open" style="margin-right:6px">Open now</span>Buy before <b>'+E(V.closes)+'</b>. After that, unclaimed spots go to general sale.</div>'+ordersHtml()+buildHtml();
+  bar.hidden=false;
+  barIn.innerHTML='<button class="pay" id="payBtn"'+(busy||!tickets()&&!C.shirts.length?' disabled':'')+'>'+(busy?'Opening secure checkout…':'Pay '+$m(total())+' securely')+'</button>';
+ }
+ h+='<div class="foot">Questions? Email fightclub.legacygym@gmail.com<br>Fight Club Central Coast · Legacy Gym Kincumber</div>';
+ app.innerHTML=h;
+}
+function keep(){
+ document.querySelectorAll("[data-nm]").forEach(function(el){C.names[+el.dataset.nm]=el.value;});
+ var t=document.getElementById("agT"),n=document.getElementById("agN");if(t)agreeTick=t.checked;if(n)agreeName=n.value;
+}
+app.addEventListener("click",async function(ev){
+ var b=ev.target.closest("button");if(!b)return;keep();
+ if(b.dataset.q){var k=b.dataset.q,d=+b.dataset.d;C[k]=Math.max(0,C[k]+d);if(k!=="meals"&&C.meals>ga())C.meals=ga();if(tickets()>40){C[k]-=d;err="Up to 40 tickets per order.";}else err="";paint();return;}
+ if(b.dataset.add){C.shirts.push({c:"Black",s:"L",t:"shirt"});paint();return;}
+ if(b.dataset.rm!=null){C.shirts.splice(+b.dataset.rm,1);paint();return;}
+ if(b.dataset.save){var ref=b.dataset.save,vals=[].map.call(document.querySelectorAll('[data-pn="'+ref+'"]'),function(x){return x.value;}),e=document.getElementById("pe_"+ref);
+  b.disabled=true;b.textContent="Saving…";try{var r=await rpc("fn_buy_save_names",{p_token:tok,p_ref:ref,p_names:vals});if(!r||!r.ok)throw new Error((r&&r.message)||"Couldn't save. Try again.");b.textContent="Saved ✓";if(e)e.textContent="";}catch(x){b.disabled=false;b.textContent="Save names";if(e)e.textContent=x.message;}return;}
+});
+app.addEventListener("change",function(ev){var el=ev.target;if(el.dataset&&el.dataset.sh!=null){C.shirts[+el.dataset.sh][el.dataset.f]=el.value;keep();paint();}else if(el.id==="agT"){agreeTick=el.checked;}});
+app.addEventListener("input",function(ev){var el=ev.target;if(el.dataset&&el.dataset.nm!=null)C.names[+el.dataset.nm]=el.value;if(el.id==="agN")agreeName=el.value;});
+barIn.addEventListener("click",async function(ev){
+ if(!ev.target.closest("#payBtn")||busy)return;keep();
+ var an=agreeName.trim().replace(/\s+/g," ");
+ if(!agreeTick){err="Tick the box to accept the agreement.";paint();scrollErr();return;}
+ if(an.length<3||an.indexOf(" ")<0){err="Type your full name (first and last) under the agreement.";paint();scrollErr();return;}
+ busy=true;err="";paint();
+ try{
+  var p=await rpc("fn_buy_prepare",{p_token:tok,p_cart:{front:C.front,rows:C.rows,ga1:C.ga1,ga2:C.ga2,meals:C.meals,shirts:C.shirts},p_names:C.names.slice(0,tickets()),p_agree_name:an,p_agree_tick:true});
+  if(!p||!p.ok)throw new Error((p&&p.message)||"Couldn't save your order. Try again.");
+  var r=await fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token:tok,ref:p.ref})});var j=await r.json().catch(function(){return null;});
+  if(!r.ok||!j||!j.url)throw new Error(j&&j.error==="window_closed"?"Your buying window isn't open right now.":"Couldn't open the checkout. Try again in a moment.");
+  location.href=j.url;
+ }catch(x){busy=false;err=x.message||String(x);paint();scrollErr();}
+});
+function scrollErr(){var e=document.getElementById("err");if(e)e.scrollIntoView({behavior:"smooth",block:"center"});}
+async function load(){
+ if(!tok){app.innerHTML=head()+'<h1>Link not found</h1><p class="lead">This link is missing its code. Open the link from your Fight Club email again.</p>';return;}
+ try{V=await rpc("fn_buy_view",{p_token:tok});}catch(e){app.innerHTML=head()+'<h1>Couldn\'t load</h1><p class="lead">Check your signal and refresh the page.</p>';return;}
+ if(!V||!V.ok){app.innerHTML=head()+'<h1>'+(V&&V.error==="withdrawn"?'Link switched off':'Link not found')+'</h1><p class="lead">'+E((V&&V.message)||"Open the link from your Fight Club email again, or reply to that email for help.")+'</p>';V=null;return;}
+ if(!C._init){C._init=1;var hd=V.held||{},s=Math.max(1,Number(hd.seats)||1);if(hd.tier==="gold")C.rows=s;else C.ga1=s;var ps=parseShirt(V.preorder_shirt);if(ps)C.shirts.push(ps);
+  if((V.orders||[]).some(function(x){return x.status==="paid";})){C.rows=0;C.ga1=0;C.shirts=[];}}
+ paint();
+ if((V.orders||[]).some(function(x){return x.status==="pending"&&x.checkout_url;})&&!window.__poll){window.__poll=setInterval(async function(){try{var n=await rpc("fn_buy_view",{p_token:tok});if(n&&n.ok&&(n.orders||[]).some(function(x){return x.status==="paid";})&&!(V.orders||[]).some(function(x){return x.status==="paid";})){V=n;C.rows=0;C.ga1=0;C.shirts=[];keep();paint();}}catch(e){}},15000);}
+}
+load();
+})();
+</script>
+</body>
+</html>

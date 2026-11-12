@@ -52,6 +52,10 @@
     {
       "source": "/shop/:slug",
       "destination": "/api/fightnight?a=shop-share&s=:slug"
+    },
+    {
+      "source": "/t/:token",
+      "destination": "/t.html"
     }
   ]
 }
