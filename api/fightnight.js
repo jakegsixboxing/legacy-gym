@@ -57,7 +57,7 @@ export default async function handler(req, res) {
   if (a === "waiver-mail") return waiverMail(res, body);
   if (a === "crew-sms") return crewSms(req, res, body);
   if (a === "buy-checkout") return buyCheckout(res, body);
-  if (a === "buy-env") return buyEnv(res);
+  if (a === "buy-env") return buyEnv(res, body);
   return res.status(404).json({ error: "unknown_action" });
 }
 
@@ -608,8 +608,24 @@ async function ticketConfirmEmail(ref, token) {
   return { sent: r.ok, via: "resend", detail: r.ok ? null : await r.text().catch(() => null) };
 }
 
-async function buyEnv(res) {
+async function buyEnv(res, body) {
   const has = k => !!process.env[k];
-  return res.status(200).json({ shopify_client_secret: has("SHOPIFY_CLIENT_SECRET"), shopify_webhook_secret: has("SHOPIFY_WEBHOOK_SECRET"), service_role: has("SUPABASE_SERVICE_ROLE_KEY"),
+  // Read-only check of the Shopify ORDERS_PAID webhook (topic + our callback URL only). body.ensure=true registers OUR hook if it is missing (idempotent, fixed URL).
+  let hooks = null, ensured = null;
+  try {
+    const CS = process.env.SHOPIFY_CLIENT_SECRET; const gql = CS ? await shopifyGql(CS) : null;
+    if (gql) {
+      const list = await gql(`{ webhookSubscriptions(first: 50){ nodes{ id topic endpoint{ __typename ... on WebhookHttpEndpoint { callbackUrl } } } } }`);
+      const nodes = (list.data && list.data.webhookSubscriptions && list.data.webhookSubscriptions.nodes) || [];
+      hooks = nodes.map(n => n.topic + " " + ((n.endpoint && n.endpoint.callbackUrl) || ""));
+      const mine = nodes.filter(n => n.topic === "ORDERS_PAID" && n.endpoint && n.endpoint.callbackUrl === HOOK);
+      if (!mine.length && body && body.ensure === true) {
+        const c = await gql(`mutation($topic: WebhookSubscriptionTopic!, $sub: WebhookSubscriptionInput!){ webhookSubscriptionCreate(topic:$topic, webhookSubscription:$sub){ webhookSubscription{ id } userErrors{ field message } } }`,
+          { topic: "ORDERS_PAID", sub: { callbackUrl: HOOK, format: "JSON" } });
+        ensured = (c && c.data && c.data.webhookSubscriptionCreate) || c;
+      }
+    }
+  } catch (e) { hooks = "error: " + String((e && e.message) || e); }
+  return res.status(200).json({ hooks, ensured, shopify_client_secret: has("SHOPIFY_CLIENT_SECRET"), shopify_webhook_secret: has("SHOPIFY_WEBHOOK_SECRET"), service_role: has("SUPABASE_SERVICE_ROLE_KEY"),
     brevo: has("BREVO_API_KEY"), resend: has("RESEND_API_KEY"), mail_from: process.env.MAIL_FROM || null, fn_mail_from: process.env.FN_MAIL_FROM || null });
 }
