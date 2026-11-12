@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#070b0e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Corner · Fight Night</title>
+<link rel="icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#070b0e;--s1:#0c1318;--s2:#111a21;--line:#1c2833;--line2:#26353f;--fg:#eef3f6;--mut:#7f95a3;--blue:#1fb6e6;--ok:#4fd18b;--amber:#f2b54a;--num:'Barlow Condensed','Arial Narrow',sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,-apple-system,'Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.w{max-width:520px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px 40px;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 4px}
+h1{font-family:var(--num);font-weight:700;font-size:30px;letter-spacing:.04em;text-transform:uppercase;margin:0;line-height:1}
+h1 small{display:block;font-family:Inter,sans-serif;font-size:12px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--mut);margin-top:4px}
+.who{display:flex;background:var(--s2);border:1px solid var(--line2);border-radius:10px;padding:3px}
+.who button{font:inherit;font-size:13px;font-weight:600;border:0;background:transparent;color:var(--mut);padding:7px 14px;border-radius:8px;cursor:pointer}
+.who button.on{background:var(--fg);color:#070b0e}
+.card{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:14px}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);margin-bottom:10px}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sum b{display:block;font-family:var(--num);font-weight:600;font-size:34px;line-height:1}
+.sum span{font-size:12px;color:var(--mut)}
+.sum .ok b{color:var(--ok)}
+.bar{height:6px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:12px}.bar i{display:block;height:100%;background:var(--blue)}
+.bell{width:100%;font:inherit;font-weight:700;font-size:17px;letter-spacing:.06em;text-transform:uppercase;padding:20px;border-radius:14px;border:1px solid var(--fg);background:var(--fg);color:#070b0e;cursor:pointer}
+.bell:active{transform:scale(.98)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{font:inherit;font-size:13px;border:1px solid var(--line2);background:var(--s2);color:var(--fg);border-radius:999px;padding:7px 11px;cursor:pointer}
+textarea,input,select{width:100%;font:inherit;font-size:16px;background:#0a1015;border:1px solid var(--line2);border-radius:10px;padding:11px 12px;color:var(--fg);outline:none}
+textarea:focus,input:focus{border-color:var(--blue)}
+textarea{resize:none;height:74px}
+.rowb{display:flex;gap:8px;margin-top:10px;align-items:center}
+.btn{font:inherit;font-weight:600;font-size:14px;border-radius:10px;padding:11px 14px;border:1px solid var(--line2);background:var(--s2);color:var(--fg);cursor:pointer;white-space:nowrap}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#04121a}
+.btn:disabled{opacity:.5}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--s2);border:1px solid var(--line2);border-radius:10px;padding:3px}
+.seg button{font:inherit;font-size:13px;font-weight:600;border:0;background:transparent;color:var(--mut);padding:9px 4px;border-radius:8px;cursor:pointer}
+.seg button.on{background:var(--fg);color:#070b0e}
+.fl{max-height:260px;overflow:auto;margin-top:8px;border-top:1px solid var(--line)}
+.fr{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+.fr b{font-weight:600;font-size:14.5px}
+.fr span{font-size:12px;color:var(--mut);white-space:nowrap}
+.fr:active{background:var(--s2)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.muted{color:var(--mut);font-size:12.5px;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%) translateY(120%);background:var(--fg);color:#070b0e;font-weight:600;font-size:14px;padding:12px 16px;border-radius:12px;transition:transform .35s;z-index:9;max-width:90vw}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.err{color:#ff8a8f}
+</style>
+</head>
+<body>
+<div class="w" id="app">
+  <header>
+    <h1>Corner<small>Remote for the Fight Night big screen</small></h1>
+    <div class="who" id="who"><button type="button" data-w="Jake">Jake</button><button type="button" data-w="Ali">Ali</button></div>
+  </header>
+
+  <section class="card">
+    <div class="sum"><div><b id="sSales">—</b><span>Ticket sales</span></div><div id="sCoverBox"><b id="sCover">—</b><span id="sCoverL">Still to cover</span></div></div>
+    <div class="bar"><i id="sBar" style="width:0"></i></div>
+    <p class="muted" id="sLine" style="margin:10px 0 0">—</p>
+  </section>
+
+  <button class="bell" id="bell" type="button">Ring the bell</button>
+
+  <section class="card">
+    <div class="lbl">Shout-out on the screen</div>
+    <div class="chips" id="quick"></div>
+    <textarea id="msg" maxlength="140" placeholder="Type a message for the screen"></textarea>
+    <div class="rowb"><span class="muted" id="cnt" style="flex:1">0 / 140</span><button class="btn pri" id="send" type="button">Send</button></div>
+  </section>
+
+  <section class="card">
+    <div class="lbl">What the screen shows</div>
+    <div class="seg" id="seg"><button type="button" data-v="auto" class="on">Auto</button><button type="button" data-v="room">Room</button><button type="button" data-v="fighters">Fighters</button><button type="button" data-v="timeline">Timeline</button></div>
+  </section>
+
+  <section class="card">
+    <div class="lbl">Spotlight a fighter</div>
+    <input id="fq" type="search" placeholder="Search fighters" aria-label="Search fighters">
+    <div class="fl" id="fl"></div>
+  </section>
+
+  <section class="card">
+    <div class="lbl">Set a target</div>
+    <div class="two"><input id="tAmt" type="number" inputmode="numeric" min="1" step="100" placeholder="Amount, e.g. 10000" aria-label="Target amount"><input id="tBy" type="time" aria-label="Target time" value="12:00"></div>
+    <div class="rowb"><button class="btn pri" id="tSet" type="button">Set target</button><button class="btn" id="tClr" type="button">Clear</button><span class="muted" style="flex:1;text-align:right">Time is today, Sydney time</span></div>
+  </section>
+
+  <section class="card">
+    <div class="lbl">Demo</div>
+    <p class="muted" style="margin:0 0 10px">Plays 2 minutes of simulated sales on the big screen. Nothing real is bought or saved.</p>
+    <div class="rowb" style="margin:0"><button class="btn" id="dPlay" type="button">Play demo on screen</button><button class="btn" id="dStop" type="button">Stop demo</button></div>
+  </section>
+  <p class="muted err" id="err" hidden></p>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+var SB="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/",KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+var RK=new URLSearchParams(location.search).get("r")||"";
+var $=function(id){return document.getElementById(id);};
+var who=null,F=[],view="auto";
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function money(v){return "$"+Math.round(Number(v||0)).toLocaleString("en-AU");}
+async function rpc(fn,a){var r=await fetch(SB+fn,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify(a||{})});var j=await r.json().catch(function(){return null;});if(!r.ok)throw new Error((j&&(j.message||j.error))||"Didn't send");return j;}
+var tt;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){t.classList.remove("on");},2400);}
+function setWho(w){who=w;store("corner_who",w);document.querySelectorAll("#who button").forEach(function(b){b.classList.toggle("on",b.dataset.w===w);});}
+async function send(kind,payload,ok){
+  if(!who){toast("Tap Jake or Ali at the top first");return false;}
+  try{await rpc("fn_live_cmd",{p_key:RK,p_who:who,p_kind:kind,p_payload:payload||{}});toast(ok||"Sent to the screen");if(navigator.vibrate)navigator.vibrate(30);return true;}
+  catch(e){toast(e.message==="not allowed"?"This remote link isn't valid":"Didn't send: "+e.message);return false;}
+}
+async function load(){
+  try{var d=await rpc("fn_live_screen",{p_key:RK,p_test:false});}catch(e){$("err").hidden=false;$("err").textContent=e.message==="not allowed"?"This remote link isn't valid. Ask Jake for the Corner link.":"Can't reach the ticket system right now.";return;}
+  $("err").hidden=true;var t=d.totals,out=d.outgoings||0,gap=out-t.revenue;
+  $("sSales").textContent=money(t.revenue);$("sCover").textContent=(gap<=0?"+":"")+money(Math.abs(gap));$("sCoverL").textContent=gap<=0?"Profit":"Still to cover";$("sCoverBox").className=gap<=0?"ok":"";
+  $("sBar").style.width=Math.min(100,out?100*t.revenue/out:0)+"%";
+  $("sLine").textContent=t.orders+" orders · "+(t.ga||0)+" GA · "+(t.table||0)+" table · "+(t.shirts||0)+" shirts";
+  F=(d.fighters||[]).slice().sort(function(a,b){return b.paid-a.paid||a.fighter.localeCompare(b.fighter);});paintF();
+}
+function paintF(){var q=($("fq").value||"").toLowerCase();
+  $("fl").innerHTML=F.filter(function(f){return !q||f.fighter.toLowerCase().indexOf(q)>=0;}).map(function(f){return '<div class="fr" data-f="'+esc(f.fighter)+'"><b>'+esc(f.fighter)+'</b><span>Group '+esc(f.grp||"")+' · '+money(f.paid)+' · '+f.seats+'/'+f.held+' seats</span></div>';}).join("")||'<p class="muted">No fighters match.</p>';
+  $("fl").querySelectorAll(".fr").forEach(function(r){r.onclick=function(){send("spot",{fighter:r.dataset.f},"Spotlighting "+r.dataset.f);};});}
+
+if(!RK){$("err").hidden=false;$("err").textContent="This page needs its private Corner link. Ask Jake.";}
+setWho(store("corner_who")||null);
+document.querySelectorAll("#who button").forEach(function(b){b.onclick=function(){setWho(b.dataset.w);};});
+$("bell").onclick=function(){send("bell",{},"Ding ding. Bell rung on the screen");};
+["Big one! Thank you!","Let's go Group A","Halfway there","Shirts are flying","Costs covered. Thank you all"].forEach(function(t){var c=document.createElement("button");c.type="button";c.className="chip";c.textContent=t;c.onclick=function(){$("msg").value=t;$("cnt").textContent=t.length+" / 140";};$("quick").appendChild(c);});
+$("msg").oninput=function(){$("cnt").textContent=this.value.length+" / 140";};
+$("send").onclick=async function(){var v=$("msg").value.trim();if(!v){toast("Type a message first");return;}if(await send("shout",{text:v},"Shout-out is on the screen")){$("msg").value="";$("cnt").textContent="0 / 140";}};
+document.querySelectorAll("#seg button").forEach(function(b){b.onclick=async function(){if(await send("view",{view:b.dataset.v},b.dataset.v==="auto"?"Screen back on auto":"Screen pinned to "+b.textContent)){document.querySelectorAll("#seg button").forEach(function(x){x.classList.toggle("on",x===b);});}};});
+$("fq").oninput=paintF;
+$("tSet").onclick=function(){var a=Number($("tAmt").value);if(!a||a<1){toast("Enter a target amount");return;}var by=null,tv=$("tBy").value;
+  if(tv){var parts=tv.split(":"),now=new Date(),syd=new Date(now.toLocaleString("en-US",{timeZone:"Australia/Sydney"})),off=syd.getTime()-now.getTime();var d=new Date(syd);d.setHours(+parts[0],+parts[1],0,0);by=new Date(d.getTime()-off).toISOString();}
+  send("target",{amount:a,by:by},"Target set: "+money(a));};
+$("tClr").onclick=function(){send("clear_target",{},"Target cleared");};
+$("dPlay").onclick=function(){send("demo",{},"Demo playing on the screen");};
+$("dStop").onclick=function(){send("stop_demo",{},"Demo stopped");};
+load();setInterval(load,10000);
+})();
+</script>
+</body>
+</html>
