@@ -47,7 +47,7 @@ h2{margin:24px 0 10px;font:700 13px/1 Oswald,sans-serif;letter-spacing:3px;text-
 .step button:disabled{opacity:.35}
 .step b{min-width:28px;text-align:center;font:700 20px/1 Oswald,sans-serif;font-variant-numeric:tabular-nums}
 .shirt{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:8px}
-select,input[type=text]{width:100%;min-width:0;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:12px 10px;color:var(--text);font:600 15px Montserrat,sans-serif}
+select,input[type=text],input[type=tel]{width:100%;min-width:0;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:12px 10px;color:var(--text);font:600 15px Montserrat,sans-serif}
 .x{width:40px;height:44px;border-radius:12px;border:1px solid var(--line2);background:none;color:var(--muted);font-size:18px}
 .ghost{display:block;width:100%;border:1px dashed var(--line2);border-radius:14px;background:none;color:var(--gold2);font-weight:800;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:13px}
 .note{font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0}
@@ -84,11 +84,10 @@ var COLS=["Indigenous","Pink","Yellow","Grey","Black"],SIZES=["XS","S","M","L","
 var OPTS=[
  {k:"front",tag:"Tier 1 · ringside table",t:"Front row table seat",s:"Front row of the tables. Food served to the table plus 6 drinks."},
  {k:"rows",tag:"Tier 1 · table",t:"Table seat, rows 2 & 3",s:"Reserved table seat. Food served to the table plus 5 drinks."},
- {k:"ga1",tag:"Tier 2 · ringside GA",t:"Ringside GA",s:"Bar tables, stools and standing, 7 to 18 metres from the ring."},
- {k:"ga2",tag:"Tier 3 · roaming GA",t:"Roaming GA",s:"Standing room and bar area, 19 to 30 metres from the ring."}
+ {k:"ga1",tag:"General admission",t:"GA · roaming & bar",s:"Move around the room, stand at the bar or grab a bar stool. Some stools: first in, best dressed."}
 ];
 var tok=(location.pathname.match(/\/t\/([0-9a-f]{16,64})/i)||[])[1]||new URLSearchParams(location.search).get("k")||"";
-var V=null,C={front:0,rows:0,ga1:0,ga2:0,meals:0,shirts:[],names:[]},agreeTick=false,agreeName="",busy=false,err="";
+var careEdit=false,V=null,C={front:0,rows:0,ga1:0,ga2:0,meals:0,shirts:[],names:[]},agreeTick=false,agreeName="",busy=false,err="";
 var app=document.getElementById("app"),bar=document.getElementById("bar"),barIn=document.getElementById("barIn");
 function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function $m(c){c=Number(c||0);return "$"+(c/100).toFixed(2).replace(/\.00$/,"");}
@@ -117,11 +116,23 @@ function ordersHtml(){
    +(n?'<h2 style="margin-top:14px">Names on your tickets</h2><div class="names">'+Array.from({length:n},function(_,i){return '<input type="text" data-pn="'+E(x.ref)+'" value="'+E(names[i]||"")+'" placeholder="Ticket '+(i+1)+': first and last name" autocomplete="off">';}).join("")+'</div><button class="ghost" data-save="'+E(x.ref)+'">Save names</button><div class="err" id="pe_'+E(x.ref)+'"></div>':'')
    +'</div>';
  });
+ if(o.some(function(x){return x.status==="paid";}))h+=careHtml();
  o.filter(function(x){return x.status==="pending"&&x.checkout_url;}).slice(0,1).forEach(function(x){
   h+='<div class="hold" style="border-color:var(--gold)"><div class="row"><span>Order '+E(x.ref)+'</span><b>'+$m(x.total_cents)+' · not paid yet</b></div><div class="note">Already paid? It can take a minute to show here. Otherwise finish paying below, or build a new order.</div>'
    +(V.state==="open"?'<a class="pay" style="margin-top:10px" href="'+E(x.checkout_url)+'">Finish paying '+$m(x.total_cents)+'</a>':'')+'</div>';
  });
  return h;
+}
+function careHtml(){
+ var c=V.care||{},done=!!V.care&&!careEdit;
+ if(done)return '<div class="hold"><div class="row"><span>Call request</span><b>Sent ✓</b></div><div class="note">We&#39;ll give you a call on '+E(c.phone)+' about '+[c.elderly?'elderly guests':'',c.disability?'guests with a disability':'',c.under18?'under 18s':''].filter(Boolean).join(', ')+'.</div><button class="ghost" data-careedit="1">Change</button></div>';
+ return '<h2 style="margin-top:14px">Need a call from us?</h2><div class="agree" id="careBox"><div class="note" style="margin:0 0 8px">Bringing someone elderly or with a disability, or have under 18s interested in coming? Tick what applies and we&#39;ll phone you to sort it out.</div>'
+  +'<label class="tick"><input type="checkbox" id="cE"'+(c.elderly?' checked':'')+'> Elderly guests</label>'
+  +'<label class="tick"><input type="checkbox" id="cD"'+(c.disability?' checked':'')+'> Guests with a disability or access needs</label>'
+  +'<label class="tick"><input type="checkbox" id="cU"'+(c.under18?' checked':'')+'> Under 18s interested in attending</label>'
+  +'<input type="tel" id="cP" value="'+E(c.phone||"")+'" placeholder="Best phone number to call" autocomplete="tel">'
+  +'<input type="text" id="cN" value="'+E(c.note||"")+'" placeholder="Anything we should know? (optional)" autocomplete="off">'
+  +'<button class="ghost" data-care="1">Request a call</button><div class="err" id="careErr"></div></div>';
 }
 function optHtml(o){
  var q=C[o.k],p=V.prices[o.k];
@@ -145,6 +156,7 @@ function buildHtml(){
   +'<label class="tick"><input type="checkbox" id="agT"'+(agreeTick?' checked':'')+'> I have read and agree to these terms.</label>'
   +'<input type="text" id="agN" value="'+E(agreeName)+'" placeholder="Type your full name to agree" autocomplete="name"></div>';
  h+='<h2>Your order</h2><div class="sum">'+summary()+'</div>';
+ h+='<p class="note">Bringing someone elderly or with a disability, or under 18s interested in coming? Once you&#39;ve paid, you can ask us for a call on this page.</p>';
  if(C.meals||C.front||C.rows)h+='<div class="food"><b>Food:</b> we&#39;ll be in contact within 10 days to organise what sort of pizza you&#39;d like and any dietary requirements.</div>';
  h+='<p class="note">No QR codes at purchase: your QR tickets are emailed on Wed 9 Dec. You pay securely through the Legacy Gym Shopify checkout.</p>';
  h+='<div class="err" id="err">'+E(err)+'</div>';
@@ -187,6 +199,12 @@ function keep(){
 app.addEventListener("click",async function(ev){
  var b=ev.target.closest("button");if(!b)return;keep();
  if(b.dataset.q){var k=b.dataset.q,d=+b.dataset.d;C[k]=Math.max(0,C[k]+d);if(k!=="meals"&&C.meals>ga())C.meals=ga();if(tickets()>40){C[k]-=d;err="Up to 40 tickets per order.";}else err="";paint();return;}
+ if(b.dataset.careedit){careEdit=true;paint();return;}
+ if(b.dataset.care){var ce=document.getElementById("careErr");b.disabled=true;b.textContent="Sending…";
+  try{var cr=await rpc("fn_buy_care",{p_token:tok,p_elderly:document.getElementById("cE").checked,p_disability:document.getElementById("cD").checked,p_under18:document.getElementById("cU").checked,p_phone:document.getElementById("cP").value,p_note:document.getElementById("cN").value});
+   if(!cr||!cr.ok)throw new Error((cr&&cr.message)||"Couldn't send. Try again.");
+   V=await rpc("fn_buy_view",{p_token:tok});careEdit=false;paint();}
+  catch(x){b.disabled=false;b.textContent="Request a call";if(ce)ce.textContent=x.message;}return;}
  if(b.dataset.add){C.shirts.push({c:"Black",s:"L",t:"shirt"});paint();return;}
  if(b.dataset.rm!=null){C.shirts.splice(+b.dataset.rm,1);paint();return;}
  if(b.dataset.save){var ref=b.dataset.save,vals=[].map.call(document.querySelectorAll('[data-pn="'+ref+'"]'),function(x){return x.value;}),e=document.getElementById("pe_"+ref);
@@ -213,7 +231,7 @@ async function load(){
  if(!tok){app.innerHTML=head()+'<h1>Link not found</h1><p class="lead">This link is missing its code. Open the link from your Fight Club email again.</p>';return;}
  try{V=await rpc("fn_buy_view",{p_token:tok});}catch(e){app.innerHTML=head()+'<h1>Couldn\'t load</h1><p class="lead">Check your signal and refresh the page.</p>';return;}
  if(!V||!V.ok){app.innerHTML=head()+'<h1>'+(V&&V.error==="withdrawn"?'Link switched off':'Link not found')+'</h1><p class="lead">'+E((V&&V.message)||"Open the link from your Fight Club email again, or reply to that email for help.")+'</p>';V=null;return;}
- if(!C._init){C._init=1;var hd=V.held||{},s=Math.max(1,Number(hd.seats)||1);if(hd.tier==="gold")C.rows=s;else if(hd.tier==="ga2")C.ga2=s;else C.ga1=s;var ps=parseShirt(V.preorder_shirt);if(ps)C.shirts.push(ps);
+ if(!C._init){C._init=1;var hd=V.held||{},s=Math.max(1,Number(hd.seats)||1);if(hd.tier==="gold")C.rows=s;else C.ga1=s;var ps=parseShirt(V.preorder_shirt);if(ps)C.shirts.push(ps);
   if((V.orders||[]).some(function(x){return x.status==="paid";})){C.rows=0;C.ga1=0;C.shirts=[];}}
  paint();
  if((V.orders||[]).some(function(x){return x.status==="pending"&&x.checkout_url;})&&!window.__poll){window.__poll=setInterval(async function(){try{var n=await rpc("fn_buy_view",{p_token:tok});if(n&&n.ok&&(n.orders||[]).some(function(x){return x.status==="paid";})&&!(V.orders||[]).some(function(x){return x.status==="paid";})){V=n;C.rows=0;C.ga1=0;C.shirts=[];keep();paint();}}catch(e){}},15000);}

@@ -236,7 +236,7 @@ var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 var Q=new URLSearchParams(location.search);
 var LKEY=Q.get("k")||"", TEST=Q.get("test")==="1";
 var BIG=1000, DEMO_LEN=120, ROTATE=22000;
-var PRICE={front:250,rows:220,ga1:90,ga2:79.99,meal:49.99,shirt:49.99};
+var PRICE={front:250,rows:220,ga1:85,ga2:85,meal:49.99,shirt:49.99};
 var $=function(id){return document.getElementById(id);};
 var RAW=null,S=null,D=null,seen=null,queue=[],busy=false,sound=true,lastMs=0,cmdSince=null;
 var sim=[],simId=1e9,demo=null,pinned=null,target=null,view="room",rotT=0,hitMs=null;
@@ -249,7 +249,7 @@ function r2(v){return Math.round(v*100)/100;}
 function hm(d){return new Date(d).toLocaleTimeString("en-AU",{hour:"numeric",minute:"2-digit",timeZone:"Australia/Sydney"});}
 function garm(sh){var c=String(sh.c||"Black").toLowerCase().replace(/[^a-z]/g,"");if(["black","grey","indigenous","pink","yellow"].indexOf(c)<0)c="black";var t=String(sh.t||"shirt").toLowerCase()==="singlet"?"singlet":"shirt";return {url:"/img/fc/merch-"+t+"-"+c+".jpg",t:t,c:sh.c||"Black"};}
 async function rpc(fn,args){var r=await fetch(SB+fn,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify(args||{})});var j=await r.json().catch(function(){return null;});if(!r.ok)throw new Error((j&&(j.message||j.error))||"Couldn't load");return j;}
-function items(s){var a=[];if(s.front)a.push(s.front+" front row");if(s.rows)a.push(s.rows+" table");if(s.ga1)a.push(s.ga1+" ringside GA");if(s.ga2)a.push(s.ga2+" roaming GA");if(s.meals)a.push(s.meals+" food");var sh=s.shirts||[];if(sh.length)a.push(sh.length===1?(sh[0].c+" "+(sh[0].t||"shirt")).toLowerCase():sh.length+" shirts");return a.join(" · ");}
+function items(s){var a=[];if(s.front)a.push(s.front+" front row");if(s.rows)a.push(s.rows+" table");if(s.ga1+s.ga2)a.push((s.ga1+s.ga2)+" GA");if(s.meals)a.push(s.meals+" food");var sh=s.shirts||[];if(sh.length)a.push(sh.length===1?(sh[0].c+" "+(sh[0].t||"shirt")).toLowerCase():sh.length+" shirts");return a.join(" · ");}
 function seatsOf(s){return (s.front||0)+(s.rows||0)+(s.ga1||0)+(s.ga2||0);}
 function priceOf(s){return r2(s.front*PRICE.front+s.rows*PRICE.rows+s.ga1*PRICE.ga1+s.ga2*PRICE.ga2+s.meals*PRICE.meal+s.shirts.length*PRICE.shirt);}
 
@@ -288,8 +288,8 @@ function fatal(m){var e=document.createElement("div");e.className="err";e.textCo
 var ZONES=[
   {k:"front",name:"Front row tables",col:"#ffffff",pad:[76,108],sp:12,order:"ring"},
   {k:"rows",name:"Tables, rows 2 & 3",col:"#c9d6de",pad:[116,160],sp:12,order:"ring"},
-  {k:"ga1",name:"Ringside GA",col:"#1fb6e6",pad:[172,272,172,226],sp:11,order:"rand"},
-  {k:"ga2",name:"Roaming GA",col:"#9fe3f7",pad:[284,470,238,282],sp:11,order:"rand"}
+  {k:"ga1",name:"General admission",col:"#1fb6e6",pad:[172,272,172,226],sp:11,order:"rand"},
+  {k:"ga2",name:"General admission",col:"#9fe3f7",pad:[284,470,238,282],sp:11,order:"rand"}
 ];
 var CX=500,CY=300,BAR={x:30,y:30,w:200,h:34},slots={},dots={};
 function inBox(x,y,hx,hy){return Math.abs(x-CX)<=hx&&Math.abs(y-CY)<=hy;}
@@ -370,7 +370,7 @@ function moneyPaint(instant){
   var p=out?rev/out*100:0,pr=$("prog");$("progI").style.width=Math.min(100,p)+"%";$("progI").classList.toggle("full",p>=100);
   if(!pr.querySelector(".m"))[25,50,75].forEach(function(x){var d=document.createElement("div");d.className="m";d.style.left=x+"%";pr.appendChild(d);});
   var paidSeats=D.ga1+D.ga2+D.front+D.rows,unpaidGA=Math.max(0,(S.held_ga||0)-D.ga1-D.ga2),unpaidTB=Math.max(0,(S.held_table||0)-D.front-D.rows);
-  var worth=unpaidGA*79.99+unpaidTB*220;
+  var worth=unpaidGA*85+unpaidTB*220;
   $("heldLine").innerHTML=(Math.round(p*10)/10)+"% covered · <b>"+(unpaidGA+unpaidTB)+"</b> held seats still to buy, worth at least <b>"+money(worth)+"</b>";
   targetPaint();
 }
