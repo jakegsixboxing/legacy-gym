@@ -213,7 +213,7 @@ async function load(){
  if(!tok){app.innerHTML=head()+'<h1>Link not found</h1><p class="lead">This link is missing its code. Open the link from your Fight Club email again.</p>';return;}
  try{V=await rpc("fn_buy_view",{p_token:tok});}catch(e){app.innerHTML=head()+'<h1>Couldn\'t load</h1><p class="lead">Check your signal and refresh the page.</p>';return;}
  if(!V||!V.ok){app.innerHTML=head()+'<h1>'+(V&&V.error==="withdrawn"?'Link switched off':'Link not found')+'</h1><p class="lead">'+E((V&&V.message)||"Open the link from your Fight Club email again, or reply to that email for help.")+'</p>';V=null;return;}
- if(!C._init){C._init=1;var hd=V.held||{},s=Math.max(1,Number(hd.seats)||1);if(hd.tier==="gold")C.rows=s;else C.ga1=s;var ps=parseShirt(V.preorder_shirt);if(ps)C.shirts.push(ps);
+ if(!C._init){C._init=1;var hd=V.held||{},s=Math.max(1,Number(hd.seats)||1);if(hd.tier==="gold")C.rows=s;else if(hd.tier==="ga2")C.ga2=s;else C.ga1=s;var ps=parseShirt(V.preorder_shirt);if(ps)C.shirts.push(ps);
   if((V.orders||[]).some(function(x){return x.status==="paid";})){C.rows=0;C.ga1=0;C.shirts=[];}}
  paint();
  if((V.orders||[]).some(function(x){return x.status==="pending"&&x.checkout_url;})&&!window.__poll){window.__poll=setInterval(async function(){try{var n=await rpc("fn_buy_view",{p_token:tok});if(n&&n.ok&&(n.orders||[]).some(function(x){return x.status==="paid";})&&!(V.orders||[]).some(function(x){return x.status==="paid";})){V=n;C.rows=0;C.ga1=0;C.shirts=[];keep();paint();}}catch(e){}},15000);}
