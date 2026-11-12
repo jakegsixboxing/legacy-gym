@@ -590,7 +590,7 @@ try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew",
 const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611121330";
+const LG_BUILD="202611121445";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -1585,7 +1585,7 @@ function bookingHorizon(){
   const end=new Date(now);
   const dow=now.getDay();
   let daysToSunday=(7-dow)%7;
-  if(dow===0&&now.getHours()>=7)daysToSunday=7;
+  if(dow===0&&now.getHours()>=6)daysToSunday=7; /* 12 Nov 2026: Jake: the next week releases Sunday 6 AM (was 7 AM) */
   end.setDate(end.getDate()+daysToSunday+7*(BOOK_WEEKS_AHEAD-1));
   end.setHours(23,59,59,999);
   return end;
