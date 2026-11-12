@@ -51,6 +51,7 @@ select,input[type=text]{width:100%;min-width:0;background:var(--card);border:1px
 .x{width:40px;height:44px;border-radius:12px;border:1px solid var(--line2);background:none;color:var(--muted);font-size:18px}
 .ghost{display:block;width:100%;border:1px dashed var(--line2);border-radius:14px;background:none;color:var(--gold2);font-weight:800;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:13px}
 .note{font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0}
+.food{font-size:12.5px;line-height:1.5;margin:10px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;color:var(--text)}.food b{color:var(--gold)}
 .names input{margin-bottom:6px}
 .agree{border:1px solid var(--line2);border-radius:16px;background:var(--panel);padding:14px;font-size:12.5px;line-height:1.6;color:var(--soft)}
 .tick{display:flex;gap:10px;align-items:flex-start;margin:12px 0 10px;font-size:13.5px;font-weight:700;color:var(--text)}
@@ -112,6 +113,7 @@ function ordersHtml(){
   var n=x.front+x.rows+x.ga1+x.ga2,names=x.names||[];
   h+='<div class="paid"><div class="h">Paid ✓ · '+E(x.ref)+'</div><div class="note" style="color:var(--soft)">'+(x.items||[]).map(function(i){return i.qty+' × '+E(i.title);}).join('<br>')+'<br><b style="color:var(--text)">Total '+$m(x.total_cents)+'</b></div>'
    +'<div class="note">Your QR tickets are emailed on <b>Wed 9 Dec</b>. Add a name for every ticket before then. Passing a ticket to a friend or family member? Just change the name here.</div>'
+   +((x.meals||x.front||x.rows||(x.items||[]).some(function(i){return /food|table|front row/i.test(i.title||'');}))?'<div class="food"><b>Food:</b> we&#39;ll be in contact within 10 days to organise what sort of pizza you&#39;d like and any dietary requirements.</div>':'')
    +(n?'<h2 style="margin-top:14px">Names on your tickets</h2><div class="names">'+Array.from({length:n},function(_,i){return '<input type="text" data-pn="'+E(x.ref)+'" value="'+E(names[i]||"")+'" placeholder="Ticket '+(i+1)+': first and last name" autocomplete="off">';}).join("")+'</div><button class="ghost" data-save="'+E(x.ref)+'">Save names</button><div class="err" id="pe_'+E(x.ref)+'"></div>':'')
    +'</div>';
  });
@@ -143,6 +145,7 @@ function buildHtml(){
   +'<label class="tick"><input type="checkbox" id="agT"'+(agreeTick?' checked':'')+'> I have read and agree to these terms.</label>'
   +'<input type="text" id="agN" value="'+E(agreeName)+'" placeholder="Type your full name to agree" autocomplete="name"></div>';
  h+='<h2>Your order</h2><div class="sum">'+summary()+'</div>';
+ if(C.meals||C.front||C.rows)h+='<div class="food"><b>Food:</b> we&#39;ll be in contact within 10 days to organise what sort of pizza you&#39;d like and any dietary requirements.</div>';
  h+='<p class="note">No QR codes at purchase: your QR tickets are emailed on Wed 9 Dec. You pay securely through the Legacy Gym Shopify checkout.</p>';
  h+='<div class="err" id="err">'+E(err)+'</div>';
  return h;
