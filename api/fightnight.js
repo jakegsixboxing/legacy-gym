@@ -8,6 +8,9 @@
 //   a=shop-checkout public  → {ref,email}: saved shop order (shop_order_create) → Shopify draft order → pay link
 //   a=shop-sync     Jake    → re-checks paid shop orders in Shopify (if a webhook was missed)
 //   a=crew-sms      fighter → texts the fighter's own ticket holders via ClickSend (fh_crew_targets / fh_crew_log; numbers never leave the server)
+//   a=buy-checkout  public  → {token,ref}: a Fight Night ticket order saved by fn_buy_prepare (from /t/<token>) → Shopify draft order → pay link
+//   a=buy-env       public  → which mail/Shopify settings are present (true/false only, never values) so the ticket flow can be checked
+//   a=paid also handles ticket orders ("Ticket ref" FN26-XXXXXX): marks the order paid and emails the buyer a confirmation
 import crypto from "crypto";
 const SB_URL = "https://jyslqxepodrseyhoppce.supabase.co";
 const SB_ANON = "sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
@@ -53,6 +56,8 @@ export default async function handler(req, res) {
   if (a === "shop-sync") return shopSync(res, body);
   if (a === "waiver-mail") return waiverMail(res, body);
   if (a === "crew-sms") return crewSms(req, res, body);
+  if (a === "buy-checkout") return buyCheckout(res, body);
+  if (a === "buy-env") return buyEnv(res);
   return res.status(404).json({ error: "unknown_action" });
 }
 
@@ -116,6 +121,11 @@ async function paid(req, res, raw) {
   const emailAny = order.email || (order.customer && order.customer.email) || null;
   const totalAny = Math.round(parseFloat(order.total_price || "0") * 100) || null;
   const nameAny = order.name || (order.order_number ? "#" + order.order_number : String(order.id));
+  // Fight Night ticket orders (built by /t/<token> + a=buy-checkout) carry "Ticket ref" FN26-XXXXXX and "Ticket link" <token>
+  let tRef = null, tTok = null;
+  for (const na of attrs) { const k = String((na && na.name) || ""); if (/ticket ref/i.test(k)) tRef = String(na.value || "").trim().toUpperCase(); if (/ticket link/i.test(k)) tTok = String(na.value || "").trim(); }
+  if (!tRef) { const m = String(order.note || "").match(/\b(FN26-[A-Z0-9]{6})\b/i); if (m) tRef = m[1].toUpperCase(); }
+  if (tRef) return ticketPaid(res, tRef, tTok, nameAny, totalAny);
   // Shop (singlets / merch) orders carry a "Shop ref" attribute — see api/shop.js
   let shopRef = null;
   for (const na of attrs) if (na && /shop ref/i.test(String(na.name || ""))) shopRef = String(na.value || "").trim().toUpperCase();
@@ -501,3 +511,105 @@ async function crewSms(req, res, body) {
   } catch (e) { return res.status(500).json({ error: "server_error", detail: String((e && e.message) || e) }); }
 }
 
+
+
+/* ---------- Fight Night tickets: a=buy-checkout, ticket branch of a=paid, a=buy-env (12 Nov 2026) ---------- */
+const FN_H = { apikey: SB_ANON, authorization: "Bearer " + SB_ANON, "content-type": "application/json" };
+const fnRpc = (fn, args) => fetch(SB_URL + "/rest/v1/rpc/" + fn, { method: "POST", headers: FN_H, body: JSON.stringify(args || {}) }).then(r => r.json().catch(() => null));
+const money = c => "$" + (Number(c || 0) / 100).toFixed(2).replace(/\.00$/, "");
+
+async function buyCheckout(res, body) {
+  const CS = process.env.SHOPIFY_CLIENT_SECRET;
+  if (!CS) return res.status(503).json({ error: "not_configured" });
+  try {
+    const token = String(body.token || "").trim(), ref = String(body.ref || "").trim().toUpperCase();
+    if (!/^[0-9a-f]{16,64}$/.test(token) || !/^FN26-[A-Z0-9]{6}$/.test(ref)) return res.status(400).json({ error: "bad_request" });
+    const o = await fnRpc("fn_buy_for_checkout", { p_token: token, p_ref: ref });
+    if (!o || !o.ok) return res.status(404).json({ error: (o && o.error) || "not_found" });
+    if (o.status === "paid") return res.status(409).json({ error: "already_paid" });
+    if (o.status !== "pending") return res.status(409).json({ error: "order_" + o.status });
+    if (o.state !== "open") return res.status(409).json({ error: "window_closed" });
+    if (o.checkout_url) return res.status(200).json({ ok: true, url: o.checkout_url, reused: true });
+    const items = Array.isArray(o.items) ? o.items : [];
+    const total = items.reduce((a, i) => a + (Number(i.unit) || 0) * (Number(i.qty) || 0), 0);
+    if (!items.length || !(total > 0) || total !== Number(o.total_cents)) return res.status(400).json({ error: "bad_items" });
+    const gql = await shopifyGql(CS);
+    if (!gql) return res.status(502).json({ error: "shopify_auth_failed" });
+    const email = /^\S+@\S+\.\S+$/.test(String(o.email || "")) ? o.email : undefined;
+    const created = await gql(
+      `mutation($input: DraftOrderInput!){ draftOrderCreate(input:$input){ draftOrder{ id name invoiceUrl } userErrors{ field message } } }`,
+      { input: {
+          email, tags: ["legacy-app", "fight-night-2026", "fn-ticket", "group-" + o.grp].concat(o.test ? ["TEST"] : []),
+          note: (o.test ? "TEST ORDER (refund me) · " : "") + "Fight Night tickets " + ref + " · Group " + o.grp + " · " + (o.name || "") + " · supporting " + (o.fighter || "-") + " · hold " + o.hold_id,
+          customAttributes: [{ key: "Ticket ref", value: ref }, { key: "Ticket link", value: token }, { key: "Group", value: String(o.grp) }, { key: "Fighter", value: String(o.fighter || "") }, { key: "Hold", value: String(o.hold_id) }],
+          lineItems: items.map(i => ({ title: "Fight Night 19 Dec · " + i.title, quantity: Number(i.qty), originalUnitPrice: (Number(i.unit) / 100).toFixed(2), requiresShipping: false, taxable: false }))
+      } });
+    const d = created && created.data && created.data.draftOrderCreate;
+    const errs = (d && d.userErrors) || (created && created.errors) || [];
+    if (!d || !d.draftOrder || errs.length) return res.status(502).json({ error: "shopify_error", detail: errs });
+    await fnRpc("fn_buy_set_draft", { p_token: token, p_ref: ref, p_draft: d.draftOrder.name, p_draft_id: d.draftOrder.id, p_url: d.draftOrder.invoiceUrl });
+    return res.status(200).json({ ok: true, url: d.draftOrder.invoiceUrl, draft: d.draftOrder.name });
+  } catch (e) { return res.status(500).json({ error: "server_error", detail: String((e && e.message) || e) }); }
+}
+
+async function ticketPaid(res, ref, token, orderName, totalCents) {
+  let r;
+  const SRK = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (SRK) {
+    r = await fetch(SB_URL + "/rest/v1/rpc/fn_buy_mark_paid", { method: "POST", headers: { apikey: SRK, authorization: "Bearer " + SRK, "content-type": "application/json" },
+      body: JSON.stringify({ p_ref: ref, p_order: orderName, p_total_cents: totalCents, p_via: "webhook" }) }).then(x => x.json().catch(() => null));
+  }
+  if ((!r || !r.ok) && token) r = await fnRpc("fn_buy_mark_paid_hook", { p_ref: ref, p_token: token, p_order: orderName, p_total_cents: totalCents });
+  let mail = null;
+  if (r && r.ok && !r.already && token) mail = await ticketConfirmEmail(ref, token).catch(e => ({ sent: false, detail: String(e && e.message || e) }));
+  return res.status(200).json({ ok: !!(r && r.ok), ticket: ref, order: orderName, result: r, mail });
+}
+
+async function ticketConfirmEmail(ref, token) {
+  const BREVO = process.env.BREVO_API_KEY, RESEND = process.env.RESEND_API_KEY;
+  if (!BREVO && !RESEND) return { sent: false, detail: "not_configured" };
+  const o = await fnRpc("fn_buy_receipt", { p_ref: ref, p_token: token });
+  if (!o || !o.ok || !o.email) return { sent: false, detail: "no_receipt" };
+  const link = APP + "/t/" + token;
+  const first = o.first || (o.name || "").split(" ")[0] || "there";
+  const items = Array.isArray(o.items) ? o.items : [];
+  const subject = (o.test ? "[TEST] " : "") + "You're in: Fight Night tickets confirmed · " + ref;
+  const lines = items.map(i => i.qty + " × " + i.title + "  " + money(i.unit * i.qty)).join("\n");
+  const text = "Hi " + first + ",\n\nYou're in. Your Fight Night order is paid and confirmed.\n\n" +
+    "Fight Club Fight Night · Saturday 19 December 2026 · Legacy Gym, Kincumber\n" + (o.fighter ? "Supporting: " + o.fighter + "\n" : "") +
+    "Order: " + ref + (o.shopify_order ? " (" + o.shopify_order + ")" : "") + "\n\n" + lines + "\nTotal paid: " + money(o.paid_cents || o.total_cents) + "\n\n" +
+    "WHAT HAPPENS NEXT\n" +
+    "- Your QR tickets are emailed on Wednesday 9 December. There's nothing to print or show until then.\n" +
+    "- Add the name of everyone in your group before Wed 9 Dec (each ticket carries a name): " + link + "\n" +
+    "- Can't make it? You can pass your ticket to a friend or family member. Just update the name on your link.\n" +
+    "- All sales are final (see the agreement you accepted at checkout).\n\n" +
+    "Questions? Reply to this email.\n\nFight Club Central Coast · Legacy Gym Kincumber";
+  const rows = items.map(i => '<tr><td style="padding:8px 0;border-bottom:1px solid #2a2519;color:#f2f0eb">' + i.qty + ' × ' + escH(i.title) + '</td><td align="right" style="padding:8px 0;border-bottom:1px solid #2a2519;color:#f1d27a;white-space:nowrap">' + money(i.unit * i.qty) + '</td></tr>').join("");
+  const html = '<div style="font-family:Helvetica,Arial,sans-serif;max-width:560px;margin:0 auto;background:#0b0b0c;color:#f2f0eb;padding:28px;border-radius:16px">' +
+    '<div style="font-size:11px;letter-spacing:3px;color:#1fb6e6;text-transform:uppercase;font-weight:bold">Fight Club Central Coast</div>' +
+    '<h1 style="font-size:30px;margin:8px 0 4px;text-transform:uppercase">You\'re in, ' + escH(first) + '</h1>' +
+    '<div style="color:#a19d92;font-size:14px">Fight Night · Saturday 19 December 2026 · Legacy Gym, Kincumber' + (o.fighter ? '<br>Supporting ' + escH(o.fighter) : '') + '</div>' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;font-size:14px">' + rows +
+    '<tr><td style="padding:10px 0;font-weight:bold">Total paid</td><td align="right" style="padding:10px 0;font-weight:bold;color:#f1d27a">' + money(o.paid_cents || o.total_cents) + '</td></tr></table>' +
+    '<div style="font-size:12px;color:#a19d92">Order ' + ref + (o.shopify_order ? ' · ' + escH(o.shopify_order) : '') + '</div>' +
+    '<div style="margin:20px 0;padding:16px;border:1px solid #3a3222;border-radius:12px;font-size:14px;line-height:1.6">' +
+    '<b style="color:#f1d27a">What happens next</b><br>• Your <b>QR tickets are emailed on Wednesday 9 December</b>. Nothing to print or show until then.<br>' +
+    '• Add the name of everyone in your group <b>before Wed 9 Dec</b>. Each ticket carries a name.<br>• Can\'t make it? You can pass your ticket to a friend or family member. Just update the name.<br>• All sales are final, as per the agreement you accepted.</div>' +
+    '<a href="' + link + '" style="display:block;background:#c9a44c;color:#0b0b0c;text-decoration:none;text-align:center;padding:16px;border-radius:12px;font-weight:bold;font-size:15px;letter-spacing:1px;text-transform:uppercase">Add or change names</a>' +
+    '<p style="color:#6f6b62;font-size:11px;margin-top:18px">Questions? Reply to this email. · Fight Club Central Coast · Legacy Gym Kincumber</p></div>';
+  const fromEmail = process.env.FN_MAIL_FROM || "fightclub.legacygym@gmail.com";
+  if (BREVO) {
+    const r = await fetch("https://api.brevo.com/v3/smtp/email", { method: "POST", headers: { "api-key": BREVO, "content-type": "application/json" },
+      body: JSON.stringify({ sender: { name: "Fight Club Central Coast", email: fromEmail }, replyTo: { email: "fightclub.legacygym@gmail.com" }, to: [{ email: o.email }], bcc: [{ email: "fightclub.legacygym@gmail.com" }], subject, textContent: text, htmlContent: html }) });
+    return { sent: r.ok, via: "brevo", from: fromEmail, detail: r.ok ? null : await r.text().catch(() => null) };
+  }
+  const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { authorization: "Bearer " + RESEND, "content-type": "application/json" },
+    body: JSON.stringify({ from: process.env.MAIL_FROM || "Fight Club Central Coast <onboarding@resend.dev>", reply_to: "fightclub.legacygym@gmail.com", to: [o.email], bcc: ["fightclub.legacygym@gmail.com"], subject, text, html }) });
+  return { sent: r.ok, via: "resend", detail: r.ok ? null : await r.text().catch(() => null) };
+}
+
+async function buyEnv(res) {
+  const has = k => !!process.env[k];
+  return res.status(200).json({ shopify_client_secret: has("SHOPIFY_CLIENT_SECRET"), shopify_webhook_secret: has("SHOPIFY_WEBHOOK_SECRET"), service_role: has("SUPABASE_SERVICE_ROLE_KEY"),
+    brevo: has("BREVO_API_KEY"), resend: has("RESEND_API_KEY"), mail_from: process.env.MAIL_FROM || null, fn_mail_from: process.env.FN_MAIL_FROM || null });
+}
