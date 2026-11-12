@@ -267,9 +267,10 @@ function popHtml(d,pub){
 async function popData(force){
   if(!force&&S.my&&Date.now()-POP.lastLoad<20000)return S.my;
   try{var r=await sb.rpc("fh_my");if(!r.error){S.my=r.data||null;POP.lastLoad=Date.now();}}catch(e){}
-  var d=S.my;if(d&&d.fighter){try{var p=await sb.rpc("fh_public",{p_slug:d.fighter.slug});if(!p.error&&p.data&&p.data.ok)POP.pub=p.data;}catch(e){}}
+  var d=S.my;if(d&&d.fighter){try{var p=await sb.rpc("fh_public",{p_slug:d.fighter.slug});if(!p.error&&p.data&&p.data.ok)POP.pub=fixT(p.data);}catch(e){}}
   return S.my;
 }
+function fixT(d){try{var g=d&&d.tiers&&d.tiers.ga;if(g){g.low=8500;g.mid=8500;g.price="$85";g.tag="General admission · roaming & bar";g.where="GA · roaming & bar, some bar stools";g.pts=["General admission: $85 · roaming & bar style, move around the room","Some bar stools: first in, best dressed","Add a GA food & drink pack for $49.99"];}}catch(e){}return d;}
 function popClosed(){try{return sessionStorage.getItem("fpClosed")==="1";}catch(e){return POP.closedMem===true;}}
 function popSetClosed(){try{sessionStorage.setItem("fpClosed","1");}catch(e){}POP.closedMem=true;}
 async function popOpen(){
