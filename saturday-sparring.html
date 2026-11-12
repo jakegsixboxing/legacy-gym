@@ -5,123 +5,187 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0b0b0c">
-<title>Saturday Sparring · Legacy Gym</title>
-<meta property="og:title" content="Saturday Sparring · Legacy Gym Kincumber">
-<meta property="og:description" content="Saturday 9:30am at Legacy Gym Kincumber. Members and non-members welcome. Book in ten seconds.">
+<title>Open Sparring · Legacy Gym</title>
+<meta property="og:title" content="Open Gym, Open Sparring · Legacy Gym Kincumber">
+<meta property="og:description" content="Saturday 14 November, 9:30 am. 5 boxing rings. All clubs and all levels welcome. Put your name down.">
 <meta property="og:image" content="https://legacygym-app.vercel.app/icon-512.png">
 <link rel="icon" href="/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Montserrat:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Oswald:wght@500;600;700&display=swap">
 <style>
-:root{--bg:#0b0b0c;--panel:#141312;--line:#2c271b;--gold:#c9a44c;--gold2:#f1d27a;--ink:#f2f0eb;--mute:#a39f94;--ok:#4bc97a;--bad:#ff6b7a;--spar:#d9704a}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{background:var(--bg);color:var(--ink);font-family:Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-body{min-height:100vh;padding:0 16px 40px}
-button{font-family:inherit;cursor:pointer}
-button:focus-visible,input:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
-.wrap{max-width:520px;margin:0 auto}
-.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0 4px}
-.lg{font:600 22px/1 Oswald,sans-serif;letter-spacing:3px;text-transform:uppercase;color:var(--gold)}.lg small{display:block;font-size:9px;letter-spacing:4px;margin-top:3px;color:var(--mute)}
-.when{text-align:right;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold)}
-h1{font:700 44px/.95 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 8px}
-h1 span{color:var(--gold)}
-.sub{font-size:13.5px;line-height:1.55;color:#d9d5ca}
-.list{display:flex;flex-direction:column;gap:10px;margin-top:18px}
-.c{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
-.c.done{border-color:var(--ok)}
-.c.past{opacity:.45}
-.tm{flex:none;width:58px;text-align:center}.tm b{display:block;font:700 24px/1 Oswald,sans-serif;font-variant-numeric:tabular-nums}.tm small{display:block;font-size:9px;font-weight:800;letter-spacing:2px;color:var(--mute);margin-top:3px}
-.grow{flex:1;min-width:0}
-.nm{font:600 18px/1.1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.4px}
-.c.spar .nm{color:var(--spar)}
-.sp{font-size:11.5px;color:var(--mute);margin-top:4px;line-height:1.4}
-.bk{flex:none;padding:12px 16px;border-radius:12px;border:0;background:var(--gold);color:#161307;font:700 14px/1 Oswald,sans-serif;letter-spacing:1.5px;text-transform:uppercase}
-.in{flex:none;font-size:11px;font-weight:800;color:var(--ok);letter-spacing:.5px;text-align:right}
-.st{flex:none;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--mute)}
-.note{margin-top:16px;font-size:12.5px;line-height:1.55;color:var(--mute)}.note b{color:var(--ink)}
-.mem{display:block;margin-top:18px;padding:13px;border-radius:12px;border:1px solid var(--line);text-align:center;font-size:12.5px;font-weight:700;color:var(--gold2);text-decoration:none}
-.foot{text-align:center;font-size:11px;color:var(--mute);margin-top:26px}
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;z-index:10}
-.ov.on{display:flex}
-.sh{width:100%;max-width:520px;background:#121110;border:1px solid var(--line);border-bottom:0;border-radius:22px 22px 0 0;padding:22px 18px 30px}
-.sh h2{font:700 24px/1.05 Oswald,sans-serif;text-transform:uppercase}
-.sh p{font-size:13px;color:var(--mute);margin-top:6px;line-height:1.5}
-label{display:block;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--mute);margin:16px 0 6px}
-input{width:100%;background:#0d0c0a;border:1px solid var(--line);border-radius:12px;padding:15px 14px;color:#fff;font-size:17px;font-family:inherit;outline:none}
-input:focus{border-color:var(--gold)}input.bad{border-color:var(--bad)}
-.err{color:#ffb3bc;font-size:12.5px;margin-top:8px;min-height:16px}
-.go{display:block;width:100%;margin-top:10px;padding:17px;border:0;border-radius:14px;background:var(--gold);color:#161307;font:700 19px/1 Oswald,sans-serif;letter-spacing:2px;text-transform:uppercase}
-.go:disabled{opacity:.5}
-.x{display:block;width:100%;margin-top:10px;padding:10px;border:0;background:none;color:var(--mute);font-size:12px;font-weight:700}
+:root{--page:#060606;--bg:#0b0b0c;--text:#f3f1ec;--soft:#d8d2c8;--muted:#a19d92;--gold:#c9a44c;--gold2:#f1d27a;--gold-rgb:201,164,76;--spar:#e07a2f;--spar-rgb:224,122,47;--line:#2a2519;--line2:#3a3222;--panel:#141312;--card:#1b1a18;--ok:#4bc97a;--bad:#ff6b7a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--text);font-family:Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.os{max-width:470px;margin:0 auto;padding:16px 16px calc(40px + env(safe-area-inset-bottom,0px))}
+.os button{font-family:Montserrat,system-ui,sans-serif;cursor:pointer}
+.os button:focus-visible,.os input:focus-visible,.os a:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+#phone{border:1px solid var(--line);border-radius:28px;background:radial-gradient(120% 34% at 50% -4%,rgba(var(--spar-rgb),.16),transparent 62%),var(--bg);padding:20px 16px 24px;overflow:hidden}
+.eye{font-size:10.5px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--spar)}
+h1{margin:6px 0 0;font:700 40px/.95 Oswald,sans-serif;text-transform:uppercase;text-wrap:balance}
+h1 span{color:var(--gold2)}
+.when{display:flex;align-items:stretch;gap:12px;margin:16px 0 0;border:1px solid var(--line2);border-radius:16px;background:var(--panel);padding:12px 14px}
+.when .d{flex:none;display:grid;place-items:center;text-align:center;padding-right:12px;border-right:1px solid var(--line2)}
+.when .d b{display:block;font:700 30px/1 Oswald,sans-serif;color:var(--gold2)}
+.when .d small{display:block;font-size:9.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.when .t b{display:block;font:700 19px/1.15 Oswald,sans-serif;letter-spacing:.5px;text-transform:uppercase}
+.when .t span{display:block;font-size:12.5px;line-height:1.45;color:var(--soft);margin-top:4px}
+.open{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 0}
+.open span{font-size:10.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;border:1px solid rgba(var(--spar-rgb),.55);background:rgba(var(--spar-rgb),.10);color:#f3b98a;border-radius:99px;padding:6px 10px}
+h2{margin:22px 0 10px;font:700 13px/1 Oswald,sans-serif;letter-spacing:3px;text-transform:uppercase;color:var(--gold)}
+.kit{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
+.kit li{display:flex;justify-content:space-between;gap:12px;align-items:baseline;border-bottom:1px solid var(--line);padding:9px 0;font-size:15px;font-weight:600}
+.kit li span{font-size:11.5px;color:var(--muted);font-weight:600;text-align:right}
+.say{margin:14px 0 0;font-size:13px;line-height:1.55;color:var(--soft)}
+.cta{display:block;width:100%;margin-top:16px;border:0;border-radius:14px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#161307;font-weight:800;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;padding:16px 12px;text-align:center;text-decoration:none}
+.cta:disabled{opacity:.55}
+.ghost{display:block;width:100%;margin-top:8px;border:1px solid var(--line2);border-radius:14px;background:none;color:var(--text);font-weight:800;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:13px 12px;text-align:center;text-decoration:none}
+.back{background:none;border:0;color:var(--gold2);font-weight:800;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:0 0 14px}
+.f{display:grid;gap:14px;margin-top:16px}
+.f label,.f .lab{display:block;font-size:10.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.f input{width:100%;min-width:0;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:14px 12px;color:var(--text);font:600 16px Montserrat,system-ui,sans-serif}
+.f input::placeholder{color:#6f6b62}
+.f .bad input{border-color:var(--bad)}
+.err{margin:6px 0 0;font-size:12px;color:var(--bad);font-weight:600}
+.xp{display:grid;gap:6px}
+.xp button{display:flex;align-items:center;gap:10px;text-align:left;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:13px 12px;color:var(--text);font-weight:600;font-size:15px}
+.xp button i{flex:none;width:18px;height:18px;border-radius:50%;border:1.5px solid #6f6b62}
+.xp button[aria-checked="true"]{border-color:var(--gold);background:rgba(var(--gold-rgb),.08)}
+.xp button[aria-checked="true"] i{border-color:var(--gold2);background:radial-gradient(circle,var(--gold2) 0 42%,transparent 48%)}
+.f .bad .xp button{border-color:var(--bad)}
+.priv{margin:14px 0 0;font-size:11.5px;line-height:1.5;color:var(--muted)}
+.tick{width:62px;height:62px;border-radius:50%;background:var(--ok);display:grid;place-items:center;margin:8px 0 14px;font:700 34px/1 Oswald,sans-serif;color:#07130b}
+.slip{margin-top:16px;border:1px solid var(--line2);border-radius:16px;background:var(--panel);padding:4px 14px}
+.slip div{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+.slip div:last-child{border-bottom:0}
+.slip div span{color:var(--muted);font-weight:600}
+.slip div b{text-align:right;font-weight:700}
+.mem{display:block;margin-top:14px;text-align:center;font-size:12.5px;font-weight:700;color:var(--gold2);text-decoration:none}
+.foot{text-align:center;font-size:11px;color:var(--muted);margin-top:18px}
+#toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--card);border:1px solid var(--gold);color:var(--text);font-weight:700;font-size:12.5px;padding:11px 16px;border-radius:99px;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:calc(100vw - 32px);text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:360px){h1{font-size:34px}}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
- <div class="top"><div class="lg">Legacy<small>Gym · Kincumber</small></div><div class="when" id="when"></div></div>
- <h1>Saturday<br><span>Sparring</span></h1>
- <div class="sub">Saturday 9:30am at Legacy Gym Kincumber. Members and non-members welcome. No payment, just your name.</div>
- <div class="list" id="list"></div>
- <div class="note" id="note"></div>
- <a class="mem" id="mem" href="/">Member with the app? Book in the app instead ›</a>
- <div class="foot">Legacy Gym Kincumber</div>
+<div class="os">
+  <div id="phone" aria-live="polite"></div>
+  <a class="mem" href="/?classes=2026-11-14">Legacy member with the app? Book in the app instead ›</a>
+  <div class="foot">Legacy Gym · Kincumber</div>
 </div>
-<div class="ov" id="ov" onclick="if(event.target===this)closeSheet()">
- <div class="sh" role="dialog" aria-modal="true" aria-labelledby="shT">
-  <h2 id="shT">Book me in</h2>
-  <p id="shP"></p>
-  <label for="fName">Your full name</label>
-  <input id="fName" autocomplete="name" placeholder="First and last name" onkeydown="if(event.key==='Enter')book()">
-  <div class="err" id="err"></div>
-  <button class="go" id="go" onclick="book()">Book my spot</button>
-  <button class="x" onclick="closeSheet()">Cancel</button>
- </div>
-</div>
+<div id="toast" role="status"></div>
 <script>
 (function(){
-var SB="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/";
-var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
-/* To reuse this page for another day: change DATE and CLS, and open the same date/times in class_open_book. */
-var DATE="2026-11-07";
-var CLS=[
- {t:"09:30",tm:"9:30",n:"Saturday Sparring",s:"Saturday 9:30am · Legacy Gym Kincumber",spar:1}
-];
-var KEYS="lgsat_"+DATE;
-document.getElementById("mem").href="/?classes="+DATE;
-/* Already signed in to the Legacy app on this phone? Go straight to the classes in the app. */
-try{var tok=null;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k))tok=localStorage.getItem(k);}if(tok&&/access_token/.test(tok)){location.replace("/?classes="+DATE);}}catch(e){}
-var booked={},sel=null,name="";
-try{booked=JSON.parse(localStorage.getItem(KEYS)||"{}")||{};name=localStorage.getItem("lgsat_name")||"";}catch(e){}
-function E(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
-/* Sydney wall-clock now, so the page is right whatever timezone the phone is set to */
-function nowSyd(){var p=new Intl.DateTimeFormat("en-CA",{timeZone:"Australia/Sydney",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date()),o={};p.forEach(function(x){o[x.type]=x.value;});return {d:o.year+"-"+o.month+"-"+o.day,hm:(o.hour==="24"?"00":o.hour)+":"+o.minute};}
-function started(c){var n=nowSyd();return n.d>DATE||(n.d===DATE&&n.hm>=c.t);}
-var dLbl=new Date(DATE+"T12:00:00").toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"});
-document.getElementById("when").textContent=dLbl;
-function paint(){
- var allPast=CLS.every(started);
- document.getElementById("list").innerHTML=CLS.map(function(c,i){var inn=booked[c.t],past=started(c);
-  return '<div class="c'+(inn?' done':'')+(past&&!inn?' past':'')+(c.spar?' spar':'')+'"><div class="tm"><b>'+c.tm+'</b><small>AM</small></div><div class="grow"><div class="nm">'+E(c.n)+'</div><div class="sp">'+E(c.s)+'</div></div>'
-   +(inn?'<span class="in">You\'re in ✓</span>':past?'<span class="st">Started</span>':'<button class="bk" onclick="openSheet('+i+')">Book</button>')+'</div>';}).join("");
- var n=Object.keys(booked).length;
- document.getElementById("note").innerHTML=allPast&&!n?'Saturday sparring has started. Follow the gym for the next one.':n?'<b>You\'re in. See you Saturday 9:30am.</b>':'Tap Book, put your name in, done.';
-}
-window.openSheet=function(i){sel=i;var c=CLS[i];document.getElementById("shT").textContent="Book me in · "+c.n;document.getElementById("shP").textContent=dLbl+" · "+c.tm+"am. We just need your full name.";var f=document.getElementById("fName");f.value=name;f.classList.remove("bad");document.getElementById("err").textContent="";document.getElementById("ov").classList.add("on");setTimeout(function(){f.focus();},50);};
-window.closeSheet=function(){document.getElementById("ov").classList.remove("on");};
-var busy=false;
-window.book=async function(){
- if(busy||sel===null)return;var c=CLS[sel],inp=document.getElementById("fName"),err=document.getElementById("err"),go=document.getElementById("go");
- var nm=inp.value.trim().replace(/\s+/g," ");
- if(nm.length<3||nm.indexOf(" ")<0){inp.classList.add("bad");err.textContent="Full name please, first and last.";return;}
- if(started(c)){err.textContent="This one has already started. Pick another.";return;}
- inp.classList.remove("bad");err.textContent="";busy=true;go.disabled=true;go.textContent="Booking…";
- try{var r=await fetch(SB+"class_open_book",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify({p_name:nm,p_mobile:"",p_date:DATE,p_time:c.t})});var j=await r.json();
-  if(!r.ok||!j||!j.ok)throw new Error((j&&(j.message||j.error))||"Couldn't book. Try again.");
-  name=nm;booked[c.t]=1;try{localStorage.setItem(KEYS,JSON.stringify(booked));localStorage.setItem("lgsat_name",nm);}catch(e){}
-  closeSheet();paint();
- }catch(e){err.textContent=e.message||String(e);}
- busy=false;go.disabled=false;go.textContent="Book my spot";
-};
-paint();setInterval(paint,60000);
+  var SB="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/";
+  var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+  /* To reuse for another Saturday: change DATE, the day/month labels below, and open the date in class_open_book2. */
+  var DATE="2026-11-14",TIME="09:30",DAY="14",DLBL="Sat 14 Nov",SKEY="lgopen_"+DATE;
+  var XP=["Sparring experience","Amateur boxer","Pro boxer"];
+  var S={step:"event",me:null,form:{name:"",mobile:"",gym:"",xp:""},err:{},busy:false};
+  try{S.me=JSON.parse(localStorage.getItem(SKEY)||"null");var f=JSON.parse(localStorage.getItem("lgopen_me")||"null");if(f)S.form=Object.assign(S.form,f,{xp:f.xp||""});}catch(e){}
+  if(S.me)S.step="done";
+  var phone=document.getElementById("phone"),toastEl=document.getElementById("toast"),tt;
+  function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function toast(t){toastEl.textContent=t;toastEl.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){toastEl.classList.remove("on");},2600);}
+  function tidyMobile(v){var d=String(v).replace(/\D/g,"");if(d.indexOf("61")===0&&d.length===11)d="0"+d.slice(2);if(d.length===10&&d.indexOf("04")===0)return d.slice(0,4)+" "+d.slice(4,7)+" "+d.slice(7);return null;}
+  function tidyName(v){return String(v).trim().replace(/\s+/g," ");}
+  function nowSyd(){var p=new Intl.DateTimeFormat("en-CA",{timeZone:"Australia/Sydney",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date()),o={};p.forEach(function(x){o[x.type]=x.value;});return {d:o.year+"-"+o.month+"-"+o.day,hm:(o.hour==="24"?"00":o.hour)+":"+o.minute};}
+  function over(){var n=nowSyd();return n.d>DATE||(n.d===DATE&&n.hm>="11:30");}
+  function event(){
+    return ''
+    +'<div class="eye">Legacy Gym · Kincumber</div>'
+    +'<h1>Open gym. <span>Open sparring.</span></h1>'
+    +'<div class="when"><div class="d"><b>'+DAY+'</b><small>Sat · Nov</small></div>'
+    +'<div class="t"><b>9:30 am start</b><span>We\'re opening the gym up for 2 hours, from 9:30 am until rounds are done.</span></div></div>'
+    +'<div class="open"><span>All clubs welcome</span><span>All levels welcome</span></div>'
+    +'<ul class="kit"><li>5 boxing rings</li><li>Open floor</li><li>Plenty of bags<span>Heavy bags, skill bags</span></li></ul>'
+    +'<h2>Open sparring</h2>'
+    +'<p class="say" style="margin-top:0">Mix and match with opponents. Nothing is pre-matched.</p>'
+    +(over()?'<p class="say"><b>This session is done.</b> Follow the gym for the next one.</p>'
+      :S.me?'<button class="ghost" data-a="done">You\'re on the list. View your spot</button>'
+      :'<button class="cta" data-a="join">Yes, I\'m attending</button>');
+  }
+  function fld(k,label,ph,type,mode,auto){
+    var e=S.err[k];
+    return '<div class="'+(e?"bad":"")+'"><label for="f_'+k+'">'+label+'</label>'
+      +'<input id="f_'+k+'" type="'+type+'" inputmode="'+mode+'" autocomplete="'+auto+'" placeholder="'+ph+'" value="'+esc(S.form[k])+'"'+(e?' aria-invalid="true" aria-describedby="e_'+k+'"':'')+'>'
+      +(e?'<p class="err" id="e_'+k+'">'+e+'</p>':'')+'</div>';
+  }
+  function xpf(){
+    var e=S.err.xp;
+    return '<div class="'+(e?"bad":"")+'"><div class="lab" id="xpl">Experience</div>'
+      +'<div class="xp" role="radiogroup" aria-labelledby="xpl">'
+      +XP.map(function(x){return '<button type="button" role="radio" aria-checked="'+(S.form.xp===x)+'" data-x="'+x+'"><i></i>'+x+'</button>';}).join("")
+      +'</div>'+(e?'<p class="err">'+e+'</p>':'')+'</div>';
+  }
+  function form(){
+    return ''
+    +'<button class="back" data-a="event">‹ Back</button>'
+    +'<div class="eye">'+DLBL+' · 9:30 am · Legacy Gym</div>'
+    +'<h1>You\'re <span>coming?</span></h1>'
+    +'<form class="f" id="frm" novalidate>'
+    +fld("name","Full name","First and last name","text","text","name")
+    +fld("mobile","Mobile number","04xx xxx xxx","tel","tel","tel")
+    +fld("gym","What gym are you coming from?","Type your gym or club","text","text","organization")
+    +xpf()
+    +(S.err.all?'<p class="err">'+esc(S.err.all)+'</p>':'')
+    +'<button class="cta" type="submit"'+(S.busy?' disabled':'')+'>'+(S.busy?'Locking you in…':'Lock me in')+'</button>'
+    +'</form>'
+    +'<p class="priv">Your details are only seen by the Legacy Gym team.</p>';
+  }
+  function done(){
+    var first=S.me.n.split(" ")[0];
+    return ''
+    +'<div class="tick" aria-hidden="true">✓</div>'
+    +'<div class="eye">You\'re on the list</div>'
+    +'<h1>See you Saturday, <span>'+esc(first)+'</span></h1>'
+    +'<div class="slip">'
+    +'<div><span>When</span><b>'+DLBL+', 9:30 am start</b></div>'
+    +'<div><span>Where</span><b>Legacy Gym, Kincumber</b></div>'
+    +'<div><span>Coming from</span><b>'+esc(S.me.g)+'</b></div>'
+    +'<div><span>Experience</span><b>'+esc(S.me.x)+'</b></div>'
+    +'</div>'
+    +'<button class="cta" data-a="share">Send the link to your team</button>'
+    +'<button class="ghost" data-a="event">Back to the details</button>';
+  }
+  function paint(){phone.innerHTML=S.step==="form"&&!over()?form():(S.step==="done"&&S.me?done():event());}
+  function keep(){["name","mobile","gym"].forEach(function(k){var el=document.getElementById("f_"+k);if(el)S.form[k]=el.value;});}
+  async function submit(){
+    if(S.busy)return;keep();
+    var e={},nm=tidyName(S.form.name),mb=tidyMobile(S.form.mobile),gy=tidyName(S.form.gym);
+    if(nm.split(" ").length<2||nm.length<3)e.name="Add your first and last name.";
+    if(!mb)e.mobile="Enter a 10-digit mobile starting with 04.";
+    if(gy.length<2)e.gym="Tell us what gym you're coming from.";
+    if(XP.indexOf(S.form.xp)<0)e.xp="Pick your experience.";
+    S.err=e;
+    if(e.name||e.mobile||e.gym||e.xp){paint();var f=document.querySelector(".f .bad input");if(f)f.focus();return;}
+    S.busy=true;paint();
+    try{
+      var r=await fetch(SB+"class_open_book2",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify({p_name:nm,p_mobile:mb,p_date:DATE,p_time:TIME,p_gym:gy,p_xp:S.form.xp})});
+      var j=await r.json();
+      if(!r.ok||!j||!j.ok)throw new Error((j&&(j.message||j.error))||"Couldn't book. Try again.");
+      S.me={n:nm,m:mb,g:gy,x:S.form.xp};S.step="done";S.err={};
+      try{localStorage.setItem(SKEY,JSON.stringify(S.me));localStorage.setItem("lgopen_me",JSON.stringify({name:nm,mobile:mb,gym:gy,xp:S.form.xp}));}catch(x){}
+      toast(j.already?"You were already on the list":"You're on the list");
+    }catch(err){S.err={all:(err&&err.message)||"Couldn't book. Check your signal and try again."};}
+    S.busy=false;paint();
+  }
+  async function share(){
+    var url=location.origin+"/saturday-sparring",text="Open sparring at Legacy Gym Kincumber, Sat 14 Nov 9:30 am. All clubs welcome. Put your name down: "+url;
+    if(navigator.share){try{await navigator.share({title:"Open Sparring · Legacy Gym",text:text,url:url});return;}catch(e){if(e&&e.name==="AbortError")return;}}
+    try{await navigator.clipboard.writeText(text);toast("Link copied. Paste it to your team.");}catch(e){prompt("Copy this link:",url);}
+  }
+  phone.addEventListener("submit",function(ev){ev.preventDefault();submit();});
+  phone.addEventListener("click",function(ev){
+    var b=ev.target.closest("button");if(!b)return;
+    if(b.dataset.x){keep();S.form.xp=b.dataset.x;delete S.err.xp;paint();return;}
+    var a=b.dataset.a;
+    if(a==="join"){S.step="form";paint();var f=document.getElementById("f_name");if(f)f.focus();}
+    else if(a==="event"){if(S.step==="form")keep();S.step="event";S.err={};paint();}
+    else if(a==="done"){S.step="done";paint();}
+    else if(a==="share"){share();}
+  });
+  paint();
 })();
 </script>
 </body>
