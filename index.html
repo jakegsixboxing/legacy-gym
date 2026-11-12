@@ -590,7 +590,7 @@ try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew",
 const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611121445";
+const LG_BUILD="202611121935";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -11139,7 +11139,7 @@ try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(
 <script src="/screens.js?v=202610131530"></script>
 <script src="/fightnight.js?v=202610182130"></script>
 <script src="/fnt.js?v=202610182130"></script>
-<script src="/fnhold.js?v=202610260230"></script>
+<script src="/fnhold.js?v=202611121935"></script>
 <script src="/rtn.js?v=202610260620"></script>
 <script src="/bluebook-rules.js?v=202610141200"></script>
 <script src="/bluebook.js?v=202610141700"></script>

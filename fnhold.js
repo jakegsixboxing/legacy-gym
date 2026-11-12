@@ -205,4 +205,116 @@ setInterval(function(){try{if(view!=="home"||isBoss())return;var c=$id("fnhMy"),
 window.fnhMore=async function(){var r=await sb.rpc("fh_request_more");if(r.error||!r.data||!r.data.ok)return T((r.error&&r.error.message)||(r.data&&r.data.message)||"Couldn't send that.");T("Sent to Jake and Ali");S.my=null;S.myAt=0;S.myJson=null;var c=$id("fnhMy");if(c)c.remove();myCard();};
 var _home=window.renderHome;if(typeof _home==="function"){window.renderHome=function(){var r=_home.apply(this,arguments);try{homeCard();setTimeout(homeCard,150);setTimeout(homeCard,700);myCard();}catch(e){}return r;};}
 setInterval(function(){try{homeCard();myCard();}catch(e){}},1500); /* also sweeps the card away if the signed-in person is not allowed it */
+/* ===== Fighter page pop-up (12 Nov 2026, Jake): every Fight Club fighter sees their blue Fight Night page as soon as they open the app.
+   × closes it for this visit; the "My fight page" button brings it back. Fighters only (fh_my returns null for everyone else). ===== */
+var POP={open:false,checked:false,pub:null,lastLoad:0,timer:null};
+var FN_DAY=Date.parse("2026-12-19T13:00:00Z");
+(function(){var c=document.createElement("style");c.textContent=
+".fpOv{position:fixed;inset:0;z-index:9500;background:rgba(3,8,11,.74);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s}"
++".fpOv.on{opacity:1}"
++".fpSh{width:100%;max-width:520px;max-height:calc(100% - env(safe-area-inset-top,0px) - 18px);display:flex;flex-direction:column;background:linear-gradient(180deg,#0c1d26,#0b1319 40%);border:1px solid #1b5b70;border-bottom:0;border-radius:22px 22px 0 0;color:#f2f0eb;font-family:Montserrat,system-ui,sans-serif;transform:translateY(100%);transition:transform .42s cubic-bezier(.2,.9,.25,1)}"
++".fpOv.on .fpSh{transform:none}"
++".fpTop{display:flex;align-items:center;gap:10px;padding:14px 14px 10px;border-bottom:1px solid #16303c}"
++".fpTop img{height:30px;width:auto}"
++".fpTop .tt{font:600 16px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px}"
++".fpTop .tt small{display:block;font:800 9.5px Montserrat,sans-serif;letter-spacing:1.5px;color:#7fe0ff;margin-top:4px}"
++".fpX{margin-left:auto;width:40px;height:40px;flex:none;border-radius:50%;border:1px solid #1b5b70;background:#0d1a21;color:#fff;font-size:22px;line-height:1;cursor:pointer}"
++".fpBody{overflow-y:auto;padding:14px 14px calc(22px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch}"
++".fpHero{display:grid;grid-template-columns:112px minmax(0,1fr);gap:12px;align-items:center}"
++".fpHero img{width:112px;aspect-ratio:4/5;object-fit:cover;border-radius:12px;border:1px solid #1b5b70;background:#07141b}"
++".fpHero .nm{font:600 26px/1 Oswald,sans-serif;text-transform:uppercase}"
++".fpHero .sb{font-size:12px;color:#c9d3d8;margin-top:6px;line-height:1.45}"
++".fpChip{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;border-radius:99px;padding:4px 9px;margin-top:8px;border:1px solid #1b5b70;color:#7fe0ff}"
++".fpChip.live{background:#4bc97a;border-color:#4bc97a;color:#04140b}"
++".fpTiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px}"
++".fpTiles div{background:#07141b;border:1px solid #16303c;border-radius:10px;padding:9px 4px;text-align:center}"
++".fpTiles b{display:block;font:600 22px/1 Oswald,sans-serif;color:#fff}"
++".fpTiles small{display:block;font-size:8.5px;letter-spacing:1.2px;text-transform:uppercase;color:#8fa4ae;margin-top:4px;font-weight:800}"
++".fpGrid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:10px}"
++".fpGrid i{aspect-ratio:1;border-radius:5px;background:#15323f;display:block}.fpGrid i.on{background:#1fb6e6}"
++".fpLeft{font-size:12px;color:#c9d3d8;margin-top:8px;line-height:1.45}"
++".fpBig{display:block;width:100%;margin-top:14px;font:800 14px Montserrat,sans-serif;letter-spacing:1.2px;text-transform:uppercase;border:0;border-radius:12px;padding:16px;background:#1fb6e6;color:#03141c;cursor:pointer}"
++".fpRow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}"
++".fpRow button,.fpRow a{display:block;text-align:center;text-decoration:none;font:700 12.5px Montserrat,sans-serif;border-radius:11px;padding:12px 8px;border:1px solid #1b5b70;background:#0d1a21;color:#fff;cursor:pointer}"
++".fpLnk{margin-top:8px;background:#07141b;border:1px dashed #1b5b70;border-radius:9px;padding:9px 10px;font-size:12px;color:#7fe0ff;word-break:break-all;-webkit-user-select:all;user-select:all}"
++".fpSec{margin-top:16px}.fpSec h3{font:600 13px Oswald,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#7fe0ff;margin:0 0 8px}"
++".fpMsg{font-size:12.5px;color:#c9d3d8;background:#07141b;border:1px solid #16303c;border-radius:10px;padding:10px;line-height:1.5}"
++".fpWho div{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:8px 0;border-bottom:1px solid #16303c}.fpWho span{color:#8fa4ae;font-size:12px;white-space:nowrap}"
++".fpPill{position:fixed;right:12px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:9000;display:flex;align-items:center;gap:8px;background:linear-gradient(90deg,#0b2a38,#07141b);border:1px solid #1fb6e6;border-radius:99px;padding:6px 14px 6px 6px;color:#fff;font:700 12px Montserrat,sans-serif;box-shadow:0 6px 20px rgba(0,0,0,.5);cursor:pointer}"
++".fpPill img{width:30px;height:30px;border-radius:50%;object-fit:cover;background:#07141b}"
++"@media (prefers-reduced-motion:reduce){.fpOv,.fpSh{transition:none}}";
+document.head.appendChild(c);})();
+function popMsg(d){var f=d.fighter.first||"I";return "I'm fighting at Legacy Gym on Sat 19 Dec! Hold a ticket to my name here, nothing to pay today: "+link(d.fighter.slug);}
+function popHtml(d,pub){
+  var u=link(d.fighter.slug),held=d.held|0,block=Math.max(d.block|0,10),left=Math.max(0,block-held);
+  var open=pub?!pub.holds_closed:true,g="";for(var i=0;i<Math.max(block,held);i++)g+='<i class="'+(i<held?"on":"")+'"></i>';
+  var H=d.holds||[],msg=popMsg(d),sms="sms:?&body="+encodeURIComponent(msg);
+  return '<div class="fpSh" role="dialog" aria-modal="true" aria-label="Your Fight Night page">'
+   +'<div class="fpTop"><img src="/img/fc/fc-logo.png" alt="Fight Club"><div class="tt">Your Fight Night page<small>ONLY YOU SEE THIS</small></div><button class="fpX" type="button" data-fp="close" aria-label="Close">×</button></div>'
+   +'<div class="fpBody">'
+   +'<div class="fpHero"><img src="'+esc(d.fighter.poster||"")+'" alt=""><div><div class="nm">'+esc(d.fighter.name)+'</div><div class="sb">Sat 19 Dec · Legacy Gym Kincumber. Every hold on your page goes to your name.</div><span class="fpChip'+(open?' live':'')+'">'+(open?'Holds open now':'Holds closed · page still live')+'</span></div></div>'
+   +'<div class="fpTiles"><div><b>'+held+'</b><small>Held</small></div><div><b>'+(d.ga|0)+'</b><small>GA</small></div><div><b>'+(d.gold|0)+'</b><small>Table</small></div></div>'
+   +'<div class="fpGrid">'+g+'</div>'
+   +'<div class="fpLeft">'+(open?(left?left+' of your '+block+' left. When they\'re gone, more open on your page automatically.':'All '+block+' held. More open on your page automatically while holds are open.'):'Holds have closed. Your page still takes shirt requests, walkout songs and gear sponsors.')+'</div>'
+   +'<button class="fpBig" type="button" data-fp="share">Share my page</button>'
+   +'<div class="fpRow"><a href="'+esc(sms)+'" data-fp="sms">Text it</a><button type="button" data-fp="copy">Copy link</button></div>'
+   +'<div class="fpRow"><button type="button" data-fp="poster">Save my poster</button><button type="button" data-fp="copymsg">Copy message</button></div>'
+   +'<div class="fpLnk">'+esc(u)+'</div>'
+   +'<div class="fpSec"><h3>Ready-to-send message</h3><div class="fpMsg">'+esc(msg)+'</div>'+((window.fcwOpen&&H.length)?'<div class="fpRow" style="grid-template-columns:1fr"><button type="button" data-fp="crew">Text my crew the ticket update</button></div>':'')+'</div>'
+   +'<div class="fpSec"><h3>Who\'s holding · '+H.length+'</h3><div class="fpWho">'+(H.length?H.slice(0,15).map(function(x){return '<div><b>'+esc(x.name)+'</b><span>'+(TN[x.tier]||x.tier)+((x.seats|0)>1?' ×'+x.seats:'')+(x.status==="waitlist"?" · waiting":"")+'</span></div>';}).join("")+(H.length>15?'<div><span>+'+(H.length-15)+' more</span></div>':''):'<p class="fpLeft">No one\'s holding yet. Share your page.</p>')+'</div></div>'
+   +'</div></div>';
+}
+async function popData(force){
+  if(!force&&S.my&&Date.now()-POP.lastLoad<20000)return S.my;
+  try{var r=await sb.rpc("fh_my");if(!r.error){S.my=r.data||null;POP.lastLoad=Date.now();}}catch(e){}
+  var d=S.my;if(d&&d.fighter){try{var p=await sb.rpc("fh_public",{p_slug:d.fighter.slug});if(!p.error&&p.data&&p.data.ok)POP.pub=p.data;}catch(e){}}
+  return S.my;
+}
+function popClosed(){try{return sessionStorage.getItem("fpClosed")==="1";}catch(e){return POP.closedMem===true;}}
+function popSetClosed(){try{sessionStorage.setItem("fpClosed","1");}catch(e){}POP.closedMem=true;}
+async function popOpen(){
+  var d=await popData(true);if(!d||!d.fighter)return;
+  var ov=$id("fpOv");if(!ov){ov=document.createElement("div");ov.id="fpOv";ov.className="fpOv";document.body.appendChild(ov);
+    ov.addEventListener("click",popClick);}
+  ov.innerHTML=popHtml(d,POP.pub);POP.open=true;var p=$id("fpPill");if(p)p.remove();
+  requestAnimationFrame(function(){ov.classList.add("on");});
+  clearInterval(POP.timer);POP.timer=setInterval(async function(){if(!POP.open)return;var dd=await popData(true);var o=$id("fpOv");if(o&&dd&&dd.fighter){var st=o.querySelector(".fpBody").scrollTop;o.innerHTML=popHtml(dd,POP.pub);o.classList.add("on");var b=o.querySelector(".fpBody");if(b)b.scrollTop=st;}},20000);
+}
+function popClose(){var ov=$id("fpOv");POP.open=false;clearInterval(POP.timer);popSetClosed();if(ov){ov.classList.remove("on");setTimeout(function(){if(!POP.open&&ov.parentNode)ov.remove();},350);}popPill();}
+function popPill(){
+  var d=S.my;if(POP.open||!d||!d.fighter||Date.now()>FN_DAY){var x=$id("fpPill");if(x)x.remove();return;}
+  if(typeof view!=="undefined"&&view!=="home"){var y=$id("fpPill");if(y)y.remove();return;}
+  if($id("fpPill"))return;
+  var b=document.createElement("button");b.id="fpPill";b.className="fpPill";b.type="button";
+  b.innerHTML='<img src="'+esc(d.fighter.poster||"/img/fc/fc-logo.png")+'" alt="">My fight page';
+  b.onclick=function(){fnhLog("pill");popOpen();};document.body.appendChild(b);
+}
+function popClick(e){
+  var ov=$id("fpOv");if(e.target===ov){popClose();return;}
+  var el=e.target.closest&&e.target.closest("[data-fp]");if(!el)return;var k=el.dataset.fp,d=S.my;if(!d||!d.fighter)return;var u=link(d.fighter.slug);
+  if(k==="close")popClose();
+  else if(k==="share"){fnhLog("share");fnhShare(u,d.fighter.first);}
+  else if(k==="sms"){fnhLog("sms");}
+  else if(k==="copy"){fnhLog("copy");fnhCopy(u);}
+  else if(k==="copymsg"){fnhLog("copy");(async function(){try{await navigator.clipboard.writeText(popMsg(d));T("Message copied.");}catch(x){prompt("Copy this message:",popMsg(d));}})();}
+  else if(k==="poster"){fnhLog("poster");fnhPoster(d.fighter.poster||"",d.fighter.slug);}
+  else if(k==="crew"){popClose();try{window.fcwOpen();}catch(x){}}
+}
+document.addEventListener("keydown",function(e){if(e.key==="Escape"&&POP.open)popClose();});
+async function popCheck(){
+  if(!session||!session.user||Date.now()>FN_DAY)return;
+  if(!POP.checked){
+    if(POP.busy||(POP.nextTry&&Date.now()<POP.nextTry))return;POP.busy=true;
+    var d=await popData(true);POP.busy=false;POP.tries=(POP.tries||0)+1;
+    if(!d||!d.fighter){if(POP.tries>=3)POP.checked=true;else POP.nextTry=Date.now()+8000;return;}
+    POP.checked=true;if(d.demo&&!/[?&]fighterpop=1/.test(location.search)){POP.skip=true;return;}
+    if(!popClosed())popOpen();else popPill();return;}
+  if(POP.skip)return;
+  if(!POP.open)popPill();
+}
+setInterval(function(){try{popCheck();}catch(e){}},1500);
+/* opening the app again from the background (20+ minutes away) counts as a new open */
+var popHiddenAt=0;document.addEventListener("visibilitychange",function(){if(document.hidden){popHiddenAt=Date.now();return;}
+  if(popHiddenAt&&Date.now()-popHiddenAt>20*60000&&POP.checked&&!POP.skip&&!POP.open&&S.my&&S.my.fighter&&Date.now()<FN_DAY){try{sessionStorage.removeItem("fpClosed");}catch(e){}POP.closedMem=false;popOpen();}});
+
 })();
