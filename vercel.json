@@ -55,7 +55,7 @@
     },
     {
       "source": "/t/:token",
-      "destination": "/t.html"
+      "destination": "/t"
     }
   ]
 }
