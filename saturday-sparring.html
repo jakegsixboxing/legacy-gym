@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#0b0b0c">
-<title>Open Sparring · Legacy Gym</title>
-<meta property="og:title" content="Open Gym, Open Sparring · Legacy Gym Kincumber">
-<meta property="og:description" content="Saturday 14 November, 9:30 am. 5 boxing rings. All clubs and all levels welcome. Put your name down.">
+<title>Saturday Sparring · Legacy Gym</title>
+<meta property="og:title" content="Saturday Sparring · Legacy Gym Kincumber">
+<meta property="og:description" content="Saturday 14 November, 9:30 am. 4 rings running. Book in.">
 <meta property="og:image" content="https://legacygym-app.vercel.app/icon-512.png">
 <link rel="icon" href="/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -92,18 +92,15 @@ h2{margin:22px 0 10px;font:700 13px/1 Oswald,sans-serif;letter-spacing:3px;text-
   function nowSyd(){var p=new Intl.DateTimeFormat("en-CA",{timeZone:"Australia/Sydney",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date()),o={};p.forEach(function(x){o[x.type]=x.value;});return {d:o.year+"-"+o.month+"-"+o.day,hm:(o.hour==="24"?"00":o.hour)+":"+o.minute};}
   function over(){var n=nowSyd();return n.d>DATE||(n.d===DATE&&n.hm>="11:30");}
   function event(){
+    var booked=S.me;
     return ''
     +'<div class="eye">Legacy Gym · Kincumber</div>'
-    +'<h1>Open gym. <span>Open sparring.</span></h1>'
+    +'<h1>Saturday <span>sparring.</span></h1>'
     +'<div class="when"><div class="d"><b>'+DAY+'</b><small>Sat · Nov</small></div>'
-    +'<div class="t"><b>9:30 am start</b><span>We\'re opening the gym up for 2 hours, from 9:30 am until rounds are done.</span></div></div>'
-    +'<div class="open"><span>All clubs welcome</span><span>All levels welcome</span></div>'
-    +'<ul class="kit"><li>5 boxing rings</li><li>Open floor</li><li>Plenty of bags<span>Heavy bags, skill bags</span></li></ul>'
-    +'<h2>Open sparring</h2>'
-    +'<p class="say" style="margin-top:0">Mix and match with opponents. Nothing is pre-matched.</p>'
+    +'<div class="t"><b>9:30 am start</b><span>4 rings running.</span></div></div>'
     +(over()?'<p class="say"><b>This session is done.</b> Follow the gym for the next one.</p>'
-      :S.me?'<button class="ghost" data-a="done">You\'re on the list. View your spot</button>'
-      :'<button class="cta" data-a="join">Yes, I\'m attending</button>');
+      :booked?'<button class="ghost" data-a="done">You\'re booked in. View your spot</button>'
+      :'<h2>Book in</h2>'+form(true));
   }
   function fld(k,label,ph,type,mode,auto){
     var e=S.err[k];
@@ -118,20 +115,14 @@ h2{margin:22px 0 10px;font:700 13px/1 Oswald,sans-serif;letter-spacing:3px;text-
       +XP.map(function(x){return '<button type="button" role="radio" aria-checked="'+(S.form.xp===x)+'" data-x="'+x+'"><i></i>'+x+'</button>';}).join("")
       +'</div>'+(e?'<p class="err">'+e+'</p>':'')+'</div>';
   }
-  function form(){
+  function form(inline){
     return ''
-    +'<button class="back" data-a="event">‹ Back</button>'
-    +'<div class="eye">'+DLBL+' · 9:30 am · Legacy Gym</div>'
-    +'<h1>You\'re <span>coming?</span></h1>'
     +'<form class="f" id="frm" novalidate>'
     +fld("name","Full name","First and last name","text","text","name")
     +fld("mobile","Mobile number","04xx xxx xxx","tel","tel","tel")
-    +fld("gym","What gym are you coming from?","Type your gym or club","text","text","organization")
-    +xpf()
     +(S.err.all?'<p class="err">'+esc(S.err.all)+'</p>':'')
-    +'<button class="cta" type="submit"'+(S.busy?' disabled':'')+'>'+(S.busy?'Locking you in…':'Lock me in')+'</button>'
-    +'</form>'
-    +'<p class="priv">Your details are only seen by the Legacy Gym team.</p>';
+    +'<button class="cta" type="submit"'+(S.busy?' disabled':'')+'>'+(S.busy?'Booking you in…':'Book me in')+'</button>'
+    +'</form>';
   }
   function done(){
     var first=S.me.n.split(" ")[0];
@@ -142,37 +133,33 @@ h2{margin:22px 0 10px;font:700 13px/1 Oswald,sans-serif;letter-spacing:3px;text-
     +'<div class="slip">'
     +'<div><span>When</span><b>'+DLBL+', 9:30 am start</b></div>'
     +'<div><span>Where</span><b>Legacy Gym, Kincumber</b></div>'
-    +'<div><span>Coming from</span><b>'+esc(S.me.g)+'</b></div>'
-    +'<div><span>Experience</span><b>'+esc(S.me.x)+'</b></div>'
     +'</div>'
-    +'<button class="cta" data-a="share">Send the link to your team</button>'
+    +'<button class="cta" data-a="share">Send the link to a mate</button>'
     +'<button class="ghost" data-a="event">Back to the details</button>';
   }
-  function paint(){phone.innerHTML=S.step==="form"&&!over()?form():(S.step==="done"&&S.me?done():event());}
-  function keep(){["name","mobile","gym"].forEach(function(k){var el=document.getElementById("f_"+k);if(el)S.form[k]=el.value;});}
+  function paint(){phone.innerHTML=(S.step==="done"&&S.me?done():event());}
+  function keep(){["name","mobile"].forEach(function(k){var el=document.getElementById("f_"+k);if(el)S.form[k]=el.value;});}
   async function submit(){
     if(S.busy)return;keep();
-    var e={},nm=tidyName(S.form.name),mb=tidyMobile(S.form.mobile),gy=tidyName(S.form.gym);
+    var e={},nm=tidyName(S.form.name),mb=tidyMobile(S.form.mobile);
     if(nm.split(" ").length<2||nm.length<3)e.name="Add your first and last name.";
     if(!mb)e.mobile="Enter a 10-digit mobile starting with 04.";
-    if(gy.length<2)e.gym="Tell us what gym you're coming from.";
-    if(XP.indexOf(S.form.xp)<0)e.xp="Pick your experience.";
     S.err=e;
-    if(e.name||e.mobile||e.gym||e.xp){paint();var f=document.querySelector(".f .bad input");if(f)f.focus();return;}
+    if(e.name||e.mobile){paint();var f=document.querySelector(".f .bad input");if(f)f.focus();return;}
     S.busy=true;paint();
     try{
-      var r=await fetch(SB+"class_open_book2",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify({p_name:nm,p_mobile:mb,p_date:DATE,p_time:TIME,p_gym:gy,p_xp:S.form.xp})});
+      var r=await fetch(SB+"class_open_book2",{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify({p_name:nm,p_mobile:mb,p_date:DATE,p_time:TIME,p_gym:null,p_xp:null})});
       var j=await r.json();
       if(!r.ok||!j||!j.ok)throw new Error((j&&(j.message||j.error))||"Couldn't book. Try again.");
-      S.me={n:nm,m:mb,g:gy,x:S.form.xp};S.step="done";S.err={};
-      try{localStorage.setItem(SKEY,JSON.stringify(S.me));localStorage.setItem("lgopen_me",JSON.stringify({name:nm,mobile:mb,gym:gy,xp:S.form.xp}));}catch(x){}
-      toast(j.already?"You were already on the list":"You're on the list");
+      S.me={n:nm,m:mb};S.step="done";S.err={};
+      try{localStorage.setItem(SKEY,JSON.stringify(S.me));localStorage.setItem("lgopen_me",JSON.stringify({name:nm,mobile:mb}));}catch(x){}
+      toast(j.already?"You were already booked in":"You're booked in");
     }catch(err){S.err={all:(err&&err.message)||"Couldn't book. Check your signal and try again."};}
     S.busy=false;paint();
   }
   async function share(){
-    var url=location.origin+"/saturday-sparring",text="Open sparring at Legacy Gym Kincumber, Sat 14 Nov 9:30 am. All clubs welcome. Put your name down: "+url;
-    if(navigator.share){try{await navigator.share({title:"Open Sparring · Legacy Gym",text:text,url:url});return;}catch(e){if(e&&e.name==="AbortError")return;}}
+    var url=location.origin+"/saturday-sparring",text="Saturday sparring at Legacy Gym Kincumber, Sat 14 Nov 9:30 am. 4 rings running. Book in: "+url;
+    if(navigator.share){try{await navigator.share({title:"Saturday Sparring · Legacy Gym",text:text,url:url});return;}catch(e){if(e&&e.name==="AbortError")return;}}
     try{await navigator.clipboard.writeText(text);toast("Link copied. Paste it to your team.");}catch(e){prompt("Copy this link:",url);}
   }
   phone.addEventListener("submit",function(ev){ev.preventDefault();submit();});
