@@ -145,7 +145,7 @@ function buildHtml(){
  h+='<p class="note" style="margin:-2px 0 10px">Your held spot is already in. Switch areas, or add tickets for your crew.</p>';
  h+=OPTS.map(optHtml).join("");
  h+='<h2>Extras</h2>';
- h+='<div class="opt'+(C.meals?' on':'')+'"><div><div class="tag">GA only</div><div class="t">GA food & drink pack</div><div class="s">One per GA ticket. Table seats already include food and drinks.</div><div class="p">'+$m(p.meal)+' <span style="font:600 11px Montserrat;color:var(--muted)">each</span></div></div>'
+ h+='<div class="opt'+(C.meals?' on':'')+'"><div><div class="tag">GA only</div><div class="t">GA food + 1 drink</div><div class="s">Food plus one drink. One per GA ticket. Table seats already include food and drinks.</div><div class="p">'+$m(p.meal)+' <span style="font:600 11px Montserrat;color:var(--muted)">each</span></div></div>'
   +'<div class="step"><button data-q="meals" data-d="-1"'+(C.meals?'':' disabled')+' aria-label="One less food pack">−</button><b>'+C.meals+'</b><button data-q="meals" data-d="1"'+(C.meals<ga()?'':' disabled')+' aria-label="One more food pack">+</button></div></div>';
  h+='<div class="opt'+(C.shirts.length?' on':'')+'" style="display:block"><div class="tag">Collect on the night</div><div class="t">Supporter shirt or singlet</div><div class="s">'+$m(p.shirt)+' each. Pick colour, style and size.</div><div style="margin-top:10px">'
   +C.shirts.map(function(s,i){return '<div class="shirt"><select data-sh="'+i+'" data-f="c" aria-label="Colour">'+COLS.map(function(c){return '<option'+(s.c===c?' selected':'')+'>'+c+'</option>';}).join("")+'</select><select data-sh="'+i+'" data-f="t" aria-label="Style"><option value="shirt"'+(s.t==="shirt"?' selected':'')+'>Shirt</option><option value="singlet"'+(s.t==="singlet"?' selected':'')+'>Singlet</option></select><select data-sh="'+i+'" data-f="s" aria-label="Size">'+SIZES.map(function(z){return '<option'+(s.s===z?' selected':'')+'>'+z+'</option>';}).join("")+'</select><button class="x" data-rm="'+i+'" aria-label="Remove shirt">×</button></div>';}).join("")
@@ -165,7 +165,7 @@ function buildHtml(){
 function summary(){
  var p=V.prices,L=[];
  OPTS.forEach(function(o){if(C[o.k])L.push([C[o.k]+' × '+o.t,C[o.k]*p[o.k]]);});
- if(C.meals)L.push([C.meals+' × GA food & drink pack',C.meals*p.meal]);
+ if(C.meals)L.push([C.meals+' × GA food + 1 drink',C.meals*p.meal]);
  C.shirts.forEach(function(s){L.push(['Supporter '+s.t+' · '+s.c+' · '+s.s,p.shirt]);});
  if(!L.length)return '<div class="l"><span>Nothing in your order yet</span><b>$0</b></div>';
  return L.map(function(x){return '<div class="l"><span>'+E(x[0])+'</span><b>'+$m(x[1])+'</b></div>';}).join("")+'<div class="l"><span>Total</span><b>'+$m(total())+'</b></div>';
@@ -176,7 +176,7 @@ function paint(){
  if(st==="before"){
   h+='<h1>Your tickets, <span>'+E(V.first||"")+'</span></h1>'+holdBox()
    +'<div class="win"><b>Your buying window opens '+E(V.opens)+'</b> and stays open for 24 hours, until '+E(V.closes)+'. Come back to this link then. Your spot is held until your window closes.</div>'
-   +'<h2>Prices</h2><div class="sum">'+OPTS.map(function(o){return '<div class="l"><span>'+o.t+'</span><b>'+$m(V.prices[o.k])+'</b></div>';}).join("")+'<div class="l" style="font-weight:600;font-size:13.5px"><span>GA food & drink pack</span><b>'+$m(V.prices.meal)+'</b></div><div class="l" style="font-weight:600;font-size:13.5px"><span>Supporter shirt or singlet</span><b>'+$m(V.prices.shirt)+'</b></div></div>'
+   +'<h2>Prices</h2><div class="sum">'+OPTS.map(function(o){return '<div class="l"><span>'+o.t+'</span><b>'+$m(V.prices[o.k])+'</b></div>';}).join("")+'<div class="l" style="font-weight:600;font-size:13.5px"><span>GA food + 1 drink</span><b>'+$m(V.prices.meal)+'</b></div><div class="l" style="font-weight:600;font-size:13.5px"><span>Supporter shirt or singlet</span><b>'+$m(V.prices.shirt)+'</b></div></div>'
    +'<p class="note">No QR codes at purchase: your QR tickets are emailed Wed 9 Dec. Names are optional at checkout and needed before 9 Dec. Can\'t make it? You can pass your ticket to a friend or family member.</p>'+ordersHtml();
   bar.hidden=true;
  }else if(st==="closed"){
