@@ -1,16 +1,16 @@
 /* ===== Summer clearance - Legacy Sparring Club hoodie pop-up (15 Nov 2026, Jake) =====
-   Home-screen pop-up, once a day per phone, while the hoodie is on sale in Shopify.
+   Home-screen pop-up on every 3rd app open per phone (1st, 4th, 7th ...) for 10 days (to 24 Nov), while the hoodie is on sale in Shopify.
    Price, "was" price and % off are read LIVE from legacygym.net, so the pop-up can never show
    a different price to checkout. Stops by itself when: sold out, no longer discounted, or after SALE_UNTIL.
    Preview any time: open the app with ?hoodie=1 */
 (function(){
 "use strict";
 var HANDLE="sparring-club-embroidered-hoodie";
-var SALE_UNTIL="2027-01-31";
+var SALE_UNTIL="2026-11-24";
 var MIN_OFF=50;
 var STORE="https://www.legacygym.net";
 var FORCE=/[?&]hoodie=1/.test(location.search);
-var H={shown:false,d:null,at:0,busy:false};
+var H={shown:false,d:null,at:0,busy:false,counted:false,due:false};
 function $id(i){return document.getElementById(i);}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];});}
 function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -67,7 +67,6 @@ function sizeTxt(s){
 function close(){var o=$id("hsOv");if(!o)return;o.classList.remove("on");setTimeout(function(){if(o.parentNode)o.remove();},260);}
 function open(d){
   if($id("hsOv"))return;
-  lsSet("hoodieSaleSeen",today());
   var o=document.createElement("div");o.id="hsOv";o.className="hsOv";
   o.innerHTML='<div class="hsCard" role="dialog" aria-label="Summer clearance">'
    +'<div class="hsPh">'+(d.img?'<img src="'+esc(d.img)+(d.img.indexOf("?")>-1?"&":"?")+'width=700" alt="'+esc(d.title)+'">':'')
@@ -92,21 +91,32 @@ function busyElsewhere(){
   return !!(document.querySelector(".fnnOv")||$id("saleSpotWrap")||$id("fpOv")||$id("hsOv"));
 }
 
+/* count app opens: a fresh load, or coming back after 30+ min away */
+function countOpen(){
+  if(H.counted)return;H.counted=true;
+  var n=(parseInt(lsGet("hoodieSaleOpens")||"0",10)||0)+1;lsSet("hoodieSaleOpens",String(n));
+  H.due=(n%3===1);H.shown=false;
+}
 async function tick(){
   try{
-    if(H.shown)return;
     if(typeof session==="undefined"||!session||!session.user)return;
-    if(typeof view==="undefined"||view!=="home")return;
+    countOpen();
+    if(H.shown)return;
     if(!FORCE){
+      if(!H.due)return;
       if(today()>SALE_UNTIL)return;
-      if(lsGet("hoodieSaleSeen")===today())return;
     }
+    if(typeof view==="undefined"||view!=="home")return;
     if(busyElsewhere())return;
     var d=await load();if(!d)return;
     if(H.shown||busyElsewhere()||view!=="home")return;
-    H.shown=true;setTimeout(function(){if(!busyElsewhere()&&view==="home")open(d);else H.shown=false;},FORCE?300:2500);
+    H.shown=true;setTimeout(function(){if(!busyElsewhere()&&view==="home"){open(d);H.due=false;}else H.shown=false;},FORCE?300:2500);
   }catch(e){}
 }
+var hiddenAt=0;document.addEventListener("visibilitychange",function(){
+  if(document.hidden){hiddenAt=Date.now();return;}
+  if(hiddenAt&&Date.now()-hiddenAt>30*60000){H.counted=false;H.shown=false;}
+});
 setInterval(tick,3000);
 window.hoodieSaleOpen=function(){load().then(function(d){if(d)open(d);});};
 })();
