@@ -101,6 +101,7 @@ function head(){
   +(V&&V.test?'<div style="margin-bottom:10px"><span class="badge test">Test link · always open · refund after</span></div>':'');
 }
 function holdBox(){
+ if(V.grp==="P")return '<div class="hold"><div class="row"><span>Name</span><b>'+E(V.full)+'</b></div>'+(V.fighter?'<div class="row"><span>Supporting</span><b>'+E(V.fighter)+'</b></div>':'')+'<div class="row"><span>Open until</span><b>Fight night</b></div></div>';
  return '<div class="hold"><div class="row"><span>Held for</span><b>'+E(V.full)+'</b></div><div class="row"><span>Your hold</span><b>'+E(V.held&&V.held.label)+'</b></div>'
   +(V.fighter?'<div class="row"><span>Supporting</span><b>'+E(V.fighter)+'</b></div>':'')
   +(V.preorder_shirt?'<div class="row"><span>Pre-ordered</span><b>'+E(V.preorder_shirt)+'</b></div>':'')
@@ -142,7 +143,7 @@ function optHtml(o){
 function buildHtml(){
  var p=V.prices,n=tickets(),h="";
  h+='<h2>Your tickets</h2>';
- h+='<p class="note" style="margin:-2px 0 10px">Your held spot is already in. Switch areas, or add tickets for your crew.</p>';
+ h+='<p class="note" style="margin:-2px 0 10px">'+(V.grp==="P"?'Add more tickets for your crew.':'Your held spot is already in. Switch areas, or add tickets for your crew.')+'</p>';
  h+=OPTS.map(optHtml).join("");
  h+='<h2>Extras</h2>';
  h+='<div class="opt'+(C.meals?' on':'')+'"><div><div class="tag">GA only</div><div class="t">GA food + 1 drink</div><div class="s">Food plus one drink. One per GA ticket. Table seats already include food and drinks.</div><div class="p">'+$m(p.meal)+' <span style="font:600 11px Montserrat;color:var(--muted)">each</span></div></div>'
@@ -184,7 +185,7 @@ function paint(){
    +(paidAny?'':'<div class="win"><b>Your buying window closed '+E(V.closes)+'.</b> Unclaimed held spots go back into general sale. Keep an eye on Fight Club for general sale tickets.</div>')+ordersHtml();
   bar.hidden=true;
  }else{
-  h+='<h1>You\'re open, <span>'+E(V.first||"")+'</span></h1>'+holdBox()
+  h+='<h1>'+(V.grp==="P"?'Your tickets, ':'You\'re open, ')+'<span>'+E(V.first||"")+'</span></h1>'+holdBox()
    +'<div class="win"><span class="badge open" style="margin-right:6px">Open now</span>Buy before <b>'+E(V.closes)+'</b>. After that, unclaimed spots go to general sale.</div>'+ordersHtml()+buildHtml();
   bar.hidden=false;
   barIn.innerHTML='<button class="pay" id="payBtn"'+(busy||!tickets()&&!C.shirts.length?' disabled':'')+'>'+(busy?'Opening secure checkout…':'Pay '+$m(total())+' securely')+'</button>';

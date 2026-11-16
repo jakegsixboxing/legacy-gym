@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#060606">
+<title>Fight Night tickets · Fight Club Central Coast</title>
+<meta name="description" content="Fight Night · Sat 19 Dec 2026 · Legacy Gym Kincumber. Pick your fighter and buy your tickets.">
+<meta property="og:title" content="Fight Night tickets · Sat 19 Dec · Legacy Gym">
+<meta property="og:description" content="Pick the fighter you're coming to see and grab your tickets. Table seats, GA, food and supporter shirts.">
+<meta property="og:image" content="https://legacygym-app.vercel.app/img/fc/fc-logo.png">
+<link rel="icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Oswald:wght@500;600;700&display=swap">
+<style>
+/* Same look as the live buying page (t.html): one dark world, Fight Club blue + Legacy gold. Single column, sticky pay bar. */
+:root{--page:#060606;--panel:#141312;--card:#1b1a18;--line:#2a2519;--line2:#3a3222;--text:#f3f1ec;--soft:#d8d2c8;--muted:#a19d92;--gold:#c9a44c;--gold2:#f1d27a;--fc:#1fb6e6;--ok:#4bc97a;--bad:#ff6b7a;--ink:#161307;
+ --ui:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;--head:Oswald,"Arial Narrow",Impact,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--page);color:var(--text)}
+body{margin:0;font-family:var(--ui);-webkit-font-smoothing:antialiased}
+.x-demo{background:var(--fc);color:#03141b;font:800 11px/1.4 var(--ui);letter-spacing:1px;text-transform:uppercase;text-align:center;padding:8px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.w{max-width:520px;margin:0 auto;padding-block:16px calc(120px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button{font-family:inherit;cursor:pointer;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+.top{display:flex;align-items:center;gap:12px;padding:6px 0 14px}
+.logo{width:46px;height:46px;border-radius:50%;border:2px solid var(--fc);display:grid;place-items:center;font:700 15px/1 var(--head);color:var(--fc);letter-spacing:.5px;flex:none}
+.top .k{font-size:10px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--fc)}
+.top .d{font-size:12px;color:var(--muted);margin-top:3px}
+h1{margin:0;font:700 36px/1 var(--head);text-transform:uppercase;letter-spacing:.3px;text-wrap:balance}
+h1 span{color:var(--gold2)}
+h2{margin:26px 0 10px;font:700 13px/1 var(--head);letter-spacing:3px;text-transform:uppercase;color:var(--gold)}
+.lead{font-size:14px;line-height:1.55;color:var(--soft);margin:10px 0 0}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;border-radius:7px;padding:5px 8px;border:1px solid rgba(75,201,122,.6);color:var(--ok)}
+.badge::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.win{margin-top:12px;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.5;border:1px solid rgba(31,182,230,.45);background:rgba(31,182,230,.07);color:#cfefff}
+.win b{color:#fff}
+/* fighter picker */
+.pick{position:relative;border:1px solid var(--line2);border-radius:16px;background:var(--panel);padding:14px}
+.pick.need{border-color:var(--bad)}
+.pick label{display:block;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--fc);margin-bottom:8px}
+.srch{position:relative}
+.srch input{width:100%;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:14px 12px 14px 42px;color:var(--text);font:600 16px var(--ui)}
+.srch svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
+.list{list-style:none;margin:8px 0 0;padding:4px;border:1px solid var(--line2);border-radius:12px;background:#100f0e;max-height:300px;overflow:auto}
+.list li{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:600}
+.list li[aria-selected="true"],.list li:hover{background:rgba(31,182,230,.12)}
+.list li b{color:var(--gold2);font-weight:800}
+.list .none{cursor:default;color:var(--muted);font-weight:500;font-size:13px;line-height:1.5}
+.list .none:hover{background:none}
+.av{width:34px;height:34px;border-radius:50%;background:#0f2a35;color:var(--fc);display:grid;place-items:center;font:700 13px/1 var(--head);flex:none;letter-spacing:.5px}
+.chosen{display:flex;align-items:center;gap:12px}
+.chosen .av{width:48px;height:48px;font-size:17px;border:2px solid var(--fc)}
+.chosen .n{font:700 22px/1.05 var(--head);text-transform:uppercase}
+.chosen .s{font-size:12px;color:var(--muted);margin-top:3px}
+.chg{margin-left:auto;border:1px solid var(--line2);background:none;border-radius:10px;padding:9px 12px;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--gold2)}
+.hint{font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0}
+/* options (same as t.html) */
+.opt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line2);border-radius:16px;background:var(--panel);padding:14px;margin-bottom:8px}
+.opt.on{border-color:var(--gold)}
+.opt .t{font:600 18px/1.1 var(--head);text-transform:uppercase;letter-spacing:.3px}
+.opt .s{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4}
+.opt .p{font:700 17px/1 var(--head);color:var(--gold2);margin-top:6px}
+.opt .p small{font:600 11px var(--ui);color:var(--muted)}
+.opt .tag{display:inline-block;font-size:9.5px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--fc);margin-bottom:4px}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:40px;height:40px;border-radius:12px;border:1px solid var(--line2);background:var(--card);font:700 20px/1 var(--ui)}
+.step button:disabled{opacity:.35;cursor:default}
+.step b{min-width:28px;text-align:center;font:700 20px/1 var(--head);font-variant-numeric:tabular-nums}
+.shirt{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:8px}
+select,.in{width:100%;min-width:0;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:12px 10px;color:var(--text);font:600 15px var(--ui)}
+.in.bad{border-color:var(--bad)}
+.x{width:40px;height:44px;border-radius:12px;border:1px solid var(--line2);background:none;color:var(--muted);font-size:18px}
+.ghost{display:block;width:100%;border:1px dashed var(--line2);border-radius:14px;background:none;color:var(--gold2);font-weight:800;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:13px}
+.note{font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0}
+.note b{color:var(--soft)}
+.food{font-size:12.5px;line-height:1.5;margin:10px 0 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px}.food b{color:var(--gold)}
+.names .in,.you .in{margin-bottom:6px}
+.you .row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.agree{border:1px solid var(--line2);border-radius:16px;background:var(--panel);padding:14px;font-size:12.5px;line-height:1.6;color:var(--soft)}
+.tick{display:flex;gap:10px;align-items:flex-start;margin:12px 0 10px;font-size:13.5px;font-weight:700;color:var(--text)}
+.tick input{width:22px;height:22px;flex:none;margin:0;accent-color:var(--gold)}
+.sum{border:1px solid var(--line2);border-radius:16px;background:var(--panel);padding:6px 14px}
+.sum .l{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.sum .l:last-child{border-bottom:0;font-weight:800;font-size:15px}
+.sum .l b{color:var(--gold2);white-space:nowrap}
+.sum .l.f span{color:var(--fc);font-weight:700}
+.err{color:#ffb3bc;font-size:13px;font-weight:600;margin-top:10px;min-height:18px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(6,6,6,.96) 26%);padding:24px max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));z-index:5}
+.bar .in2{max-width:520px;margin:0 auto}
+.bar .who{font-size:11.5px;color:var(--muted);text-align:center;margin-bottom:8px}
+.bar .who b{color:var(--fc)}
+.pay{display:block;width:100%;border:0;border-radius:14px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:var(--ink);font:800 15px/1 var(--ui);letter-spacing:1.2px;text-transform:uppercase;padding:18px 12px;text-align:center}
+.pay:disabled{opacity:.5;cursor:default}
+/* demo checkout + done */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet .box{width:100%;max-width:520px;background:#f6f6f6;color:#111;border-radius:20px 20px 0 0;padding:22px max(18px,env(safe-area-inset-right,0px)) calc(26px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));font-size:14px}
+.sheet .box h3{margin:0 0 4px;font:800 18px var(--ui)}
+.sheet .box p{margin:6px 0;color:#444;line-height:1.5}
+.sheet .box .ln{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #ddd}
+.sheet .box .btn{display:block;width:100%;margin-top:14px;border:0;border-radius:10px;background:#111;color:#fff;font:700 15px var(--ui);padding:15px}
+.sheet .box .sec{display:block;width:100%;margin-top:8px;border:0;background:none;color:#555;font:600 13px var(--ui);padding:8px}
+.done{border:1px solid rgba(75,201,122,.55);border-radius:16px;background:rgba(75,201,122,.06);padding:16px;margin-top:14px}
+.done .h{font:700 24px/1.1 var(--head);text-transform:uppercase;color:var(--ok)}
+.done .row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(75,201,122,.2);font-size:13.5px}
+.done .row:last-child{border-bottom:0}
+.done .row span{color:var(--muted)}
+.crew{margin-top:12px;border:1px solid rgba(31,182,230,.45);border-radius:14px;background:rgba(31,182,230,.07);padding:12px 14px;font-size:13px;line-height:1.5;color:#cfefff}
+.crew b{color:#fff}
+.foot{text-align:center;font-size:11px;color:var(--muted);margin-top:26px;line-height:1.6}
+.mview{position:relative;margin-top:12px;border-radius:14px;overflow:hidden;background:#000;border:1px solid var(--line)}
+.mview img{display:block;width:100%;height:auto}
+.mcap{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.72);border-radius:8px;padding:5px 9px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.seg button{border:1px solid var(--line2);background:var(--card);border-radius:12px;padding:11px;font:800 12px var(--ui);letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.seg button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold2);background:rgba(201,164,76,.08)}
+.sw{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:8px}
+.sw button{border:1px solid var(--line2);background:var(--card);border-radius:12px;padding:4px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.sw button img{width:100%;aspect-ratio:1/1;object-fit:cover;object-position:22% 50%;border-radius:8px;display:block}
+.sw button span{font-size:8.5px;font-weight:800;letter-spacing:0;color:var(--muted);text-transform:uppercase;max-width:100%;white-space:nowrap}
+.sw button[aria-pressed="true"]{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold)}
+.sw button[aria-pressed="true"] span{color:var(--gold2)}
+.madd{display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px;margin-top:10px}
+.addb{border:0;border-radius:12px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:var(--ink);font:800 13px var(--ui);letter-spacing:.8px;text-transform:uppercase;padding:12px 8px}
+.addb:disabled{opacity:.45}
+.mlist{margin-top:10px;display:grid;gap:6px}
+.mrow{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:6px;background:#100f0e}
+.mrow img{width:52px;height:52px;object-fit:cover;object-position:22% 50%;border-radius:8px;display:block}
+.mrow b{display:block;font:600 15px/1.1 var(--head);text-transform:uppercase}
+.mrow small{font-size:11.5px;color:var(--muted)}
+@media (max-width:360px){h1{font-size:30px}.shirt{grid-template-columns:1fr 1fr auto}.shirt select:nth-child(3){grid-column:1/3}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.tb{background:rgba(255,107,122,.12);border:1px solid #ff6b7a;color:#ffb3bc;border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:700;margin-bottom:10px;line-height:1.45}
+.prev{display:block;margin-top:12px;border:1px solid rgba(75,201,122,.6);background:rgba(75,201,122,.07);border-radius:14px;padding:12px 14px;text-decoration:none;color:var(--text)}
+.prev b{display:block;color:var(--ok);font-size:14px}.prev span{font-size:12.5px;color:var(--soft)}
+</style>
+</head>
+<body>
+<div class="w" id="app"><div style="padding:60px 0;text-align:center;color:#a19d92">Loading tickets…</div></div>
+<div class="bar" id="bar" hidden><div class="in2" id="barIn"></div></div>
+<div id="layer"></div>
+<script>
+(function(){
+"use strict";
+var FIGHTERS=[],FID={};
+var P=null,AGREE="";
+var SB="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/",KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we",API="/api/fightnight?a=buy-checkout";
+var TESTKEY=(new URLSearchParams(location.search).get("test")||"").trim();
+var TOKK="fnPubTok"+(TESTKEY?"T":"");
+function lsG(k){try{return localStorage.getItem(k)||"";}catch(e){return "";}}
+function lsS(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+async function rpc(fn,args){var r=await fetch(SB+fn,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify(args||{})});var j=await r.json().catch(function(){return null;});if(!r.ok)throw new Error((j&&(j.message||j.error))||"Something went wrong. Try again.");return j;}
+var PREV=null,busy=false;
+var OPTS=[
+ {k:"front",tag:"Tier 1 · ringside table",t:"Front row table seat",s:"Front row of the tables. Food served to the table plus 6 drinks."},
+ {k:"rows",tag:"Tier 1 · table",t:"Table seat, rows 2 & 3",s:"Reserved table seat. Food served to the table plus 5 drinks."},
+ {k:"ga1",tag:"General admission",t:"GA · roaming & bar",s:"Move around the room, stand at the bar or grab a bar stool. Some stools: first in, best dressed."}];
+var COLS=["Indigenous","Pink","Yellow","Grey","Black"],SIZES=["XS","S","M","L","XL","2XL","3XL","4XL","5XL","6XL"];
+
+var S={fighter:null,q:"",open:false,hi:0,C:{front:0,rows:0,ga1:1,meals:0,shirts:[],names:[]},you:{first:"",last:"",email:"",mobile:""},tick:false,agreeName:"",err:"",need:false,paid:null,M:{t:"shirt",c:"Black",s:"L"}};
+var app=document.getElementById("app"),barIn=document.getElementById("barIn"),bar=document.getElementById("bar"),layer=document.getElementById("layer");
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function $m(c){return "$"+(c/100).toFixed(2).replace(/\.00$/,"");}
+function ini(n){var p=n.split(" ");return (p[0][0]+(p[1]?p[1][0]:"")).toUpperCase();}
+function fold(s){return s.normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();}
+function tickets(){var C=S.C;return C.front+C.rows+C.ga1;}
+function total(){var C=S.C;return C.front*P.front+C.rows*P.rows+C.ga1*P.ga1+C.meals*P.meal+C.shirts.length*P.shirt;}
+
+/* Match on the start of the first or last name first, then anywhere in the name */
+function matches(q){q=fold(q);if(!q)return FIGHTERS.slice();
+ var a=[],b=[];FIGHTERS.forEach(function(n){var f=fold(n),parts=f.split(" ");
+  if(f.indexOf(q)===0||parts.some(function(p){return p.indexOf(q)===0;}))a.push(n);else if(f.indexOf(q)>-1)b.push(n);});
+ return a.concat(b);}
+function hl(n,q){q=fold(q);if(!q)return E(n);var f=fold(n),i=-1,parts=f.split(" "),off=0;
+ for(var k=0;k<parts.length;k++){if(parts[k].indexOf(q)===0){i=off;break;}off+=parts[k].length+1;}
+ if(i<0)i=f.indexOf(q);if(i<0)return E(n);return E(n.slice(0,i))+"<b>"+E(n.slice(i,i+q.length))+"</b>"+E(n.slice(i+q.length));}
+
+function pickHtml(){
+ if(S.fighter)return '<div class="pick"><label>You\'re coming to see</label><div class="chosen"><span class="av">'+ini(S.fighter)+'</span><div><div class="n">'+E(S.fighter)+'</div><div class="s">Your tickets count for '+E(S.fighter.split(" ")[0])+'\'s crew</div></div><button class="chg" type="button" data-act="change">Change</button></div></div>';
+ return '<div class="pick'+(S.need?' need':'')+'"><label for="fq">Type the name of your fighter</label><div class="srch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="fq" type="text" role="combobox" aria-expanded="'+S.open+'" aria-controls="flist" aria-autocomplete="list" autocomplete="off" autocapitalize="words" placeholder="Start typing, e.g. Travis" value="'+E(S.q)+'"></div><div id="fl">'+listHtml()+'</div>'
+  +'<p class="hint">'+(S.need?'<b style="color:#ffb3bc">Pick your fighter first.</b> ':'')+'Pick from the list so your tickets land with the right fighter.</p></div>';}
+function listHtml(){if(!S.open)return "";var L=matches(S.q).slice(0,7);
+ if(!L.length)return '<ul class="list" id="flist" role="listbox"><li class="none">No fighter called "'+E(S.q)+'". Check the spelling, or try their first name only.</li></ul>';
+ if(S.hi>=L.length)S.hi=0;
+ return '<ul class="list" id="flist" role="listbox">'+L.map(function(n,i){return '<li role="option" id="fo'+i+'" data-f="'+E(n)+'" aria-selected="'+(i===S.hi)+'"><span class="av">'+ini(n)+'</span><span>'+hl(n,S.q)+'</span></li>';}).join("")+'</ul>';}
+
+function optHtml(o){var q=S.C[o.k];
+ return '<div class="opt'+(q?' on':'')+'"><div><div class="tag">'+o.tag+'</div><div class="t">'+o.t+'</div><div class="s">'+o.s+'</div><div class="p">'+$m(P[o.k])+' <small>each</small></div></div>'
+  +'<div class="step"><button type="button" data-q="'+o.k+'" data-d="-1" aria-label="One less '+o.t+'"'+(q?'':' disabled')+'>−</button><b>'+q+'</b><button type="button" data-q="'+o.k+'" data-d="1" aria-label="One more '+o.t+'">+</button></div></div>';}
+
+function img(t,c){return "/img/fc/merch-"+t+"-"+c.toLowerCase()+".jpg";}
+function merchHtml(){var M=S.M,C=S.C;
+ var h='<div class="opt merch'+(C.shirts.length?' on':'')+'" style="display:block"><div class="tag">Collect on the night</div><div class="t">Supporter shirt or singlet</div><div class="s">'+$m(P.shirt)+' each. Pick a style and colour to see it, front and back.</div>';
+ h+='<div class="mview"><img src="'+img(M.t,M.c)+'" alt="'+E(M.c+' supporter '+M.t+', front and back')+'"><span class="mcap">'+E(M.c)+' '+E(M.t)+' · front &amp; back</span></div>';
+ h+='<div class="seg" role="group" aria-label="Style"><button type="button" data-mt="shirt" aria-pressed="'+(M.t==="shirt")+'">Shirt</button><button type="button" data-mt="singlet" aria-pressed="'+(M.t==="singlet")+'">Singlet</button></div>';
+ h+='<div class="sw" role="group" aria-label="Colour">'+COLS.map(function(c){return '<button type="button" data-mc="'+c+'" aria-pressed="'+(M.c===c)+'" aria-label="'+c+'"><img src="'+img(M.t,c)+'" alt=""><span>'+c+'</span></button>';}).join("")+'</div>';
+ h+='<div class="madd"><select id="msz" aria-label="Size">'+SIZES.map(function(z){return '<option'+(M.s===z?' selected':'')+'>'+z+'</option>';}).join("")+'</select><button class="addb" type="button" data-act="addm"'+(C.shirts.length>=10?' disabled':'')+'>Add '+E(M.t)+' · '+$m(P.shirt)+'</button></div>';
+ if(C.shirts.length)h+='<div class="mlist">'+C.shirts.map(function(s,i){return '<div class="mrow"><img src="'+img(s.t,s.c)+'" alt=""><div><b>'+E(s.c)+' '+E(s.t)+'</b><small>Size '+E(s.s)+' · '+$m(P.shirt)+'</small></div><button class="x" type="button" data-rm="'+i+'" aria-label="Remove '+E(s.c+' '+s.t)+'">×</button></div>';}).join("")+'</div>';
+ return h+'</div>';}
+function summary(){var C=S.C,L=[];
+ OPTS.forEach(function(o){if(C[o.k])L.push([C[o.k]+' × '+o.t,C[o.k]*P[o.k]]);});
+ if(C.meals)L.push([C.meals+' × GA food + 1 drink',C.meals*P.meal]);
+ C.shirts.forEach(function(s){L.push(['Supporter '+s.t+' · '+s.c+' · '+s.s,P.shirt]);});
+ var h=S.fighter?'<div class="l f"><span>Supporting '+E(S.fighter)+'</span><b></b></div>':'';
+ if(!L.length)return h+'<div class="l"><span>Nothing in your order yet</span><b>$0</b></div>';
+ return h+L.map(function(x){return '<div class="l"><span>'+E(x[0])+'</span><b>'+$m(x[1])+'</b></div>';}).join("")+'<div class="l"><span>Total</span><b>'+$m(total())+'</b></div>';}
+
+function paint(){
+ var C=S.C,n=tickets(),h='';
+ h+='<div class="top"><img class="logo" src="/img/fc/fc-logo.png" alt="Fight Club"><div><div class="k">Fight Club Central Coast</div><div class="d">Fight Night · Sat 19 Dec 2026 · Legacy Gym, Kincumber</div></div></div>';
+ if(TESTKEY)h+='<div class="tb">TEST MODE · this order is marked as a test and doesn\'t count in sales. Refund it in Shopify after.</div>';
+ h+='<span class="badge">General sale · open now</span>';
+ if(PREV)h+='<a class="prev" href="/t/'+E(PREV.tok)+'"><b>You already have tickets ('+E(PREV.ref)+')</b><span>Supporting '+E(PREV.fighter||'')+'. Tap to see your order or add names ›</span></a>';
+ h+='<h1 style="margin-top:12px">Fight Night <span>tickets</span></h1>';
+ h+='<p class="lead">Pick the fighter you\'re coming to see, choose your tickets, and pay securely. Your tickets count towards their crew.</p>';
+ h+='<h2>Who are you coming to see?</h2>'+pickHtml();
+ h+='<h2>Your tickets</h2>'+OPTS.map(optHtml).join("");
+ h+='<h2>Extras</h2>';
+ h+='<div class="opt'+(C.meals?' on':'')+'"><div><div class="tag">GA only</div><div class="t">GA food + 1 drink</div><div class="s">Food plus one drink. One per GA ticket. Table seats already include food and drinks.</div><div class="p">'+$m(P.meal)+' <small>each</small></div></div>'
+  +'<div class="step"><button type="button" data-q="meals" data-d="-1"'+(C.meals?'':' disabled')+' aria-label="One less food pack">−</button><b>'+C.meals+'</b><button type="button" data-q="meals" data-d="1"'+(C.meals<C.ga1?'':' disabled')+' aria-label="One more food pack">+</button></div></div>';
+ h+=merchHtml();
+ h+='<h2>Your details</h2><div class="you"><div class="row2"><input class="in" id="yf" placeholder="First name" autocomplete="given-name" value="'+E(S.you.first)+'"><input class="in" id="yl" placeholder="Last name" autocomplete="family-name" value="'+E(S.you.last)+'"></div><input class="in" id="ye" type="email" inputmode="email" placeholder="Email (your confirmation goes here)" autocomplete="email" value="'+E(S.you.email)+'"><input class="in" id="ym" type="tel" inputmode="tel" placeholder="Mobile" autocomplete="tel" value="'+E(S.you.mobile)+'"></div>';
+ if(n){h+='<h2>Names on tickets</h2><p class="note" style="margin:-2px 0 10px">Optional now. Every ticket needs a name before <b>Wed 9 Dec</b>, when the QR tickets are emailed. You can add or change names on your confirmation link after you pay.</p><div class="names">'
+  +Array.from({length:n},function(_,i){return '<input class="in" id="nm'+i+'" data-nm="'+i+'" value="'+E(C.names[i]||"")+'" placeholder="Ticket '+(i+1)+': first and last name (optional)" autocomplete="off">';}).join("")+'</div>';}
+ h+='<h2>The agreement</h2><div class="agree">'+E(AGREE)+'<label class="tick"><input type="checkbox" id="agT"'+(S.tick?' checked':'')+'> I have read and agree to these terms.</label><input class="in" id="agN" value="'+E(S.agreeName)+'" placeholder="Type your full name to agree" autocomplete="name"></div>';
+ h+='<h2>Your order</h2><div class="sum">'+summary()+'</div>';
+ if(C.meals||C.front||C.rows)h+='<div class="food"><b>Food:</b> we\'ll be in contact within 10 days to organise what sort of pizza you\'d like and any dietary requirements.</div>';
+ h+='<p class="note">No QR codes at purchase: your QR tickets are emailed on Wed 9 Dec. You pay securely through the Legacy Gym Shopify checkout.</p>';
+ h+='<div class="err" id="err">'+E(S.err)+'</div>';
+ h+='<div class="foot">Questions? Email fightclub.legacygym@gmail.com<br>Fight Club Central Coast · Legacy Gym Kincumber</div>';
+ app.innerHTML=h;bar.hidden=false;paintBar();}
+function paintBar(){barIn.innerHTML=(S.fighter?'<div class="who">Supporting <b>'+E(S.fighter)+'</b></div>':'<div class="who">Pick your fighter at the top</div>')+'<button class="pay" type="button" id="payBtn"'+(busy||!tickets()&&!S.C.shirts.length?' disabled':'')+'>'+(busy?'Opening secure checkout…':'Pay '+$m(total())+' securely')+'</button>';}
+function refreshList(){var fl=document.getElementById("fl");if(fl)fl.innerHTML=listHtml();var i=document.getElementById("fq");if(i){i.setAttribute("aria-expanded",S.open);var a=document.getElementById("fo"+S.hi);if(S.open&&a)i.setAttribute("aria-activedescendant","fo"+S.hi);else i.removeAttribute("aria-activedescendant");}}
+function choose(n){S.fighter=n;S.q="";S.open=false;S.need=false;if(S.err==="Pick the fighter you're coming to see.")S.err="";keep();paint();}
+function keep(){var g=function(id){var e=document.getElementById(id);return e?e.value:null;};
+ var v;if((v=g("yf"))!==null)S.you.first=v;if((v=g("yl"))!==null)S.you.last=v;if((v=g("ye"))!==null)S.you.email=v;if((v=g("ym"))!==null)S.you.mobile=v;
+ if((v=g("agN"))!==null)S.agreeName=v;var t=document.getElementById("agT");if(t)S.tick=t.checked;
+ document.querySelectorAll("[data-nm]").forEach(function(el){S.C.names[+el.dataset.nm]=el.value;});}
+function fail(msg,focusId){S.err=msg;paint();var f=focusId&&document.getElementById(focusId);var e=document.getElementById("err");
+ if(f){f.scrollIntoView({behavior:"smooth",block:"center"});if(f.classList)f.classList.add("bad");}else if(e)e.scrollIntoView({behavior:"smooth",block:"center"});}
+
+app.addEventListener("input",function(ev){var el=ev.target;
+ if(el.id==="fq"){S.q=el.value;S.open=true;S.hi=0;refreshList();return;}
+ if(el.dataset&&el.dataset.nm!=null)S.C.names[+el.dataset.nm]=el.value;
+ if(el.classList.contains("bad")){el.classList.remove("bad");}});
+app.addEventListener("focusin",function(ev){if(ev.target.id==="fq"){S.open=true;refreshList();}});
+app.addEventListener("focusout",function(ev){if(ev.target.id==="fq")setTimeout(function(){if(document.activeElement&&document.activeElement.id==="fq")return;S.open=false;refreshList();},150);});
+app.addEventListener("keydown",function(ev){if(ev.target.id!=="fq")return;var L=matches(S.q).slice(0,7);
+ if(ev.key==="ArrowDown"){ev.preventDefault();S.open=true;S.hi=Math.min(L.length-1,S.hi+1);refreshList();}
+ else if(ev.key==="ArrowUp"){ev.preventDefault();S.hi=Math.max(0,S.hi-1);refreshList();}
+ else if(ev.key==="Enter"){ev.preventDefault();if(S.open&&L[S.hi])choose(L[S.hi]);}
+ else if(ev.key==="Escape"){S.open=false;refreshList();}});
+app.addEventListener("mousedown",function(ev){var li=ev.target.closest("li[data-f]");if(li){ev.preventDefault();choose(li.dataset.f);}});
+app.addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;keep();
+ if(b.dataset.act==="change"){S.fighter=null;S.open=true;paint();var i=document.getElementById("fq");if(i)i.focus();return;}
+ if(b.dataset.q){var k=b.dataset.q,d=+b.dataset.d,C=S.C;C[k]=Math.max(0,C[k]+d);if(k!=="meals"&&C.meals>C.ga1)C.meals=C.ga1;if(tickets()>40){C[k]-=d;S.err="Up to 40 tickets per order.";}else S.err="";paint();return;}
+ if(b.dataset.mt){S.M.t=b.dataset.mt;paint();return;}
+ if(b.dataset.mc){S.M.c=b.dataset.mc;paint();return;}
+ if(b.dataset.act==="addm"){var z=document.getElementById("msz");if(z)S.M.s=z.value;S.C.shirts.push({c:S.M.c,s:S.M.s,t:S.M.t});paint();return;}
+ if(b.dataset.rm!=null){S.C.shirts.splice(+b.dataset.rm,1);paint();return;}});
+app.addEventListener("change",function(ev){var el=ev.target;if(el.id==="msz")S.M.s=el.value;});
+app.addEventListener("touchstart",function(ev){var li=ev.target.closest&&ev.target.closest("li[data-f]");if(li){ev.preventDefault();choose(li.dataset.f);}},{passive:false});
+
+barIn.addEventListener("click",function(ev){if(!ev.target.closest("#payBtn"))return;keep();
+ if(!S.fighter){S.need=true;S.err="Pick the fighter you're coming to see.";paint();var p=document.querySelector(".pick");if(p)p.scrollIntoView({behavior:"smooth",block:"center"});return;}
+ if(!S.you.first.trim()||!S.you.last.trim())return fail("Add your first and last name.",!S.you.first.trim()?"yf":"yl");
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(S.you.email.trim()))return fail("Add a real email address. Your confirmation goes there.","ye");
+ if(S.you.mobile.replace(/\D/g,"").length<8)return fail("Add your mobile number.","ym");
+ if(!S.tick)return fail("Tick the box to accept the agreement.","agT");
+ var an=S.agreeName.trim().replace(/\s+/g," ");if(an.length<3||an.indexOf(" ")<0)return fail("Type your full name (first and last) under the agreement.","agN");
+ S.err="";goPay();});
+
+async function goPay(){if(busy)return;busy=true;paintBar();
+ try{var C=S.C,an=S.agreeName.trim().replace(/\s+/g," ");
+  var p=await rpc("fn_pub_prepare",{p_token:lsG(TOKK)||null,p_fighter:FID[S.fighter],p_first:S.you.first.trim(),p_last:S.you.last.trim(),p_email:S.you.email.trim(),p_mobile:S.you.mobile.trim(),
+   p_cart:{front:C.front,rows:C.rows,ga1:C.ga1,ga2:0,meals:C.meals,shirts:C.shirts},p_names:C.names.slice(0,tickets()),p_agree_name:an,p_agree_tick:true,p_test:TESTKEY||null});
+  if(!p||!p.ok)throw new Error("Couldn't save your order. Try again.");
+  lsS(TOKK,p.token);
+  var r=await fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({token:p.token,ref:p.ref})});var j=await r.json().catch(function(){return null;});
+  if(!r.ok||!j||!j.url)throw new Error("Couldn't open the checkout. Try again in a moment.");
+  location.href=j.url;
+ }catch(x){busy=false;S.err=x.message||String(x);paint();var e=document.getElementById("err");if(e)e.scrollIntoView({behavior:"smooth",block:"center"});}}
+async function boot(){
+ var i;try{i=await rpc("fn_pub_info",{});}catch(e){app.innerHTML='<h1>Couldn\'t load</h1><p class="lead">Check your signal and refresh the page.</p>';bar.hidden=true;return;}
+ if(!i||!i.open){app.innerHTML='<h1>Sales <span>closed</span></h1><p class="lead">Ticket sales for Fight Night have closed.</p>';bar.hidden=true;return;}
+ P=i.prices;AGREE=(i.agreement&&i.agreement.text)||"";FIGHTERS=(i.fighters||[]).map(function(f){FID[f.name]=f.id;return f.name;});
+ paint();
+ var t=lsG(TOKK);if(t){try{var v=await rpc("fn_buy_view",{p_token:t});var pd=v&&v.ok&&(v.orders||[]).filter(function(o){return o.status==="paid";})[0];if(pd){PREV={tok:t,ref:pd.ref,fighter:v.fighter};lsS(TOKK,"");keep();paint();}}catch(e){}}
+}
+boot();
+})();
+</script>
+</body>
+</html>
