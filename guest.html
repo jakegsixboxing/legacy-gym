@@ -81,6 +81,16 @@ body{padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(40px + env(safe
 .wv.ok a{background:var(--panel);color:var(--ok);border:1px solid var(--ok)}
 .err{border:1px solid rgba(224,74,74,.5);background:rgba(224,74,74,.08);border-radius:14px;padding:12px 14px;font-size:12.5px;line-height:1.5;color:#ffd7d7;margin-top:10px}
 .center{text-align:center;padding:40px 16px}
+.cprog{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0 16px}
+.cprog div{font:800 9px/1 Montserrat,sans-serif;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.cprog div i{display:block;height:4px;border-radius:2px;background:var(--line2);margin-bottom:6px}
+.cprog div.on{color:var(--gold2)}.cprog div.on i{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.cprog div.done{color:var(--ok)}.cprog div.done i{background:var(--ok)}
+.wtip{display:flex;gap:10px;align-items:center;border:1px solid rgba(var(--gold-rgb),.45);border-radius:14px;padding:10px 12px;background:rgba(var(--gold-rgb),.07);font-size:12px;line-height:1.45;color:#d9d4c8;margin-bottom:10px}
+.wtip b{color:var(--gold2)}.wtip .n{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--gold);display:grid;place-items:center;font:700 13px Oswald,sans-serif}
+.wframe{border:1px solid var(--line2);border-radius:16px;overflow:hidden;background:#fff;height:68vh;min-height:460px}
+.wframe iframe{display:block;width:100%;height:100%;border:0}
+.lnk{display:block;width:100%;margin:12px auto 0;background:none;border:0;color:var(--muted);font:700 12px Montserrat,sans-serif;text-decoration:underline;cursor:pointer;text-align:center}
 </style>
 </head>
 <body>
@@ -107,13 +117,16 @@ function ageBox(){return '<div class="age" role="note"><b>18+</b><span><b>Adults
 function gateBox(){return '<div class="ins" style="border-color:rgba(var(--gold-rgb),.6);background:rgba(var(--gold-rgb),.08)"><b>The 7-day free trial is for people thinking about joining.</b> It isn\'t available to anyone who has had a trial before, been a member, or used the gym or recovery centre before, even once.<br><br><b>If that\'s you and you come in on a trial today, the member bringing you in is charged a $100 breach-of-policy fee.</b> Save them the trouble: ask '+E(first(P.host))+' for a casual pass instead.</div>';}
 function faceImg(src,ini,cls){return src&&src.length>40?'<img class="face '+(cls||"")+'" src="'+src+'" alt="">':'<span class="face ph '+(cls||"")+'">'+E(ini||"?")+'</span>';}
 function initials(){return ((P.first||"")[0]||"")+((P.last||"")[0]||"")||"?";}
-function stepFor(){if(!P)return 0;if(!P.first)return 0;if(!P.waived)return 2;if(!P.has_photo)return 3;if(P.status==="done"||P.paid||P.trial_started||P.joined_claimed)return 5;return 4;}
+function cas(){return !!P&&["gym","day","ice","sauna"].indexOf(P.kind)>=0;}
+function stepFor(){if(!P)return 0;if(cas()){if(!P.has_photo)return 3;if(!P.first)return 1;if(!P.waived)return 2;if(P.status==="done"||P.paid)return 5;return 4;}if(!P.first)return 0;if(!P.waived)return 2;if(!P.has_photo)return 3;if(P.status==="done"||P.paid||P.trial_started||P.joined_claimed)return 5;return 4;}
 function load(){return sb.rpc("guest_pass_get",{p_token:TOKEN}).then(function(r){if(r.error)throw r.error;var j=r.data;if(!j.ok)throw new Error(j.error||"Pass not found");P=j.pass;CFG=j.config;});}
 function render(){var app=$("app");if(!P){app.innerHTML='<div class="center"><div class="k">Hmm</div><h2>No pass <span>here.</span></h2><p class="lead">This link doesn\'t match a guest pass. Ask the Legacy member who invited you to send it again, or scan their code.</p></div>';return;}
   if(P.status==="cancelled"){app.innerHTML='<div class="center"><div class="k">Cancelled</div><h2>This pass was <span>cancelled.</span></h2><p class="lead">Ask '+E(first(P.host))+' to make a new one.</p></div>';return;}
   var p=prod(),paid=p.cents>0,mem=P.kind==="membership",tri=P.kind==="trial";
   var head='<div class="k" style="margin-top:14px">Guest pass · '+E(P.code)+'</div><div class="steps">'+[1,2,3,4,5].map(function(i){return '<i class="'+(STEP>=i?"on":"")+'"></i>';}).join("")+'</div>';
   var h="";
+  if(cas()&&STEP>=1&&STEP<=4)h=casStep(STEP,p);
+  else{
   if(STEP===0){h=head+'<div class="k">'+E(P.host)+' has invited you</div><h2>'+E(p.n)+'<span>.</span></h2><p class="lead">'+E(p.s)+' '+(mem?"It's "+wk(p.wk)+" by direct debit, "+String(p.term||"").toLowerCase()+", set up on your phone in a minute.":paid?"It's "+money(p.cents)+", paid here before you walk in.":"No charge. We'll set your trial up in a minute.")+' Four quick steps: your details, the waiver, a photo of you, '+(mem?"then your direct debit":paid?"then payment":"and you're in")+'.</p>'+ageBox()+
     '<div class="card"><div class="kv"><span>Where</span><b>Legacy Gym, Kincumber</b></div><div class="kv"><span>'+(mem?"Starts":"Valid")+'</span><b>'+E(new Date(P.valid_date+"T12:00:00").toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"}))+'</b></div><div class="kv"><span>Host</span><b>'+E(P.host)+'</b></div><div class="kv"><span>Price</span><b>'+(mem?wk(p.wk)+" · "+E(p.term):money(p.cents))+'</b></div></div>'+
     (tri?gateBox()+'<label class="chk"><input type="checkbox" onchange="G.tick(this)"><span>I\'m new to Legacy: no previous trial, membership or casual visit.</span></label><button class="btn" id="goBtn" onclick="G.go()" disabled>I\'m new · start my 7-day trial</button>':'<button class="btn" onclick="G.go()">Let\'s go</button>');}
@@ -137,15 +150,49 @@ function render(){var app=$("app");if(!P){app.innerHTML='<div class="center"><di
   if(STEP===5){var who=((P.first||"")+" "+(P.last||"")).trim();h=head+'<div class="pass"><div class="k">'+(mem?"Member · welcome to Legacy":paid?"Paid · you\'re in":"Trial active · you\'re in")+'</div><div class="code">'+E(P.code)+'</div>'+faceImg(P.photo,initials())+'<div style="font:700 18px/1.1 Oswald,sans-serif;text-transform:uppercase;margin-top:4px">'+E(who)+'</div><div style="font-size:12px;color:var(--muted);margin-top:4px">'+E(p.n)+' · guest of '+E(P.host)+' · '+E(new Date(P.valid_date+"T12:00:00").toLocaleDateString("en-AU",{day:"numeric",month:"short"}))+'</div><span class="tag">Waiver '+(P.waiver_verified?"confirmed":"signed")+(mem?" · "+wk(p.wk)+" · "+E(p.term):paid?" · "+money(P.paid_cents||p.cents)+" paid"+(P.order_name?" · "+E(P.order_name):""):" · 7 days")+'</span><div style="margin-top:14px;font-size:12.5px;line-height:1.55;color:#d0ccc2">'+(mem?"You\'re a member from today. Grab your swipe pass from the desk; until then walk in with "+E(first(P.host))+".":p.kind==="Day pass"?"All day with "+E(first(P.host))+": the gym floor, then the communal sauna and ice bath. Classes are for members. Shower before recovery, swimwear and a towel.":p.kind==="Recovery"?"Head to the recovery centre with "+E(first(P.host))+". Shower first, swimwear on, towel in hand.":tri?"Walk in with "+E(first(P.host))+" today. We\'ll text you about your app login and your own pass.":"Walk in with "+E(first(P.host))+", they swipe you through. Gym floor today; classes are for members.")+'</div></div>'+
     '<div class="sharebox"><div class="k">Bring the crew</div><div style="font:700 18px/1.1 Oswald,sans-serif;text-transform:uppercase;margin:4px 0">'+(mem?"Tell your mates you joined":tri?"Get a mate on a trial too":"Next time, bring a mate")+'</div><div class="lead" style="margin:4px 0 0">One tap sends a message with your name and the link. Everyone 18+ is welcome; under-18s come in during open hours for classes.</div><div class="row"><button class="pri" onclick="G.share()">Share with mates</button><button onclick="G.refresh()">Refresh</button></div></div>'+
     (paid&&!mem?'<div class="card" style="margin-top:10px"><div class="k">Liked it?</div><div style="font:700 18px/1.1 Oswald,sans-serif;text-transform:uppercase;margin:4px 0">Join within 7 days</div><div class="lead" style="margin:4px 0 0">Ask at the desk about having today\'s '+money(p.cents)+' credited to a membership. '+E(first(P.host))+' gets the referral.</div><a class="btn ghost" style="text-align:center;text-decoration:none" href="https://www.legacygym.net/pages/memberships" target="_blank" rel="noopener">See memberships</a></div>':'');}
+  }
   app.innerHTML=h;window.scrollTo(0,0);
+  if(cas()&&STEP===2)wvFrame();
   if(STEP===3&&!P.has_photo)setTimeout(startCam,80);else stopCam();
   if(STEP===4&&!mem&&!tri)startPoll();else stopPoll();
 }
 function setStep(n){STEP=n;render();}
-var G=window.G={};
+/* ---------- casual visit (gym, day, ice, sauna): photo -> details -> waiver -> pay ---------- */
+function casHead(){var L=[[3,"Photo"],[1,"Details"],[2,"Waiver"],[4,"Pay"]],pos=[3,1,2,4].indexOf(STEP);
+  return '<div class="cprog">'+L.map(function(x,i){return '<div class="'+(i<pos?"done":i===pos?"on":"")+'"><i></i>'+(i<pos?"✓ ":"")+x[1]+'</div>';}).join("")+'</div>';}
+function wvUrl(k){var w=(CFG.waivers||{})[k]||{};return w.url+(w.url.indexOf("?")>0?"&":"?")+"wautofill_firstname="+encodeURIComponent(P.first||"")+"&wautofill_lastname="+encodeURIComponent(P.last||"")+"&wautofill_email="+encodeURIComponent(P.email||"")+"&wautofill_phone="+encodeURIComponent(P.mobile||"")+"&wautofill_tag="+encodeURIComponent(TOKEN);}
+function casStep(s,p){var h=casHead(),keys=P.waiver_keys||[];
+  if(s===3){h+='<div class="k">Step 1 of 4</div><h2>First, a photo <span>of you.</span></h2><p class="lead">'+E(p.n)+' · '+money(p.cents)+' · guest of '+E(P.host)+'. Face in the oval, good light, no hat or sunnies.</p>'
+    +'<div class="cam" id="cam">'+(P.has_photo?'<img src="'+P.photo+'" alt="">':'<video id="vid" autoplay playsinline muted></video>')+'<div class="hint" id="camHint">'+(P.has_photo?"Looking good":"Starting camera…")+'</div></div>'
+    +(P.has_photo?'<button class="btn" onclick="G.cont()">Next: your details</button><button class="btn ghost" onclick="G.retake()">Retake</button>'
+      :'<button class="btn" id="snap" onclick="G.snap()" disabled>Take my photo</button><label style="display:block;text-align:center;margin-top:10px"><span class="st" style="cursor:pointer">Camera not working? Use your phone camera</span><input type="file" accept="image/*" capture="user" style="display:none" onchange="G.fromFile(this)"></label>')
+    +'<div class="ins"><b>Why a photo?</b> Every casual visit needs a photo, a signed waiver and payment. It\'s a condition of our insurance. Your photo is never posted or shared, and is only used to match you to your pass.</div>';}
+  if(s===1){h+='<div class="k">Step 2 of 4</div><h2>Your <span>details.</span></h2><p class="lead">So staff know who\'s in the building and where to send your receipt.</p>'
+    +'<div class="row2"><div><label for="fn">First name</label><input id="fn" autocomplete="given-name" value="'+E(P.first||"")+'"></div><div><label for="ln">Last name</label><input id="ln" autocomplete="family-name" value="'+E(P.last||"")+'"></div></div><label for="fm">Mobile</label><input id="fm" inputmode="tel" autocomplete="tel" value="'+E(P.mobile||"")+'" placeholder="04xx xxx xxx"><label for="fe">Email</label><input id="fe" inputmode="email" autocomplete="email" value="'+E(P.email||"")+'" placeholder="you@email.com">'
+    +'<label class="chk" style="margin-top:14px"><input type="checkbox" id="age18" '+(age18?"checked":"")+'><span>I\'m <b style="color:var(--text)">18 or older</b>. The gym floor and recovery centre are 18+.</span></label>'
+    +'<button class="btn" onclick="G.details()">Next: sign the waiver</button><button class="lnk" onclick="G.retakeCas()">‹ Retake my photo</button>';}
+  if(s===2){var i=Math.min(G.wi||0,Math.max(keys.length-1,0)),k=keys[i],w=(CFG.waivers||{})[k]||{};
+    h+='<div class="k">Step 3 of 4'+(keys.length>1?' · waiver '+(i+1)+' of '+keys.length:'')+'</div><h2>Sign the <span>waiver.</span></h2>'
+    +'<div class="wtip"><b class="n">✍</b><span>'+E(w.name||"Waiver")+'. <b>Scroll down, tap Adult, add your name, sign with your finger and tap Agree.</b> Then tap the gold button under the waiver.</span></div>'
+    +'<div class="wframe"><iframe id="swf" src="'+E(wvUrl(k))+'" title="'+E(w.name||"Waiver")+'"></iframe></div>'
+    +'<button class="btn" id="chkBtn" onclick="G.wvSigned(true)">I\'ve signed it · continue</button><div id="wvMsg"></div>'
+    +'<a class="lnk" href="'+E(wvUrl(k))+'" target="_blank" rel="noopener" onclick="G.wvOpened=1">Waiver not loading? Open it in a new tab</a><button class="lnk" onclick="G.next(1)">‹ Change my details</button>';}
+  if(s===4){var link=(CFG.shop||"https://www.legacygym.net")+"/cart/"+p.variant+":1?attributes[pass_token]="+encodeURIComponent(TOKEN)+"&attributes[pass_code]="+encodeURIComponent(P.code)+"&attributes[guest]="+encodeURIComponent((P.first||"")+" "+(P.last||""))+"&attributes[host]="+encodeURIComponent(P.host||"")+"&checkout[email]="+encodeURIComponent(P.email||"")+"&checkout[shipping_address][first_name]="+encodeURIComponent(P.first||"")+"&checkout[shipping_address][last_name]="+encodeURIComponent(P.last||"")+"&checkout[shipping_address][phone]="+encodeURIComponent(P.mobile||"");
+    h+='<div class="k">Last step</div><h2>Pay <span>'+money(p.cents)+'</span> and you\'re in.</h2><p class="lead">Your pass unlocks the moment payment goes through. Staff can only let you in once it says <b style="color:var(--text)">paid</b>.</p>'
+    +'<div class="card"><div class="kv"><span>'+E(p.n)+'</span><b>'+money(p.cents)+'</b></div><div class="kv"><span>Guest</span><b>'+E((P.first||"")+" "+(P.last||""))+'</b></div><div class="kv"><span>Invited by</span><b>'+E(P.host)+'</b></div><div class="kv"><span>Valid</span><b>Today only</b></div><div class="kv"><span>Total</span><b style="color:var(--gold2);font-size:18px">'+money(p.cents)+'</b></div></div>'
+    +'<a class="btn pay" href="'+E(link)+'" onclick="G.paying()">Pay '+money(p.cents)+'</a>'
+    +'<p class="lead" style="font-size:11.5px;text-align:center;margin-top:10px">Apple Pay, Google Pay or card · Legacy Gym secure checkout. After paying, come back to this page or reopen your link and your pass is here.</p>'
+    +'<button class="lnk" onclick="G.refresh()">I\'ve paid · show my pass</button>';}
+  return h;}
+/* the signed waiver reloads the frame (Smartwaiver's thank-you page): that moves them on. Loads in the first 8 s are ignored. */
+function wvFrame(){var f=$("swf");if(!f)return;var t0=0;f.addEventListener("load",function(){var now=Date.now();if(!t0){t0=now;return;}if(now-t0>8000)G.wvSigned(false);});}
+var G=window.G={};G.wi=0;
 G.tick=function(el){newTick=el.checked;$("goBtn").disabled=!newTick;};
 G.go=function(){if(P.kind==="trial"&&!newTick)return;setStep(1);};
 G.next=function(n){setStep(n);};
+G.cont=function(){setStep(stepFor());};
+G.retakeCas=function(){P.has_photo=false;P.photo=null;setStep(3);};
+G.wvSigned=function(manual){if(busy)return;var keys=P.waiver_keys||[];if((G.wi||0)<keys.length-1){G.wi=(G.wi||0)+1;toast("Signed. One more to go");render();return;}G.checkWaiver();};
 G.details=function(){if(busy)return;var f=$("fn").value.trim(),l=$("ln").value.trim(),m=$("fm").value.trim(),e=$("fe").value.trim();age18=$("age18").checked;
   if(!f||!l||!m||!e){toast("First name, last name, mobile and email please");return;}if(!age18){toast("You need to be 18 or over to use this pass");return;}
   busy=true;sb.rpc("guest_pass_details",{p_token:TOKEN,p:{first:f,last:l,mobile:m,email:e,age18:true}}).then(function(r){busy=false;var j=r.data||{};if(r.error||!j.ok){toast((j.error)||(r.error&&r.error.message)||"Try again");return;}return load().then(function(){setStep(2);});}).catch(function(){busy=false;toast("Connection hiccup, try again");});};
@@ -153,10 +200,10 @@ G.returning=function(){if(busy)return;var m=$("retMob").value.trim();if(m.replac
   sb.rpc("guest_pass_returning",{p_token:TOKEN,p_mobile:m}).then(function(r){busy=false;var j=r.data||{};if(r.error||!j.ok){toast(j.error||"Try again");return;}toast("Welcome back, "+j.first+(j.waiver_ok?". Waiver and photo on file":". Photo on file, one waiver to sign"));return load().then(function(){setStep(stepFor());});}).catch(function(){busy=false;toast("Connection hiccup, try again");});};
 G.checkWaiver=function(){if(busy)return;busy=true;var b=$("chkBtn");if(b){b.disabled=true;b.textContent="Checking with Smartwaiver…";}
   fetch(SB_URL+"/functions/v1/guest-waiver?t="+encodeURIComponent(TOKEN)).then(function(r){return r.json();}).catch(function(){return {configured:false};}).then(function(j){
-    if(j&&j.verified){busy=false;toast("Waiver confirmed");return load().then(function(){setStep(3);});}
-    if(j&&j.configured){busy=false;if(b){b.disabled=false;b.textContent="I've signed · check again";}var msg=$("wvMsg");if(msg)msg.innerHTML='<div class="err">We can\'t see your signed waiver yet'+(j.missing&&j.missing.length>1?" (both are needed)":"")+'. Make sure you tapped <b>Agree</b> at the very bottom of the Smartwaiver page, then check again.</div>';return;}
+    if(j&&j.verified){busy=false;toast("Waiver confirmed");return load().then(function(){setStep(cas()?stepFor():3);});}
+    if(j&&j.configured){busy=false;if(b){b.disabled=false;b.textContent=cas()?"I've signed it · continue":"I've signed · check again";}var msg=$("wvMsg");if(msg)msg.innerHTML='<div class="err">We can\'t see your signed waiver yet'+(j.missing&&j.missing.length>1?" (both are needed)":"")+'. Make sure you tapped <b>Agree</b> at the very bottom of the Smartwaiver page, then check again.</div>';return;}
     /* Smartwaiver check not switched on yet: record the signature as self-reported, staff confirm it */
-    return sb.rpc("guest_pass_waiver_claim",{p_token:TOKEN}).then(function(r){busy=false;var k=r.data||{};if(r.error||!k.ok){if(b){b.disabled=false;b.textContent="I've signed · check";}toast(k.error||"Try again");return;}toast("Waiver recorded");return load().then(function(){setStep(3);});});
+    return sb.rpc("guest_pass_waiver_claim",{p_token:TOKEN}).then(function(r){busy=false;var k=r.data||{};if(r.error||!k.ok){if(b){b.disabled=false;b.textContent="I've signed · check";}toast(k.error||"Try again");return;}toast("Waiver signed");return load().then(function(){setStep(cas()?stepFor():3);});});
   }).catch(function(){busy=false;if(b){b.disabled=false;b.textContent="I've signed · check";}toast("Connection hiccup, try again");});};
 /* camera + face check */
 var cam={stream:null,det:null,detReady:false,timer:null,live:false,lastOk:false,pending:null};
@@ -178,7 +225,7 @@ function liveCheck(){var v=$("vid");if(!v||!cam.live||v.readyState<2)return;chec
 window.snap=function(){var v=$("vid");if(!v||!cam.lastOk){toast("Get your face in the oval first");return;}var c=document.createElement("canvas");c.width=360;c.height=450;var x=c.getContext("2d"),vw=v.videoWidth,vh=v.videoHeight,s=Math.max(360/vw,450/vh);x.translate(360,0);x.scale(-1,1);x.drawImage(v,(360-vw*s)/2,(450-vh*s)/2,vw*s,vh*s);acceptPhoto(c.toDataURL("image/jpeg",.7));};
 window.fromFile=function(inp){var f=inp.files&&inp.files[0];if(!f)return;var img=new Image();img.onload=function(){checkFace(img,img.naturalWidth,img.naturalHeight).then(function(r){if(!r.ok){setHint(r.why,false);toast(r.why);return;}var c=document.createElement("canvas");c.width=360;c.height=450;var x=c.getContext("2d"),s=Math.max(360/img.naturalWidth,450/img.naturalHeight);x.drawImage(img,(360-img.naturalWidth*s)/2,(450-img.naturalHeight*s)/2,img.naturalWidth*s,img.naturalHeight*s);acceptPhoto(c.toDataURL("image/jpeg",.7));});};img.src=URL.createObjectURL(f);};
 
-function acceptPhoto(url){stopCam();if(busy)return;busy=true;toast("Saving photo…");sb.rpc("guest_pass_photo",{p_token:TOKEN,p_data:url}).then(function(r){busy=false;var j=r.data||{};if(r.error||!j.ok){toast(j.error||"Photo didn't save, try again");render();return;}buzz(15);return load().then(function(){toast("Photo saved");render();});}).catch(function(){busy=false;toast("Connection hiccup, try again");render();});}
+function acceptPhoto(url){stopCam();if(busy)return;busy=true;toast("Saving photo…");sb.rpc("guest_pass_photo",{p_token:TOKEN,p_data:url}).then(function(r){busy=false;var j=r.data||{};if(r.error||!j.ok){toast(j.error||"Photo didn't save, try again");render();return;}buzz(15);return load().then(function(){toast("Photo saved");if(cas())setTimeout(function(){setStep(stepFor());},600);else render();});}).catch(function(){busy=false;toast("Connection hiccup, try again");render();});}
 G.snap=window.snap;G.fromFile=window.fromFile;
 G.retake=function(){P.has_photo=false;P.photo=null;render();};
 G.trial=function(){if(busy)return;busy=true;sb.rpc("guest_pass_trial_start",{p_token:TOKEN}).then(function(r){busy=false;var j=r.data||{};if(r.error||!j.ok){toast(j.error||(r.error&&r.error.message)||"Try again");return;}buzz([20,30,20]);return load().then(function(){setStep(5);});}).catch(function(){busy=false;toast("Connection hiccup, try again");});};
