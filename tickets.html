@@ -285,6 +285,12 @@ async function boot(){
  var i;try{i=await rpc("fn_pub_info",{});}catch(e){app.innerHTML='<h1>Couldn\'t load</h1><p class="lead">Check your signal and refresh the page.</p>';bar.hidden=true;return;}
  if(!i||!i.open){app.innerHTML='<h1>Sales <span>closed</span></h1><p class="lead">Ticket sales for Fight Night have closed.</p>';bar.hidden=true;return;}
  P=i.prices;AGREE=(i.agreement&&i.agreement.text)||"";FIGHTERS=(i.fighters||[]).map(function(f){FID[f.name]=f.id;return f.name;});
+ try{var q=new URLSearchParams(location.search),fs=(q.get("f")||"").toLowerCase().trim(),sl=function(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");};
+  var fm=fs&&FIGHTERS.filter(function(n){return sl(n)===fs;})[0];if(fm)S.fighter=fm;
+  if(q.get("t")==="table")S.C.ga1=0;
+  var sh=(q.get("shirt")||"").split(".");if(sh.length===4){var st=sh[0]==="singlet"?"singlet":"shirt",sc=sh[1].charAt(0).toUpperCase()+sh[1].slice(1),sn=Math.min(10,Math.max(1,+sh[3]||1));
+   if(COLS.indexOf(sc)>=0&&SIZES.indexOf(sh[2])>=0){for(var k=0;k<sn;k++)S.C.shirts.push({c:sc,s:sh[2],t:st});S.M={t:st,c:sc,s:sh[2]};if(q.get("t")!=="ga"&&!fs)S.C.ga1=0;}}
+ }catch(e){}
  paint();
  var t=lsG(TOKK);if(t){try{var v=await rpc("fn_buy_view",{p_token:t});var pd=v&&v.ok&&(v.orders||[]).filter(function(o){return o.status==="paid";})[0];if(pd){PREV={tok:t,ref:pd.ref,fighter:v.fighter};lsS(TOKK,"");keep();paint();}}catch(e){}}
 }

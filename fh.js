@@ -7,6 +7,8 @@ var SB="https://jyslqxepodrseyhoppce.supabase.co/rest/v1/rpc/";
 var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 var APP="https://legacygym-app.vercel.app";
 var LOGO=APP+"/img/fc/fc-logo.png";
+var TIX=APP+"/tickets?f=";
+var SALE=["hussein-mouhanna"]; /* fighter pages that sell tickets straight from the page (general sale) */
 var root=document.getElementById("fh");
 var SLUG=(root&&root.getAttribute("data-slug"))||(location.pathname.split("/").pop()||"");
 var $=function(id){return document.getElementById(id);};
@@ -88,18 +90,19 @@ function shell(){
 function render(){
   var d=S.d,f=F();
   var days=Math.ceil((new Date(2026,11,19,19,0)-new Date())/864e5);$("fhCd").textContent=days+" days to go · Legacy Gym Kincumber";
-  document.title=f.name+" · Fight Night · Hold me a ticket";
+  document.title=f.name+" · Fight Night"+(d.on_sale?" tickets":" · Hold me a ticket");
   var src=heroSrc();
   $("fhHero").innerHTML=src?'<div class="hero'+(f.poster?"":" nop")+'"><img src="'+esc(src)+'" alt="'+esc(f.name)+' — Fight Night">'+(f.poster?"":'<div class="nm"><b>'+esc(f.name)+'</b><small>Fight Club Central Coast · Fight Night</small></div>')+'</div>'
     :'<div class="hero blank"><div><img src="'+LOGO+'" alt=""><div style="margin-top:16px"><b class="oz" style="font-size:34px">'+esc(f.name)+'</b><div class="k" style="margin-top:8px">Fight Night · Sat 19 Dec</div></div></div></div>';
   var meta=["<span><b>Fight Club Central Coast</b></span>","<span>Fight Night · Sat 19 Dec</span>"];
   $("fhMeta").innerHTML='<div class="meta2"><span class="num">FIGHTER</span>'+meta.join("")+'</div>';
   $("fhBlock").innerHTML=blockHtml();
-  $("fhMain").innerHTML=mainHtml()+'<div class="foot"><b>Fight Club Central Coast · Fight Night</b><br>Saturday 19 December · Legacy Gym Kincumber<br>Nothing charged to hold · you buy through your own link · 18+ ticketing, under-18s by nomination</div>';
+  $("fhMain").innerHTML=mainHtml()+'<div class="foot"><b>Fight Club Central Coast · Fight Night</b><br>Saturday 19 December · Legacy Gym Kincumber<br>'+(d.on_sale?'Secure card checkout · QR tickets by email':'Nothing charged to hold · you buy through your own link')+' · 18+ ticketing, under-18s by nomination</div>';
 }
 function gridHtml(){var d=S.d,h="",n=Math.max(10,d.block|0);for(var i=0;i<n;i++){h+='<i class="'+(i<(d.held|0)?(S.me&&i===(d.held|0)-1?"me":"on"):"")+'"></i>';}return '<div class="grid10">'+h+'</div>';}
 function blockHtml(){
   var d=S.d;
+  if(d.holds_closed&&d.on_sale)return '';
   return '<div class="block"><div class="hd"><b>'+esc(first())+'\'s tickets</b><small>'+(d.held|0)+' of '+(d.block|0)+' seats held</small></div>'+gridHtml()+'<p>'+(full()?'<b>'+esc(first())+'\'s block is full'+(d.pending?' and more are on the way.':'.')+'</b> Leave your details and you\'re first in line the moment more open.':'<b>'+(d.left|0)+' left.</b> Tables can cover up to 10 seats. Nothing to pay now — you get your own buying link by email.')+'</p></div>';
 }
 function tk(o){
@@ -109,10 +112,18 @@ function tk(o){
    +(o==="gold"?'<div class="seatchips">'+[1,2,4,6,10].map(function(n){return '<button type="button" onclick="fhPick(\'gold\','+n+')">'+(n===10?'Full table · 10':n+(n===1?' seat':' seats'))+'</button>';}).join("")+'</div>':'')
    +'<button class="pick" '+(gone?'disabled':'onclick="fhPick(\''+o+'\')"')+'>'+(gone?'Fully held':(full()?'Join the list · ':'')+(o==="ga"?"Hold a GA spot":"Hold table seats · 1 to 10"))+'</button></div>';
 }
+function tkSale(o){var T=S.d.tiers[o];
+  return '<div class="tk"><div class="hd"><div><div class="nm">'+esc(T.nm)+'</div><div class="tag">'+esc(T.tag)+'</div></div><div class="pr"><b>'+esc(T.price)+'</b><small>'+esc(T.unit)+'</small></div></div><ul>'+(T.pts||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join("")+'</ul>'
+   +'<button class="pick" onclick="fhTix(\''+(o==="gold"?"&t=table":"&t=ga")+'\')">'+(o==="gold"?"Buy table tickets":"Buy GA tickets")+' ›</button></div>';}
+window.fhTix=function(extra){location.href=TIX+encodeURIComponent(F().slug)+(extra||"");};
 function mainHtml(){
   var d=S.d,f=F();
   var nT=["gold","silver","ga"].filter(function(k){return d.tiers[k];}).length;
-  if(d.holds_closed){
+  if(d.holds_closed&&d.on_sale){
+    var h='<div class="sec" id="tix"><h2>Tickets on sale now</h2><div class="sub">Come and watch '+esc(first())+' fight. Every ticket bought from this page counts for <b>'+esc(first())+'\'s crew</b>.</div>'
+     +'<div class="tix2">'+["gold","ga"].filter(function(k){return d.tiers[k];}).map(tkSale).join("")+'</div>'
+     +'<div class="notice"><b>One checkout.</b> Add food &amp; drink packs and '+esc(team())+' supporter shirts on the same order. Pay securely by card, and your QR tickets come by email.</div></div>';
+  } else if(d.holds_closed){
     var h='<div class="sec" id="tix"><h2>Ticket holds have closed</h2><div class="sub">Thanks to everyone who held a ticket to '+esc(first())+'\'s name. Holds are now closed so we can get tickets out to the people who put their name down.</div>'
      +'<div class="notice"><b>Already holding?</b> You\'ll get a personal link by text and email with the prices, your buying window and how to grab your tickets. Keep an eye on your phone.</div>'
      +(S.me?'<div class="notice win"><b>You\'re '+(S.me.status==="waitlist"?"on the list":"holding "+(S.me.tier==="gold"?(S.me.seats===10?"a full table":S.me.seats+(S.me.seats>1?" seats":" seat")):"one"))+', '+esc(S.me.first)+'.</b> '+esc(d.tiers[S.me.tier].nm)+'. Your personal link is on its way.</div>':'')
@@ -127,7 +138,7 @@ function mainHtml(){
   h+='<div class="sec" id="gear"><h2>Supporter shirts &amp; singlets</h2><div class="sub">Get around '+esc(first())+' on the night — grab yourself one of the colourful '+esc(team())+' supporter shirts or singlets. Fight Night has no dress code bar enclosed shoes, so singlets, shirts, it\'s all welcome. Sizing runs from XS right through to 6XL.</div>'
    +'<div class="gear"><div class="gimgs">'+["indigenous","pink","yellow","grey","black"].map(function(c){return '<img src="'+MERCH+'shirt-'+c+'.jpg" alt="'+c+' shirt" onclick="fhGear(\'shirt\',\''+c+'\')">';}).join("")+'</div>'
    +'<div class="grow"><div><div class="nm">'+esc(team())+' gear</div><div class="tag">Shirt or singlet · 5 colourways · XS – 6XL</div></div><div class="pr"><b>'+money(d.shirt_cents)+'</b><small>each</small></div></div>'
-   +'<p>Pre-request only — <b style="color:var(--c2)">nothing to pay today</b>. Pick your style, colour, size and how many, and payment details will be sent to you with your ticket release. '+((d.shirts|0)>0?'<b style="color:var(--ink)">'+(d.shirts|0)+' requested so far.</b>':'')+'</p>'
+   +(d.on_sale?'<p>Pick your style, colour and size, then <b style="color:var(--c2)">add it to your ticket order</b> — or buy shirts on their own. Same secure checkout.</p>':'<p>Pre-request only — <b style="color:var(--c2)">nothing to pay today</b>. Pick your style, colour, size and how many, and payment details will be sent to you with your ticket release. '+((d.shirts|0)>0?'<b style="color:var(--ink)">'+(d.shirts|0)+' requested so far.</b>':'')+'</p>')
    +'<div class="gbtns"><button class="pick" onclick="fhGear(\'shirt\')">I want a shirt</button><button class="pick" onclick="fhGear(\'singlet\')">I want a singlet</button></div></div>';
   h+=kitSecHtml();
   var sg=d.songs||[];
@@ -135,7 +146,7 @@ function mainHtml(){
    +(d.walkout?'<div class="notice win"><b>Locked in:</b> '+esc(d.walkout)+'</div>':'')
    +(sg.length?'<div class="songs">'+sg.map(function(x){return '<div class="song">'+esc(x)+'</div>';}).join("")+((d.song_count|0)>sg.length?'<div class="song more">+'+((d.song_count|0)-sg.length)+' more</div>':'')+'</div>':'<div class="hint">No suggestions yet — you could be first.</div>')
    +'<button class="btn p" style="width:100%;margin-top:12px" onclick="fhSong()">Suggest a song</button></div>';
-  h+='<div class="sec" id="shareSec"><h2>Share '+esc(first())+'\'s page</h2><div class="sub">Send '+esc(first())+'\'s link to the people who\'d come. '+(d.holds_closed?'Holds have closed, but '+esc(first())+'\'s page is still the place for supporter gear, the walkout song and sponsoring the fight gear.':'Every hold goes to '+esc(first())+'\'s name.')+'</div><div class="share"><button class="btn p" onclick="fhCopy()">Copy link</button><button class="btn" onclick="fhShare()">Share</button></div></div>';
+  h+='<div class="sec" id="shareSec"><h2>Share '+esc(first())+'\'s page</h2><div class="sub">Send '+esc(first())+'\'s link to the people who\'d come. '+(d.on_sale?'Every ticket bought from '+esc(first())+'\'s page counts for '+esc(first())+'\'s crew.':d.holds_closed?'Holds have closed, but '+esc(first())+'\'s page is still the place for supporter gear, the walkout song and sponsoring the fight gear.':'Every hold goes to '+esc(first())+'\'s name.')+'</div><div class="share"><button class="btn p" onclick="fhCopy()">Copy link</button><button class="btn" onclick="fhShare()">Share</button></div></div>';
   return h;
 }
 
@@ -190,12 +201,19 @@ function styleHtml(){return ["shirt","singlet"].map(function(st){return '<button
 function coloursHtml(){return COLOURS.map(function(c){return '<button type="button" class="col'+(shirt.colour===c[0]?" on":"")+'" onclick="fhColour(\''+c[0]+'\')"><img src="'+MERCH+shirt.style+'-'+c[0]+'.jpg" alt=""><b>'+c[1]+'</b></button>';}).join("");}
 function sizesHtml(){return SIZES.map(function(s){return '<button type="button" class="'+(shirt.size===s?"on":"")+'" onclick="fhSize(\''+s+'\')">'+s+'</button>';}).join("");}
 function gearSummary(){var c=COLOURS.filter(function(x){return x[0]===shirt.colour;})[0][1];return shirt.qty+' × '+c+' '+shirt.style+(shirt.qty>1?"s":"")+' · '+shirt.size+' · '+money(S.d.shirt_cents*shirt.qty);}
-function gearRefresh(){$("fStyles").innerHTML=styleHtml();$("fCols").innerHTML=coloursHtml();$("fSizes").innerHTML=sizesHtml();$("fQty").textContent=shirt.qty;$("fSum").textContent=gearSummary();$("fGo").textContent="Request "+(shirt.qty>1?shirt.qty+" ":"my ")+shirt.style+(shirt.qty>1?"s":"");}
+function gearRefresh(){$("fStyles").innerHTML=styleHtml();$("fCols").innerHTML=coloursHtml();$("fSizes").innerHTML=sizesHtml();$("fQty").textContent=shirt.qty;$("fSum").textContent=gearSummary();$("fGo").textContent=S.d.on_sale?"Add to my order ›":"Request "+(shirt.qty>1?shirt.qty+" ":"my ")+shirt.style+(shirt.qty>1?"s":"");}
+window.fhGearBuy=function(){fhTix("&shirt="+[shirt.style,shirt.colour,shirt.size,shirt.qty].join("."));};
 window.fhStyle=function(st){shirt.style=st;gearRefresh();};
 window.fhColour=function(c){shirt.colour=c;gearRefresh();};
 window.fhSize=function(s){shirt.size=s;gearRefresh();};
 window.fhQty=function(d){shirt.qty=Math.min(10,Math.max(1,shirt.qty+d));gearRefresh();};
 window.fhGear=function(st,c){if(st)shirt.style=st;if(c)shirt.colour=c;
+  if(S.d.on_sale){open('<h3>'+esc(team())+' supporter gear</h3><div class="sub"><b>'+money(S.d.shirt_cents)+' each.</b> Pick it here and it\'s added to your order on the ticket checkout. Buy it with tickets or on its own.</div>'
+   +'<label>Shirt or singlet</label><div class="styles" id="fStyles">'+styleHtml()+'</div>'
+   +'<label>Colour</label><div class="cols" id="fCols">'+coloursHtml()+'</div>'
+   +'<label>Size <span class="o">(XS – 6XL)</span></label><div class="sizes" id="fSizes">'+sizesHtml()+'</div>'
+   +'<label>How many</label><div class="qty"><button type="button" onclick="fhQty(-1)">−</button><b id="fQty">'+shirt.qty+'</b><button type="button" onclick="fhQty(1)">+</button><span class="sum" id="fSum">'+gearSummary()+'</span></div>'
+   +'<button class="btn p" id="fGo" onclick="fhGearBuy()">Add to my order ›</button><button class="cancel" onclick="closeAll()">‹ Back to '+esc(first())+'\'s page</button>');return;}
   open('<h3>'+esc(team())+' supporter gear</h3><div class="sub"><b>'+money(S.d.shirt_cents)+' each.</b> Pre-request only — nothing to pay today. Payment details come with your ticket release, and we confirm your size before anything is printed.</div>'
    +'<label>Shirt or singlet</label><div class="styles" id="fStyles">'+styleHtml()+'</div>'
    +'<label>Colour</label><div class="cols" id="fCols">'+coloursHtml()+'</div>'
@@ -261,10 +279,10 @@ window.fhSongGo=async function(){if(S.busy)return;var sg=$("fS").value.trim(),nm
   }catch(e){err.textContent=e.message||String(e);go.disabled=false;go.textContent="Suggest it";}
   S.busy=false;};
 window.fhCopy=async function(){try{await navigator.clipboard.writeText(pageUrl());toast("Link copied");}catch(e){prompt("Copy this link:",pageUrl());}};
-window.fhShare=async function(){var t=first()+" is fighting at Legacy on Dec 19. "+(S.d&&S.d.holds_closed?"Get around "+first()+" — supporter gear, walkout song and more: ":"Hold a ticket to "+first()+"'s name — nothing to pay yet: ")+pageUrl();try{if(navigator.share){await navigator.share({title:F().name+" · Fight Night",text:t,url:pageUrl()});return;}}catch(e){if(e&&e.name==="AbortError")return;}fhCopy();};
+window.fhShare=async function(){var t=first()+" is fighting at Legacy on Dec 19. "+(S.d&&S.d.on_sale?"Tickets are on sale — come and support "+first()+": ":S.d&&S.d.holds_closed?"Get around "+first()+" — supporter gear, walkout song and more: ":"Hold a ticket to "+first()+"'s name — nothing to pay yet: ")+pageUrl();try{if(navigator.share){await navigator.share({title:F().name+" · Fight Night",text:t,url:pageUrl()});return;}}catch(e){if(e&&e.name==="AbortError")return;}fhCopy();};
 
 function fixT(d){try{var g=d&&d.tiers&&d.tiers.ga;if(g){g.low=8500;g.mid=8500;g.price="$85";g.tag="General admission · roaming & bar";g.where="GA · roaming & bar, some bar stools";g.pts=["General admission: $85 · roaming & bar style, move around the room","Some bar stools: first in, best dressed","Add a GA food & drink pack for $49.99"];}}catch(e){}return d;}
-async function load(paint){var j=await rpc("fh_public",{p_slug:SLUG});if(!j||!j.ok)throw new Error("no_fighter");S.d=fixT(j);if(paint!==false)render();}
+async function load(paint){var j=await rpc("fh_public",{p_slug:SLUG});if(!j||!j.ok)throw new Error("no_fighter");S.d=fixT(j);if(SALE.indexOf(SLUG)>=0)S.d.on_sale=true;if(paint!==false)render();}
 if(/[?&]preview=1/.test(location.search)){var pb=document.createElement('div');pb.style.cssText='background:#2a2211;color:#f5b942;border-bottom:1px solid #6b5520;font:800 10px/1.4 Montserrat,sans-serif;letter-spacing:1.5px;text-transform:uppercase;text-align:center;padding:8px 12px';pb.textContent='Guest view · this is the live page — anything you submit here is real';document.body.insertBefore(pb,document.body.firstChild);}
 shell();root.querySelector("#fhMain").innerHTML='<div class="loading">Opening '+esc(SLUG.replace(/-/g," "))+'\'s page…</div>';
 load().catch(function(e){root.querySelector("#fhMain").innerHTML='<div class="loading">That fighter page isn\'t live yet.<br><br><a href="'+APP+'/fightnight" style="color:var(--c2)">See the event page</a></div>';});
