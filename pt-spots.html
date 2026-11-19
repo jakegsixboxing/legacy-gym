@@ -91,6 +91,7 @@ input:focus{outline:2px solid var(--gold);outline-offset:1px}
 (function(){
 var SB_URL='https://jyslqxepodrseyhoppce.supabase.co',SB_KEY='sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we';
 var NOTIFY='https://formsubmit.co/ajax/5ff9676c4c14c5f665182ea590273538';
+var PAY={9000:'https://www.legacygym.net/cart/48187483652247:1'};
 var sb=null;try{sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false}});}catch(e){}
 var SLOTS=[],PICK=null,BUSY=false,MINE=null,TZ='Australia/Sydney';
 function $(s){return document.querySelector(s);}
@@ -137,9 +138,9 @@ function fail(t){var e=$('#err');if(e)e.textContent=t;BUSY=false;var g=$('#go');
 function notify(d){
   try{var fd=new FormData();
    fd.append('Booking','PT with Jake');fd.append('Session',d.when);fd.append('Price',d.price);
-   fd.append('Name',d.name);fd.append('Mobile',d.mobile);fd.append('Email',d.email);
-   fd.append('Next step','Send the secure payment link now. The spot is closed off on the page and they were told it is held for 10 minutes.');
-   fd.append('_subject','PT BOOKING: '+d.when+' · '+d.name+' · send payment link');
+   fd.append('Name',d.name);fd.append('Mobile',d.mobile);fd.append('Email',d.email);fd.append('Booking ref',d.ref);fd.append('Payment link they were given',d.pay||'none');
+   fd.append('Next step','They were shown the secure Shopify payment link on screen. The spot is closed off on the page. Check Shopify for the $90 order; reopen the spot if they do not pay.');
+   fd.append('_subject','PT BOOKING: '+d.when+' · '+d.name+' · '+d.ref);
    fd.append('_replyto',d.email);fd.append('_template','table');fd.append('_captcha','false');
    fetch(NOTIFY,{method:'POST',headers:{'Accept':'application/json'},body:fd,keepalive:true}).catch(function(){});
   }catch(e){}
@@ -160,14 +161,19 @@ function submit(ev){
     }
     MINE=p.id;BUSY=false;
     var when=dayLong(new Date(p.starts_at))+', '+range(p);
-    notify({when:when,price:money(p.price_cents),name:name,mobile:mobile,email:email});
+    var ref='PT-'+String(p.id).replace(/-/g,'').slice(0,6).toUpperCase();
+    var base=PAY[p.price_cents]||'',pay=base?base+'?note='+encodeURIComponent('PT with Jake '+when+' ref '+ref):'';
+    notify({when:when,price:money(p.price_cents),name:name,mobile:mobile,email:email,ref:ref,pay:base});
     $('#sheet').innerHTML='<div class="done"><div class="tick">✓</div><h2 id="shT">Spot held</h2>'
       +'<div class="pick" style="margin:6px 0 0">'+esc(when)+'</div>'
-      +'<p><b>A secure link will now be sent to you for payment.</b></p>'
+      +(pay?'<p><b>Your secure payment link is ready.</b> Tap below to pay '+money(p.price_cents)+' and lock in your spot.</p>'
+        +'<a class="btn full" id="payNow" href="'+esc(pay)+'" target="_blank" rel="noopener" style="display:block;text-decoration:none;text-align:center;margin:12px 0 4px">Pay '+money(p.price_cents)+' now</a>'
+        +'<p class="s">Secure Legacy Gym checkout. Card, Apple Pay or Google Pay.</p>'
+        :'<p><b>A secure link will now be sent to you for payment.</b></p>')
       +'<p>All payments must be made in advance for personal training before spots are held.</p>'
       +'<p>This spot is now held for you for 10 minutes until payment is processed.</p>'
-      +'<div class="count" id="cd">10:00</div><p class="s">Keep an eye on your phone and email for the link.</p>'
-      +'<button class="btn full" id="shOk" style="margin-top:10px">Done</button></div>';
+      +'<div class="count" id="cd">10:00</div><p class="s">Booking reference '+ref+'</p>'
+      +'<button class="btn full" id="shOk" style="margin-top:10px;background:none;border:1px solid var(--line2);color:var(--txt)">Close</button></div>';
     var end=Date.now()+600000,iv=setInterval(function(){var c=$('#cd');if(!c){clearInterval(iv);return;}var s=Math.max(0,Math.round((end-Date.now())/1000));c.textContent=Math.floor(s/60)+':'+('0'+s%60).slice(-2);if(!s)clearInterval(iv);},1000);
     load();
   }).catch(function(){fail('Something went wrong. Please try again.');});
