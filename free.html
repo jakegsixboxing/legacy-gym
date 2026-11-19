@@ -59,6 +59,14 @@ p{margin:0}
 .ok small{color:var(--muted);font-size:13px}
 .toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--gold);color:#111;font:700 13px var(--body);padding:10px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .25s;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
+.cam{position:relative;aspect-ratio:4/5;border-radius:16px;overflow:hidden;background:#000;border:1px solid var(--line)}
+.cam video,.cam img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam video{transform:scaleX(-1)}
+.cam .oval{position:absolute;left:19%;top:10%;width:62%;height:72%;border:2px dashed rgba(240,200,90,.85);border-radius:50%;pointer-events:none}
+.cam .hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);background:rgba(11,11,13,.82);border:1px solid var(--line);color:var(--fg);font:600 12.5px var(--body);padding:7px 12px;border-radius:999px;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+.cam .hint.bad{border-color:var(--warn);color:var(--warn)}
+.pk2{font:700 11px var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--gold2)}
+.alt{display:block;text-align:center;font:600 13px var(--body);color:var(--gold2);cursor:pointer;padding:6px;text-decoration:underline}
 .step{display:none}.step.on{display:contents}
 .back{background:none;border:0;color:var(--muted);font:600 13px var(--body);cursor:pointer;text-align:left;padding:0}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
@@ -107,13 +115,30 @@ p{margin:0}
         <div class="w"><i>8+</i><div>Ages 8–13<small>Youth Academy, 4:30pm Mon–Fri</small></div></div>
         <div class="w"><i>14+</i><div>Ages 14–17<small>Adult boxing and Grunt S&amp;C classes, with a parent's OK</small></div></div>
       </div>
+      <p class="fine">We'll take a quick photo for our records at the desk, with your parent or guardian there.</p>
       <p class="fine">You're registered, <span id="u18name"></span>. We'll text <span id="u18phone"></span> with class times and what to bring.</p>
+    </div>
+  </div>
+
+  <div class="step" id="sP">
+    <div class="card">
+      <div class="pk2">Last step</div>
+      <h2 style="font-size:30px">A quick photo <span style="color:var(--gold)">of your face.</span></h2>
+      <p style="color:#d8d5ce">Every free trial needs a face photo for our records. It's matched to your swipe pass so staff know it's you.</p>
+      <div class="cam"><video id="vid" playsinline autoplay muted></video><img id="shot" alt="Your photo" style="display:none"><div class="oval" id="oval"></div><div class="hint" id="hint">Starting your camera…</div></div>
+      <button class="btn" id="snap" type="button" disabled>Take my photo</button>
+      <button class="btn" id="usePhoto" type="button" style="display:none">Use this photo</button>
+      <button class="btn ghost" id="retake" type="button" style="display:none">Retake</button>
+      <label class="alt" id="fileAlt">Camera not showing? Use your phone's camera<input type="file" accept="image/*" capture="user" id="file" style="display:none"></label>
+      <button class="btn ghost" id="skipPhoto" type="button" style="display:none">My camera isn't working</button>
+      <p class="err" id="perr"></p>
+      <p class="fine">Your photo is never posted or shared. Only Legacy Gym management can see it.</p>
     </div>
   </div>
 
   <div class="step" id="s3">
     <div class="card">
-      <div class="ok"><i>✓</i><div><h2>You're in, <span id="okName"></span></h2><small>We'll text <span id="okPhone"></span> with a time to come in and your swipe pass.</small></div></div>
+      <div class="ok"><i>✓</i><div><h2>You're in, <span id="okName"></span></h2><small>We'll text <span id="okPhone"></span> with a time to come in and your swipe pass.<span id="okPhoto"></span></small></div></div>
     </div>
     <div class="card">
       <h2 style="font-size:30px">Legacy's better <span style="color:var(--gold)">with mates.</span></h2>
@@ -139,7 +164,9 @@ p{margin:0}
 (function(){
   var $=function(s){return document.querySelector(s)};
   var API="/api/trial-lead", PAGE="https://legacygym-app.vercel.app/free";
-  var state={name:"",email:"",phone:"",over18:null,ref:""};
+  var state={name:"",email:"",phone:"",over18:null,ref:"",id:""};
+  var SB="https://jyslqxepodrseyhoppce.supabase.co",KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+  function rpc(fn,args){return fetch(SB+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:KEY,authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify(args)}).then(function(r){return r.json()});}
 
   /* Opened from a mate's link? ?ref=sam-riley personalises the top. */
   try{var ref=(new URLSearchParams(location.search).get("ref")||"").toLowerCase().replace(/[^a-z0-9-]/g,"").slice(0,40);
@@ -147,8 +174,9 @@ p{margin:0}
       $("#h1").innerHTML=who+' is in.<br><span>Your week\'s free too.</span>';
       $("#h1p").textContent=who+" just took a free week at Legacy. Same deal for you: 7 days, the whole gym, swipe pass, no card.";}}catch(e){}
 
+  var photoOnly=(function(){try{var p=new URLSearchParams(location.search).get("photo")||"";return /^[0-9a-f-]{36}$/.test(p)?p:"";}catch(e){return "";}})();
   function toast(t){var el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove("show")},2200)}
-  function go(id){["s1","s18","s3"].forEach(function(k){$("#"+k).classList.toggle("on",k===id)});window.scrollTo({top:0})}
+  function go(id){["s1","s18","sP","s3"].forEach(function(k){$("#"+k).classList.toggle("on",k===id)});window.scrollTo({top:0})}
   function slug(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40)}
 
   $("#age").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;state.over18=b.dataset.v==="yes";$("#age").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b)})});
@@ -171,14 +199,52 @@ p{margin:0}
       var j=await r.json().catch(function(){return {}});
       if(!r.ok||!j.ok){$("#err").textContent=j.error||"Something went wrong, try again.";$("#err").classList.add("show");btn.disabled=false;btn.textContent="Take my 7-day free trial";return;}
     }catch(err){$("#err").textContent="No connection. Check your signal and try again.";$("#err").classList.add("show");btn.disabled=false;btn.textContent="Take my 7-day free trial";return;}
-    if(!state.over18){$("#u18name").textContent=state.name.split(" ")[0];$("#u18phone").textContent=state.phone;go("s18");return;}
-    confirmed();
+    state.id=(j&&typeof j.id==="string"&&/^[0-9a-f-]{36}$/.test(j.id))?j.id:"";
+    if(!state.over18){if(state.id)rpc("trial_lead_photo_skip",{p_id:state.id,p_why:"under18"}).catch(function(){});$("#u18name").textContent=state.name.split(" ")[0];$("#u18phone").textContent=state.phone;go("s18");return;}
+    if(state.id)photoStep();else confirmed();
   });
 
+  /* ---- compulsory face photo (19 Nov 2026). Saved against the sign-up; if the camera will not work, staff take it at pick-up. ---- */
+  var cam={stream:null,data:"",via:"camera",tries:0,busy:false};
+  function hint(t,bad){var h=$("#hint");h.textContent=t;h.classList.toggle("bad",!!bad);}
+  function show(id,on){$(id).style.display=on?"":"none";}
+  function stopCam(){if(cam.stream){try{cam.stream.getTracks().forEach(function(t){t.stop()})}catch(e){}cam.stream=null;}}
+  function camFail(t){hint(t,true);$("#snap").disabled=true;show("#skipPhoto",true);}
+  function startCam(){
+    cam.data="";show("#shot",false);show("#vid",true);show("#oval",true);show("#usePhoto",false);show("#retake",false);show("#snap",true);$("#snap").disabled=true;$("#perr").classList.remove("show");
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){camFail("No camera in this browser");return;}
+    hint("Starting your camera…");
+    navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:640},height:{ideal:800}},audio:false}).then(function(st){
+      cam.stream=st;var v=$("#vid");v.srcObject=st;var p=v.play();if(p&&p.catch)p.catch(function(){});
+      v.onloadedmetadata=function(){$("#snap").disabled=false;hint("Put your face in the oval");};
+    }).catch(function(){camFail("Camera is blocked or not available");});
+  }
+  function photoStep(){go("sP");startCam();setTimeout(function(){if(!cam.stream&&!cam.data)show("#skipPhoto",true);},12000);}
+  function toCanvas(src,sw,sh,mirror){var c=document.createElement("canvas");c.width=360;c.height=450;var x=c.getContext("2d"),k=Math.max(360/sw,450/sh);
+    if(mirror){x.translate(360,0);x.scale(-1,1);}x.drawImage(src,(360-sw*k)/2,(450-sh*k)/2,sw*k,sh*k);return c;}
+  function faceOk(c){try{if(!("FaceDetector" in window))return Promise.resolve(true);return new window.FaceDetector({fastMode:true,maxDetectedFaces:2}).detect(c).then(function(f){return f.length>0;}).catch(function(){return true;});}catch(e){return Promise.resolve(true);}}
+  function preview(c,via){cam.via=via;cam.tries++;var url=c.toDataURL("image/jpeg",.72);
+    faceOk(c).then(function(ok){
+      $("#shot").src=url;show("#shot",true);show("#vid",false);show("#oval",false);show("#snap",false);show("#retake",true);stopCam();
+      if(!ok&&cam.tries<3){cam.data="";show("#usePhoto",false);hint("We can't see your face. Retake it in better light.",true);}
+      else{cam.data=url;show("#usePhoto",true);hint("Happy with it?");}
+    });}
+  $("#snap").onclick=function(){var v=$("#vid");if(!v.videoWidth){hint("Camera is still starting",true);return;}preview(toCanvas(v,v.videoWidth,v.videoHeight,true),"camera");};
+  $("#retake").onclick=function(){startCam();};
+  $("#file").onchange=function(){var f=this.files&&this.files[0];if(!f)return;var img=new Image();img.onload=function(){preview(toCanvas(img,img.naturalWidth,img.naturalHeight,false),"file");};img.onerror=function(){hint("That photo did not load. Try again.",true);show("#skipPhoto",true);};img.src=URL.createObjectURL(f);this.value="";};
+  $("#usePhoto").onclick=function(){if(cam.busy||!cam.data)return;cam.busy=true;var b=this;b.disabled=true;b.textContent="Saving…";
+    rpc("trial_lead_photo",{p_id:state.id,p_data:cam.data,p_via:cam.via}).then(function(j){cam.busy=false;b.disabled=false;b.textContent="Use this photo";
+      if(!j||!j.ok){$("#perr").textContent=(j&&j.error)||"Photo didn't save. Try again.";$("#perr").classList.add("show");show("#skipPhoto",true);return;}
+      toast("Photo saved");confirmed();
+    }).catch(function(){cam.busy=false;b.disabled=false;b.textContent="Use this photo";$("#perr").textContent="No connection. Check your signal and try again.";$("#perr").classList.add("show");show("#skipPhoto",true);});};
+  $("#skipPhoto").onclick=function(){stopCam();rpc("trial_lead_photo_skip",{p_id:state.id,p_why:"camera"}).catch(function(){});state.desk=true;confirmed();};
+
   function confirmed(){
+    stopCam();
     var first=state.name.split(" ")[0];
-    $("#okName").textContent=first;$("#okPhone").textContent=state.phone;
-    var link=PAGE+"?ref="+slug(state.name);
+    $("#okName").textContent=first||"mate";$("#okPhone").textContent=state.phone||"you";
+    $("#okPhoto").textContent=state.desk?" We'll take your photo when you pick up your pass.":"";
+    var link=state.name?PAGE+"?ref="+slug(state.name):PAGE;
     var m="Come down to Legacy Gym Kincumber with me. I've just signed up for a full free week. This place has everything: 2 levels of boxing (fitness and competitive), a full CrossFit / strength and conditioning area, a full Hammer Strength weights gym, and 2 levels of recovery with saunas, ice baths and hot water therapy. You get access to the lot on a swipe pass, no card. It's insane.\n\nCome join me for a week, your free week's here:\n"+link+"\n\n– "+first;
     state.msg=m;state.link=link;
     $("#shareMsg").innerHTML=m.replace(/</g,"&lt;").replace(link,"<b>"+link+"</b>");
@@ -186,6 +252,7 @@ p{margin:0}
   }
   function copy(text){try{navigator.clipboard.writeText(text).then(function(){toast("Copied")},function(){toast("Press and hold the message to copy")})}catch(e){toast("Press and hold the message to copy")}}
   $("#copyMsg").onclick=function(){copy(state.msg)};
+  if(photoOnly){state.id=photoOnly;state.over18=true;photoStep();}
   $("#shareBtn").onclick=function(){
     if(navigator.share){navigator.share({title:"Free week at Legacy Gym Kincumber",text:state.msg}).then(function(){toast("Sent")}).catch(function(){});}
     else copy(state.msg);

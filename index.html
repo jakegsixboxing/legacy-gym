@@ -590,7 +590,7 @@ try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew",
 const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611152015";
+const LG_BUILD="202611191815";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10915,6 +10915,14 @@ var css=document.createElement("style");css.textContent=`
 async function load(){try{var r=await sb.from("challenge_leads").select("*").eq("challenge","trial7").order("created_at",{ascending:false});TR.leads=r.data||[];}catch(e){TR.leads=[];}}
 function cnt(){var c={new:0,contacted:0,joined:0,no:0,all:0};(TR.leads||[]).forEach(function(x){c.all++;if(c[x.status]!=null)c[x.status]++;});return c;}
 function ago(iso){var m=Math.round((Date.now()-new Date(iso))/6e4);if(m<60)return m+" min ago";var h=Math.round(m/60);if(h<24)return h+" hr ago";var d=Math.round(h/24);return d===1?"yesterday":d+" days ago";}
+/* ---- face photo taken at sign-up (19 Nov 2026). Status is on the lead; the photo itself opens for Jake and Alison only (rpc trial_photo_get). ---- */
+function ph(x){var s=x.photo_status||"";if(s==="taken")return ' · <a href="#" onclick="trPhoto(\''+x.id+'\');return false" style="color:#F1D27A;font-weight:800">📷 Photo ✓</a>';if(s==="desk")return ' · <b style="color:#f0a63a">📷 Take photo at desk</b>';if(s==="desk-u18")return ' · <b style="color:#f0a63a">📷 Under 18: photo at desk with parent</b>';return ' · <span style="color:#9a9891">📷 No photo yet</span>';}
+window.trPhoto=async function(id){var r=await sb.rpc("trial_photo_get",{p_id:id});var j=(r&&r.data)||{};if(r.error||!j.ok){T((j&&j.error)||"Could not open the photo");return;}
+  var L=(TR.leads||[]).find(function(x){return x.id===id;})||{};var o=document.createElement("div");o.style.cssText="position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;cursor:pointer";
+  var im=document.createElement("img");im.src=j.photo;im.alt="Trial photo";im.style.cssText="max-width:min(360px,90vw);max-height:72vh;border-radius:16px;border:2px solid #F1D27A";
+  var c=document.createElement("div");c.style.cssText="color:#f2f0eb;font:700 15px Inter,sans-serif;text-align:center";c.textContent=((L.first_name||"")+" "+(L.last_name||"")).trim()+(j.taken_at?" · taken "+new Date(j.taken_at).toLocaleString("en-AU",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"}):"");
+  var h=document.createElement("div");h.style.cssText="color:#9a9891;font:600 12px Inter,sans-serif";h.textContent="Tap anywhere to close";
+  o.appendChild(im);o.appendChild(c);o.appendChild(h);o.onclick=function(){o.remove();};document.body.appendChild(o);};
 /* ---- home strip (under the Road to Christmas strip) ---- */
 function strip(){
   if(!me())return "";
@@ -10933,11 +10941,11 @@ function render(){
    '<div class="trHead"><div class="k">legacygym.net · 7-day free trial</div><h2>Free trial sign-ups</h2><div class="w">'+c.all+' registered · '+c.new+' to call · <a href="#" onclick="trReload();return false">refresh</a></div></div>'+
    '<div class="trTabs">'+tab("new","New")+tab("contacted","Contacted")+tab("joined","Joined")+tab("all","All")+'</div>'+
    (TR.leads===null?'<div class="card"><p>Loading…</p></div>':list.length?list.map(function(x){var ph=(x.phone||"").replace(/\s/g,"");var s=x.status;
-     return '<div class="rtcLead '+(s==="new"?"new":"")+'"><div class="top"><div><div class="nm">'+E((x.first_name+" "+(x.last_name||"")).trim())+'</div><div class="meta">'+ago(x.created_at)+' · '+new Date(x.created_at).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})+(x.contacted_at?' · contacted '+new Date(x.contacted_at).toLocaleDateString("en-AU",{day:"numeric",month:"short"}):'')+'</div></div><div class="pk">'+E(x.package||"")+'</div></div>'+
+     return '<div class="rtcLead '+(s==="new"?"new":"")+'"><div class="top"><div><div class="nm">'+E((x.first_name+" "+(x.last_name||"")).trim())+'</div><div class="meta">'+ago(x.created_at)+' · '+new Date(x.created_at).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})+(x.contacted_at?' · contacted '+new Date(x.contacted_at).toLocaleDateString("en-AU",{day:"numeric",month:"short"}):'')+ph(x)+'</div></div><div class="pk">'+E(x.package||"")+'</div></div>'+
      '<div class="ct"><a href="tel:'+E(ph)+'">📞 '+E(x.phone||"no number")+'</a><a href="sms:'+E(ph)+'">💬 Text</a><a href="mailto:'+E(x.email||"")+'">✉️ '+E(x.email||"")+'</a></div>'+
      '<div class="st"><button class="'+(s==="new"?"on":"")+'" onclick="trSt(\''+x.id+'\',\'new\')">New</button><button class="'+(s==="contacted"?"on":"")+'" onclick="trSt(\''+x.id+'\',\'contacted\')">Contacted</button><button class="j '+(s==="joined"?"on":"")+'" onclick="trSt(\''+x.id+'\',\'joined\')">Joined</button><button class="x '+(s==="no"?"on":"")+'" onclick="trSt(\''+x.id+'\',\'no\')">No</button></div>'+
      '<textarea placeholder="Note — e.g. texted, coming Tuesday 6am" onblur="trNote(\''+x.id+'\',this)">'+E(x.notes||"")+'</textarea></div>';}).join(""):'<div class="card"><p>'+(f==="new"?"Nobody waiting — all caught up.":"Nothing here yet.")+'</p></div>')+
-   '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">Jake, Alison and Jerson can see this list. Every sign-up is also emailed to the team.</p></div>';
+   '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">Jake, Alison and Jerson can see this list. Photos open for Jake and Alison only. Every sign-up is also emailed to the team.</p></div>';
 }
 window.trF=function(f){TR.f=f;render();};
 window.trReload=async function(){await load();render();T("Updated");};
