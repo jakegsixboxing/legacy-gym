@@ -6,7 +6,7 @@
 (function(){
 "use strict";
 var HANDLE="sparring-club-embroidered-hoodie";
-var SALE_UNTIL="2026-11-24";
+var SALE_UNTIL="2026-11-19"; /* switched off 20 Nov 2026 (Jake): Fight Night members tickets is the only pop-up for the next month. Was 2026-11-24. */
 var MIN_OFF=50;
 var STORE="https://www.legacygym.net";
 var FORCE=/[?&]hoodie=1/.test(location.search);

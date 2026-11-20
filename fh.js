@@ -8,7 +8,7 @@ var KEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
 var APP="https://legacygym-app.vercel.app";
 var LOGO=APP+"/img/fc/fc-logo.png";
 var TIX=APP+"/tickets?f=";
-var SALE=["hussein-mouhanna"]; /* fighter pages that sell tickets straight from the page (general sale) */
+var SALE=[]; /* was ["hussein-mouhanna"] until 20 Nov 2026: Hussein's page now takes holds again (fh_hold_exceptions) */ /* fighter pages that sell tickets straight from the page (general sale) */
 var root=document.getElementById("fh");
 var SLUG=(root&&root.getAttribute("data-slug"))||(location.pathname.split("/").pop()||"");
 var $=function(id){return document.getElementById(id);};
@@ -129,9 +129,9 @@ function mainHtml(){
      +(S.me?'<div class="notice win"><b>You\'re '+(S.me.status==="waitlist"?"on the list":"holding "+(S.me.tier==="gold"?(S.me.seats===10?"a full table":S.me.seats+(S.me.seats>1?" seats":" seat")):"one"))+', '+esc(S.me.first)+'.</b> '+esc(d.tiers[S.me.tier].nm)+'. Your personal link is on its way.</div>':'')
      +'<div class="notice warn"><b>Missed out?</b> Any tickets left after the holders have bought will go on general sale — follow Legacy Gym and Fight Club Central Coast on Instagram and Facebook for the release.</div></div>';
   } else {
-  var h='<div class="sec" id="tix"><h2>Hold me a ticket</h2><div class="sub">'+(nT===2?"Two":nT===3?"Three":"A few")+' ways to watch '+esc(first())+'. Holding a ticket doesn\'t mean you have to buy one. It gets you a <b>personal buying link</b> in your group\'s 24-hour window, before general sale. Nothing charged today.</div>';
+  var h='<div class="sec" id="tix"><h2>Hold me a ticket</h2><div class="sub">'+(nT===2?"Two":nT===3?"Three":"A few")+' ways to watch '+esc(first())+'. Holding a ticket doesn\'t mean you have to buy one. Put your name down and we\'ll send you your own <b>personal link to buy</b>. Nothing charged today.</div>';
   if(!d.live)h+='<div class="notice warn"><b>Holds open soon.</b> This page is being set up — check back shortly.</div>';
-  h+='<div class="tix2">'+["gold","silver","ga"].filter(function(k){return d.tiers[k];}).map(tk).join("")+'</div><div class="notice"><b>Ticket prices are now set.</b> Hold now and we\'ll email you your group, your 24-hour buying window and your own link to buy. Holding doesn\'t commit you to buying, and nothing is charged today.</div>';
+  h+='<div class="tix2">'+["gold","silver","ga"].filter(function(k){return d.tiers[k];}).map(tk).join("")+'</div><div class="notice"><b>Ticket prices are set.</b> Hold now and we\'ll text and email you your own link to buy. Holding doesn\'t commit you to buying, and nothing is charged today.</div>';
   if(S.me)h+='<div class="notice win"><b>You\'re '+(S.me.status==="waitlist"?"on the list":"holding "+(S.me.tier==="gold"?(S.me.seats===10?"a full table":S.me.seats+(S.me.seats>1?" seats":" seat")):"one"))+', '+esc(S.me.first)+'.</b> '+esc(d.tiers[S.me.tier].nm)+'. We\'ll email and text you the moment tickets are available to buy.</div>';
   h+='</div>';
   }
@@ -174,7 +174,7 @@ window.fhPick=function(o,n){if(S.d&&S.d.holds_closed){alert('Ticket holds have n
   var seatUi=o!=="gold"?gaUi:'<label>How many seats at the table</label><div class="seatwrap"><div id="fTbl">'+seatTable()+'</div><div class="seatctl"><div class="qty"><button type="button" onclick="fhSeats(S_seats()-1)">−</button><b id="fSeatQ">'+S.seats+'</b><button type="button" onclick="fhSeats(S_seats()+1)">+</button></div>'
     +'<div class="seatchips" id="fChips">'+[1,2,3,4,6,10].map(function(k){return '<button type="button" data-n="'+k+'" class="'+(k===S.seats?'on':'')+'" onclick="fhSeats('+k+')">'+(k===10?'Full table':k)+'</button>';}).join("")+'</div><div class="seatsum" id="fSeatSum">'+seatSum()+'</div></div></div><div id="fSeatWarn">'+seatWarn()+'</div>'
     +'<div class="fine" style="margin-top:8px">Tap the chairs or use − / +. A table seats 10 — hold 1 for yourself, a few for your crew, or the whole table. We\'ll grab your guests\' names when tickets release.</div>';
-  open('<h3>'+(full()?'Join the list':o==="gold"?'Hold gold table seats':'Hold me a ticket')+'</h3><div class="sub"><b>'+esc(T.nm)+' · '+esc(T.price)+' '+esc(T.unit)+'.</b> '+esc(T.tag)+'. You\'ll get your own buying link by email for your group\'s 24-hour window. Holding doesn\'t commit you to buying, and nothing is charged today.'+(full()?' <b>'+esc(first())+'\'s block is full</b> — you\'ll be first in line when more open.':'')+'</div>'
+  open('<h3>'+(full()?'Join the list':o==="gold"?'Hold gold table seats':'Hold me a ticket')+'</h3><div class="sub"><b>'+esc(T.nm)+' · '+esc(T.price)+' '+esc(T.unit)+'.</b> '+esc(T.tag)+'. We\'ll send you your own link to buy. Holding doesn\'t commit you to buying, and nothing is charged today.'+(full()?' <b>'+esc(first())+'\'s block is full</b> — you\'ll be first in line when more open.':'')+'</div>'
    +seatUi+person()
    +'<label>A few words for '+esc(first())+' <span class="o">(optional — '+esc(first())+' reads these fight week)</span></label><textarea id="fMsg" placeholder="Go on, say something."></textarea>'
    +'<div class="consent"><input type="checkbox" id="fC" checked><span>Legacy Gym can text and email me about Fight Night. No spam, unsubscribe any time.</span></div><div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhSubmit()">'+(o==="gold"?seatBtn():full()?'Put me on the list':'Hold my ticket')+'</button><div class="fine">Under 18? Hold your own and we\'ll be in touch about nominating them.</div><button class="cancel" onclick="closeAll()">‹ Back to '+esc(first())+'\'s page</button>');
