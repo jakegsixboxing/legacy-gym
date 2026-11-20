@@ -112,7 +112,7 @@ footer b{color:var(--fg);font-family:var(--cond);letter-spacing:.2em;text-transf
  <div class="wrap">
   <div class="brand"><i></i>Legacy Boxing · Youth Program</div>
   <h1>Keep youth <span>in boxing.</span></h1>
-  <p class="lead">Legacy Boxing sponsors and funds a large number of young people on the Central Coast to train. We're looking for businesses to help us keep doing what we're doing, and to grow the program again.</p>
+  <p class="lead">Legacy Boxing sponsors and funds a large number of young people aged 8 to 18 on the Central Coast to train. We're looking for businesses to help us keep doing what we're doing, and to grow the program again.</p>
   <a class="btn blue" href="#packages">Choose your sponsorship</a>
   <div class="when"><span>Fight Night · Sat 19 December</span><span>Legacy Gym Kincumber</span><span>300 to 400 people</span></div>
  </div>
@@ -123,13 +123,14 @@ footer b{color:var(--fg);font-family:var(--cond);letter-spacing:.2em;text-transf
   <div class="eb">Why we're asking</div>
   <h2>A space for young people to box</h2>
   <p>It's a tough time to be young. There's so much crime, violence and confusion around, and a lot of families are doing it tough with less income coming in.</p>
+  <p>We help young people aged <b>8 to 18</b>, from all circumstances: a lack of income and support at home, drug and alcohol abuse, and more.</p>
   <p>For more than 14 years, Legacy Gym has given young people on the Central Coast a place to box for free. <b>We've always provided that space, and we want to keep providing it.</b> It's our way of doing our bit.</p>
   <p>Like every small business, there's only so much we can give away for free, and we've reached it. To extend the program again, we're bringing new sponsors on board. <b>All funds raised through sponsorship go to supporting young people on the Central Coast and keeping them in a boxing gym.</b></p>
  </div>
  <div class="stats">
   <div class="stat"><b>14<em>+</em></b><span>years of free boxing for Central Coast youth</span></div>
   <div class="stat"><b>100<em>%</em></b><span>of sponsorship goes to the youth program</span></div>
-  <div class="stat"><b>300<em>+</em></b><span>people in the room on Fight Night</span></div>
+  <div class="stat"><b>8<em>&ndash;</em>18</b><span>the ages of the young people we help</span></div>
  </div>
 </div></section>
 
@@ -145,14 +146,14 @@ footer b{color:var(--fg);font-family:var(--cond);letter-spacing:.2em;text-transf
 <section id="packages" style="padding-top:0"><div class="wrap">
  <div class="sh"><div class="eb">Sponsorship</div><h2>Get on board</h2><p>If it's something you're interested in and you want to get on board, select your sponsorship and make your payment. Our team will be in contact within the next 24 hours to organise your logos, give you information on the program and the event, and welcome you on board.</p></div>
  <div class="pk" id="pk"></div>
- <p class="inv">Need an invoice instead of paying now? <button type="button" id="invBtn">Request an invoice</button></p>
+ <p class="inv">Prefer an invoice? <button type="button" id="invBtn">Request an invoice</button></p>
 </div></section>
 
 <section style="padding-top:0"><div class="wrap">
  <div class="sh" style="margin-bottom:28px"><div class="eb">How it works</div><h2 style="font-size:clamp(38px,4.6vw,60px)">Three steps</h2></div>
  <div class="steps">
   <div><b>Select</b><p>Pick the sponsorship that suits your business.</p></div>
-  <div><b>Pay</b><p>Pay securely through our Shopify checkout. Your receipt is emailed straight away.</p></div>
+  <div><b>Pay</b><p>Pay on the spot through our secure Shopify checkout: card, Apple Pay or Shop Pay. Your receipt is emailed straight away.</p></div>
   <div><b>Welcome on board</b><p>Our team contacts you within 24 hours to organise your logos and fill you in on the program and Fight Night.</p></div>
  </div>
 </div></section>
@@ -178,12 +179,21 @@ var PK=[
 var money=function(v){return '$'+v.toLocaleString('en-AU');};
 var S={sel:null,step:0,invoice:false,biz:'',name:'',em:'',mob:'',web:'',promo:'',logo:null,logoName:'',logoPath:null,logoUp:'',busy:false,err:''};
 function rpc(fn,args){return fetch(SB+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+KEY,"content-type":"application/json"},body:JSON.stringify(args)}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error((j&&(j.message||j.hint))||"Something went wrong.");return j;});});}
-function pk(){$('#pk').innerHTML=PK.map(function(t){return '<article class="tier'+(t.top?' top':'')+'">'+(t.top?'<span class="flag">Best value</span>':'')+'<span class="nm">'+t.n+'</span><div class="pr">'+money(t.p)+'</div><p class="sub">'+t.sub+'</p><ul>'+t.li.map(function(l){return Array.isArray(l)?'<li class="'+l[1]+'">'+E(l[0])+'</li>':'<li>'+E(l)+'</li>';}).join('')+'</ul><div class="go"><button type="button" class="btn '+(t.top?'blue':'ghost')+'" data-buy="'+t.id+'">Sponsor for '+money(t.p)+'</button></div></article>';}).join('');}
+function pk(){$('#pk').innerHTML=PK.map(function(t){return '<article class="tier'+(t.top?' top':'')+'">'+(t.top?'<span class="flag">Best value</span>':'')+'<span class="nm">'+t.n+'</span><div class="pr">'+money(t.p)+'</div><p class="sub">'+t.sub+'</p><ul>'+t.li.map(function(l){return Array.isArray(l)?'<li class="'+l[1]+'">'+E(l[0])+'</li>':'<li>'+E(l)+'</li>';}).join('')+'</ul><div class="go"><button type="button" class="btn '+(t.top?'blue':'ghost')+'" data-buy="'+t.id+'">Pay '+money(t.p)+' now</button></div></article>';}).join('');}
 function T(){for(var i=0;i<PK.length;i++)if(PK[i].id===S.sel)return PK[i];return PK[1];}
 function sheet(){
  if(!S.step){$('#host').innerHTML='';document.body.style.overflow='';return;}
  var t=T(),h='';
- if(S.step===1){
+ if(S.step==='q'){
+  h='<div class="eb">Sponsorship</div><h3 style="margin-top:8px">'+t.n+'</h3>'+
+  '<div class="sum"><div><span>'+t.n+' sponsorship</span><small>Fight Night \u00b7 Sat 19 Dec \u00b7 Legacy Gym</small></div><b>'+money(t.p)+'</b></div>'+
+  '<ul style="list-style:none;padding:0;margin:14px 0 0;display:grid;gap:6px;color:var(--fg);font-size:15px">'+t.li.map(function(l){return '<li>\u2713 '+E(Array.isArray(l)?l[0]:l)+'</li>';}).join('')+'</ul>'+
+  '<div class="fld"><label for="qb">Business name (optional)</label><input id="qb" autocomplete="organization" value="'+E(S.biz)+'" placeholder="So we know who to thank"></div>'+
+  '<div class="err" id="err">'+E(S.err)+'</div>'+
+  '<button type="button" class="btn blue" style="width:100%;margin-top:4px" data-act="quick"'+(S.busy?' disabled':'')+'>'+(S.busy?'Opening secure checkout\u2026':'Pay '+money(t.p)+' now')+'</button>'+
+  '<div class="secure"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>Secure Shopify checkout. Card, Apple Pay and Shop Pay. Receipt emailed.</div>'+
+  '<p style="text-align:center;font-size:14px;color:var(--m);margin-top:14px">Our team will be in contact within 24 hours of your payment. <button type="button" style="background:none;border:0;color:var(--blue2);text-decoration:underline;padding:0" data-act="toinv">Prefer an invoice?</button></p>';
+ } else if(S.step===1){
   h='<div class="eb">'+(S.invoice?'Request an invoice':'Your sponsorship')+'</div><h3 style="margin-top:8px">Your details</h3>'+
   '<div class="sum"><div><span>'+t.n+' sponsorship</span><small>Youth Boxing · Fight Night Sat 19 Dec</small></div><b>'+money(t.p)+'</b></div>'+
   (S.invoice?'<div class="fld"><label for="pkSel">Sponsorship</label><div style="display:flex;gap:6px;flex-wrap:wrap" id="pkSel">'+PK.map(function(x){return '<button type="button" class="btn '+(x.id===S.sel?'blue':'ghost')+'" style="min-height:42px;padding:0 14px;font-size:15px" data-pick="'+x.id+'">'+x.n+'</button>';}).join('')+'</div></div>':'')+
@@ -216,6 +226,15 @@ function go(){
     .then(function(x){return x.json();}).then(function(j){if(!j||!j.url)throw new Error('We couldn\'t open the checkout. Try again, or request an invoice below.');location.href=j.url;});
  }).catch(function(e){S.busy=false;S.err=e.message||'Something went wrong. Try again.';sheet();});
 }
+function quick(){
+ var qb=document.getElementById('qb');if(qb)S.biz=qb.value.trim();
+ S.err='';S.busy=true;sheet();
+ fetch('/api/fightnight?a=ysp-pay',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({pack:S.sel,business:S.biz})})
+  .then(function(x){return x.json();}).then(function(j){if(!j||!j.url)throw new Error('We couldn\'t open the checkout. Try again, or request an invoice.');
+   try{localStorage.setItem('ysp_last',JSON.stringify({ref:j.ref,email:'',biz:S.biz,sel:S.sel}));}catch(e){}
+   location.href=j.url;})
+  .catch(function(e){S.busy=false;S.err=e.message||'Something went wrong. Try again.';sheet();});
+}
 function logoPicked(file){
  if(!file)return;
  if(file.size>10*1024*1024){S.err='That logo is over 10 MB. Try a smaller file, or we\'ll organise it with you.';sheet();return;}
@@ -229,7 +248,7 @@ function logoPicked(file){
   .catch(function(){S.logoUp='Couldn\'t upload it. We\'ll organise it with you.';keep();sheet();});
 }
 document.addEventListener('click',function(e){var b,t=e.target;
- if(b=t.closest('[data-buy]')){S.sel=b.getAttribute('data-buy');S.invoice=false;S.step=1;S.err='';sheet();return;}
+ if(b=t.closest('[data-buy]')){S.sel=b.getAttribute('data-buy');S.invoice=false;S.step='q';S.err='';sheet();return;}
  if(t.id==='invBtn'){S.sel=S.sel||'main';S.invoice=true;S.step=1;S.err='';sheet();return;}
  if(b=t.closest('[data-pick]')){keep();S.sel=b.getAttribute('data-pick');sheet();return;}
  if(t.hasAttribute&&t.hasAttribute('data-bg')&&!S.busy){S.step=0;sheet();return;}
@@ -237,10 +256,14 @@ document.addEventListener('click',function(e){var b,t=e.target;
  var a=b.getAttribute('data-act');
  if(a==='close'&&!S.busy){S.step=0;sheet();return;}
  if(a==='go'){go();}
+ if(a==='toinv'){var qb=document.getElementById('qb');if(qb)S.biz=qb.value.trim();S.invoice=true;S.step=1;S.err='';sheet();}
+ if(a==='quick'){quick();}
 });
 document.addEventListener('change',function(e){if(e.target.id==='logo'&&e.target.files[0])logoPicked(e.target.files[0]);});
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&S.step&&!S.busy){S.step=0;sheet();}});
 pk();
+try{var qp=new URLSearchParams(location.search).get('pay')||new URLSearchParams(location.search).get('pack');
+ if(qp&&/^(corner|main|event)$/.test(qp)){S.sel=qp;S.step='q';sheet();}}catch(e){}
 // coming back after paying: show a thank-you once Shopify confirms
 try{var last=JSON.parse(localStorage.getItem('ysp_last')||'null');
  if(last&&last.ref){rpc('ysp_status',{p_ref:last.ref,p_email:last.email}).then(function(s){if(s&&s.status==='paid'){var d=document.createElement('div');d.className='banner';d.textContent='Thank you, '+(s.business||'')+'. Your '+s.pack_label+' sponsorship is paid. Our team will be in contact within 24 hours.';document.body.insertBefore(d,document.body.firstChild);}}).catch(function(){});}
