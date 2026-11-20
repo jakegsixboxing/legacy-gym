@@ -197,6 +197,8 @@ window.mtixStaff=async function(){
   if(r.error||!r.data){box.innerHTML='<div class="card"><p>Couldn\'t load the list. <a href="#" onclick="mtixStaff();return false" style="color:#F1D27A">Try again</a></p></div>';return;}
   var d=r.data,A=d.members_area||[],X=d.elsewhere||[];
   box.innerHTML='<div class="secTitle">Member Fight Night tickets</div>'
+   +'<button class="mtxCta" type="button" style="margin:0 0 4px;font-size:15px;min-height:46px;padding:10px 12px" onclick="mtixPreview()">See the pop-up members get</button>'
+   +'<p style="font-size:11.5px;color:#9a9891;margin:6px 0 0">Members who already have a ticket don\'t get the pop-up, so use this to see it.</p>'
    +'<div class="mtxTiles"><div class="mtxTile"><b>'+d.paid_members+'</b><span>members paid · members area</span></div><div class="mtxTile"><b>'+d.plus_ones+'</b><span>bringing a +1</span></div>'
    +'<div class="mtxTile"><b>'+d.paid_tickets+'</b><span>members area tickets · $'+Number(d.paid_dollars).toLocaleString("en-AU")+'</span></div><div class="mtxTile"><b>'+d.elsewhere_members+'</b><span>members who bought another way</span></div></div>'
    +'<div class="secTitle">Members area</div>'
