@@ -157,6 +157,20 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:
 .gate .btn{font-size:1.9vh;padding:1.6vh 2vw}
 .err{position:fixed;inset:0;display:grid;place-items:center;text-align:center;padding:5vw;font-size:2.4vh;color:#c5d3dc}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* unsold: holds from groups A, B and C that were never bought. Opens only when its tab is clicked; never part of the auto rotation. */
+.tab{cursor:pointer}
+#v-unsold{gap:1.4vh}
+.uhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:.5vh 2vw;padding-bottom:1.3vh;border-bottom:1px solid var(--line)}
+.uhead .big{font-family:var(--num);font-weight:600;font-size:6.4vh;line-height:.9;font-variant-numeric:tabular-nums}
+.uhead .k{font-size:1.5vh;color:var(--mut)}
+.uhead .k b{color:var(--fg);font-weight:600}
+.uhead .k.w{flex-basis:100%;font-size:1.3vh}
+.ulist{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:grid;grid-auto-flow:column;gap:0 1.8vw;align-content:start}
+.ul{display:grid;grid-template-columns:1.6vh minmax(0,auto) minmax(0,1fr) auto;gap:.5vw;align-items:baseline;padding:.36vh 0;border-bottom:1px solid var(--line);min-width:0}
+.ul .g{font-size:1.15vh;font-weight:700;color:var(--mut)}
+.ul .n{font-weight:600;font-size:1.5vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ul .f{color:var(--mut);font-size:1.2vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ul .s{font-family:var(--num);font-weight:600;font-size:1.9vh;line-height:1;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -172,7 +186,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:
 
   <div class="main">
     <section class="panel stage">
-      <div class="tabs"><span class="tab on" data-v="room">The room</span><span class="tab" data-v="fighters">Fighters</span><span class="tab" data-v="timeline">Timeline</span><span class="note" id="viewNote">Auto</span></div>
+      <div class="tabs"><span class="tab on" data-v="room">The room</span><span class="tab" data-v="fighters">Fighters</span><span class="tab" data-v="timeline">Timeline</span><span class="tab" data-v="unsold">Unsold</span><span class="note" id="viewNote">Auto</span></div>
       <div class="views">
         <div class="view on" id="v-room">
           <svg class="room" id="room" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Floor plan, each dot is a paid ticket"></svg>
@@ -180,6 +194,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:
         </div>
         <div class="view" id="v-fighters"><div class="fgrid" id="fgrid"></div></div>
         <div class="view" id="v-timeline"><svg class="tl" id="tl" viewBox="0 0 1000 520" preserveAspectRatio="none" role="img" aria-label="Running total of sales"></svg></div>
+        <div class="view" id="v-unsold"><div class="uhead" id="uhead"></div><div class="ulist" id="ulist"></div></div>
         <div class="spot" id="spot"></div>
         <div class="moment" id="moment"></div>
         <div class="toasts" id="toasts"></div>
@@ -404,7 +419,30 @@ function winLine(){
 
 /* ---------------- views ---------------- */
 function setView(v){view=v;document.querySelectorAll(".view").forEach(function(e){e.classList.toggle("on",e.id==="v-"+v);});document.querySelectorAll(".tab").forEach(function(t){t.classList.toggle("on",t.dataset.v===v);});
-  if(v==="timeline")timelinePaint();if(v==="fighters")fightersPaint();}
+  if(v==="timeline")timelinePaint();if(v==="fighters")fightersPaint();if(v==="unsold")unsoldLoad();}
+/* Unsold: held in groups A, B and C and never bought (rpc fn_live_unsold). Shown only when its tab is clicked. */
+var UNS=null,unsAt=0,unsBusy=false;
+function unsoldPaint(msg){
+  var h=$("uhead"),l=$("ulist");
+  if(msg){h.innerHTML='<div class="k">'+esc(msg)+'</div>';l.innerHTML="";return;}
+  if(!UNS){h.innerHTML='<div class="k">Loading…</div>';l.innerHTML="";return;}
+  var g=UNS.by_grp||{};
+  h.innerHTML='<div class="big">'+UNS.seats+'</div><div class="k"><b>tickets held and never bought</b> · '+UNS.holds+' '+(UNS.holds===1?"person":"people")+'</div>'+
+    '<div class="k">GA <b>'+UNS.ga+'</b> · Tables <b>'+UNS.table+'</b></div>'+
+    '<div class="k">Group A <b>'+(g.A||0)+'</b> · B <b>'+(g.B||0)+'</b> · C <b>'+(g.C||0)+'</b></div>'+
+    '<div class="k w">Estimate. Not counted here: '+UNS.other_seats+' held tickets where the name is on someone else\'s paid order.</div>';
+  var L=UNS.list||[],cols=innerWidth>1100?4:innerWidth>760?3:innerWidth>480?2:1;
+  l.style.gridTemplateColumns="repeat("+cols+",minmax(0,1fr))";l.style.gridTemplateRows="repeat("+Math.max(1,Math.ceil(L.length/cols))+",auto)";
+  l.innerHTML=L.map(function(x){return '<div class="ul"><span class="g">'+esc(x.g)+'</span><span class="n">'+esc(x.n)+'</span><span class="f">'+esc(x.f)+(x.t==="gold"?" · table":"")+'</span><span class="s">'+x.s+'</span></div>';}).join("")||'<div class="k">Every held ticket has been bought.</div>';
+}
+async function unsoldLoad(){
+  if(demo){unsoldPaint("Hidden while the demo is playing.");return;}
+  unsoldPaint();
+  if(unsBusy||(UNS&&Date.now()-unsAt<60000))return;unsBusy=true;
+  try{UNS=await rpc("fn_live_unsold",{p_key:LKEY});unsAt=Date.now();if(view==="unsold")unsoldPaint();}catch(e){if(!UNS&&view==="unsold")unsoldPaint("Couldn't load the unsold list.");}
+  unsBusy=false;
+}
+setInterval(function(){if(view==="unsold")unsoldLoad();},15000);
 setInterval(function(){if(pinned||$("spot").classList.contains("on"))return;if(Date.now()-rotT<ROTATE)return;rotT=Date.now();var o=["room","fighters","timeline"];setView(o[(o.indexOf(view)+1)%3]);},1000);
 document.querySelectorAll(".tab").forEach(function(t){t.onclick=function(){pin(t.dataset.v,"you");};});
 function pin(v,who){if(v==="auto"||!v){pinned=null;$("viewNote").textContent="Auto";rotT=Date.now();return;}pinned=v;setView(v);$("viewNote").textContent="Pinned"+(who?" by "+who:"");}
