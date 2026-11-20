@@ -1,0 +1,1050 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Fight Club Matchmaker</title>
+<meta name="theme-color" content="#04070b">
+<link rel="icon" href="/icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: the roster is a wall of fighter portraits. One button deals them into weight-pool lanes; pairs slide together into bout tiles; confirming a bout takes over the screen with an animated fight poster. Fight Club's arena look: one dark world, cyan brand, red and blue corners. */
+:root{color-scheme:dark;
+--bg:#04070b;--panel:#0a1118;--panel2:#101b26;--line:#1c2a38;--ink:#f3f7fa;--mute:#8b9cab;
+--cy:#1fb6e6;--cy2:#7fe0ff;--oncy:#021018;--red:#e5484d;--blue:#3b82f6;
+--good:#3ecf8e;--fair:#b6d94c;--warn:#f5b83d;--bad:#f0524f;
+--disp:"Anton","Arial Narrow",Impact,sans-serif;--ui:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+--gl:max(1rem,env(safe-area-inset-left,0px));--gr:max(1rem,env(safe-area-inset-right,0px))}
+html{font-size:clamp(16px,1.111vw,44px)}
+html.tv{font-size:clamp(16px,1.25vw,52px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 0.9375rem/1.35 var(--ui);overflow-x:clip;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:
+ radial-gradient(60% 46% at 50% -8%,rgba(31,182,230,.22),transparent 70%),
+ radial-gradient(40% 30% at 12% 0%,rgba(31,182,230,.10),transparent 70%),
+ radial-gradient(40% 30% at 88% 0%,rgba(31,182,230,.10),transparent 70%),var(--bg)}
+.beams{position:fixed;inset:-20% -10% auto;height:90vh;z-index:-1;pointer-events:none;opacity:.5;background:
+ conic-gradient(from 168deg at 22% 0,transparent 0 4deg,rgba(127,224,255,.07) 6deg 9deg,transparent 12deg 360deg),
+ conic-gradient(from 176deg at 50% 0,transparent 0 3deg,rgba(127,224,255,.08) 5deg 9deg,transparent 12deg 360deg),
+ conic-gradient(from 184deg at 78% 0,transparent 0 4deg,rgba(127,224,255,.07) 6deg 9deg,transparent 12deg 360deg);
+ animation:sway 9s ease-in-out infinite alternate}
+@keyframes sway{from{transform:skewX(-5deg)}to{transform:skewX(5deg)}}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--cy2);outline-offset:2px}
+.wrap{padding-left:var(--gl);padding-right:var(--gr)}
+.d{font-family:var(--disp);font-weight:400;text-transform:uppercase;letter-spacing:.02em;line-height:1}
+.lab{font:600 0.6875rem/1 var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.num{font-variant-numeric:tabular-nums}
+body.promo .pv{display:none!important}
+
+/* top */
+.top{border-bottom:1px solid var(--line)}
+.top .wrap{padding-block:0.875rem 0.75rem;display:flex;flex-direction:column;gap:0.75rem}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap}
+.brand h1{margin:3px 0 0;font-size:clamp(1.75rem,4.4vw,2.75rem)}
+.brand h1 em{font-style:normal;color:var(--cy);text-shadow:0 0 1.75rem rgba(31,182,230,.55)}
+.right{display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center}
+.tabs{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:0.625rem;padding:3px}
+.tabs button{border:0;background:none;padding:0.5rem 0.875rem;border-radius:0.5rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:0.8125rem;color:var(--mute)}
+.tabs button[aria-pressed="true"]{background:var(--cy);color:var(--oncy)}
+.tog{border:1px solid var(--line);background:var(--panel);border-radius:0.625rem;padding:0.5625rem 0.75rem;font-weight:700;font-size:0.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.tog[aria-pressed="true"]{border-color:var(--cy);color:var(--cy2);box-shadow:0 0 1rem rgba(31,182,230,.35)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0.5rem}
+.stat{background:color-mix(in srgb,var(--panel) 80%,transparent);border:1px solid var(--line);border-radius:0.625rem;padding:0.5rem 0.75rem;min-width:0;display:flex;align-items:baseline;gap:0.625rem}
+.stat b{font:400 1.75rem/1 var(--disp);letter-spacing:.02em}
+.stat span{font-size:0.75rem;color:var(--mute);letter-spacing:.08em;text-transform:uppercase}
+.stat.need b{color:var(--warn)}.stat.done b{color:var(--good)}
+.prog{height:0.3125rem;background:var(--panel2);border-radius:0.375rem;overflow:hidden}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--cy),var(--good));border-radius:0.375rem;transition:width .6s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 0.75rem var(--cy)}
+.tools{display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:0.5625rem;padding:0.5625rem 0.8125rem;font-weight:700;font-size:0.8125rem;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.btn:hover{border-color:var(--cy)}
+.btn.p{background:var(--cy);border-color:var(--cy);color:var(--oncy);box-shadow:0 0 1.375rem rgba(31,182,230,.45)}
+.btn.p:hover{background:var(--cy2)}
+.btn.big{font:400 1.375rem/1 var(--disp);letter-spacing:.06em;padding:1rem 1.625rem;border-radius:0.75rem;animation:beat 1.8s ease-in-out infinite}
+@keyframes beat{50%{box-shadow:0 0 2.875rem rgba(31,182,230,.85)}}
+.btn.ghost{color:var(--mute)}
+.btn.dng:hover{border-color:var(--bad);color:var(--bad)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:0.5625rem;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:none;padding:0.5625rem 0.6875rem;font-size:0.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mute)}
+.seg button[aria-pressed="true"]{background:var(--panel2);color:var(--cy2)}
+.spacer{flex:1}
+
+/* roster */
+.rost{padding-block:1rem 8.125rem}
+.rhead{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:0.875rem}
+.rhead h2{font-size:clamp(2.125rem,6vw,4rem);margin:0.375rem 0 0}
+.rhead p{margin:0.375rem 0 0;color:var(--mute);max-width:52ch}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(8rem,1fr));gap:0.625rem}
+
+/* fighter tile */
+[data-fl]{transform-origin:0 0}
+.ft{position:relative;display:block;aspect-ratio:4/5;width:100%;padding:0;border:1px solid var(--line);border-radius:0.625rem;overflow:hidden;background:#070c12;text-align:left;user-select:none;-webkit-user-select:none;transition:filter .2s,opacity .25s,box-shadow .25s,border-color .2s}
+.ft img,.half img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 0;display:block}
+.ft::after,.half::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 46%,rgba(4,7,11,.95) 96%);pointer-events:none}
+.ft:hover{filter:brightness(1.18);border-color:#3a586f}
+.ft.sel{border-color:var(--cy2);box-shadow:0 0 0 2px var(--cy),0 0 2.125rem var(--cy);z-index:2}
+.ft.dim{opacity:.22;filter:grayscale(1)}
+.ft.cand{--gc:var(--bad);border-color:var(--gc);box-shadow:0 0 0 1px var(--gc),0 0 1rem color-mix(in srgb,var(--gc) 60%,transparent)}
+.ft.cand.g{--gc:var(--good)}.ft.cand.f{--gc:var(--fair)}.ft.cand.s{--gc:var(--warn)}
+.ft.cand.m{opacity:.5;box-shadow:none}
+.ft.hot{animation:hot 1s ease-in-out infinite}
+@keyframes hot{50%{box-shadow:0 0 0 3px var(--gc),0 0 2.5rem var(--gc)}}
+.ft.drop{border-color:var(--cy2);box-shadow:0 0 0 3px var(--cy2),0 0 2.5rem var(--cy)}
+.cap{position:absolute;left:0.5rem;right:0.5rem;bottom:0.4375rem;z-index:1;display:flex;flex-direction:column;gap:1px}
+.cap small{font:600 0.625rem/1 var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--cy2)}
+.cap b{font:400 1.0625rem/1.02 var(--disp);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cap i{font:600 0.6875rem/1.2 var(--ui);font-style:normal;color:#c5d2dd;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tg{position:absolute;left:0.375rem;top:0.375rem;z-index:1;display:flex;gap:0.25rem;flex-wrap:wrap;max-width:70%}
+.tag{font:700 0.5625rem/1 var(--ui);letter-spacing:.08em;text-transform:uppercase;padding:3px 0.3125rem;border-radius:0.25rem;background:rgba(4,7,11,.78);color:#c5d2dd}
+.tag.x3{color:var(--cy2)}.tag.sp{color:var(--warn)}.tag.u18{color:#ff9d9b}
+.chip{min-width:2.125rem;text-align:center;font:400 1.0625rem/1 var(--disp);padding:0.375rem 0.375rem;border-radius:0.5rem;background:rgba(4,7,11,.85);color:var(--mute)}
+.ft .chip{position:absolute;right:0.375rem;top:0.375rem;z-index:1}
+.chip.g{color:var(--good)}.chip.f{color:var(--fair)}.chip.s{color:var(--warn)}.chip.m{color:var(--bad)}
+body.promo .chip{display:none}
+
+/* board */
+.board{display:flex;flex-direction:column;gap:1.625rem;padding-block:1.125rem 8.125rem}
+.grp{display:flex;flex-direction:column;gap:0.75rem}
+.gh{display:flex;justify-content:space-between;align-items:flex-end;gap:0.75rem;border-bottom:1px solid var(--line);padding-bottom:0.5rem}
+.gh h2{margin:0.3125rem 0 0;font-size:clamp(1.75rem,3.4vw,2.75rem)}
+.gh b{font-size:0.875rem;color:var(--warn);font-weight:600}.gh b.ok{color:var(--good)}
+.grp.w .gh{border-color:color-mix(in srgb,var(--cy) 45%,var(--line))}
+.msk{letter-spacing:.12em;color:var(--mute)}
+.lane{background:color-mix(in srgb,var(--panel) 86%,transparent);border:1px solid var(--line);border-radius:0.875rem;display:flex;flex-direction:column;min-width:0;transition:border-color .3s,box-shadow .3s}
+.board.fresh .lh{animation:lhIn .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes lhIn{from{opacity:0;transform:translateY(-14px)}}
+.lane.over,.lane.hit{border-color:var(--cy);box-shadow:0 0 0 1px var(--cy),0 0 2.125rem rgba(31,182,230,.45)}
+.lh{padding:0.6875rem 0.75rem 0.5625rem;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:0.375rem}
+.lh h2{margin:0;font-size:1.375rem;display:flex;justify-content:space-between;align-items:baseline;gap:0.5rem}
+.lh h2 small{font:600 0.75rem var(--ui);color:var(--mute);letter-spacing:.08em}
+.lh .sub{font-size:0.75rem;color:var(--mute);display:flex;justify-content:space-between;gap:0.5rem}
+.lh .sub b{color:var(--warn);font-weight:600}.lh .sub b.ok{color:var(--good)}
+.lh .btn{padding:0.4375rem 0.625rem;font-size:0.75rem;align-self:flex-start}
+.lb{padding:0.5625rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(5.875rem,1fr));gap:0.5rem;min-height:4.375rem;align-content:start}
+.lb .cap b{font-size:0.875rem}.lb .cap{left:0.375rem;right:0.375rem}.lb .cap i{font-size:0.625rem}
+.empty{grid-column:1/-1;font-size:0.8125rem;color:var(--mute);padding:0.375rem 2px}
+
+/* bout tile */
+.bt{grid-column:span 2;position:relative;display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0;border:1px solid var(--line);border-radius:0.625rem;background:#070c12;text-align:left}
+.bt:hover{filter:brightness(1.12)}
+.half{position:relative;display:block;aspect-ratio:4/5;overflow:hidden}
+.half.r{border-radius:0.5625rem 0 0 0.5625rem}.half.b{border-radius:0 0.5625rem 0.5625rem 0}
+.half.r{box-shadow:inset 0.25rem 0 0 var(--red)}.half.b{box-shadow:inset -4px 0 0 var(--blue)}
+.half.r::before,.half.b::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none}
+.half.r::before{background:linear-gradient(90deg,rgba(229,72,77,.34),transparent 45%)}
+.half.b::before{background:linear-gradient(270deg,rgba(59,130,246,.36),transparent 45%)}
+.half.b .cap{text-align:right;align-items:flex-end}
+.vsb{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:3;width:2.75rem;aspect-ratio:1;border-radius:50%;background:var(--bg);border:2px solid var(--cy);display:grid;place-items:center;font:400 1.125rem/1 var(--disp);color:var(--cy2);box-shadow:0 0 1.375rem rgba(31,182,230,.6)}
+.rib{position:absolute;left:50%;top:0;transform:translateX(-50%);z-index:3;font:700 0.5625rem/1 var(--ui);letter-spacing:.16em;text-transform:uppercase;padding:0.3125rem 0.5625rem;border-radius:0 0 0.4375rem 0.4375rem;background:#1a2836;color:var(--mute)}
+.bt .chip{position:absolute;left:50%;bottom:0.5rem;transform:translateX(-50%);z-index:3;font-size:0.9375rem;padding:0.25rem 0.375rem}
+.bt.locked{border-color:var(--good);box-shadow:0 0 0 1px var(--good),0 0 1.625rem rgba(62,207,142,.35)}
+.bt.locked .rib{background:var(--good);color:#02160c}
+.bt.spark{animation:spark .7s ease-out}
+@keyframes spark{0%{box-shadow:0 0 0 0.25rem #fff,0 0 4.375rem #fff;filter:brightness(2)}100%{filter:none}}
+.bflag{position:absolute;left:0;right:0;bottom:0;z-index:4;border-radius:0 0 0.5625rem 0.5625rem;background:rgba(240,82,79,.92);color:#fff;font:700 0.625rem/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;text-align:center;padding:0.25rem}
+
+/* selection bar */
+.selbar{visibility:hidden;position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(6,11,16,.95);backdrop-filter:blur(0.625rem);border-top:1px solid var(--cy);box-shadow:0 -10px 2.5rem rgba(31,182,230,.25);padding:0.625rem var(--gr) calc(0.625rem + env(safe-area-inset-bottom,0px)) var(--gl);display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;transform:translateY(110%);transition:transform .25s}
+.selbar.on{transform:none;visibility:visible}
+.who{display:flex;gap:0.625rem;align-items:center;min-width:0}
+.av{width:2.5rem;height:3rem;border-radius:0.4375rem;object-fit:cover;object-position:50% 0;display:block;background:#0a1016;flex:none}
+.who .nm{font:400 1.25rem/1 var(--disp);text-transform:uppercase;letter-spacing:.03em}
+.hint{font-size:0.8125rem;color:var(--mute)}
+.picks{display:flex;gap:0.375rem;flex-wrap:wrap;align-items:center}
+.pick{display:flex;gap:0.4375rem;align-items:center;border:1px solid var(--line);background:var(--panel2);border-radius:62.4375rem;padding:0.25rem 0.6875rem 0.25rem 0.25rem;font-weight:600;font-size:0.8125rem}
+.pick:hover{border-color:var(--cy)}
+.pick .av{width:1.75rem;height:1.75rem;border-radius:50%}
+.pick .chip{font-size:0.8125rem;padding:0.25rem 0.375rem;min-width:1.875rem;border-radius:62.4375rem}
+.selbar select{background:var(--panel2);border:1px solid var(--line);border-radius:0.5rem;padding:0.5rem}
+
+/* fight card */
+.cardv{padding-block:1.125rem 3.75rem;max-width:61.25rem;margin:0 auto;display:flex;flex-direction:column;gap:0.625rem}
+.cardv h2{font-size:2.125rem;margin:0}
+.crow{display:grid;grid-template-columns:2.75rem minmax(0,1fr) auto;gap:0.625rem;align-items:center}
+.crow .no{font:400 1.625rem/1 var(--disp);color:var(--mute);text-align:center}
+.crow .no.main{color:var(--cy2)}
+.mv{display:flex;gap:0.25rem;align-items:center}
+.mv button{min-width:2.125rem;height:2.125rem;border:1px solid var(--line);background:var(--panel);border-radius:0.4375rem;font-weight:700;font-size:0.75rem;letter-spacing:.05em;text-transform:uppercase;padding:0 0.5625rem}
+.mv button:disabled{opacity:.3;cursor:default}
+.mv button.pp{border-color:var(--cy);color:var(--cy2)}
+.bout{background:linear-gradient(90deg,color-mix(in srgb,var(--red) 20%,var(--panel2)) 0,var(--panel2) 34%,var(--panel2) 66%,color-mix(in srgb,var(--blue) 22%,var(--panel2)) 100%);border:1px solid var(--line);border-radius:0.625rem;padding:0.5625rem;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:0.375rem;align-items:center;width:100%;text-align:left}
+.bout.locked{border-color:var(--good)}
+.bout .side{display:flex;gap:0.5625rem;align-items:center;min-width:0}
+.bout .side>span{min-width:0}
+.bout .side.r{flex-direction:row-reverse;text-align:right}
+.bout .av{width:3.125rem;height:3.75rem}
+.bout .nm{display:block;font:400 1.1875rem/1.05 var(--disp);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bout .ln{display:block;font-size:0.75rem;color:var(--mute);margin-top:2px}
+.bout .mid{display:flex;flex-direction:column;align-items:center;gap:3px}
+.bout .st{font:700 0.5625rem/1 var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.bout.locked .st{color:var(--good)}
+.left{display:flex;gap:0.5rem;flex-wrap:wrap}
+.note{font-size:0.8125rem;color:var(--mute);max-width:75ch}
+.sect{font:600 0.625rem/1 var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+textarea{width:100%;min-height:9.375rem;background:var(--panel);border:1px solid var(--line);border-radius:0.625rem;padding:0.625rem;font:500 0.8125rem/1.45 var(--ui);color:var(--ink)}
+
+/* divisions, app data, notes */
+.lane.wide{grid-column:span 2}
+.tolw{display:inline-flex;align-items:center;gap:0.375rem;font:700 0.75rem var(--ui);letter-spacing:.05em;text-transform:uppercase;color:var(--mute)}
+.tolw select{background:var(--panel);border:1px solid var(--line);border-radius:0.5rem;padding:0.4375rem;color:var(--ink)}
+.tag.nt{color:var(--cy2)}.tag.wn{color:var(--warn)}
+.cutb{position:absolute;top:0.375rem;z-index:2;font:700 0.625rem/1 var(--ui);letter-spacing:.04em;padding:0.25rem 0.375rem;border-radius:0.3125rem;background:var(--warn);color:#1d1300}
+.half.r .cutb{left:0.5rem}.half.b .cutb{right:0.5rem}
+.tl{position:absolute;left:50%;bottom:2.125rem;transform:translateX(-50%);z-index:3;font:700 0.5625rem/1 var(--ui);letter-spacing:.1em;text-transform:uppercase;padding:0.25rem 0.4375rem;border-radius:0.3125rem;background:rgba(4,7,11,.85);color:#c5d2dd;white-space:nowrap}
+.wd{display:inline-block;width:0.6875rem;height:0.6875rem;border-radius:50%;margin:0 2px;vertical-align:middle;background:var(--bad)}
+.wd.y{background:var(--good)}.wd.b{background:none;box-shadow:inset 0 0 0 2px var(--warn)}
+.spk{width:4.625rem;height:1.25rem;vertical-align:middle;color:var(--cy2);margin-left:0.375rem}
+.terms{border-top:1px solid var(--line);padding-top:0.75rem;display:flex;flex-direction:column;gap:0.5rem}
+.tsel{flex-wrap:wrap;align-self:flex-start}
+.lose{display:flex;gap:0.875rem;flex-wrap:wrap;font-size:0.875rem;color:var(--mute)}
+.cut{color:var(--warn);font-weight:700}
+.npre{border-top:1px solid var(--line);padding-top:0.75rem;display:flex;flex-direction:column;gap:0.5rem;font-size:0.875rem}
+.npre .n1{display:flex;gap:0.5rem;justify-content:space-between;align-items:flex-start}
+.npre q{quotes:"“" "”";color:#c5d2dd}
+.lnk{border:0;background:none;color:var(--cy2);font:700 0.75rem var(--ui);letter-spacing:.05em;text-transform:uppercase;padding:2px 0;white-space:nowrap}
+.ai{background:var(--panel2);border:1px solid var(--line);border-radius:0.625rem;padding:0.625rem 0.75rem;font-size:0.875rem;white-space:pre-wrap}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1.125rem}
+.kv{width:100%;border-collapse:collapse;margin-top:0.375rem}
+.kv td{padding:0.4375rem 0;border-bottom:1px solid var(--line);font-size:0.875rem;vertical-align:top}
+.kv td:first-child{color:var(--mute);width:42%;padding-right:0.625rem}
+.nlist{display:flex;flex-direction:column;gap:0.5rem;margin:0.375rem 0 0.625rem;max-height:16.25rem;overflow:auto}
+.nitem{background:var(--panel);border:1px solid var(--line);border-radius:0.625rem;padding:0.5625rem 0.6875rem;font-size:0.875rem;white-space:pre-wrap}
+.nmeta{display:flex;justify-content:space-between;gap:0.5rem;font:600 0.6875rem var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-bottom:0.25rem}
+#nt{min-height:5.25rem;margin-bottom:0.5rem}
+body.tv #tools,body.tv footer,body.tv .lh .btn,body.tv .rhead p{display:none!important}
+
+/* inter-club ready list */
+.icl{margin-top:1rem;border:1px solid color-mix(in srgb,var(--cy) 45%,var(--line));border-radius:0.875rem;background:linear-gradient(100deg,color-mix(in srgb,var(--cy) 12%,var(--panel)),var(--panel) 60%);padding:0.875rem;display:flex;flex-direction:column;gap:0.75rem}
+.iclh{display:flex;justify-content:space-between;align-items:flex-end;gap:0.875rem;flex-wrap:wrap}
+.iclh h2{margin:0.3125rem 0 0;font-size:1.625rem}
+.iclh p{margin:0;color:var(--mute);font-size:0.875rem;max-width:52ch}
+.iclg{display:grid;grid-template-columns:repeat(auto-fill,minmax(16.875rem,1fr));gap:0.625rem}
+.iclc{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:0.75rem;align-items:center;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:0.75rem;padding:0.5625rem 0.875rem 0.5625rem 0.5625rem}
+.iclc:hover{border-color:var(--cy)}
+.iclc .av{width:3.25rem;height:4rem}
+.ii{display:flex;flex-direction:column;gap:0.375rem;min-width:0}
+.ii b{font:400 1.25rem/1 var(--disp);letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ii small{font-size:0.75rem;color:var(--mute)}
+.bar{display:block;height:0.4375rem;border-radius:0.4375rem;background:#1a2836;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:0.4375rem;background:var(--bad);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.bar i.g{background:var(--good)}.bar i.f{background:var(--fair)}.bar i.s{background:var(--warn)}
+.pc{font:400 2.125rem/1 var(--disp);color:var(--bad)}
+.pc.g{color:var(--good)}.pc.f{color:var(--fair)}.pc.s{color:var(--warn)}
+.tag.ic{color:#02160c;background:var(--good)}
+.rdc{position:absolute;right:0.375rem;top:0.375rem;z-index:1;font:400 1.25rem/1 var(--disp);padding:0.3125rem 0.4375rem;border-radius:0.5rem;background:rgba(4,7,11,.88);color:var(--bad)}
+.rdc.g{color:var(--good)}.rdc.f{color:var(--fair)}.rdc.s{color:var(--warn)}
+.rdb{position:absolute;left:0;right:0;bottom:0;height:0.3125rem;z-index:2;background:#1a2836}
+.rdb i{display:block;height:100%;background:var(--bad)}.rdb i.g{background:var(--good)}.rdb i.f{background:var(--fair)}.rdb i.s{background:var(--warn)}
+.gh p{margin:0.25rem 0 0;color:var(--mute);font-size:0.875rem;max-width:70ch}
+.grp.o .gh{border-color:color-mix(in srgb,var(--good) 45%,var(--line))}
+.iclbox{border:1px solid var(--line);border-radius:0.625rem;padding:0.6875rem 0.75rem;margin-top:0.75rem;display:flex;flex-direction:column;gap:0.5rem}
+.iclrow{display:flex;gap:0.75rem;align-items:center}
+.iclrow input{flex:1;accent-color:var(--cy);min-width:0}
+.iclrow b{font:400 1.625rem/1 var(--disp);min-width:4rem;text-align:right}
+.iclbox .hint{display:block}
+
+.verd{margin:0;padding:0.75rem 0.875rem;border-left:3px solid var(--cy);background:color-mix(in srgb,var(--cy) 10%,var(--panel2));border-radius:0 0.625rem 0.625rem 0;font-size:0.9375rem;line-height:1.45}
+.call{border-top:1px solid var(--line);padding-top:0.625rem}
+.call summary{cursor:pointer;font:700 0.75rem var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.callf{display:flex;flex-direction:column;gap:0.5rem;margin-top:0.625rem}
+.callf label{display:flex;flex-direction:column;gap:0.25rem;font:600 0.6875rem var(--ui);letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.callf label.ck{flex-direction:row;align-items:center;gap:0.5rem;text-transform:none;letter-spacing:0;font-size:0.875rem;color:var(--ink)}
+.callf input[type=number]{background:var(--panel2);border:1px solid var(--line);border-radius:0.5rem;padding:0.5rem;font:600 0.9375rem var(--ui);color:var(--ink);width:6.875rem}
+.callf textarea{min-height:4.375rem}
+@media (min-width:761px){body.promo .fo.show .fobody{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
+
+/* dialogs */
+dialog{border:1px solid var(--line);padding:0;background:var(--bg);color:var(--ink);border-radius:1.125rem;width:min(57.5rem,calc(100vw - 1.25rem));max-height:calc(100dvh - 1.25rem);box-shadow:0 1.875rem 5rem rgba(0,0,0,.7),0 0 3.75rem rgba(31,182,230,.2)}
+dialog::backdrop{background:rgba(0,0,0,.78)}
+.x{position:absolute;right:0.625rem;top:0.625rem;width:2.375rem;height:2.375rem;border-radius:50%;border:1px solid var(--line);background:rgba(5,8,12,.8);font-size:1.1875rem;z-index:5}
+.fo{position:relative;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"a b" "m m"}
+.corner{position:relative;height:min(33dvh,46vw);overflow:hidden;background:#06090d}
+.corner.r{grid-area:a}.corner.b{grid-area:b}
+.mid{grid-area:m;min-width:0}
+.foacts{display:flex;flex-direction:column;gap:0.625rem;padding:0 1.125rem 1.125rem}
+.corner img{width:100%;height:100%;object-fit:cover;object-position:50% 0;display:block}
+.corner.r img{animation:inL .5s cubic-bezier(.2,.8,.2,1) both}
+.corner.b img{animation:inR .5s cubic-bezier(.2,.8,.2,1) both}
+.corner::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(5,8,12,.94) 100%)}
+.corner.r{border-bottom:0.25rem solid var(--red)}.corner.b{border-bottom:0.25rem solid var(--blue)}
+.corner .cp{position:absolute;left:0.875rem;right:0.875rem;bottom:0.625rem;z-index:2}
+.corner.b .cp{text-align:right}
+.corner.r .lab{color:#ff9d9b}.corner.b .lab{color:#9cc2ff}
+.corner .nm{font:400 clamp(1.25rem,4.4vw,2.375rem)/1 var(--disp);text-transform:uppercase;margin-top:0.25rem}
+.vs{position:absolute;left:50%;top:calc(min(33dvh,46vw)*.46);transform:translate(-50%,-50%);z-index:3;width:clamp(3.375rem,11vw,5.75rem);aspect-ratio:1;border-radius:50%;background:var(--bg);border:3px solid var(--cy);display:grid;place-items:center;font:400 clamp(1.25rem,4.6vw,2.375rem)/1 var(--disp);color:var(--cy2);animation:pop .45s .25s cubic-bezier(.2,1.6,.4,1) both;box-shadow:0 0 2.5rem rgba(31,182,230,.6)}
+@keyframes inL{from{transform:translateX(-18%);opacity:0}}@keyframes inR{from{transform:translateX(18%);opacity:0}}@keyframes pop{from{transform:translate(-50%,-50%) scale(.2);opacity:0}}
+.fobody{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:1.125rem;padding:1.125rem}
+body.promo .fobody{grid-template-columns:1fr}
+@keyframes popS{from{transform:scale(.2);opacity:0}}
+/* wide screens: fighters stand full height either side, everything else sits between them and is scaled to fit one screen */
+@media (min-width:900px) and (min-aspect-ratio:1/1){
+ dialog.full{width:calc(100vw - 1.5rem);max-width:none;height:calc(100dvh - 1.5rem);max-height:none;overflow:hidden}
+ dialog.full #dlgBody,dialog.full .fo{height:100%}
+ dialog.full .fo{grid-template-columns:minmax(0,24fr) minmax(0,52fr) minmax(0,24fr);grid-template-areas:"a m b"}
+ dialog.full .corner{height:100%}
+ dialog.full .corner.r{border-bottom:0;border-right:0.25rem solid var(--red)}
+ dialog.full .corner.b{border-bottom:0;border-left:0.25rem solid var(--blue)}
+ dialog.full .corner::after{background:linear-gradient(180deg,transparent 62%,rgba(5,8,12,.94) 100%)}
+ dialog.full .corner .cp{bottom:1rem;left:1.125rem;right:1.125rem}
+ dialog.full .corner .nm{font-size:clamp(1.375rem,2.7vw,3.375rem)}
+ dialog.full .mid{display:flex;flex-direction:column;min-height:0;padding:0.875rem 1.25rem 1rem}
+ dialog.full .vs{position:static;transform:none;flex:none;margin:0 auto 0.625rem;width:clamp(3.25rem,4.6vw,5.25rem);font-size:clamp(1.25rem,1.9vw,2.125rem);animation-name:popS}
+ dialog.full .fitwrap{flex:1;min-height:0;overflow:hidden}
+ dialog.full .fobody{padding:0 0 0.875rem}
+ dialog.full .foacts{padding:0}
+ dialog.full .foacts .acts .btn.go{flex:2 1 40%}
+ dialog.full .x{right:0.875rem;top:0.875rem}
+}
+.tape{width:100%;border-collapse:collapse}
+.tape td{padding:0.5rem 0.375rem;border-bottom:1px solid var(--line);font-size:1rem;font-weight:600;width:36%}
+.tape td.k{width:28%;text-align:center;font:600 0.625rem var(--ui);letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.tape td:last-child{text-align:right}
+.tape td.adv{color:var(--cy2)}.tape td.na{color:var(--mute);font-weight:500}
+.verdict{background:var(--panel);border:1px solid var(--line);border-radius:0.875rem;padding:0.875rem;display:flex;flex-direction:column;gap:0.75rem}
+.dial{display:flex;gap:0.875rem;align-items:center}
+.ringg{--v:0;--c:var(--good);width:5.5rem;aspect-ratio:1;border-radius:50%;background:conic-gradient(var(--c) calc(var(--v)*1%),#1a2836 0);display:grid;place-items:center;flex:none}
+.ringg span{width:4.25rem;aspect-ratio:1;border-radius:50%;background:var(--panel);display:grid;place-items:center;font:400 1.875rem/1 var(--disp)}
+.dial h3{margin:0;font-size:1.625rem}
+.dial p{margin:3px 0 0;font-size:0.8125rem;color:var(--mute)}
+.why{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:0.375rem;font-size:0.875rem}
+.why li{display:grid;grid-template-columns:0.625rem 1fr;gap:0.5rem;align-items:baseline}
+.why li::before{content:"";width:0.5rem;height:0.5rem;border-radius:50%;background:var(--good)}
+.why li.w::before{background:var(--warn)}.why li.b::before{background:var(--bad)}.why li.i::before{background:#3a4c5e}
+.acts{display:flex;gap:0.5rem;flex-wrap:wrap}
+.acts .btn{flex:1;text-align:center}
+.acts .btn.go{flex:1 1 100%;font:400 1.5rem/1 var(--disp);letter-spacing:.06em;padding:1rem}
+.rounds{display:flex;gap:0.5rem;align-items:center;font-size:0.8125rem;color:var(--mute)}
+.rounds select{background:var(--panel2);border:1px solid var(--line);border-radius:0.5rem;padding:0.4375rem}
+.sheet{padding:1.25rem;display:flex;flex-direction:column;gap:0.875rem}
+.sheet .hd{display:flex;gap:0.75rem;align-items:center}
+.sheet .hd .av{width:4rem;height:4.875rem}
+.sheet h2{margin:0;font-size:1.75rem}
+.form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0.625rem}
+.form label{display:flex;flex-direction:column;gap:0.3125rem;font:600 0.6875rem var(--ui);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.form input,.form select{background:var(--panel);border:1px solid var(--line);border-radius:0.5rem;padding:0.5625rem;font:600 0.9375rem var(--ui);color:var(--ink);letter-spacing:0;text-transform:none;width:100%}
+
+/* poster takeover */
+#pv{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.625rem;padding:max(0.625rem,env(safe-area-inset-top,0px)) var(--gr) max(0.625rem,env(safe-area-inset-bottom,0px)) var(--gl);background:radial-gradient(70% 60% at 50% 40%,rgba(31,182,230,.22),rgba(2,4,7,.97) 70%),rgba(2,4,7,.97);animation:pvin .25s both}
+@keyframes pvin{from{opacity:0}}
+#pc{display:block;height:auto;width:auto;max-width:100%;max-height:calc(100dvh - 5.375rem);aspect-ratio:4/5;border-radius:0.625rem;box-shadow:0 0 0 1px rgba(127,224,255,.35),0 0 5.625rem rgba(31,182,230,.45),0 2.5rem 5.625rem rgba(0,0,0,.8);animation:pcin .45s cubic-bezier(.2,1.3,.3,1) both}
+@keyframes pcin{from{transform:scale(.72) rotate(-2deg);opacity:0}}
+.pvbar{display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;transition:opacity .4s}
+.pvbar.idle{opacity:0}
+.pvbar .btn:not(.p){background:rgba(10,17,24,.9)}
+.toast{position:fixed;left:50%;top:calc(0.875rem + env(safe-area-inset-top,0px));transform:translate(-50%,-90px);background:var(--ink);color:var(--bg);padding:0.625rem 1rem;border-radius:62.4375rem;font-weight:700;z-index:99;transition:transform .25s;max-width:calc(100vw - 2rem);text-align:center}
+.toast.on{transform:translate(-50%,0)}
+footer{border-top:1px solid var(--line)}
+footer .wrap{padding-block:1rem 1.5rem}
+
+@media (max-width:760px){
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .board{padding-bottom:10rem}
+ .lb{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .rgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:0.4375rem}
+ .fobody{grid-template-columns:1fr;padding:0.875rem}
+ .form{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .grid2{grid-template-columns:1fr}
+ .lane.wide{grid-column:auto}
+ .crow{grid-template-columns:1.625rem minmax(0,1fr);gap:0.375rem}
+ .crow .mv{grid-column:2;justify-content:flex-end}
+ .bout .av{width:2.5rem;height:3rem}.bout .nm{font-size:0.9375rem}
+ .selbar .hint{font-size:0.75rem}
+ .cap b{font-size:0.9375rem}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="beams" aria-hidden="true"></div>
+<div class="top"><div class="wrap">
+ <div class="brand">
+  <div><div class="lab">Fight Club Central Coast · Fight Night Sat 19 Dec 2026</div><h1 class="d">Match<em>maker</em></h1></div>
+  <div class="right">
+   <a class="tog" href="/" style="text-decoration:none" id="tApp">&lsaquo; App</a>
+   <button type="button" class="tog" id="tTv" aria-pressed="false">TV mode</button>
+   <button type="button" class="tog" id="tPromo" aria-pressed="false">Promo mode</button>
+   <button type="button" class="tog" id="tSound" aria-pressed="true">Sound</button>
+   <div class="tabs" role="group" aria-label="View"><button type="button" id="tBoard" aria-pressed="true">Matchmaking</button><button type="button" id="tCard" aria-pressed="false">Fight card</button></div>
+  </div>
+ </div>
+ <div class="stats" id="stats"></div>
+ <div class="prog" aria-hidden="true"><i id="prog" style="width:0"></i></div>
+ <div class="tools" id="tools">
+  <button type="button" class="btn p" id="bSuggest">Suggest all matches</button>
+  <label class="tolw" for="rngSel">Highlight within <select id="rngSel"><option value="3">3 kg</option><option value="5" selected>5 kg</option><option value="8">8 kg</option><option value="10">10 kg</option></select></label>
+  <button type="button" class="btn" id="bW" aria-pressed="false">Women’s weights hidden</button>
+  <div class="seg" role="group" aria-label="Match on"><button type="button" id="wNow" aria-pressed="true">Weight now</button><button type="button" id="wFight" aria-pressed="false">Fight weight</button></div>
+  <div class="seg" role="group" aria-label="Division table"><button type="button" id="rLeague" aria-pressed="true">League divisions</button><button type="button" id="rBA" aria-pressed="false">Boxing Australia</button></div>
+  <label class="tolw" for="tolSel">Cut limit <select id="tolSel"><option value="1">1 kg</option><option value="1.5" selected>1.5 kg</option><option value="2">2 kg</option><option value="3">3 kg</option></select></label>
+  <span class="spacer"></span>
+  <button type="button" class="btn ghost dng" id="bClear">Clear pencilled bouts</button>
+  <button type="button" class="btn ghost dng" id="bReset">Start over</button>
+ </div>
+</div></div>
+
+<main>
+ <div class="wrap">
+  <div class="rost" id="rost" hidden></div>
+  <div class="board" id="board" hidden></div>
+  <div class="cardv" id="cardv" hidden></div>
+ </div>
+</main>
+
+<footer class="pv"><div class="wrap note">Scores are a guide for the coach, not a ruling. League divisions are the Australian Amateur Boxing League state and national title table (48, 51, 54, 57, 60, 63.5, 67, 71, 75, 78, 81, 86, 91, 91+); the copy found is undated, so check it against the current League sheet. Boxing Australia divisions are from its Competition Rules of 22 January 2025. Weights and weigh-in history come live from the Legacy app. Promo mode hides weights, ages, records, scores and notes so the screen is safe to record.</div></footer>
+
+<div class="selbar" id="selbar"></div>
+<dialog id="dlg" aria-label="Face-off"><button class="x" type="button" data-close aria-label="Close">×</button><div id="dlgBody"></div></dialog>
+<div id="pv" hidden><canvas id="pc" width="1080" height="1350" aria-label="Fight poster"></canvas>
+ <div class="pvbar" id="pvbar"><button type="button" class="btn" id="pvReplay">Replay</button><button type="button" class="btn" id="pvPng" hidden>Save poster</button><button type="button" class="btn" id="pvClip" hidden>Save video clip</button><button type="button" class="btn p" id="pvDone">Back to matchmaking</button></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* Snapshot of active Fight Club 2026 fighters from the Legacy app. kg = latest weigh-in (kd = date, blank = sign-up weight). fw = fight weight if entered. xp: 0 none, 1 skills classes, 2 sparring, 3 fought at Fight Club. */
+const BASE=[
+["koby-beecham","Koby Beecham","m",19,74,"",null,"Orthodox",0,0,0,0],
+["braith-bright","Braith Bright","m",20,100,"7 Oct",100,"Orthodox",0,0,0,3],
+["hadrian-caacbay","Hadrian Caacbay","m",20,63,"11 Nov",null,"Orthodox",0,0,0,0],
+["sophie-duruz","Sophie Duruz","f",27,80,"",null,"Orthodox",0,0,0,0],
+["mick-egan","Mick Egan","m",52,132,"2 Nov",122,"Orthodox",0,0,0,2],
+["hunta-ewings","Hunta Ewings","m",20,83.5,"13 Oct",null,"Orthodox",0,0,0,0],
+["braiden-griggs","Braiden Griggs","m",20,76,"19 Nov",74,"Southpaw",0,0,0,0],
+["taylor-hammond","Taylor Hammond","m",null,73,"12 Nov",null,"",0,0,0,0],
+["cooper-hubbard","Cooper Hubbard","m",19,79,"6 Nov",null,"Orthodox",0,0,0,1],
+["oliver-irvine","Oliver Irvine","m",null,65,"18 Sep",64,"Orthodox",0,0,0,3],
+["henry-matthews","Henry Matthews","m",20,94,"21 Oct",null,"Southpaw",0,0,0,2],
+["jake-mcwilliams","Jake McWilliams","m",31,110,"",110,"Orthodox",1,2,1,3],
+["corey-mear","Corey Mear","m",19,69,"17 Nov",75,"Orthodox",0,0,0,0],
+["william-miles","William Miles","m",null,112,"17 Nov",null,"Orthodox",0,0,0,0],
+["krisstofer-monsalve","Krisstofer Monsalve","m",19,75,"7 Oct",75,"Orthodox",0,0,0,0],
+["hussein-mouhanna","Hussein Mouhanna","m",27,102,"",null,"",0,0,0,0],
+["joshua-oliveira","Joshua Oliveira","m",35,110,"5 Nov",100,"Orthodox",0,0,0,0],
+["lorenzo-perez","Lorenzo Perez","m",19,52,"7 Oct",52,"Orthodox",0,1,0,3],
+["alexis-rose","Alexis Rose","f",20,63.7,"29 Oct",null,"Southpaw",0,0,0,0],
+["erin-sheehy","Erin Sheehy","f",20,58.3,"17 Nov",null,"Orthodox",0,0,0,0],
+["chris-simpson","Chris Simpson","m",30,139.9,"5 Nov",null,"Orthodox",0,0,0,1],
+["alivia-steane","Alivia Steane","f",20,74.7,"29 Oct",70,"Orthodox",0,0,0,2],
+["jaxson-steinwede","Jaxson Steinwede","m",27,82,"30 Oct",80,"Orthodox",1,0,0,3],
+["kyle-stokes","Kyle Stokes","m",27,80,"",null,"",0,0,0,0],
+["mathew-sturt","Mathew Sturt","m",null,82,"21 Oct",64,"Orthodox",0,2,0,3],
+["liam-wade","Liam Wade","m",24,96,"12 Nov",null,"Orthodox",0,1,0,3],
+["travis-walsh","Travis Walsh","m",31,89.8,"16 Nov",null,"Orthodox",0,0,0,2],
+["tom-williams","Tom Williams","m",16,81.2,"16 Nov",78,"Orthodox",0,1,0,2],
+["dan-wilson","Dan Wilson","m",null,90,"",null,"",0,0,0,3]
+].map(r=>({id:r[0],n:r[1],sx:r[2],age:r[3],kg:r[4],kd:r[5],fw:r[6],st:r[7],w:r[8],l:r[9],dr:r[10],xp:r[11]}));
+const XP=['No experience','Skills classes','Sparring','Fought at Fight Club'], XPL=['no experience','skills classes','sparring','fought at Fight Club'], XPS=['New','Skills','Sparring','Fought'];
+/* Weigh-ins from the Legacy app, pulled 19 Nov 2026 (camp week 6). Each row: id, latest weigh-in kg, its date, first camp weigh-in kg, its date, days between, weigh-ins since 28 Sep. */
+const APPROWS=[
+["alexis-rose",63.7,"29 Oct",61.6,"12 Oct",17,[61.6,64.1,64.4,64.7,63.7]],
+["alivia-steane",74.7,"29 Oct",80,"14 Oct",15,[80,78,74.7]],
+["braiden-griggs",76,"19 Nov",78,"7 Oct",43,[82,82,78,77,78,78,76]],
+["braith-bright",100,"7 Oct",100,"7 Oct",0,[100,100]],
+["chris-simpson",138.2,"18 Nov",147,"7 Oct",42,[147,147,144.5,143.4,143.7,143.2,143.6,142.2,139.9,138.2]],
+["cooper-hubbard",79,"6 Nov",77,"13 Oct",24,[77,79]],
+["corey-mear",69,"17 Nov",69,"13 Oct",35,[69,71,69]],
+["dan-wilson",null,null,null,null,null,null],
+["erin-sheehy",58.3,"17 Nov",57.6,"29 Oct",19,[57.6,58.1,57.1,58.3]],
+["hadrian-caacbay",63,"11 Nov",63,"21 Oct",21,[63,63,63,63]],
+["henry-matthews",94,"21 Oct",94,"7 Oct",14,[94,94,94]],
+["hunta-ewings",83.5,"13 Oct",83.5,"13 Oct",0,[83.5]],
+["hussein-mouhanna",null,null,null,null,null,null],
+["jake-mcwilliams",null,null,null,null,null,null],
+["jaxson-steinwede",82,"30 Oct",80,"7 Oct",23,[80,80,80,82]],
+["joshua-oliveira",110,"5 Nov",110,"5 Oct",31,[110,110,110,110,110,109,110,110,110,110,110]],
+["koby-beecham",null,null,null,null,null,null],
+["krisstofer-monsalve",75,"7 Oct",75,"7 Oct",0,[75,75]],
+["kyle-stokes",null,null,null,null,null,null],
+["liam-wade",96,"12 Nov",101,"7 Oct",36,[101,101,101,101,97.5,101,96]],
+["lorenzo-perez",52,"7 Oct",52,"7 Oct",0,[52,52]],
+["mathew-sturt",82,"21 Oct",82,"7 Oct",14,[82,77,82]],
+["mick-egan",132,"2 Nov",130,"7 Oct",26,[130,130,134,134,132]],
+["oliver-irvine",65,"18 Sep",null,null,null,null],
+["sophie-duruz",null,null,null,null,null,null],
+["taylor-hammond",73,"12 Nov",73,"12 Nov",0,[73]],
+["tom-williams",81.2,"16 Nov",80.2,"20 Oct",27,[78,80.2,80.5,79.6,81.4,80.4,82.1,80.1,81.2,81.2]],
+["travis-walsh",89.8,"16 Nov",96.7,"11 Oct",36,[95,93.8,95,96.7,93.4,93.8,92.9,93.5,91.7,91.9,90,91,88.3,88.3,89.8]],
+["william-miles",112,"17 Nov",112.9,"2 Nov",15,[112.9,112]]];
+const APP={};APPROWS.forEach(r=>APP[r[0]]={kg:r[1],kd:r[2],kg0:r[3],d0:r[4],days:r[5],sp:r[6]||[]});
+BASE.forEach(f=>{const a=APP[f.id];if(a&&a.kg!=null){f.kg=a.kg;f.kd=a.kd}});
+/* Weight divisions. League = Australian Amateur Boxing League title table. BA = Boxing Australia Competition Rules, 22 Jan 2025 (elite). [name, upper limit kg] */
+const LG=[['Light Fly',48],['Fly',51],['Bantam',54],['Feather',57],['Light',60],['Junior Welter',63.5],['Welter',67],['Light Middle',71],['Middle',75],['Super Middle',78],['Light Heavy',81],['Cruiser',86],['Heavy',91],['Super Heavy',Infinity]];
+const BAM=[['Flyweight',50],['Bantamweight',55],['Lightweight',60],['Welterweight',65],['Light Middleweight',70],['Middleweight',75],['Light Heavyweight',80],['Cruiserweight',85],['Heavyweight',90],['Super Heavyweight',Infinity]];
+const BAF=[['Light Flyweight',48],['Flyweight',51],['Bantamweight',54],['Featherweight',57],['Lightweight',60],['Welterweight',65],['Light Middleweight',70],['Middleweight',75],['Light Heavyweight',80],['Heavyweight',Infinity]];
+const RULES={league:{m:LG,f:LG},ba:{m:BAM,f:BAF}};
+const KEY='fc_matchmaker_v4';
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const $=s=>document.querySelector(s);
+let S=null, sel=null, view='board', DL=null, DB=null, SM=null, NOTES={}, freshLanes=false, sheetId=null, pendT=null;
+const CID=Math.random().toString(36).slice(2);let pushT=null,remoteAt=0;
+
+function fresh(){return{stage:'roster',pools:[],bouts:[],edits:{},calls:{},basis:'kg',n:1,rules:'league',tol:1.5,range:5,wshow:false,promo:false,sound:true,tv:false,at:0}}
+function load(){try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&j.pools&&j.bouts&&j.stage)return j}catch(e){}return null}
+const core=()=>({stage:S.stage,pools:S.pools,bouts:S.bouts,edits:S.edits,calls:S.calls||{},basis:S.basis,n:S.n,rules:S.rules,tol:S.tol,range:S.range});
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+/* the board is also kept in the page's shared store, so a second screen (the TV) follows along live */
+function save(local){saveLocal();if(local||!DB)return;S.at=Date.now();saveLocal();clearTimeout(pushT);pushT=setTimeout(()=>{DB.doc('state/board').set({json:JSON.stringify(core()),cid:CID,at:S.at}).catch(()=>{})},450)}
+function onRemote(snap){if(!snap||!snap.exists)return;const d=snap.data();if(!d||d.cid===CID||!d.json||!(d.at>remoteAt)||!(d.at>(S.at||0)))return;remoteAt=d.at;let c;try{c=JSON.parse(d.json)}catch(e){return}
+ const had=new Set(S.bouts.filter(b=>b.locked).map(b=>b.id));Object.assign(S,c);S.at=d.at;saveLocal();const nw=S.bouts.filter(b=>b.locked&&!had.has(b.id));
+ flip(render,{stagger:18,onLand:el=>{sparkBout(el)}});if(S.tv&&nw.length&&$('#pv').hidden)showPoster(nw[0].id,{auto:9000})}
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const r1=n=>Math.round(n*10)/10;
+const F=id=>{const b=BASE.find(f=>f.id===id);return b?Object.assign({},b,S.edits[id]||{}):null};
+const all=()=>BASE.map(b=>F(b.id));
+const LOCALIMG=new Set(['alexis-rose','alivia-steane','braiden-griggs','braith-bright','chris-simpson','cooper-hubbard','corey-mear','dan-wilson','erin-sheehy','hadrian-caacbay','henry-matthews','hunta-ewings','hussein-mouhanna','jake-mcwilliams','jaxson-steinwede','joshua-oliveira','koby-beecham','krisstofer-monsalve','kyle-stokes','liam-wade','lorenzo-perez','mathew-sturt','mick-egan','oliver-irvine','sophie-duruz','taylor-hammond','tom-williams','travis-walsh','william-miles']);
+const PHOTO={};
+const img=id=>LOCALIMG.has(id)?'/img/mm/'+id+'.jpg':(PHOTO[id]||'/img/mm/'+id+'.jpg');
+const kgf=n=>n==null?'':(Math.round(n*10)/10)+' kg';
+const mw=f=>S.basis==='fw'&&f.fw?f.fw:f.kg;
+/* women's weights stay covered unless the coach switches them on */
+const maskW=f=>f.sx==='f'&&!S.wshow;
+const kgF=(f,n)=>maskW(f)?'<span class="msk" title="Weight hidden">•• kg</span>':kgf(n===undefined?mw(f):n);
+const kgT=(f,n)=>maskW(f)?'weight hidden':kgf(n===undefined?mw(f):n);
+const fights=f=>f.fn!=null?f.fn:f.w+f.l+f.dr;
+const rec=f=>f.recTxt||f.w+'-'+f.l+'-'+f.dr;
+const xpT=f=>f.xpTxt||XP[f.xp],xpL=f=>f.xpTxt?f.xpTxt.charAt(0).toLowerCase()+f.xpTxt.slice(1):XPL[f.xp];
+/* coach's call: the coaches' own rating and verdict for a pair, on top of the calculated score */
+const pairKey=(a,b)=>[a,b].sort().join('|');
+const callOf=(a,b)=>(S.calls||{})[pairKey(a,b)]||null;
+const boutOf=id=>S.bouts.find(b=>b.a===id||b.b===id);
+const poolOf=id=>S.pools.find(p=>p.ids.includes(id));
+const first=n=>n.split(' ')[0];
+const last=n=>n.split(' ').slice(1).join(' ')||n;
+const app=id=>APP[id]||{};
+/* ---- divisions ---- */
+function divOf(f,w){const t=RULES[S.rules||'league'][f.sx],x=w==null?mw(f):w;let i=t.findIndex(d=>x<=d[1]);if(i<0)i=t.length-1;return{i,n:t[i][0],max:t[i][1],min:i?t[i-1][1]:0}}
+const rangeTxt=d=>d.max===Infinity?'over '+d.min+' kg':(d.min?d.min+' to ':'up to ')+d.max+' kg';
+function plan(A,B){const wa=mw(A),wb=mw(B),da=divOf(A),db=divOf(B),tol=S.tol||1.5,hv=wa>=wb?A:B,lo=hv===A?B:A,T=da.i<=db.i?da:db,cw=Math.ceil(Math.max(wa,wb)*2)/2,mk=maskW(A)||maskW(B);
+ const o={T,cw,hv,lo,mk,same:da.i===db.i,over:0,opts:[],rec:'div'};
+ if(o.same){o.opts.push({k:'div',name:T.n,limit:T.max===Infinity?null:T.max});if(T.max!==Infinity)o.opts.push({k:'catch',name:'Catchweight',limit:cw});o.line=['g',mk?`Both are ${T.n}.`:`Both are ${T.n} (${rangeTxt(T)}).`]}
+ else{o.over=r1(mw(hv)-T.max);o.opts.push({k:'div',name:T.n,limit:T.max},{k:'catch',name:'Catchweight',limit:cw});
+  if(o.over<=tol)o.line=['w',mk?`${hv.n} is ${o.over} kg over ${T.n}. Suggest ${first(hv.n)} makes the limit, or agree a catchweight.`:`${hv.n} is ${o.over} kg over ${T.n} (${T.max} kg). Suggest ${first(hv.n)} makes ${T.max} kg, or agree a catchweight at ${cw} kg.`];
+  else{o.rec='catch';o.line=['b',mk?`${hv.n} is ${divOf(hv).n} and ${lo.n} is ${T.n}. ${first(hv.n)} would need to lose ${o.over} kg, more than the ${tol} kg cut limit. Catchweight, or look for another opponent.`:`${hv.n} is ${divOf(hv).n} and ${lo.n} is ${T.n}. ${first(hv.n)} would need to lose ${o.over} kg to make ${T.max} kg, more than the ${tol} kg cut limit. Catchweight at ${cw} kg, or look for another opponent.`]}}
+ return o}
+function termsOf(b){const p=plan(F(b.a),F(b.b));const k=b.terms&&p.opts.find(o=>o.k===b.terms)?b.terms:p.rec;return Object.assign({k,p},p.opts.find(o=>o.k===k)||p.opts[0])}
+const toLose=(f,t)=>t.limit==null?0:Math.max(0,r1(mw(f)-t.limit));
+const termTxt=t=>t.p.mk?(t.k==='catch'?'Catchweight':t.name):t.k==='catch'?'Catchweight '+t.limit+' kg':t.name+(t.limit?' '+t.limit+' kg':'');
+/* who lights up when a fighter is picked: anyone within the kg range, plus the whole open top division for a fighter who is in it */
+const inRange=(a,b)=>a.sx==='f'||Math.abs(mw(a)-mw(b))<=(S.range||5)||(divOf(a).max===Infinity&&divOf(b).max===Infinity);
+/* ---- app data ---- */
+function trend(f){const a=app(f.id);if(a.kg0==null||!a.days||a.days<14)return null;const rate=(a.kg-a.kg0)/a.days*7;return{rate:r1(rate),from:a.kg0,d0:a.d0,to:a.kg,proj:r1(a.kg+rate*4.3)}}
+function spark(id){const v=app(id).sp||[];if(v.length<3)return '';const mn=Math.min(...v),mx=Math.max(...v),W=90,H=22;return `<svg class="spk" viewBox="0 0 ${W} ${H}" aria-hidden="true"><polyline fill="none" stroke="currentColor" stroke-width="1.8" points="${v.map((x,i)=>(i/(v.length-1)*W).toFixed(1)+','+(H-3-(mx===mn?.5:(x-mn)/(mx-mn))*(H-6)).toFixed(1)).join(' ')}"/></svg>`}
+const trendTxt=f=>{const t=trend(f);return t?(t.rate>0?'+':'')+t.rate+' kg a week'+spark(f.id):'—'};
+const trendLine=(f,t)=>{const d=divOf(f,t.proj),ch=d.i!==divOf(f).i;return maskW(f)?`dropping about ${Math.abs(t.rate)} kg a week${ch?'. At that rate '+first(f.n)+' is '+d.n+' by fight night':''}.`:`dropping about ${Math.abs(t.rate)} kg a week (${t.from} kg on ${t.d0}, ${t.to} kg now). About ${t.proj} kg by fight night at that rate${ch?', which is '+d.n:''}.`};
+function flags(f){const o=[],t=trend(f);
+ if(t&&t.rate<=-0.8)o.push('D'+trendLine(f,t).slice(1));
+ if(t&&t.rate>=0.8)o.push(maskW(f)?`Gaining about ${t.rate} kg a week.`:`Gaining about ${t.rate} kg a week (${t.from} kg on ${t.d0}, ${t.to} kg now).`);
+ return o}
+/* ---- coach notes: read each note clause by clause for strong and worrying signs ---- */
+const NEG=/\b(struggl\w*|poor\w*|unfit|(?:not|isn'?t|isn’t|is not|aren'?t) (?:overly |very |that |really )?(?:fit|confident|sharp|ready)|miss(?:ed|es|ing)?|injur\w*|niggle\w*|sore|concern\w*|worr\w*|lack\w*|slow\w*|gass\w*|nervous|hesitan\w*|behind|weak\w*|sloppy|inconsistent|skipp\w*|no[- ]show\w*|tired|lazy|flat)\b/i;
+const POS=/\b(clean\w*|sharp\w*|confiden\w*|improv\w*|better|stronger|strong|fit(?:ter|ness)?|fast\w*|power\w*|composed|great|excellent|good|solid|consistent|dominan\w*|slick|accurate|ready|flying)\b/i;
+const WT=/\b(weight|kilos?|kg)\b/i;
+function readNotes(id){const ns=NOTES[id]||[];let pos=0,neg=0,pq='',nq='',wq='';
+ ns.forEach(n=>{const t=String(n.text||'');if(!wq&&WT.test(t))wq=t;t.split(/[.;!?\n]+/).map(x=>x.trim()).filter(Boolean).forEach(sn=>sn.split(/,| but | and /i).map(x=>x.trim()).filter(Boolean).forEach(c=>{if(WT.test(sn))return;if(NEG.test(c)){neg++;nq=nq||sn}else if(POS.test(c)){pos++;pq=pq||sn}}))});
+ return{has:ns.length>0,pos,neg,idx:pos-neg,pq,nq,wq}}
+const qt=x=>'“'+(x.length>96?x.slice(0,94).trim()+'…':x)+'”';
+function setNotes(id,entries){NOTES[id]=entries;if(DB)DB.doc('notes/'+id).set({entries,at:Date.now()}).catch(()=>toast('Couldn’t save the note. Check the connection and try again'));else try{localStorage.setItem('fc_notes_local',JSON.stringify(NOTES))}catch(e){}}
+/* inter-club ready: fighters the coaches rate as at, or near, the level for a first fight against another gym */
+let ICL={};try{ICL=JSON.parse(localStorage.getItem('fc_icl_local')||'{}')||{}}catch(e){ICL={}}
+function setIcl(id,pct){if(pct==null)delete ICL[id];else ICL[id]=pct;
+ if(DB)(pct==null?DB.doc('interclub/'+id).delete():DB.doc('interclub/'+id).set({pct,at:Date.now()})).catch(()=>toast('Couldn’t save that. Check the connection and try again'));
+ else try{localStorage.setItem('fc_icl_local',JSON.stringify(ICL))}catch(e){}}
+const iclWord=p=>p>=85?'Ready':p>=65?'Nearly ready':p>=40?'50-50':'Not yet ready';
+const iclCls=p=>p>=85?'g':p>=65?'f':p>=40?'s':'m';
+const fmtD=t=>{try{return new Date(t).toLocaleDateString('en-AU',{day:'numeric',month:'short'})}catch(e){return ''}};
+
+/* ---- scoring ---- */
+function score(a,b){
+ const why=[];let s=100;
+ if(a.sx!==b.sx)return{s:0,cls:'m',grade:'Not matched',block:true,why:[['b','Men’s and women’s divisions are matched separately.']]};
+ const wa=mw(a),wb=mw(b),diff=Math.abs(wa-wb),pct=diff/Math.min(wa,wb)*100,hv=wa>=wb?a:b;
+ s-=Math.max(0,pct-2)*5;
+ why.push([pct<=4?'g':pct<=9?'w':'b',diff<0.05?'Same weight.':last(hv.n)+' is '+r1(diff)+' kg heavier ('+Math.round(pct)+'%).']);
+ const p=plan(a,b);why.push(p.line);if(!p.same&&p.over>(S.tol||1.5))s-=6;
+ if(S.rules==='ba'&&p.T.max!==Infinity){const allow=Math.min(wa,wb)<=52?3:r1(p.T.max-p.T.min);if(diff>allow)why.push(['b',`Outside Boxing Australia’s weight-difference guide for this weight (${allow} kg) unless an exemption is approved.`])}
+ const xd=Math.abs(a.xp-b.xp);s-=xd*8;
+ why.push([xd===0?'g':xd===1?'i':xd===2?'w':'b',xd===0&&!a.xpTxt&&!b.xpTxt?'Same experience: '+XPL[a.xp]+'.':'Experience: '+xpL(a)+' v '+xpL(b)+'.']);
+ const fd=Math.abs(fights(a)-fights(b));s-=Math.min(18,fd*6);
+ if(fd>0)why.push([fd>=3?'b':'w',(fights(a)>fights(b)?last(a.n):last(b.n))+' has '+fd+' more recorded fight'+(fd>1?'s':'')+' ('+rec(a)+' v '+rec(b)+').']);
+ const kid=[a,b].find(f=>f.age!=null&&f.age<18),oth=kid?(kid===a?b:a):null,u18=!!kid&&!(oth.age!=null&&oth.age<18);
+ if(u18){s-=35;why.push(['b',kid.n+' is under 18 and '+(oth.age==null?last(oth.n)+'’s age is not recorded':last(oth.n)+' is an adult')+'. Check the rules and get guardian consent first.'])}
+ else if(a.age==null||b.age==null)why.push(['i','Age not recorded for '+[a,b].filter(f=>f.age==null).map(f=>last(f.n)).join(' and ')+'.']);
+ else{const g=Math.abs(a.age-b.age);
+  if(g>8){s-=Math.min(20,(g-8)*1.5);why.push(['w',g+' years between them.'])}
+  else why.push(['g',g===0?'Same age.':g+' year'+(g>1?'s':'')+' between them.'])}
+ if(a.st&&b.st)why.push(['i',a.st===b.st?'Both '+a.st.toLowerCase()+'.':a.st+' v '+b.st.toLowerCase()+'.']);
+ else why.push(['i','Stance not recorded for '+[a,b].filter(f=>!f.st).map(f=>last(f.n)).join(' and ')+'.']);
+ /* weight trend from the app's weigh-ins */
+ [a,b].forEach(f=>{const t=trend(f);if(t&&t.rate<=-0.8)why.push(['w',`${last(f.n)} is ${trendLine(f,t)}`])});
+ /* coach notes */
+ const na=readNotes(a.id),nb=readNotes(b.id);let mm=false;
+ const back=[[a,b],[b,a]].map(([x,y])=>(NOTES[x.id]||[]).map(n=>String(n.text||'')).find(t=>t.toLowerCase().includes(last(y.n).toLowerCase())&&/50.?50|great match|good match|even match|well matched/i.test(t))).find(Boolean);
+ if(back){s+=10;why.push(['g','Coach notes back this match: '+qt(back)])}
+ if(na.has&&nb.has&&!back&&(Math.abs(na.idx-nb.idx)>=4||(na.idx>=2&&nb.idx<=-2)||(nb.idx>=2&&na.idx<=-2))){const up=na.idx>nb.idx?a:b,dn=up===a?b:a,ru=up===a?na:nb,rd=up===a?nb:na;mm=true;s-=14;
+  why.push(['b',`Weights aside, coach notes point to a possible mismatch. ${last(up.n)}: ${ru.pq?qt(ru.pq):'no concerns noted'}. ${last(dn.n)}: ${rd.nq?qt(rd.nq):'fewer positives noted'}.`])}
+ else [[a,na],[b,nb]].forEach(([f,r])=>{if(r.neg)why.push(['w',`Coach note on ${last(f.n)}: ${qt(r.nq)}`])});
+ [[a,na],[b,nb]].forEach(([f,r])=>{if(r.wq)why.push(['i',`Weight note on ${last(f.n)}: ${qt(r.wq)}`])});
+ [a,b].forEach(f=>{if(ICL[f.id]!=null)why.push(['i',`${last(f.n)} is down as a possible outside match, ${ICL[f.id]}% ready.`])});
+ s=Math.max(0,Math.min(100,Math.round(s)));
+ const call=callOf(a.id,b.id),calc=s;if(call&&call.s!=null)s=Math.max(0,Math.min(100,Math.round(call.s)));
+ const g=s>=85?['g','Even fight']:s>=70?['f','Fair fight']:s>=50?['s','A stretch']:['m','Mismatch'];
+ return{s,calc,call,cls:g[0],grade:(call&&call.label)||g[1],why,block:false,u18,mm};
+}
+const sc=(x,y)=>score(F(x),F(y));
+/* best set of pairs from a list of ids: most pairs first, then highest total score; pairs under `min` and under-18 v adult are never made */
+function bestPairs(ids,min){
+ if(ids.length>12){const out=[],left=[...ids];while(left.length>1){const a=left.shift();let bi=-1,bs=min-1;left.forEach((b,i)=>{const v=sc(a,b);if(!v.block&&!v.u18&&v.s>bs){bs=v.s;bi=i}});if(bi>=0)out.push([a,left.splice(bi,1)[0]])}return out}
+ const memo=new Map();
+ const go=list=>{if(list.length<2)return{t:0,p:[]};const k=list.join('|');if(memo.has(k))return memo.get(k);
+  const [a,...rest]=list;let best=go(rest);
+  rest.forEach((b,i)=>{const v=sc(a,b);if(v.block||v.u18||v.s<min)return;const r=go(rest.filter((_,j)=>j!==i));const t=v.s+r.t+1000;if(t>best.t)best={t,p:[[a,b],...r.p]}});
+  memo.set(k,best);return best};
+ return go(ids).p;
+}
+
+/* ---- pools and bouts ---- */
+function addBout(a,b,locked){if(boutOf(a)||boutOf(b))return null;const bt={id:'b'+(S.n++),a,b,locked:!!locked,rounds:'3 x 2 min'};S.bouts.push(bt);return bt}
+const byW=ids=>[...ids].sort((x,y)=>mw(F(x))-mw(F(y)));
+
+/* ---- motion: FLIP. Measure every tile, change the page, then animate each tile from where it was ---- */
+function flip(mutate,o={}){
+ if(RM){mutate();return}
+ const firstR=new Map(),sx=scrollX,sy=scrollY;
+ document.querySelectorAll('[data-fl]').forEach(el=>{const r=el.getBoundingClientRect();if(r.width)firstR.set(el.dataset.fl,r)});
+ mutate();
+ const dsx=scrollX-sx,dsy=scrollY-sy;let els=[...document.querySelectorAll('[data-fl]')];
+ if(o.order)els.sort((a,b)=>o.order.indexOf(a.dataset.fl)-o.order.indexOf(b.dataset.fl));
+ let i=0;els.forEach(el=>{const f=firstR.get(el.dataset.fl);if(!f)return;const l=el.getBoundingClientRect();if(!l.width)return;
+  const dx=f.left-dsx-l.left,dy=f.top-dsy-l.top;if(Math.abs(dx)<1.5&&Math.abs(dy)<1.5&&Math.abs(f.width-l.width)<1.5)return;
+  const delay=(o.stagger||0)*(i++);el.style.zIndex=6;
+  const a=el.animate([{transform:`translate(${dx}px,${dy}px) scale(${f.width/l.width},${f.height/l.height})`,boxShadow:'0 0 0 2px #1fb6e6,0 0 38px #1fb6e6'},{boxShadow:'0 0 0 2px #1fb6e6,0 0 38px #1fb6e6',offset:.8},{transform:'none',boxShadow:'0 0 0 0 rgba(31,182,230,0)'}],{duration:o.dur||560,delay,easing:'cubic-bezier(.2,.85,.25,1)',fill:'backwards'});
+  a.onfinish=()=>{el.style.zIndex='';o.onLand&&o.onLand(el)}});
+}
+function hitLane(el){const l=el.closest('.lane');if(!l)return;l.classList.add('hit');clearTimeout(l._t);l._t=setTimeout(()=>l.classList.remove('hit'),420);tick()}
+function sparkBout(el){const b=el.closest('.bt');if(!b||b._s)return;b._s=1;b.classList.add('spark');clash();setTimeout(()=>{b.classList.remove('spark');b._s=0},720)}
+
+function doPool(){const order=[...byW(BASE.filter(f=>f.sx==='m').map(f=>f.id)),...byW(BASE.filter(f=>f.sx==='f').map(f=>f.id))];S.stage='pools';S.pools=[];save();whoosh();flip(render,{stagger:34,dur:680,order,onLand:()=>tick()});toast('Men lightest to heaviest. Women’s team at the bottom')}
+function pairUp(pairs){pairs.forEach(([a,b])=>addBout(a,b));save();const order=pairs.flat();flip(render,{stagger:70,dur:560,order,onLand:sparkBout})}
+function suggestAll(){let pairs=[];const taken=new Set();
+ ['m','f'].forEach(sx=>{const g={};all().forEach(f=>{if(f.sx!==sx||boutOf(f.id))return;const i=divOf(f).i;(g[i]=g[i]||[]).push(f.id)});
+  Object.values(g).forEach(ids=>bestPairs(byW(ids),55).forEach(x=>{pairs.push(x);taken.add(x[0]);taken.add(x[1])}))});
+ const left=byW(BASE.map(f=>f.id).filter(id=>!boutOf(id)&&!taken.has(id)));const x=bestPairs(left,60);pairs=pairs.concat(x);
+ if(pairs.length)pairUp(pairs);toast(pairs.length?pairs.length+' bouts pencilled in'+(x.length?', '+x.length+' across divisions':''):'Nothing left that scores well enough')}
+
+/* ---- render ---- */
+function tileHTML(f){let chip='',cl='';
+ if(sel&&sel!==f.id){const s0=F(sel),v=score(s0,f),on=!v.block&&inRange(s0,f);if(on)chip=`<span class="chip ${v.cls} num">${v.s}</span>`;cl=on?' cand '+v.cls+(HOT.includes(f.id)?' hot':''):' dim'}
+ if(sel===f.id)cl=' sel';
+ const tg=[],nn=(NOTES[f.id]||[]).length,fg=flags(f).length;if(fights(f))tg.push(`<span class="tag pv num">${rec(f)}</span>`);else if(f.xp===3)tg.push('<span class="tag x3">Fought</span>');
+ if(f.st==='Southpaw')tg.push('<span class="tag sp">Southpaw</span>');if(f.age!=null&&f.age<18)tg.push('<span class="tag u18 pv">U18</span>');
+ const rd=ICL[f.id]!=null?ICL[f.id]:null;if(rd!=null&&(f.sx==='f'||chip))tg.push(`<span class="tag ic pv num">Outside gym ${rd}%</span>`);
+ const rdy=rd!=null&&f.sx==='m'?`${chip?'':`<span class="rdc ${iclCls(rd)} pv num">${rd}%</span>`}<span class="rdb pv"><i class="${iclCls(rd)}" style="width:${rd}%"></i></span>`:'';
+ if(nn)tg.push(`<span class="tag nt pv">Notes ${nn}</span>`);if(fg)tg.push(`<span class="tag wn pv">Flag ${fg}</span>`);
+ return `<button type="button" class="ft${cl}" draggable="true" data-f="${f.id}" data-fl="${f.id}" aria-label="${f.n}"><img src="${img(f.id)}" alt="" loading="lazy" draggable="false"><span class="tg">${tg.join('')}</span>${chip}${rdy}<span class="cap"><small>${first(f.n)}</small><b>${last(f.n)}</b><i class="pv num">${maskW(f)?kgF(f):kgf(mw(f))+' · '+divOf(f).n}</i></span></button>`}
+function halfHTML(f,c,lose){return `<span class="half ${c}" data-fl="${f.id}"><img src="${img(f.id)}" alt="" loading="lazy">${lose?`<span class="cutb pv num">−${lose} kg</span>`:''}<span class="cap"><small>${first(f.n)}</small><b>${last(f.n)}</b><i class="pv num">${kgF(f)}</i></span></span>`}
+function boutTile(b){const A=F(b.a),B=F(b.b),v=score(A,B),t=termsOf(b);
+ return `<button type="button" class="bt${b.locked?' locked':''}" data-bout="${b.id}" aria-label="${A.n} v ${B.n}, ${b.locked?'confirmed':'pencilled'}">${halfHTML(A,'r',toLose(A,t))}${halfHTML(B,'b',toLose(B,t))}<span class="rib">${b.locked?'Confirmed':'Pencilled'}</span><span class="vsb">VS</span><span class="tl pv">${termTxt(t)}</span><span class="chip ${v.cls} num">${v.s}</span>${v.u18?'<span class="bflag pv">Under 18 v adult: needs sign-off</span>':''}</button>`}
+function boutRow(b){const A=F(b.a),B=F(b.b),v=score(A,B),t=termsOf(b),la=toLose(A,t),lb=toLose(B,t);
+ return `<button type="button" class="bout${b.locked?' locked':''}" data-bout="${b.id}" aria-label="${A.n} v ${B.n}">
+  <span class="side"><img class="av" src="${img(A.id)}" alt="" loading="lazy"><span><span class="nm">${A.n}</span><span class="ln num pv">${kgF(A)}${la?' · <b class="cut">'+la+' kg to lose</b>':''}</span></span></span>
+  <span class="mid"><span class="chip ${v.cls} num">${v.s}</span><span class="st">${b.locked?'Confirmed':'Pencil'}</span><span class="st pv">${termTxt(t)}</span></span>
+  <span class="side r"><img class="av" src="${img(B.id)}" alt="" loading="lazy"><span><span class="nm">${B.n}</span><span class="ln num pv">${lb?'<b class="cut">'+lb+' kg to lose</b> · ':''}${kgF(B)}</span></span></span></button>`}
+let HOT=[],shown={};
+function countTo(el,to){const from=+(el.dataset.v||to);el.dataset.v=to;if(RM||from===to){el.textContent=to;return}const t0=performance.now();(function step(n){const k=Math.min(1,(n-t0)/450);el.textContent=Math.round(from+(to-from)*k);if(k<1)requestAnimationFrame(step)})(t0)}
+function render(){
+ const fs=all(),matched=fs.filter(f=>boutOf(f.id)).length,locked=S.bouts.filter(b=>b.locked).length;
+ const st=[['',fs.length,'Fighters'],['',S.bouts.length-locked,'Pencilled'],['done',locked,'Confirmed fights'],['need',fs.length-matched,'Need an opponent']];
+ if(!$('#stats').children.length)$('#stats').innerHTML=st.map(s=>`<div class="stat ${s[0]}"><b class="num"></b><span>${s[2]}</span></div>`).join('');
+ [...$('#stats').children].forEach((el,i)=>countTo(el.firstChild,st[i][1]));
+ $('#prog').style.width=(matched/fs.length*100)+'%';
+ document.body.classList.toggle('promo',!!S.promo);
+ $('#tPromo').setAttribute('aria-pressed',!!S.promo);$('#tSound').setAttribute('aria-pressed',!!S.sound);
+ document.body.classList.toggle('tv',!!S.tv);document.documentElement.classList.toggle('tv',!!S.tv);$('#tTv').setAttribute('aria-pressed',!!S.tv);
+ $('#rLeague').setAttribute('aria-pressed',(S.rules||'league')==='league');$('#rBA').setAttribute('aria-pressed',S.rules==='ba');$('#tolSel').value=String(S.tol||1.5);
+ $('#rngSel').value=String(S.range||5);$('#bW').setAttribute('aria-pressed',!!S.wshow);$('#bW').textContent=S.wshow?'Women’s weights shown':'Women’s weights hidden';
+ $('#wNow').setAttribute('aria-pressed',S.basis==='kg');$('#wFight').setAttribute('aria-pressed',S.basis==='fw');
+ $('#tBoard').setAttribute('aria-pressed',view==='board');$('#tCard').setAttribute('aria-pressed',view==='card');
+ const ro=view==='board'&&S.stage==='roster',bo=view==='board'&&S.stage==='pools';
+ $('#rost').hidden=!ro;$('#board').hidden=!bo;$('#cardv').hidden=view!=='card';$('#tools').hidden=!bo;
+ HOT=[];if(sel){const f=F(sel);HOT=all().filter(o=>o.id!==sel&&!boutOf(o.id)&&o.sx===f.sx&&inRange(f,o)).map(o=>({o,v:score(f,o)})).filter(x=>!x.v.block&&x.v.s>=50).sort((a,b)=>b.v.s-a.v.s).slice(0,3).map(x=>x.o.id)}
+ if(ro)renderRoster();else $('#rost').innerHTML='';
+ if(bo)renderBoard();else $('#board').innerHTML='';
+ if(view==='card')renderCard();else $('#cardv').innerHTML='';
+ renderSel();
+}
+function renderRoster(){
+ $('#rost').innerHTML=`<div class="rhead"><div><div class="lab">Step one</div><h2 class="d">The roster</h2><p>${BASE.length} fighters are signed up for Fight Night. Line the men up lightest to heaviest, put the women’s team together, then pair them off.</p></div><button type="button" class="btn p big" id="bDeal">Start matchmaking</button></div>
+ <div class="rgrid">${S.bouts.map(boutTile).join('')}${byW(BASE.map(f=>f.id).filter(id=>!boutOf(id))).map(id=>tileHTML(F(id))).join('')}</div>`;
+}
+const outside=f=>f.sx==='m'&&ICL[f.id]!=null;
+function renderBoard(){
+ const mb=S.bouts.filter(b=>F(b.a).sx==='m'),wb=S.bouts.filter(b=>F(b.a).sx==='f');
+ const free=all().filter(f=>!boutOf(f.id)),men=byW(free.filter(f=>f.sx==='m'&&!outside(f)).map(f=>f.id)),out=free.filter(outside).sort((a,b)=>ICL[b.id]-ICL[a.id]||mw(a)-mw(b)),wom=byW(free.filter(f=>f.sx==='f').map(f=>f.id));
+ const busy=all().filter(f=>outside(f)&&boutOf(f.id)).map(f=>last(f.n));
+ const cnt=n=>`<b class="${n?'':'ok'}">${n?n+' to match':'All matched'}</b>`;
+ $('#board').innerHTML=`<section class="grp" aria-label="Men’s Fight Club team"><div class="gh"><div><div class="lab">Lightest to heaviest</div><h2 class="d">Men’s Fight Club team</h2></div>${cnt(men.length)}</div><div class="rgrid">${mb.map(boutTile).join('')}${men.map(id=>tileHTML(F(id))).join('')}</div></section>
+  <section class="grp o" aria-label="Men’s Fight Club team, possible outside match"><div class="gh"><div><div class="lab">Men’s Fight Club team</div><h2 class="d">Possible outside match</h2><p>At, or close to, the level for a first fight against an outside gym.<span class="pv"> The percentage is how ready each one is.</span></p></div>${out.length?`<b class="ok">${out.length} listed</b>`:''}</div>
+   <div class="rgrid">${out.map(tileHTML).join('')}${!out.length?`<div class="empty">${busy.length?busy.join(', ')+(busy.length>1?' are':' is')+' matched in Fight Club above.':'Nobody listed yet. Open a fighter’s Notes &amp; data to add him.'}</div>`:''}</div></section>
+  <section class="grp w" aria-label="Women’s team"><div class="gh"><div><div class="lab pv">${S.wshow?'Weights shown':'Weights hidden'}</div><h2 class="d">Women’s team</h2></div>${cnt(wom.length)}</div><div class="rgrid">${wb.map(boutTile).join('')}${wom.map(id=>tileHTML(F(id))).join('')}</div></section>`;
+}
+function renderCard(){
+ const need=all().filter(f=>!boutOf(f.id)),nL=S.bouts.filter(b=>b.locked).length;
+ const rows=S.bouts.map((b,i)=>`<div class="crow"><div class="no num ${i===S.bouts.length-1&&S.bouts.length>1?'main':''}">${i+1}</div>${boutRow(b)}<div class="mv">${b.locked?`<button type="button" class="pp" data-poster="${b.id}">Poster</button>`:''}<button type="button" data-up="${b.id}" ${i===0?'disabled':''} aria-label="Move earlier">↑</button><button type="button" data-down="${b.id}" ${i===S.bouts.length-1?'disabled':''} aria-label="Move later">↓</button></div></div>`).join('');
+ $('#cardv').innerHTML=`<div class="brand"><h2 class="d">Fight card</h2><div class="left">${nL?`<button type="button" class="btn p" id="bReel">Play the posters (${nL})</button>`:''}<button type="button" class="btn" id="bCopy">Copy the card</button></div></div>
+  <p class="note">Bout 1 opens the night and the last bout is the main event. Use the arrows to change the order. Tap a bout to see the face-off, or Poster to replay a confirmed fight’s poster.</p>
+  ${rows||'<div class="empty">No bouts yet. Go to Matchmaking, pool the fighters and pair them off.</div>'}
+  ${need.length?`<div class="sect" style="margin-top:14px">Still need an opponent · ${need.length}</div><div class="left">${need.sort((a,b)=>mw(a)-mw(b)).map(f=>`<span class="pick"><img class="av" src="${img(f.id)}" alt="">${f.n}<span class="num pv"> · ${kgf(mw(f))}</span></span>`).join('')}</div>`:''}
+  <div id="copyWrap" hidden><textarea id="copyTxt" readonly aria-label="Fight card text"></textarea></div>`;
+}
+function renderSel(){const bar=$('#selbar');if(sel&&boutOf(sel))sel=null;if(!sel||view!=='board'){bar.classList.remove('on');return}
+ const f=F(sel),R=S.range||5,open=divOf(f).max===Infinity,opp=HOT.map(id=>({o:F(id),v:score(f,F(id))}));
+ const showing=f.sx==='f'?'Showing the whole women’s team':`Showing ${r1(mw(f)-R)} to ${r1(mw(f)+R)} kg`+(open?', plus everyone over '+divOf(f).min+' kg':'');
+ bar.innerHTML=`<div class="who"><img class="av" src="${img(f.id)}" alt=""><div><div class="nm">${f.n}</div><div class="hint pv">${showing}. Tap an opponent for the face-off</div></div></div>
+  <div class="picks">${opp.length?'<span class="lab">Best</span>'+opp.map(x=>`<button type="button" class="pick" data-face="${x.o.id}"><img class="av" src="${img(x.o.id)}" alt=""><span class="chip ${x.v.cls} num">${x.v.s}</span>${last(x.o.n)}</button>`).join(''):'<span class="hint">No close match in range. Tap anyone to check, or widen the range.</span>'}</div>
+  <span class="spacer"></span>
+  <button type="button" class="btn pv" data-prof="${f.id}">Notes &amp; data</button><button type="button" class="btn ghost" data-clearsel>Clear</button>`;
+ bar.classList.add('on');
+}
+
+/* ---- face-off ---- */
+function faceoff(a,b,bout,keep){
+ if(!keep)pendT=null;sheetId=null;
+ const A=F(a),B=F(b),v=score(A,B),p=plan(A,B),call=v.call,show=!!(call&&call.show),PV=show?'':'pv';
+ const whyL=show&&S.promo?v.why.filter(w=>!/^Coach note|^Weight note|^Coach notes|possible outside match|^Weights aside|not recorded/.test(w[1])):v.why;
+ const tk=bout?termsOf(bout).k:(pendT&&p.opts.find(o=>o.k===pendT)?pendT:p.rec),T=p.opts.find(o=>o.k===tk)||p.opts[0];
+ const row=(k,x,y,adv,pv)=>show&&S.promo&&(x==='—'||y==='—')?'':`<tr class="${pv&&!show?'pv':''}"><td class="${x==='—'?'na':''}${adv===1?' adv':''}">${x}</td><td class="k">${k}</td><td class="${y==='—'?'na':''}${adv===2?' adv':''}">${y}</td></tr>`;
+ const wa=mw(A),wb=mw(B);
+ const col=v.cls==='g'?'var(--good)':v.cls==='f'?'var(--fair)':v.cls==='s'?'var(--warn)':'var(--bad)';
+ const lose=f=>{const x=toLose(f,T);return x>0?`<b class="cut">${x} kg to lose</b>`:'on weight'};
+ const terms=v.block||(show&&S.promo&&p.opts.length<2)?'':`<div class="terms ${PV}"><div class="lab">Fight weight</div><div class="seg tsel">${p.opts.map(o=>`<button type="button" data-terms="${o.k}" aria-pressed="${o.k===tk}">${p.mk?(o.k==='div'?o.name:'Catchweight'):o.k==='div'?o.name+(o.limit?' · '+o.limit+' kg':''):'Catchweight · '+o.limit+' kg'}</button>`).join('')}</div>
+   <div class="lose num">${T.limit?`<span>${last(A.n)}: ${lose(A)}</span><span>${last(B.n)}: ${lose(B)}</span>`:'<span>No upper limit in this division.</span>'}</div></div>`;
+ const npre=f=>{const ns=NOTES[f.id]||[],l=ns[0];return `<div class="n1"><span><b>${last(f.n)}:</b> ${l?'<q>'+esc(l.text.length>150?l.text.slice(0,148)+'…':l.text)+'</q>'+(ns.length>1?' +'+(ns.length-1)+' more':''):'no notes yet'}</span><button type="button" class="lnk" data-prof="${f.id}">Notes &amp; data</button></div>`};
+ const acts=v.block?'<div class="acts"><button type="button" class="btn" data-close>Close</button></div>':bout?
+  `<div class="rounds"><label for="rnd">Rounds</label><select id="rnd" data-rounds="${bout.id}">${['3 x 1.5 min','3 x 2 min','4 x 2 min','5 x 2 min'].map(r=>`<option${r===bout.rounds?' selected':''}>${r}</option>`).join('')}</select></div>
+   <div class="acts">${bout.locked?`<button type="button" class="btn p go" data-poster="${bout.id}">Show the poster</button><button type="button" class="btn" data-unlock="${bout.id}">Unconfirm</button>`:`<button type="button" class="btn p go" data-confirm="${a}|${b}">Confirm fight</button>`}<button type="button" class="btn" data-swap="${bout.id}">Swap corners</button><button type="button" class="btn dng" data-break="${bout.id}">Break up</button></div>`
+  :`<div class="acts"><button type="button" class="btn p go" data-confirm="${a}|${b}">Confirm fight</button><button type="button" class="btn" data-pencil="${a}|${b}">Pencil in</button><button type="button" class="btn ghost" data-close>Not this one</button></div>`;
+ $('#dlgBody').innerHTML=`<div class="fo${show?' show':''}" data-pair="${a}|${b}">
+  <div class="corner r"><img src="${img(A.id)}" alt="${A.n}"><div class="cp"><div class="lab">Red corner</div><div class="nm">${A.n}</div></div></div>
+  <div class="corner b"><img src="${img(B.id)}" alt="${B.n}"><div class="cp"><div class="lab">Blue corner</div><div class="nm">${B.n}</div></div></div>
+  <div class="mid"><div class="vs">VS</div><div class="fitwrap"><div id="foFit">
+  <div class="fobody">
+   <div><div class="lab" style="margin-bottom:6px">Tale of the tape</div><table class="tape num">
+    ${row(S.basis==='fw'?'Match weight':'Weight now',kgF(A),kgF(B),p.mk?0:wa>wb?1:wb>wa?2:0,1)}
+    ${row('Division',divOf(A).n,divOf(B).n,0)}
+    ${row('Fight weight',A.fwTxt||(A.fw?kgF(A,A.fw):'—'),B.fwTxt||(B.fw?kgF(B,B.fw):'—'),0,1)}
+    ${row('Age',A.age??'—',B.age??'—',0,1)}
+    ${row('Stance',A.st||'—',B.st||'—',0)}
+    ${row(A.recTxt||B.recTxt?'Fights':'Record W-L-D',rec(A),rec(B),fights(A)>fights(B)?1:fights(B)>fights(A)?2:0,1)}
+    ${row('Experience',xpT(A),xpT(B),A.xp>B.xp?1:B.xp>A.xp?2:0)}
+    ${row('Weight trend',A.trTxt||trendTxt(A),B.trTxt||trendTxt(B),0,1)}
+   </table></div>
+   <div class="verdict">
+    <div class="dial ${PV}"><div class="ringg" style="--v:${v.s};--c:${col}"><span class="num">${v.block?'–':v.s}</span></div><div><h3 class="d">${v.grade}</h3><p>${v.block?'This pair can’t be matched.':call&&call.s!=null?'Match rating '+v.s+'%, with the coaches’ assessment':v.mm?'Check the coach notes before you lock this in':'Match score out of 100'}</p></div></div>
+    <ul class="why ${PV}">${whyL.map(w=>`<li class="${w[0]}"><span>${esc(w[1])}</span></li>`).join('')}</ul>
+    ${call&&call.note?`<p class="verd ${PV}">${esc(call.note)}</p>`:''}
+    ${v.block?'':`<details class="call pv"><summary>Coaches’ call${call?' · set':''}</summary><div class="callf"><label>Rating out of 100<input id="cS" type="number" min="0" max="100" value="${call&&call.s!=null?call.s:''}" placeholder="${v.calc}"></label><label>Verdict line<textarea id="cN" placeholder="The coaches’ one-line verdict on this match">${esc(call&&call.note||'')}</textarea></label><label class="ck"><input id="cShow" type="checkbox"${show?' checked':''}> Show this face-off in Promo mode</label><div class="acts"><button type="button" class="btn" data-callsave="${a}|${b}">Save call</button>${call?`<button type="button" class="btn ghost" data-callrm="${a}|${b}">Remove</button>`:''}</div><span class="hint">Calculated score: ${v.calc}.</span></div></details>`}
+    ${terms}
+    <div class="npre pv"><div class="lab">Coach notes</div>${npre(A)}${npre(B)}${SM&&!v.block?`<button type="button" class="btn" data-ask="${a}|${b}">Ask Claude for a read on this match</button><div class="ai" id="aiOut" hidden></div>`:''}</div>
+   </div></div>
+   <div class="foacts">${acts}</div>
+  </div></div></div></div>`;
+ const d=$('#dlg');d.classList.add('full');if(!d.open){d.showModal();whoosh()}if(!keep)d.scrollTop=0;fitFace();
+}
+/* shrink or grow the middle of the face-off so it always fits one screen with no scrolling */
+function fitFace(){const f=$('#foFit');if(!f)return;const w=f.parentElement;f.style.zoom='';
+ if(!$('#dlg').classList.contains('full')||!matchMedia('(min-width:900px) and (min-aspect-ratio:1/1)').matches)return;
+ let lo=.4,hi=1.6;for(let i=0;i<10;i++){const z=(lo+hi)/2;f.style.zoom=z;if(f.getBoundingClientRect().height<=w.clientHeight-1)lo=z;else hi=z}f.style.zoom=lo}
+addEventListener('resize',fitFace);
+document.addEventListener('toggle',e=>{if(e.target.classList&&e.target.classList.contains('call'))fitFace()},true);
+function reFace(){const f=$('#dlgBody .fo');if(!f||!$('#dlg').open)return;const [a,b]=f.dataset.pair.split('|');const bt=boutOf(a);faceoff(a,b,bt&&(bt.a===b||bt.b===b)?bt:null,true)}
+function profile(id,keep){const f=F(id),t=trend(f),d=divOf(f),ns=NOTES[id]||[],fl=flags(f);const draft=keep&&$('#nt')?$('#nt').value:'';sheetId=id;
+ $('#dlgBody').innerHTML=`<div class="sheet"><div class="hd"><img class="av" src="${img(id)}" alt=""><div><div class="lab">${maskW(f)?'Women’s team':d.n+' · '+rangeTxt(d)}</div><h2 class="d">${f.n}</h2></div></div>
+  ${fl.length?`<ul class="why">${fl.map(x=>`<li class="w"><span>${esc(x)}</span></li>`).join('')}</ul>`:''}
+  <div class="grid2">
+   <div><div class="lab">Weight · from the Legacy app, 19 Nov</div><table class="kv num">
+    <tr><td>Weight</td><td>${kgF(f,f.kg)} · ${f.kd||'sign-up weight'}</td></tr>
+    <tr><td>Weight trend</td><td>${t?(t.rate>0?'+':'')+t.rate+' kg a week since '+t.d0+spark(id):'Not enough weigh-ins'}</td></tr>
+    <tr><td>Division</td><td>${maskW(f)?'Hidden with the weight':d.n+', '+rangeTxt(d)}</td></tr>
+    <tr><td>Fight weight</td><td>${f.fw?kgF(f,f.fw):'Not entered'}</td></tr>
+    <tr><td>Record, stance</td><td>${rec(f)}, ${f.st?f.st.toLowerCase():'stance not recorded'}</td></tr>
+    <tr><td>Experience</td><td>${xpT(f)}</td></tr></table>
+    <div class="iclbox"><div class="lab">Possible outside match</div>${ICL[id]!=null?`<div class="iclrow"><input type="range" id="iclR" min="0" max="100" step="5" value="${ICL[id]}" data-icl="${id}" aria-label="How ready ${f.n} is to fight an outside gym"><b class="num" id="iclV">${ICL[id]}%</b></div><div class="nmeta"><span id="iclW">${iclWord(ICL[id])} to fight an outside gym</span><button type="button" class="lnk" data-iclrm="${id}">Take off the list</button></div>`:`<span class="hint">For fighters at, or close to, the level for a first fight against an outside gym.</span><button type="button" class="btn" data-icladd="${id}">Add as a possible outside match</button>`}</div>
+</div>
+   <div><div class="lab">Coach notes</div><div class="nlist">${ns.length?ns.map((n,i)=>`<div class="nitem"><div class="nmeta"><span>${esc(n.src||fmtD(n.t))}</span><button type="button" class="lnk" data-delnote="${id}|${i}">Remove</button></div>${esc(n.text)}</div>`).join(''):'<div class="empty">No notes yet.</div>'}</div>
+    <form id="nf" data-id="${id}"><textarea id="nt" placeholder="Add a note: form, fitness, attitude, weight, injuries" aria-label="New note for ${f.n}">${esc(draft)}</textarea><div class="acts"><button type="submit" class="btn p">Add note</button><button type="button" class="btn ghost" data-edit="${id}">Edit figures</button></div></form></div>
+  </div></div>`;
+ const dl=$('#dlg');dl.classList.remove('full');if(!dl.open)dl.showModal();
+}
+async function askClaude(a,b){const el=$('#aiOut');if(!el||!SM)return;const A=F(a),B=F(b),v=score(A,B);el.hidden=false;el.textContent='Thinking…';
+ const info=f=>{const t=trend(f);return `${f.n}: ${kgf(mw(f))} (${divOf(f).n}), age ${f.age??'not recorded'}, ${f.st||'stance not recorded'}, record ${rec(f)}, experience: ${XPL[f.xp]}${t?', weight trend '+t.rate+' kg a week':''}. Coach notes: ${(NOTES[f.id]||[]).map(n=>n.text).join(' | ')||'none'}`};
+ try{const r=await SM(`You are helping an amateur boxing coach check a proposed match for a club fight night on 19 Dec 2026. Use only the facts below. Do not invent anything.\n\n${info(A)}\n\n${info(B)}\n\nDivision check: ${v.why.map(w=>w[1]).join(' ')}\n\n${maskW(A)?'Do not state either fighter’s weight or any weight limit in your answer; differences in kg are fine. ':''}In under 90 words of plain sentences, say whether this looks like a fair, safe match, name the biggest risk, and say the one thing the coach should check before confirming. No headings, no lists.`,{onText:({text})=>{el.textContent=text;fitFace()}});el.textContent=r.text;fitFace()}
+ catch(e){el.textContent=e&&e.code==='not_granted'?'Permission was declined, so there is no read.':'Couldn’t get a read right now. Try again in a minute.'}}
+function editSheet(id){const f=F(id);const o=(v,c)=>`<option${v===c?' selected':''}>${v}</option>`;
+ $('#dlgBody').innerHTML=`<form class="sheet" id="ef" data-id="${id}"><div class="hd"><img class="av" src="${img(id)}" alt=""><div><div class="lab">Edit fighter</div><h2 class="d">${f.n}</h2></div></div>
+  <div class="form">
+   <label>Weight now (kg)<input id="e_kg" type="number" step="0.1" min="30" max="200" value="${f.kg}" required></label>
+   <label>Fight weight (kg)<input id="e_fw" type="number" step="0.1" min="30" max="200" value="${f.fw??''}"></label>
+   <label>Age<input id="e_age" type="number" min="10" max="80" value="${f.age??''}"></label>
+   <label>Stance<select id="e_st"><option value="">Not recorded</option>${o('Orthodox',f.st)}${o('Southpaw',f.st)}${o('Switch',f.st)}</select></label>
+   <label>Experience<select id="e_xp">${XP.map((x,i)=>`<option value="${i}"${i===f.xp?' selected':''}>${x}</option>`).join('')}</select></label>
+   <label>Division<select id="e_sx"><option value="m"${f.sx==='m'?' selected':''}>Men</option><option value="f"${f.sx==='f'?' selected':''}>Women</option></select></label>
+   <label>Wins<input id="e_w" type="number" min="0" max="99" value="${f.w}"></label>
+   <label>Losses<input id="e_l" type="number" min="0" max="99" value="${f.l}"></label>
+   <label>Draws<input id="e_dr" type="number" min="0" max="99" value="${f.dr}"></label>
+  </div>
+  <p class="note">Changes are saved in this browser only. They don’t change the Legacy app.</p>
+  <div class="acts"><button type="submit" class="btn p">Save</button><button type="button" class="btn ghost" data-undo="${id}">Back to app figures</button></div></form>`;
+ const d=$('#dlg');d.classList.remove('full');if(!d.open)d.showModal();
+}
+
+/* ---- sound (made in the browser, no files) ---- */
+function ac(){if(!S.sound)return null;try{const C=window.AudioContext||window.webkitAudioContext;ac.c=ac.c||new C();if(ac.c.state==='suspended')ac.c.resume();return ac.c}catch(e){return null}}
+function noise(c,d){const b=c.createBuffer(1,c.sampleRate*d,c.sampleRate),a=b.getChannelData(0);for(let i=0;i<a.length;i++)a[i]=Math.random()*2-1;const s=c.createBufferSource();s.buffer=b;return s}
+function tick(){const c=ac();if(!c)return;const t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='triangle';o.frequency.setValueAtTime(980,t);o.frequency.exponentialRampToValueAtTime(420,t+.06);g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.0001,t+.08);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.09)}
+function whoosh(){const c=ac();if(!c)return;const t=c.currentTime,n=noise(c,.5),f=c.createBiquadFilter(),g=c.createGain();f.type='bandpass';f.Q.value=1.2;f.frequency.setValueAtTime(260,t);f.frequency.exponentialRampToValueAtTime(3200,t+.38);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.22,t+.2);g.gain.exponentialRampToValueAtTime(.0001,t+.48);n.connect(f).connect(g).connect(c.destination);n.start(t)}
+function boom(){const c=ac();if(!c)return;const t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(34,t+.5);g.gain.setValueAtTime(.8,t);g.gain.exponentialRampToValueAtTime(.0001,t+.75);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.8);
+ const n=noise(c,.3),f=c.createBiquadFilter(),g2=c.createGain();f.type='lowpass';f.frequency.value=900;g2.gain.setValueAtTime(.45,t);g2.gain.exponentialRampToValueAtTime(.0001,t+.28);n.connect(f).connect(g2).connect(c.destination);n.start(t)}
+function clash(){const c=ac();if(!c)return;const t=c.currentTime,n=noise(c,.12),f=c.createBiquadFilter(),g=c.createGain();f.type='highpass';f.frequency.value=2500;g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.0001,t+.11);n.connect(f).connect(g).connect(c.destination);n.start(t)}
+function bell(n=1){const c=ac();if(!c)return;for(let k=0;k<n;k++){const t=c.currentTime+k*.24;[[880,1],[1318,.5],[2637,.22],[3520,.1]].forEach(([fq,g])=>{const o=c.createOscillator(),a=c.createGain();o.type='sine';o.frequency.value=fq;a.gain.setValueAtTime(.2*g,t);a.gain.exponentialRampToValueAtTime(.0001,t+1.8);o.connect(a).connect(c.destination);o.start(t);o.stop(t+1.9)})}}
+
+/* ---- the fight poster: one canvas, drawn frame by frame, so the still, the reveal and the saved clip are the same picture ---- */
+const PW=1080,PH=1350,IMGS={};
+function loadImg(id){return IMGS[id]||(IMGS[id]=new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.crossOrigin='anonymous';i.src=img(id)}))}
+const cl=x=>Math.max(0,Math.min(1,x)),sg=(t,s,d)=>cl((t-s)/d),eo=x=>1-Math.pow(1-x,3),bk=x=>1+2.70158*Math.pow(x-1,3)+1.70158*Math.pow(x-1,2);
+function spaced(c,txt,x,y,sp,align){let w=0;for(const ch of txt)w+=c.measureText(ch).width+sp;w-=sp;let cx=align==='center'?x-w/2:align==='right'?x-w:x;c.textAlign='left';for(const ch of txt){c.fillText(ch,cx,y);cx+=c.measureText(ch).width+sp}return w}
+function fit(c,txt,max,size,fam){let s=size;do{c.font=`${s}px ${fam}`;if(c.measureText(txt).width<=max)break;s-=2}while(s>30);return s}
+let PV=null;
+function division(b){const t=termsOf(b);if(F(b.a).sx==='f')return 'WOMEN’S '+(t.k==='catch'?'CATCHWEIGHT':t.name.toUpperCase());return t.k==='catch'?'CATCHWEIGHT · '+t.limit+' KG':t.name.toUpperCase()+(t.limit?' · '+t.limit+' KG':'')}
+function drawPoster(c,p,t,now){
+ const W=PW,H=PH,y0=268,y1=1012,xT=W*.56,xB=W*.44,AN='Anton, Impact, "Arial Narrow", sans-serif',UI='"Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif';
+ c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';
+ c.fillStyle='#04070b';c.fillRect(0,0,W,H);
+ const sh=14*(t>=820?1-sg(t,820,380):0)+10*(t>=1850?1-sg(t,1850,300):0);
+ c.save();if(sh>0.2)c.translate((Math.random()-.5)*sh*2,(Math.random()-.5)*sh*2);
+ /* arena: glow, light rig, beams */
+ let g=c.createRadialGradient(W/2,-60,40,W/2,-60,900);g.addColorStop(0,'rgba(31,182,230,.5)');g.addColorStop(1,'rgba(31,182,230,0)');c.fillStyle=g;c.fillRect(0,0,W,H);
+ c.globalCompositeOperation='lighter';
+ for(let i=0;i<7;i++){const lx=W*(.08+.14*i),ly=64,fl=.75+.25*Math.sin(now*.004+i*1.7),sw=Math.sin(now*.0007+i*.9)*90;
+  g=c.createLinearGradient(lx,ly,lx+sw,H*.9);g.addColorStop(0,`rgba(127,224,255,${.16*fl})`);g.addColorStop(1,'rgba(127,224,255,0)');c.fillStyle=g;
+  c.beginPath();c.moveTo(lx-6,ly);c.lineTo(lx+6,ly);c.lineTo(lx+sw+150,H*.92);c.lineTo(lx+sw-150,H*.92);c.closePath();c.fill();
+  g=c.createRadialGradient(lx,ly,0,lx,ly,54);g.addColorStop(0,`rgba(255,255,255,${.95*fl})`);g.addColorStop(.25,`rgba(127,224,255,${.6*fl})`);g.addColorStop(1,'rgba(31,182,230,0)');c.fillStyle=g;c.fillRect(lx-60,ly-60,120,120)}
+ c.globalCompositeOperation='source-over';
+ /* portraits */
+ const panel=(im,side,off,f)=>{c.save();c.translate(off,0);c.beginPath();
+  if(side==='l'){c.moveTo(-40,y0);c.lineTo(xT,y0);c.lineTo(xB,y1);c.lineTo(-40,y1)}else{c.moveTo(xT,y0);c.lineTo(W+40,y0);c.lineTo(W+40,y1);c.lineTo(xB,y1)}
+  c.closePath();c.clip();const bx=side==='l'?0:xB,bw=side==='l'?xT:W-xB,bh=y1-y0;
+  if(im){const s=Math.max(bw/im.width,bh/im.height),dw=im.width*s,dh=im.height*s;c.drawImage(im,bx+(bw-dw)/2,y0,dw,dh)}
+  else{c.fillStyle='#0b1620';c.fillRect(bx,y0,bw,bh);c.fillStyle='#1c2a38';c.font=`260px ${AN}`;c.textAlign='center';c.fillText(f.n.split(' ').map(w=>w[0]).join(''),bx+bw/2,y0+bh*.6)}
+  let q=side==='l'?c.createLinearGradient(0,0,360,0):c.createLinearGradient(W,0,W-360,0);q.addColorStop(0,side==='l'?'rgba(229,72,77,.5)':'rgba(59,130,246,.55)');q.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=q;c.fillRect(bx-40,y0,bw+80,bh);
+  q=c.createLinearGradient(0,y1-400,0,y1);q.addColorStop(0,'rgba(4,7,11,0)');q.addColorStop(1,'rgba(4,7,11,.97)');c.fillStyle=q;c.fillRect(bx-40,y1-400,bw+80,400);c.restore()};
+ const eL=eo(sg(t,150,520)),eR=eo(sg(t,300,520));
+ if(eL>0)panel(p.ia,'l',-(1-eL)*760,p.A);if(eR>0)panel(p.ib,'r',(1-eR)*760,p.B);
+ /* corner bars */
+ c.fillStyle='#e5484d';c.fillRect(-(1-eL)*760,y1,xB-8,10);c.fillStyle='#3b82f6';c.fillRect(xB+8+(1-eR)*760,y1,W-xB-8,10);
+ /* divider + VS */
+ if(t>=820){c.save();c.shadowColor='#1fb6e6';c.shadowBlur=30;c.strokeStyle='#bff0ff';c.lineWidth=7;c.beginPath();c.moveTo(xT,y0);c.lineTo(xB,y1);c.stroke();c.restore();
+  const k=sg(t,820,340),s=3-2*bk(k),cx=W/2,cy=(y0+y1)/2-30;c.save();c.globalAlpha=cl(k*3);c.translate(cx,cy);c.scale(s,s);c.shadowColor='#1fb6e6';c.shadowBlur=50;c.fillStyle='#04070b';c.beginPath();c.arc(0,0,92,0,7);c.fill();c.lineWidth=8;c.strokeStyle='#1fb6e6';c.stroke();c.shadowBlur=18;c.fillStyle='#bff0ff';c.font=`104px ${AN}`;c.textAlign='center';c.fillText('VS',0,38);c.restore()}
+ /* names */
+ const nm=(f,side,k)=>{if(k<=0)return;c.save();c.beginPath();if(side==='l')c.rect(0,y1-240,xT*k+40,240);else c.rect(W-(W-xB)*k-40,y1-240,(W-xB)*k+40,240);c.clip();
+  const x=side==='l'?44:W-44;c.textAlign=side==='l'?'left':'right';c.shadowColor='rgba(0,0,0,.9)';c.shadowBlur=18;
+  const ln=last(f.n).toUpperCase(),s=fit(c,ln,430,112,AN);c.fillStyle='#fff';c.font=`${s}px ${AN}`;c.fillText(ln,x,y1-30);
+  c.fillStyle=side==='l'?'#ff9d9b':'#9cc2ff';c.font=`600 34px ${UI}`;spaced(c,first(f.n).toUpperCase(),x,y1-30-s*.92,7,side==='l'?'left':'right');c.restore()};
+ nm(p.A,'l',eo(sg(t,1050,380)));nm(p.B,'r',eo(sg(t,1130,380)));
+ /* masthead */
+ const eh=eo(sg(t,0,480));c.save();c.globalAlpha=eh;c.translate(0,-(1-eh)*70);c.transform(1,0,-.16,1,30,0);c.font=`${fit(c,'FIGHT CLUB',W-150,158,AN)}px ${AN}`;const w1=c.measureText('FIGHT ').width,w2=c.measureText('CLUB').width,sx=(W-w1-w2)/2;c.textAlign='left';c.shadowColor='rgba(0,0,0,.8)';c.shadowBlur=24;c.fillStyle='#fff';c.fillText('FIGHT ',sx,176);c.shadowColor='#1fb6e6';c.shadowBlur=34;c.fillStyle='#1fb6e6';c.fillText('CLUB',sx+w1,176);c.restore();
+ c.save();c.globalAlpha=eh;c.fillStyle='#fff';c.font=`600 27px ${UI}`;const cw=spaced(c,'CENTRAL COAST',W/2,218,11,'center');c.fillStyle='#1fb6e6';c.fillRect(W/2-cw/2-190,208,160,3);c.fillRect(W/2+cw/2+30,208,160,3);c.restore();
+ /* lower block */
+ const el=eo(sg(t,1350,460));if(el>0){c.save();c.globalAlpha=el;c.translate(0,(1-el)*36);c.textAlign='center';
+  c.fillStyle='#c5d2dd';c.font=`600 31px ${UI}`;spaced(c,p.div+'  ·  '+p.rounds.toUpperCase()+' ROUNDS',W/2,1082,6,'center');
+  c.fillStyle='#fff';c.font=`${fit(c,'DECEMBER 19TH',W-110,132,AN)}px ${AN}`;c.shadowColor='rgba(31,182,230,.55)';c.shadowBlur=30;c.textAlign='center';c.fillText('DECEMBER 19TH',W/2,1216);c.shadowBlur=0;
+  c.fillStyle='#1fb6e6';c.font=`600 31px ${UI}`;spaced(c,'2026  ·  LEGACY GYM  ·  KINCUMBER',W/2,1266,8,'center');
+  c.fillStyle='#8b9cab';c.font=`600 23px ${UI}`;spaced(c,'TICKETS ON SALE NOW',W/2,1314,9,'center');c.restore()}
+ /* confirmed banner */
+ if(t>=1850){const k=sg(t,1850,260),s=2.6-1.6*eo(k);c.save();c.globalAlpha=cl(k*2.5);c.translate(W/2,y0);c.scale(s,s);c.transform(1,0,-.2,1,0,0);c.font=`58px ${AN}`;const bw=c.measureText('FIGHT LOCKED IN').width+70;c.shadowColor='#1fb6e6';c.shadowBlur=40;c.fillStyle='#1fb6e6';c.fillRect(-bw/2,-42,bw,84);c.shadowBlur=0;c.fillStyle='#021018';c.textAlign='center';c.fillText('FIGHT LOCKED IN',0,21);c.restore()}
+ /* sparks */
+ if(p.parts){c.globalCompositeOperation='lighter';for(const s of p.parts){const a=cl(s.life/s.max);c.strokeStyle=`rgba(${s.c},${a})`;c.lineWidth=s.w;c.beginPath();c.moveTo(s.x,s.y);c.lineTo(s.x-s.vx*.035,s.y-s.vy*.035);c.stroke()}c.globalCompositeOperation='source-over'}
+ c.restore();
+ /* vignette + flashes */
+ g=c.createRadialGradient(W/2,H/2,H*.38,W/2,H/2,H*.78);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,'rgba(0,0,0,.72)');c.fillStyle=g;c.fillRect(0,0,W,H);
+ const fl=Math.max(.9*(1-sg(t,0,260)),t>=820?.85*(1-sg(t,820,320)):0,t>=1850?.35*(1-sg(t,1850,200)):0);if(fl>.01){c.fillStyle=`rgba(255,255,255,${fl})`;c.fillRect(0,0,W,H)}
+}
+function emit(p,n,pow){for(let i=0;i<n;i++){const k=Math.random(),x=PW*.56-(PW*.12)*k,y=268+744*k,a=Math.random()*6.28,v=pow*(.3+Math.random());p.parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-pow*.25,life:.5+Math.random()*.9,max:1.4,w:1.5+Math.random()*2.5,c:Math.random()<.5?'191,240,255':Math.random()<.5?'255,255,255':'255,178,84'})}}
+async function showPoster(bid,o={}){
+ const b=S.bouts.find(x=>x.id===bid);if(!b)return;const A=F(b.a),B=F(b.b);
+ const pv=$('#pv');pv.hidden=false;$('#pvbar').classList.add('idle');
+ const c=$('#pc').getContext('2d');c.fillStyle='#04070b';c.fillRect(0,0,PW,PH);
+ const [ia,ib]=await Promise.all([loadImg(A.id),loadImg(B.id)]);try{await Promise.all([document.fonts.load('100px Anton'),document.fonts.load('600 30px "Barlow Semi Condensed"')])}catch(e){}
+ if(PV)stopPoster();
+ PV={bid,A,B,ia,ib,div:division(b),rounds:b.rounds,parts:[],t0:performance.now(),lastT:performance.now(),burst:false,timers:[],o};
+ runPoster();
+}
+function runPoster(){const p=PV;if(!p)return;p.t0=performance.now();p.lastT=p.t0;p.burst=false;p.parts=[];p.timers.forEach(clearTimeout);p.timers=[];
+ if(RM){drawPoster($('#pc').getContext('2d'),Object.assign({},p,{parts:null}),1e9,0);$('#pvbar').classList.remove('idle');bell(1);return}
+ whoosh();p.timers.push(setTimeout(whoosh,280),setTimeout(boom,820),setTimeout(()=>{bell(3);boom()},1850),setTimeout(()=>{$('#pvbar').classList.remove('idle');idleBar()},2500));if(p.o&&p.o.auto)p.timers.push(setTimeout(()=>{if(PV===p)closePoster()},p.o.auto));
+ cancelAnimationFrame(p.raf);const c=$('#pc').getContext('2d');
+ (function frame(now){if(PV!==p)return;const t=now-p.t0,dt=Math.min(.05,(now-p.lastT)/1000);p.lastT=now;
+  if(t>=820&&!p.burst){p.burst=true;emit(p,130,900)}if(t>=1850&&!p.b2){p.b2=true;emit(p,60,620)}if(t>900&&Math.random()<.5)emit(p,1,260);
+  p.parts=p.parts.filter(s=>(s.life-=dt)>0);p.parts.forEach(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.vy+=900*dt;s.vx*=.985});
+  drawPoster(c,p,t,now);p.raf=requestAnimationFrame(frame)})(performance.now());
+}
+function stopPoster(){if(!PV)return;cancelAnimationFrame(PV.raf);PV.timers.forEach(clearTimeout);PV=null}
+function closePoster(){const p=PV;stopPoster();$('#pv').hidden=true;clearTimeout(reelT);reel=null;if(p&&p.o.then)p.o.then()}
+let barT;function idleBar(){clearTimeout(barT);if(S.promo)barT=setTimeout(()=>$('#pvbar').classList.add('idle'),2600)}
+$('#pv').addEventListener('pointermove',()=>{if(PV&&performance.now()-PV.t0>2400){$('#pvbar').classList.remove('idle');idleBar()}});
+$('#pv').addEventListener('click',e=>{if(e.target.id==='pv')closePoster()});
+const slug=p=>'fight-night-'+last(p.A.n).toLowerCase().replace(/[^a-z]/g,'')+'-v-'+last(p.B.n).toLowerCase().replace(/[^a-z]/g,'');
+async function savePng(){const p=PV;if(!p||!DL)return;const cv=document.createElement('canvas');cv.width=PW;cv.height=PH;drawPoster(cv.getContext('2d'),Object.assign({},p,{parts:null}),1e9,0);
+ cv.toBlob(async bl=>{try{await DL.save({filename:slug(p)+'.png',data:bl});toast('Poster saved')}catch(e){toast(e&&e.code==='declined'?'Save cancelled':'Couldn’t save here. Take a screenshot instead')}},'image/png')}
+async function saveClip(){const p=PV;if(!p||!DL)return;const cv=$('#pc');let rec,mime;
+ try{mime=['video/mp4;codecs=avc1.42E01E','video/mp4','video/webm;codecs=vp9','video/webm'].find(m=>MediaRecorder.isTypeSupported(m));rec=new MediaRecorder(cv.captureStream(30),{mimeType:mime,videoBitsPerSecond:9e6})}catch(e){return toast('This browser can’t record the clip. Screen record it instead')}
+ const chunks=[];rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+ rec.onstop=async()=>{$('#pvClip').disabled=false;$('#pvClip').textContent='Save video clip';const bl=new Blob(chunks,{type:mime});if(!bl.size)return toast('Recording came out empty. Screen record it instead');try{await DL.save({filename:slug(p)+(mime.includes('mp4')?'.mp4':'.webm'),data:bl});toast('Clip saved (no sound in the file)')}catch(e){toast(e&&e.code==='declined'?'Save cancelled':'Couldn’t save the clip here')}};
+ $('#pvClip').disabled=true;$('#pvClip').textContent='Recording 5 s…';$('#pvbar').classList.add('idle');rec.start();runPoster();setTimeout(()=>{try{rec.stop()}catch(e){}},5200)}
+let reel=null,reelT;
+function playReel(){const ids=S.bouts.filter(b=>b.locked).map(b=>b.id);if(!ids.length)return;reel=ids;let i=0;const next=()=>{if(!reel)return;if(i>=reel.length){closePoster();return}showPoster(reel[i++]);reelT=setTimeout(next,4600)};next()}
+
+function confirmFight(a,b){let bt=boutOf(a);if(bt&&boutOf(b)!==bt)return;if(!bt&&boutOf(b))return;
+ const isNew=!bt;if(isNew){bt={id:'b'+(S.n++),a,b,locked:true,rounds:'3 x 2 min'};if(pendT)bt.terms=pendT}
+ sel=null;$('#dlg').close();
+ if(isNew){/* poster first, then the two tiles fly together on the board behind it */S.bouts.push(bt);save();const keep=S.bouts;S.bouts=keep.filter(x=>x!==bt);render();S.bouts=keep;
+  showPoster(bt.id,{then:()=>flip(render,{dur:620,onLand:sparkBout})})}
+ else{bt.locked=true;save();render();showPoster(bt.id,{})}
+}
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2200)}
+function cardText(){return 'FIGHT CLUB CENTRAL COAST · FIGHT NIGHT · SAT 19 DEC 2026\n\n'+S.bouts.map((b,i)=>{const A=F(b.a),B=F(b.b);return 'Bout '+(i+1)+(i===S.bouts.length-1&&S.bouts.length>1?' (main event)':'')+': '+A.n+' ('+kgT(A)+') v '+B.n+' ('+kgT(B)+') · '+termTxt(termsOf(b))+[A,B].map(f=>{const x=toLose(f,termsOf(b));return x?' · '+last(f.n)+' '+x+' kg to lose':''}).join('')+' · '+b.rounds+' · '+(b.locked?'confirmed':'pencilled')}).join('\n')+(()=>{const n=all().filter(f=>!boutOf(f.id));return n.length?'\n\nStill need an opponent: '+n.map(f=>f.n).join(', '):''})()}
+
+/* ---- events ---- */
+function pick(id){
+ if(boutOf(id)){const b=boutOf(id);faceoff(b.a,b.b,b);return}
+ if(!sel){sel=id;tick();render();return}
+ if(sel===id){sel=null;render();return}
+ faceoff(sel,id,null);
+}
+document.addEventListener('click',e=>{
+ const t=e.target.closest('button,[data-close]');if(!t)return;const d=t.dataset;
+ if(t.id==='tBoard'){view='board';render()}
+ else if(t.id==='tCard'){view='card';sel=null;render();scrollTo({top:0})}
+ else if(t.id==='tPromo'){S.promo=!S.promo;save(true);render();toast(S.promo?'Promo mode on: weights, ages, records and scores hidden':'Promo mode off')}
+ else if(t.id==='tTv'){S.tv=!S.tv;save(true);render();try{if(S.tv)document.documentElement.requestFullscreen().catch(()=>{});else if(document.fullscreenElement)document.exitFullscreen()}catch(x){}toast(S.tv?'TV mode on: controls hidden, fights confirmed on another screen play here':'TV mode off')}
+ else if(t.id==='rLeague'||t.id==='rBA'){S.rules=t.id==='rBA'?'ba':'league';save();render();toast(S.rules==='ba'?'Boxing Australia divisions':'League divisions')}
+ else if(t.id==='bW'){S.wshow=!S.wshow;save(true);render();reFace();if(sheetId&&$('#dlg').open)profile(sheetId,true);toast(S.wshow?'Women’s weights shown on this screen':'Women’s weights hidden')}
+ else if(d.terms){const f=$('#dlgBody .fo');if(f){const [a,b]=f.dataset.pair.split('|'),bt=boutOf(a);if(bt&&(bt.a===b||bt.b===b)){bt.terms=d.terms;save();render()}else pendT=d.terms;reFace()}}
+ else if(d.callsave){const [a,b]=d.callsave.split('|'),sv=$('#cS').value.trim(),nt=$('#cN').value.trim();S.calls=S.calls||{};const k=pairKey(a,b);
+  if(sv===''&&!nt){delete S.calls[k]}else{const n=sv===''?null:Math.max(0,Math.min(100,Math.round(+sv)));S.calls[k]={s:n,note:nt,show:$('#cShow').checked,label:(S.calls[k]||{}).label}}save();render();reFace();toast('Coaches’ call saved')}
+ else if(d.callrm){const [a,b]=d.callrm.split('|');if(S.calls)delete S.calls[pairKey(a,b)];save();render();reFace();toast('Coaches’ call removed')}
+ else if(d.prof){profile(d.prof)}
+ else if(d.icladd){setIcl(d.icladd,50);render();profile(d.icladd,true);toast('Added at 50%. Drag the slider to set it')}
+ else if(d.iclrm){setIcl(d.iclrm,null);render();profile(d.iclrm,true);toast('Taken off the outside match list')}
+ else if(d.delnote){const [id,i]=d.delnote.split('|');const ns=[...(NOTES[id]||[])];ns.splice(+i,1);setNotes(id,ns);render();profile(id,true);toast('Note removed')}
+ else if(d.ask){const [a,b]=d.ask.split('|');askClaude(a,b)}
+ else if(t.id==='tSound'){S.sound=!S.sound;save(true);render();if(S.sound)bell(1)}
+ else if(t.id==='bDeal')doPool();
+ else if(t.id==='bSuggest')suggestAll();
+ else if(t.id==='wNow'||t.id==='wFight'){S.basis=t.id==='wNow'?'kg':'fw';save();render();toast(S.basis==='kg'?'Matching on weight now':'Matching on fight weight where one is entered')}
+ else if(t.id==='bClear'){const n=S.bouts.filter(b=>!b.locked).length;S.bouts=S.bouts.filter(b=>b.locked);save();flip(render,{stagger:14});toast(n?n+' pencilled bout'+(n>1?'s':'')+' cleared. Confirmed fights kept':'Nothing pencilled to clear')}
+ else if(t.id==='bReset'){if(d.arm){const keep={promo:S.promo,sound:S.sound,tv:S.tv,rules:S.rules,tol:S.tol,range:S.range,wshow:S.wshow};S=Object.assign(fresh(),keep);sel=null;save();flip(render,{stagger:10,dur:520});toast('Back to the roster')}else{d.arm=1;t.textContent='Tap again to wipe everything';setTimeout(()=>{delete t.dataset.arm;t.textContent='Start over'},3500)}}
+ else if(t.id==='bCopy'){const txt=cardText();$('#copyTxt').value=txt;$('#copyWrap').hidden=false;(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast('Fight card copied'),()=>{$('#copyTxt').select();toast('Select and copy the text below')})}
+ else if(t.id==='bReel')playReel();
+ else if(t.id==='pvDone')closePoster();
+ else if(t.id==='pvReplay'){$('#pvbar').classList.add('idle');runPoster()}
+ else if(t.id==='pvPng')savePng();
+ else if(t.id==='pvClip')saveClip();
+ else if(d.face)faceoff(sel,d.face,null);
+ else if(d.poster){$('#dlg').close();showPoster(d.poster,{})}
+ else if(d.bout){const b=S.bouts.find(x=>x.id===d.bout);faceoff(b.a,b.b,b)}
+ else if(d.f)pick(d.f);
+ else if('clearsel' in d){sel=null;render()}
+ else if(d.edit)editSheet(d.edit);
+ else if(d.undo){delete S.edits[d.undo];save();$('#dlg').close();render();toast('Back to the app figures')}
+ else if(d.confirm){const [a,b]=d.confirm.split('|');confirmFight(a,b)}
+ else if(d.pencil){const [a,b]=d.pencil.split('|');sel=null;$('#dlg').close();pairUp([[a,b]]);{const nb=boutOf(a);if(nb&&pendT){nb.terms=pendT;save();render()}}toast(last(F(a).n)+' v '+last(F(b).n)+' pencilled in')}
+ else if(d.unlock){const b=S.bouts.find(x=>x.id===d.unlock);b.locked=false;save();render();faceoff(b.a,b.b,b)}
+ else if(d.swap){const b=S.bouts.find(x=>x.id===d.swap);[b.a,b.b]=[b.b,b.a];save();render();faceoff(b.a,b.b,b)}
+ else if(d.break){S.bouts=S.bouts.filter(x=>x.id!==d.break);save();$('#dlg').close();flip(render,{});toast('Bout broken up')}
+ else if(d.up||d.down){const i=S.bouts.findIndex(x=>x.id===(d.up||d.down)),j=i+(d.up?-1:1);if(j>=0&&j<S.bouts.length){[S.bouts[i],S.bouts[j]]=[S.bouts[j],S.bouts[i]];save();render()}}
+ else if('close' in d)$('#dlg').close();
+});
+$('#dlg').addEventListener('click',e=>{if(e.target===$('#dlg'))$('#dlg').close()});
+document.addEventListener('change',e=>{const t=e.target;
+ if(t.id==='rngSel'){S.range=+t.value;save();render();toast('Highlighting fighters within '+S.range+' kg')}
+ else if(t.id==='iclR'){setIcl(t.dataset.icl,+t.value);render();toast(last(F(t.dataset.icl).n)+' set to '+t.value+'%')}
+ else if(t.id==='tolSel'){S.tol=+t.value;save();render();toast('Cut limit set to '+S.tol+' kg')}
+ else if(t.dataset.rounds){const b=S.bouts.find(x=>x.id===t.dataset.rounds);b.rounds=t.value;save()}});
+document.addEventListener('submit',e=>{if(e.target.id==='nf'){e.preventDefault();const id=e.target.dataset.id,tx=$('#nt').value.trim();if(!tx)return toast('Type the note first');$('#nt').value='';setNotes(id,[{t:Date.now(),text:tx},...(NOTES[id]||[])]);render();profile(id);toast('Note added')}});
+$('#dlg').addEventListener('close',()=>{sheetId=null});
+document.addEventListener('input',e=>{if(e.target.id==='iclR'){$('#iclV').textContent=e.target.value+'%';$('#iclW').textContent=iclWord(+e.target.value)+' to fight an outside gym'}});
+document.addEventListener('submit',e=>{if(e.target.id!=='ef')return;e.preventDefault();const id=e.target.dataset.id,g=k=>$('#e_'+k).value,nz=v=>v===''?null:+v,base=BASE.find(f=>f.id===id);
+ const kg=+g('kg');if(!(kg>=30&&kg<=200))return toast('Enter a weight between 30 and 200 kg');
+ S.edits[id]=Object.assign({},S.edits[id],{kg,fw:nz(g('fw')),age:nz(g('age')),st:g('st'),xp:+g('xp'),sx:g('sx'),w:+g('w')||0,l:+g('l')||0,dr:+g('dr')||0,kd:kg!==base.kg?'Edited':base.kd});
+ save();render();profile(id);toast('Saved')});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('#pv').hidden)closePoster();else if(sel&&!$('#dlg').open){sel=null;render()}});
+/* drag and drop (mouse): onto a lane moves pools, onto a fighter opens the face-off */
+let drag=null;
+document.addEventListener('dragstart',e=>{const c=e.target.closest('.ft');if(!c)return;drag=c.dataset.f;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',drag)}catch(x){}});
+document.addEventListener('dragover',e=>{if(!drag)return;const c=e.target.closest('.ft'),l=e.target.closest('.lane');if(c||l)e.preventDefault();
+ document.querySelectorAll('.drop,.over').forEach(x=>x.classList.remove('drop','over'));if(c&&c.dataset.f!==drag)c.classList.add('drop');else if(l)l.classList.add('over')});
+document.addEventListener('drop',e=>{if(!drag)return;e.preventDefault();const c=e.target.closest('.ft'),l=e.target.closest('.lane'),id=drag;drag=null;
+ document.querySelectorAll('.drop,.over').forEach(x=>x.classList.remove('drop','over'));
+ if(c&&c.dataset.f!==id)faceoff(id,c.dataset.f,null)});
+document.addEventListener('dragend',()=>{drag=null;document.querySelectorAll('.drop,.over').forEach(x=>x.classList.remove('drop','over'))});
+
+try{NOTES=JSON.parse(localStorage.getItem('fc_notes_local')||'{}')||{}}catch(e){NOTES={}}
+/* ===== Legacy app wiring (20 Nov 2026): Supabase login, live roster, shared board (mm_docs) ===== */
+const SBURL="https://jyslqxepodrseyhoppce.supabase.co",SBKEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
+const MM_USERS={"15a011b9-e222-45f0-8eb9-d5338da935d1":"Jake","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce":"Ali","2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139":"Sarsha","8ddade7e-691b-4c56-9f8d-8594a1c9755f":"Joe"};
+const SEX={};BASE.forEach(f=>SEX[f.id]=f.sx);
+const slugN=n=>String(n||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const dLab=t=>{const d=new Date(t);return d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]};
+const XPMAP={none:0,skills:1,sparring:2,fight_club:3};
+function applyRoster(rows){if(!Array.isArray(rows)||!rows.length)return;
+ const CAMP0=Date.parse('2026-09-28');const nb=[];
+ rows.forEach(r=>{const n=((r.first||'').trim()+' '+(r.last||'').trim()).trim().replace(/\b\w/g,c=>c.toUpperCase());const id=slugN(n);if(!id)return;
+  const wi0=(r.wi||[]).filter(w=>w&&w.kg!=null).map(w=>({kg:+w.kg,t:Date.parse(w.at)})).filter(w=>w.t).sort((a,b)=>a.t-b.t);
+  const byDay={};wi0.forEach(w=>{byDay[new Date(w.t).toDateString()]=w});const wi=Object.values(byDay).sort((a,b)=>a.t-b.t);
+  const camp=wi.filter(w=>w.t>=CAMP0),lw=wi[wi.length-1];
+  const old=BASE.find(f=>f.id===id)||{};
+  nb.push({id,n:old.n||n,sx:SEX[id]||'m',age:r.age!=null?r.age:old.age,kg:lw?lw.kg:(r.kg!=null?+r.kg:old.kg),kd:lw?dLab(lw.t):'',fw:r.fw!=null?+r.fw:null,st:r.stance||'',w:r.w||0,l:r.l||0,dr:r.d||0,xp:XPMAP[r.xp]!=null?XPMAP[r.xp]:(old.xp||0)});
+  if(r.photo)PHOTO[id]=r.photo;
+  /* keep the 19 Nov snapshot when it knows more than the live tables (never go backwards) */
+  const snap=APP[id]||{},snapN=(snap.sp||[]).length,newer=lw&&lw.t>Date.parse('2026-11-19T23:59:00+11:00');
+  if(camp.length&&(camp.length>=snapN||newer)){const a=camp[0],b=camp[camp.length-1];APP[id]={kg:b.kg,kd:dLab(b.t),kg0:a.kg,d0:dLab(a.t),days:Math.round((b.t-a.t)/864e5),sp:camp.map(w=>w.kg)}}
+  else if(!snapN&&lw)APP[id]={kg:lw.kg,kd:dLab(lw.t),kg0:null,d0:null,days:null,sp:[]};
+  const A2=APP[id]||{};const cur=nb[nb.length-1];if(A2.kg!=null){cur.kg=A2.kg;cur.kd=A2.kd}
+ });
+ if(nb.length){BASE.length=0;nb.forEach(f=>BASE.push(f))}}
+/* a small stand-in for the old shared store, kept in Supabase table mm_docs (only Jake, Ali, Sarsha and Joe can read or write it) */
+function makeDB(sb,uid){const docL={},colL={},seen={};let rows={};
+ function emit(){Object.keys(docL).forEach(p=>{const r=rows[p];docL[p].forEach(cb=>cb({exists:!!r,data:()=>r?r.data:null}))});
+  Object.keys(colL).forEach(c=>{const docs=Object.keys(rows).filter(p=>p.indexOf(c+'/')===0).map(p=>({id:p.slice(c.length+1),data:()=>rows[p].data}));colL[c].forEach(cb=>cb({docs}))})}
+ let last='';async function poll(){try{const r=await sb.from('mm_docs').select('path,data,updated_at');if(r.error)return;const nr={};let sig='';(r.data||[]).forEach(x=>{nr[x.path]=x;sig+=x.path+x.updated_at});if(sig!==last){last=sig;rows=nr;emit()}}catch(e){}}
+ const api={doc:p=>({set:async d=>{rows[p]={path:p,data:d,updated_at:new Date().toISOString()};const r=await sb.from('mm_docs').upsert({path:p,data:d,updated_at:new Date().toISOString(),updated_by:uid});if(r.error)throw r.error},
+   delete:async()=>{delete rows[p];const r=await sb.from('mm_docs').delete().eq('path',p);if(r.error)throw r.error},
+   onSnapshot:(cb)=>{(docL[p]=docL[p]||[]).push(cb);if(rows[p])cb({exists:true,data:()=>rows[p].data})}}),
+  collection:c=>({onSnapshot:(cb)=>{(colL[c]=colL[c]||[]).push(cb)}}),poll};
+ return api}
+const DLX={save:async({filename,data})=>{const u=URL.createObjectURL(data);const a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500)}};
+function gate(msg,btn){document.body.insertAdjacentHTML('beforeend','<div id="mmGate" style="position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:var(--bg);padding:24px;text-align:center"><div style="max-width:440px"><div class="lab">Fight Club Central Coast</div><h1 class="d" style="font-size:2.6rem;margin:8px 0 12px">Match<em style="font-style:normal;color:var(--cy)">maker</em></h1><p style="color:var(--mute);font-size:1.05rem;line-height:1.5">'+msg+'</p>'+(btn||'')+'</div></div>')}
+async function start(){
+ S=Object.assign(fresh(),load()||{});
+ const sb=supabase.createClient(SBURL,SBKEY);
+ let uid=null;try{const r=await sb.auth.getSession();uid=r&&r.data&&r.data.session?r.data.session.user.id:null}catch(e){}
+ if(!uid){gate('Sign in to the Legacy app in this browser first, then come back to this page. On the big screen, open the app once, sign in, then open /matchmaker.','<a class="btn p" style="display:inline-block;margin-top:18px;text-decoration:none" href="/">Open the Legacy app</a>');return}
+ if(!MM_USERS[uid]){gate('This page is private to Jake, Ali, Sarsha and Joe.','<a class="btn" style="display:inline-block;margin-top:18px;text-decoration:none" href="/">Back to the app</a>');return}
+ try{const r=await sb.rpc('mm_roster');if(!r.error)applyRoster(r.data)}catch(e){}
+ /* drop anything saved that no longer matches the roster */
+ S.pools.forEach(p=>p.ids=p.ids.filter(id=>BASE.some(f=>f.id===id)));S.bouts=S.bouts.filter(b=>F(b.a)&&F(b.b));
+ S.pools=[];
+ const q=new URLSearchParams(location.search);if(q.get('tv')==='1'){S.tv=true}
+ render();
+ DL=DLX;$('#pvPng').hidden=false;if(window.MediaRecorder&&HTMLCanvasElement.prototype.captureStream)$('#pvClip').hidden=false;
+ const db=makeDB(sb,uid);DB=db;
+ db.collection('notes').onSnapshot(q=>{const n={};q.docs.forEach(d=>{const x=d.data();n[d.id]=(x&&x.entries)||[]});NOTES=n;render();if(sheetId&&$('#dlg').open)profile(sheetId,true);else reFace()},()=>{});
+ db.collection('interclub').onSnapshot(q=>{const n={};q.docs.forEach(d=>{const x=d.data();if(x&&typeof x.pct==='number')n[d.id]=x.pct});ICL=n;render();if(sheetId&&$('#dlg').open&&document.activeElement.id!=='iclR')profile(sheetId,true)},()=>{});
+ db.doc('state/board').onSnapshot(onRemote,()=>{});
+ await db.poll();setInterval(db.poll,2500);
+ setInterval(async()=>{try{const r=await sb.rpc('mm_roster');if(!r.error){applyRoster(r.data);render()}}catch(e){}},5*60*1000);
+}
+start();
+</script>
+
+</body></html>
