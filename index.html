@@ -590,7 +590,7 @@ try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew",
 const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611201620";
+const LG_BUILD="202611202116";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -11161,6 +11161,7 @@ try{var _go=window.go;window.go=function(v){if(v==="recoffers")RC2.need=true;if(
 <script src="/hoodie.js?v=202611201605"></script>
 <script src="/twofor1.js?v=202611200920"></script>
 <script src="/mtix.js?v=202611201620"></script>
+<script src="/sfo.js?v=202611202116"></script>
 
 <script>
 /* Halloween Saturday block removed 31 Oct 2026 (Jake) */
