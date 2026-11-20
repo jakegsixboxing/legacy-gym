@@ -10,6 +10,8 @@
 //   a=crew-sms      fighter → texts the fighter's own ticket holders via ClickSend (fh_crew_targets / fh_crew_log; numbers never leave the server)
 //   a=buy-checkout  public  → {token,ref}: a Fight Night ticket order saved by fn_buy_prepare (from /t/<token>) → Shopify draft order → pay link
 //   a=buy-env       public  → which mail/Shopify settings are present (true/false only, never values) so the ticket flow can be checked
+//   a=ysp-checkout public  → {ref,email}: Youth Boxing sponsorship saved by ysp_start (/youth-boxing) → Shopify draft order → pay link
+//   a=paid also handles Youth Boxing sponsorships ("Youth sponsor ref" YS26-XXXXXX) → ysp_mark_paid
 //   a=paid also handles ticket orders ("Ticket ref" FN26-XXXXXX): marks the order paid and emails the buyer a confirmation
 import crypto from "crypto";
 const SB_URL = "https://jyslqxepodrseyhoppce.supabase.co";
@@ -58,6 +60,7 @@ export default async function handler(req, res) {
   if (a === "crew-sms") return crewSms(req, res, body);
   if (a === "buy-checkout") return buyCheckout(res, body);
   if (a === "buy-env") return buyEnv(res, body);
+  if (a === "ysp-checkout") return yspCheckout(res, body);
   return res.status(404).json({ error: "unknown_action" });
 }
 
@@ -105,6 +108,45 @@ async function checkout(res, body) {
   } catch (e) { return res.status(500).json({ error: "server_error", detail: String((e && e.message) || e) }); }
 }
 
+/* ---------- a=ysp-checkout (Youth Boxing sponsorship) ---------- */
+async function yspCheckout(res, body) {
+  const CS = process.env.SHOPIFY_CLIENT_SECRET;
+  if (!CS) return res.status(503).json({ error: "not_configured" });
+  try {
+    const ref = String(body.ref || "").trim().toUpperCase(), email = String(body.email || "").trim();
+    if (!/^YS26-[A-Z0-9]{6}$/.test(ref) || !/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: "bad_request" });
+    const H = { apikey: SB_ANON, authorization: "Bearer " + SB_ANON, "content-type": "application/json" };
+    const q = await fetch(SB_URL + "/rest/v1/rpc/ysp_lookup", { method: "POST", headers: H, body: JSON.stringify({ p_ref: ref, p_email: email }) }).then(r => r.json());
+    if (!q || !q.ref) return res.status(404).json({ error: "not_found" });
+    if (q.status === "paid") return res.status(409).json({ error: "already_paid" });
+    if (q.checkout_url && !body.fresh) return res.status(200).json({ ok: true, url: q.checkout_url, draft: q.shopify_draft, reused: true });
+    const cents = Number(q.amount_cents);
+    if (!(cents > 0)) return res.status(400).json({ error: "bad_amount" });
+    const gql = await shopifyGql(CS);
+    if (!gql) return res.status(502).json({ error: "shopify_auth_failed" });
+    const what = `Youth Boxing Sponsorship · ${q.pack_label}`;
+    const who = q.name ? `${q.business} (${q.name})` : q.business;
+    const created = await gql(
+      `mutation($input: DraftOrderInput!){ draftOrderCreate(input:$input){ draftOrder{ id name invoiceUrl } userErrors{ field message } } }`,
+      { input: {
+          email, tags: ["legacy-app", "sponsor", "youth-boxing", "fight-night-2026"],
+          note: `Youth sponsor ${ref} · ${what} · ${who}`,
+          customAttributes: [{ key: "Youth sponsor ref", value: ref }, { key: "Sponsorship", value: what }],
+          lineItems: [{ title: `${what} (Fight Night, Sat 19 Dec 2026)`, quantity: 1, originalUnitPrice: (cents / 100).toFixed(2), requiresShipping: false, taxable: false }]
+      } });
+    const d = created && created.data && created.data.draftOrderCreate;
+    if (!d || !d.draftOrder || (d.userErrors && d.userErrors.length))
+      return res.status(502).json({ error: "shopify_rejected", detail: (d && d.userErrors) || created.errors });
+    const draft = d.draftOrder;
+    await fetch(SB_URL + "/rest/v1/rpc/ysp_set_checkout", { method: "POST", headers: H, body: JSON.stringify({ p_ref: ref, p_email: email, p_draft: draft.name, p_url: draft.invoiceUrl }) }).catch(() => {});
+    if (body.test) {
+      await gql(`mutation($input: DraftOrderDeleteInput!){ draftOrderDelete(input:$input){ deletedId userErrors{ message } } }`, { input: { id: draft.id } });
+      return res.status(200).json({ ok: true, test: true, draft: draft.name, url: draft.invoiceUrl });
+    }
+    return res.status(200).json({ ok: true, url: draft.invoiceUrl, draft: draft.name });
+  } catch (e) { return res.status(500).json({ error: "server_error", detail: String((e && e.message) || e) }); }
+}
+
 /* ---------- a=paid (Shopify orders/paid webhook) ---------- */
 async function paid(req, res, raw) {
   const given = String(req.headers["x-shopify-hmac-sha256"] || "");
@@ -137,6 +179,20 @@ async function paid(req, res, raw) {
     });
     const j2 = await r2.json().catch(() => null);
     return res.status(200).json({ ok: r2.ok, shop: shopRef, order: nameAny, result: j2 });
+  }
+
+  // Youth Boxing sponsorships (/youth-boxing) carry "Youth sponsor ref" YS26-XXXXXX
+  let ysRef = null;
+  for (const na of attrs) if (na && /youth sponsor ref/i.test(String(na.name || ""))) ysRef = String(na.value || "").trim().toUpperCase();
+  if (!ysRef) { const m = String(order.note || "").match(/\b(YS26-[A-Z0-9]{6})\b/i); if (m) ysRef = m[1].toUpperCase(); }
+  if (ysRef) {
+    const k3 = process.env.SUPABASE_SERVICE_ROLE_KEY || SB_ANON;
+    const r3 = await fetch(SB_URL + "/rest/v1/rpc/ysp_mark_paid", {
+      method: "POST", headers: { apikey: k3, Authorization: "Bearer " + k3, "content-type": "application/json" },
+      body: JSON.stringify({ p_ref: ysRef, p_order: nameAny, p_email: emailAny, p_total_cents: totalAny })
+    });
+    const j3 = await r3.json().catch(() => null);
+    return res.status(200).json({ ok: r3.ok, youth: ysRef, order: nameAny, result: j3 });
   }
 
   let ref = null;
