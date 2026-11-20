@@ -70,6 +70,7 @@ function find(k,id){var L=k==="sp"?S.SP:S.OP;for(var i=0;i<L.length;i++)if(L[i].
 
 /* ---------- css ---------- */
 var CSS='#sfoRoot{padding:4px 0 30px;color:#c3c6ca;font-size:14px}'+
+'#sfoRoot .sfoBack{background:none;border:0;color:#858b92;font-weight:700;font-size:13px;padding:6px 0 10px;font-family:inherit;cursor:pointer}'+
 '#sfoRoot .sfoTop{display:flex;align-items:center;gap:10px;margin:0 0 8px}'+
 '#sfoRoot .sfoTop h2{margin:0;font-family:Oswald,sans-serif;font-weight:600;font-size:24px;letter-spacing:.03em;text-transform:uppercase;color:#f3f1ec;line-height:1.05}'+
 '#sfoRoot .sfoTop small{display:block;color:#858b92;font-size:11.5px}'+
@@ -187,7 +188,7 @@ function paint(){
  if(!ok()){m.innerHTML='<div class="empty" style="margin-top:40px">This section is private.</div>';return;}
  if(!S.loaded&&!S.loading)load();
  var body=S.err?'<div class="empty">Couldn\u2019t load: '+esc(S.err)+'<br><button class="sfoBtn sm" style="margin-top:10px" data-sfo-reload>Try again</button></div>':!S.loaded?'<div class="empty">Loading\u2026</div>':(S.tab==="spons"?vSpons():vPro());
- m.innerHTML='<div id="sfoRoot"><div class="sfoTop"><div><h2>Sarsha\u2019s fight office</h2><small>Signed in as '+me()+' \u00b7 Team Sarsha</small></div><span class="lock">\ud83d\udd12 Jake &amp; Sarsha</span></div>'+
+ m.innerHTML='<div id="sfoRoot"><button class="sfoBack" onclick="go(\'home\')">\u2039 Home</button><div class="sfoTop"><div><h2>Sarsha\u2019s fight office</h2><small>Signed in as '+me()+' \u00b7 Team Sarsha</small></div><span class="lock">\ud83d\udd12 Jake &amp; Sarsha</span></div>'+
  '<div class="seg"><button class="'+(S.tab==="spons"?'on':'')+'" data-sfo-tab="spons">Sponsorship</button><button class="'+(S.tab==="pro"?'on':'')+'" data-sfo-tab="pro">Pro boxing</button></div>'+body+'</div>';
  sheet();
 }
@@ -305,13 +306,10 @@ document.addEventListener("click",async function(ev){
 document.addEventListener("change",function(ev){var f=ev.target;if(!f||!f.getAttribute||!f.getAttribute("data-sfo-logo")||!f.files||!f.files[0])return;var s=find("sp",f.getAttribute("data-sfo-logo"));T("Saving logo\u2026");shrink(f.files[0],async function(url){var nd=(s.needs||mkNeed()).slice();if(nd[0])nd[0].done=true;await save("sp",s,{logo:url,needs:nd},true);T("Logo saved");sheet();paint();});});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&$id("sfoSheet"))closeSheet();});
 
-/* ---------- bottom nav tab, only for Jake and Sarsha ---------- */
-var ITEM={id:"sfo",label:"Sarsha",icon:'<path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/>'};
-function syncNav(){try{var i=-1;for(var k=0;k<NAV.length;k++)if(NAV[k].id==="sfo")i=k;if(ok()&&i<0)NAV.splice(Math.max(0,NAV.length-1),0,ITEM);if(!ok()&&i>=0)NAV.splice(i,1);NAV_TAB.sfo="sfo";}catch(e){}}
-var _rn=window.renderNav;
-if(typeof _rn==="function")window.renderNav=function(){syncNav();return _rn.apply(this,arguments);};
+/* ---------- home card (lg2.js "Your gym" grid, at the bottom), only for Jake and Sarsha ---------- */
+window.lgSfoOk=ok;
+window.lgSfoSub=function(){if(!S.loaded){if(ok()&&!S.loading&&!S.tried){S.tried=true;load().then(function(){try{if(view==="home"&&typeof renderHome==="function")renderHome();}catch(e){}});}return "Sponsors, payments, promoters and fight dates.";}var t=totals(),n=S.OP.filter(function(o){return o.stage==="agreed";}).length;return money(t.paid)+" paid \u00b7 "+money(t.owed)+" owed \u00b7 "+n+" fight"+(n===1?"":"s")+" agreed";};
 var _r=window.render;
 window.render=function(){if(view==="sfo"){if(!ok()){view="home";return _r.apply(this,arguments);}paint();return;}var hs=$id("sfoSheet");if(hs)hs.remove();return _r.apply(this,arguments);};
-try{syncNav();if(typeof renderNav==="function"&&document.getElementById("nav")&&session)renderNav();}catch(e){}
 window.sfoOpen=function(){if(ok())go("sfo");};
 })();

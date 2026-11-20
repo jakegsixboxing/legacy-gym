@@ -210,6 +210,7 @@ window.renderHome=function(){
    ((window.lgSarshaIsHer&&lgSarshaIsHer())?card({go:"sarsha",cc:"#e277c4",k:"Only you can see this",t:"Sarsha's Day",s:(window.lgSarshaSub?lgSarshaSub():"Your week, your way."),ic:"cal"}):"")+
    ((window.lgHuskyIsHer&&lgHuskyIsHer())?card({go:"husky",cc:"#7cb8ff",k:"Only you can see this",t:"Husky 125",s:(window.lgHuskySub?lgHuskySub():"Rides, money, tracks, videos"),ic:"compete"}):"")+
    ((window.lgTomIsHim&&lgTomIsHim())?card({go:"tomsbox",cc:"#c9a44c",k:"Only you can see this",t:"Tom\'s Boxing",s:(window.lgTomSub?lgTomSub():"Your three sessions for the week."),ic:"spar"}):"")+
+   ((window.lgSfoOk&&lgSfoOk())?card({go:"sfo",cc:"#d8b24f",k:"Only Jake and Sarsha can see this",t:"Sarsha\'s Fight Office",s:(window.lgSfoSub?lgSfoSub():"Sponsors, payments, promoters and fight dates."),ic:"spar"}):"")+
   '</div><div style="margin-top:22px;text-align:center"><a href="#" onclick="go(\'sponsorship\');return false;" style="color:var(--lgold);text-decoration:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase">★ Sponsorship</a><div style="font-size:10.5px;color:var(--lmuted);margin-top:5px">Fight Night ring sponsorship for local kids</div></div>';
   $id("main").innerHTML=wrap(h);settle();sweep();
   try{updateBadges();}catch(e){}
