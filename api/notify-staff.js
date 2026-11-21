@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   const PRIV = process.env.VAPID_PRIVATE_KEY;
   if (!PUB || !PRIV) return res.status(503).json({ error: "not_configured" });
   try {
-    const { token, title, body, url, coach } = req.body || {};
+    const { token, title, body, url, coach, group, to } = req.body || {};
     if (!token || !body) return res.status(400).json({ error: "bad_request" });
     const u = await fetch(SB_URL + "/auth/v1/user", { headers: { apikey: SB_ANON, authorization: "Bearer " + token } }).then(r => r.json());
     if (!u || !u.id) return res.status(401).json({ error: "bad_auth" });
@@ -20,9 +20,13 @@ export default async function handler(req, res) {
     // Any authenticated user (member or staff) can trigger this — recipients are always staff-only,
     // enforced by the get_staff_push_subscriptions() RPC (security definer, filters to is_staff internally,
     // and excludes the caller's own subscriptions so staff don't get pinged on their own chat messages).
-    const rpc = coach ? "get_coach_push_subscriptions" : "get_staff_push_subscriptions";
+    // group "mm": Fight Club Matchmaker pings. mm_push_subscriptions() only answers Jake, Ali, Sarsha, Joe and Kelly,
+    // and only returns those five people's phones (never the sender's own).
+    const mm = group === "mm";
+    const rpc = mm ? "mm_push_subscriptions" : coach ? "get_coach_push_subscriptions" : "get_staff_push_subscriptions";
+    const args = mm ? { p_to: Array.isArray(to) ? to.slice(0, 10) : [] } : coach ? { p_coach: String(coach).toLowerCase() } : {};
     const subs = await fetch(SB_URL + "/rest/v1/rpc/" + rpc, {
-      method: "POST", headers: H, body: JSON.stringify(coach ? { p_coach: String(coach).toLowerCase() } : {})
+      method: "POST", headers: H, body: JSON.stringify(args)
     }).then(r => r.json());
     if (!Array.isArray(subs)) return res.status(403).json({ error: "not_authorized", detail: subs });
     webpush.setVapidDetails("mailto:jakegsixboxing@gmail.com", PUB, PRIV);
@@ -40,6 +44,8 @@ export default async function handler(req, res) {
     if (dead.length) {
       await fetch(SB_URL + "/rest/v1/push_subscriptions?id=in.(" + dead.join(",") + ")", { method: "DELETE", headers: H }).catch(() => {});
     }
-    return res.status(200).json({ sent, failed, total: subs.length });
+    const byUser = {};
+    results.forEach((r, i) => { const k = subs[i].user_id; byUser[k] = byUser[k] || { sent: 0, failed: 0 }; byUser[k][r.status === "fulfilled" ? "sent" : "failed"]++; });
+    return res.status(200).json({ sent, failed, total: subs.length, byUser });
   } catch (e) { return res.status(500).json({ error: "server_error", detail: String((e && e.message) || e) }); }
 }
