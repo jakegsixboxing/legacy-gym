@@ -256,6 +256,48 @@ body.tv #tools,body.tv footer,body.tv .lh .btn,body.tv .rhead p{display:none!imp
 .callf textarea{min-height:4.375rem}
 @media (min-width:761px){body.promo .fo.show .fobody{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
 
+/* coach boards + compare */
+.bdrow{display:flex;align-items:center;gap:0.625rem;flex-wrap:wrap}
+.bdseg button{padding:0.5625rem 0.875rem}
+.bdseg button[aria-pressed="true"]{background:var(--cy);color:var(--oncy)}
+.bdnote{font-size:0.8125rem;color:var(--mute)}
+body.mine .top{box-shadow:inset 0 -3px 0 var(--mc,var(--warn))}
+body.mine .bdnote{color:var(--ink)}
+body.mine .bdnote b{color:var(--mc,var(--warn))}
+body.tv .bdrow{display:none!important}
+.cmpv{padding-block:1.125rem 8rem;display:flex;flex-direction:column;gap:1.25rem}
+.cmph{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap}
+.cmph h2{font-size:clamp(2rem,5vw,3.25rem);margin:0.375rem 0 0}
+.cmph p{color:var(--mute);margin:0.375rem 0 0;max-width:60ch;font-size:0.9375rem}
+.coaches{display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:0.5rem}
+.coach{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--cc);border-radius:0.75rem;padding:0.75rem 0.875rem}
+.coach b{font:400 1.375rem/1 var(--disp);text-transform:uppercase;letter-spacing:.03em}
+.coach small{display:block;color:var(--mute);font-size:0.8125rem;margin-top:0.375rem}
+.coach .n{font:400 2rem/1 var(--disp);color:var(--cc);float:right}
+.agree{display:flex;align-items:center;gap:1rem;background:var(--panel);border:1px solid var(--line);border-radius:0.875rem;padding:0.875rem 1rem}
+.agree .ringg{width:4.75rem}
+.agree .ringg span{width:3.625rem;font-size:1.5rem}
+.agree p{margin:0;font-size:0.9375rem;color:var(--mute)}.agree p b{color:var(--ink)}
+.csec{display:flex;flex-direction:column;gap:0.5rem}
+.csec h3{margin:0;display:flex;align-items:baseline;gap:0.625rem;font:400 1.5rem/1 var(--disp);text-transform:uppercase;letter-spacing:.02em}
+.csec h3 small{font:600 0.8125rem var(--ui);letter-spacing:.06em;color:var(--mute);text-transform:none}
+.csec.all h3{color:var(--good)}.csec.maj h3{color:var(--fair)}.csec.clash h3{color:var(--warn)}.csec.solo h3{color:var(--cy2)}
+.prow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0.625rem;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:0.75rem;padding:0.5rem 0.625rem}
+.pf{display:flex;align-items:center;gap:0.5rem;min-width:0}
+.pf .av{width:2.5rem;height:3rem}
+.pf .nm{font:400 1.0625rem/1.05 var(--disp);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf .v{flex:none;font:400 0.9375rem var(--disp);color:var(--mute);padding:0 0.125rem}
+.pwho2{display:flex;gap:0.25rem;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.cchip{font:700 0.6875rem/1 var(--ui);letter-spacing:.06em;text-transform:uppercase;padding:0.3125rem 0.5rem;border-radius:62rem;background:color-mix(in srgb,var(--cc) 22%,transparent);color:var(--cc);border:1px solid color-mix(in srgb,var(--cc) 55%,transparent)}
+.cbox{background:var(--panel);border:1px solid var(--line);border-radius:0.875rem;padding:0.75rem;display:flex;flex-direction:column;gap:0.5rem}
+.cbox .who{gap:0.5rem}.cbox .who .av{width:2.75rem;height:3.25rem}
+.sealed{background:var(--panel);border:1px dashed var(--line);border-radius:0.875rem;padding:1.25rem;text-align:center;color:var(--mute)}
+.sealed b{display:block;font:400 1.75rem/1 var(--disp);text-transform:uppercase;color:var(--ink);margin-bottom:0.5rem}
+.pool{background:linear-gradient(100deg,color-mix(in srgb,var(--good) 14%,var(--panel)),var(--panel) 65%);border:1px solid color-mix(in srgb,var(--good) 45%,var(--line));border-radius:0.875rem;padding:0.875rem;display:flex;flex-direction:column;gap:0.625rem}
+.pool h3{margin:0;font:400 1.625rem/1 var(--disp);text-transform:uppercase}
+.empty2{color:var(--mute);font-size:0.875rem;padding:0.25rem 0.125rem}
+@media (max-width:560px){.prow{grid-template-columns:1fr}.pwho2{justify-content:flex-start}}
+
 /* ping the team */
 body.tv #tPing{display:none!important}
 #pingWrap{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.78);display:flex;align-items:flex-end;justify-content:center}
@@ -391,9 +433,10 @@ footer .wrap{padding-block:1rem 1.5rem}
    <button type="button" class="tog" id="tTv" aria-pressed="false">TV mode</button>
    <button type="button" class="tog" id="tPromo" aria-pressed="false">Promo mode</button>
    <button type="button" class="tog" id="tSound" aria-pressed="true">Sound</button>
-   <div class="tabs" role="group" aria-label="View"><button type="button" id="tBoard" aria-pressed="true">Matchmaking</button><button type="button" id="tCard" aria-pressed="false">Fight card</button></div>
+   <div class="tabs" role="group" aria-label="View"><button type="button" id="tBoard" aria-pressed="true">Matchmaking</button><button type="button" id="tCard" aria-pressed="false">Fight card</button><button type="button" id="tCmp" aria-pressed="false">Compare</button></div>
   </div>
  </div>
+ <div class="bdrow" id="bdRow"><div class="seg bdseg" role="group" aria-label="Whose board"><button type="button" id="bdTeam" aria-pressed="true">Team board</button><button type="button" id="bdMine" aria-pressed="false">My matches</button></div><span class="bdnote" id="bdNote"></span></div>
  <div class="stats" id="stats"></div>
  <div class="prog" aria-hidden="true"><i id="prog" style="width:0"></i></div>
  <div class="tools" id="tools">
@@ -414,6 +457,7 @@ footer .wrap{padding-block:1rem 1.5rem}
   <div class="rost" id="rost" hidden></div>
   <div class="board" id="board" hidden></div>
   <div class="cardv" id="cardv" hidden></div>
+  <div class="cmpv" id="cmpv" hidden></div>
  </div>
 </main>
 
@@ -508,8 +552,12 @@ function load(){try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&
 const core=()=>({stage:S.stage,pools:S.pools,bouts:S.bouts,edits:S.edits,calls:S.calls||{},basis:S.basis,n:S.n,rules:S.rules,tol:S.tol,range:S.range});
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 /* the board is also kept in the page's shared store, so a second screen (the TV) follows along live */
-function save(local){saveLocal();if(local||!DB)return;S.at=Date.now();saveLocal();clearTimeout(pushT);pushT=setTimeout(()=>{DB.doc('state/board').set({json:JSON.stringify(core()),cid:CID,at:S.at}).catch(()=>{})},450)}
+function save(local){saveLocal();if(local||!DB)return;S.at=Date.now();saveLocal();clearTimeout(pushT);pushT=setTimeout(()=>{
+ if(BOARD==='mine'&&window.MMUID){const mine={bouts:S.bouts,n:S.n,at:S.at,cid:CID};BOARDS[MMUID]=mine;DB.doc('boards/'+MMUID).set(mine).catch(()=>{});
+  const c=core();c.bouts=TEAM.bouts;c.n=TEAM.n;DB.doc('state/board').set({json:JSON.stringify(c),cid:CID,at:S.at}).catch(()=>{})}
+ else DB.doc('state/board').set({json:JSON.stringify(core()),cid:CID,at:S.at}).catch(()=>{})},450)}
 function onRemote(snap){if(!snap||!snap.exists)return;const d=snap.data();if(!d||d.cid===CID||!d.json||!(d.at>remoteAt)||!(d.at>(S.at||0)))return;remoteAt=d.at;let c;try{c=JSON.parse(d.json)}catch(e){return}
+ if(BOARD==='mine'){TEAM={bouts:c.bouts||[],n:c.n||1};delete c.bouts;delete c.n;delete c.stage}
  const had=new Set(S.bouts.filter(b=>b.locked).map(b=>b.id));Object.assign(S,c);S.at=d.at;saveLocal();const nw=S.bouts.filter(b=>b.locked&&!had.has(b.id));
  flip(render,{stagger:18,onLand:el=>{sparkBout(el)}});if(S.tv&&nw.length&&$('#pv').hidden)showPoster(nw[0].id,{auto:9000})}
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -688,13 +736,14 @@ function render(){
  $('#rLeague').setAttribute('aria-pressed',(S.rules||'league')==='league');$('#rBA').setAttribute('aria-pressed',S.rules==='ba');$('#tolSel').value=String(S.tol||1.5);
  $('#rngSel').value=String(S.range||5);$('#bW').setAttribute('aria-pressed',!!S.wshow);$('#bW').textContent=S.wshow?'Women’s weights shown':'Women’s weights hidden';
  $('#wNow').setAttribute('aria-pressed',S.basis==='kg');$('#wFight').setAttribute('aria-pressed',S.basis==='fw');
- $('#tBoard').setAttribute('aria-pressed',view==='board');$('#tCard').setAttribute('aria-pressed',view==='card');
+ $('#tBoard').setAttribute('aria-pressed',view==='board');$('#tCard').setAttribute('aria-pressed',view==='card');$('#tCmp').setAttribute('aria-pressed',view==='cmp');bdUI();
  const ro=view==='board'&&S.stage==='roster',bo=view==='board'&&S.stage==='pools';
  $('#rost').hidden=!ro;$('#board').hidden=!bo;$('#cardv').hidden=view!=='card';$('#tools').hidden=!bo;
  HOT=[];if(sel){const f=F(sel);HOT=all().filter(o=>o.id!==sel&&!boutOf(o.id)&&o.sx===f.sx&&inRange(f,o)).map(o=>({o,v:score(f,o)})).filter(x=>!x.v.block&&x.v.s>=50).sort((a,b)=>b.v.s-a.v.s).slice(0,3).map(x=>x.o.id)}
  if(ro)renderRoster();else $('#rost').innerHTML='';
  if(bo)renderBoard();else $('#board').innerHTML='';
  if(view==='card')renderCard();else $('#cardv').innerHTML='';
+ $('#cmpv').hidden=view!=='cmp';if(view==='cmp')renderCmp();else $('#cmpv').innerHTML='';
  renderSel();
 }
 function renderRoster(){
@@ -1049,6 +1098,102 @@ function makeDB(sb,uid){const docL={},colL={},seen={};let rows={};
  return api}
 const DLX={save:async({filename,data})=>{const u=URL.createObjectURL(data);const a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500)}};
 function gate(msg,btn){document.body.insertAdjacentHTML('beforeend','<div id="mmGate" style="position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:var(--bg);padding:24px;text-align:center"><div style="max-width:440px"><div class="lab">Fight Club Central Coast</div><h1 class="d" style="font-size:2.6rem;margin:8px 0 12px">Match<em style="font-style:normal;color:var(--cy)">maker</em></h1><p style="color:var(--mute);font-size:1.05rem;line-height:1.5">'+msg+'</p>'+(btn||'')+'</div></div>')}
+/* ===== Coach boards: everyone keeps their own matches, then Compare pools where you agree ===== */
+let BOARD='team',TEAM=null,BOARDS={},REVEAL=null,POOLV=null;
+const CCOL={"15a011b9-e222-45f0-8eb9-d5338da935d1":"#f5b83d","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce":"#3ecf8e","2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139":"#ff6b8a","8ddade7e-691b-4c56-9f8d-8594a1c9755f":"#4f9cff","09e6788d-f0cd-4c7a-a0b0-2dd9db75bbeb":"#c58bff"};
+const COACHES=["15a011b9-e222-45f0-8eb9-d5338da935d1","8ddade7e-691b-4c56-9f8d-8594a1c9755f","2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce","09e6788d-f0cd-4c7a-a0b0-2dd9db75bbeb"];
+const JAKE="15a011b9-e222-45f0-8eb9-d5338da935d1";
+const cnm=u=>MM_USERS[u]||'Coach';
+const chip=u=>'<span class="cchip" style="--cc:'+(CCOL[u]||'#8b9cab')+'">'+esc(cnm(u))+'</span>';
+const clone=x=>JSON.parse(JSON.stringify(x));
+function validB(list){return (list||[]).filter(b=>F(b.a)&&F(b.b))}
+function bdUI(){const me=window.MMUID;const mine=BOARD==='mine';
+ document.body.classList.toggle('mine',mine);document.body.style.setProperty('--mc',CCOL[me]||'#f5b83d');
+ const a=$('#bdTeam'),b=$('#bdMine');if(!a)return;a.setAttribute('aria-pressed',!mine);b.setAttribute('aria-pressed',mine);
+ const nm=validB((BOARDS[me]||{}).bouts).length;b.textContent='My matches'+(nm?' ('+nm+')':'');
+ $('#bdNote').innerHTML=mine?'<b>'+esc(cnm(me))+'’s matches.</b> Only you change this board. The team board is untouched.':'The shared board everyone sees. Use <b>My matches</b> to try your own ideas.';
+ $('#bdRow').style.display=view==='cmp'?'none':''}
+function toMine(){if(BOARD==='mine'||!window.MMUID)return;if(S.tv){toast('Turn TV mode off first');return}
+ TEAM={bouts:S.bouts,n:S.n};const m=BOARDS[MMUID];BOARD='mine';sel=null;
+ if(m){S.bouts=clone(validB(m.bouts));S.n=m.n||1}else{S.bouts=[];S.n=1}
+ if(S.stage!=='pools'){S.stage='pools'}
+ view='board';flip(render,{stagger:10,dur:420});
+ if(!m)toast('Your own board. Tap two fighters to match them, or use Suggest all matches');}
+function toTeam(){if(BOARD==='team')return;clearTimeout(pushT);if(window.MMUID){const mine={bouts:S.bouts,n:S.n,at:Date.now(),cid:CID};BOARDS[MMUID]=mine;DB&&DB.doc('boards/'+MMUID).set(mine).catch(()=>{})}
+ BOARD='team';sel=null;S.bouts=TEAM?TEAM.bouts:S.bouts;S.n=TEAM?TEAM.n:S.n;TEAM=null;flip(render,{stagger:10,dur:420})}
+/* who matched what */
+function boardsIn(){const out={};COACHES.forEach(u=>{const bt=validB((BOARDS[u]||{}).bouts);if(bt.length)out[u]=bt});return out}
+function analyse(){const bs=boardsIn(),us=Object.keys(bs),N=us.length,P={},FO={};
+ us.forEach(u=>bs[u].forEach(b=>{const k=pairKey(b.a,b.b);(P[k]=P[k]||{a:b.a,b:b.b,by:[],firm:0}).by.push(u);if(b.locked)P[k].firm++;
+  [[b.a,b.b],[b.b,b.a]].forEach(([x,y])=>{(FO[x]=FO[x]||{})[y]=(FO[x][y]||[]).concat(u)})}));
+ const pairs=Object.values(P).map(p=>Object.assign(p,{v:score(F(p.a),F(p.b))}));
+ const clashF=Object.keys(FO).filter(x=>Object.keys(FO[x]).length>1);
+ const clashSet=new Set(clashF);
+ const all=N>=2?pairs.filter(p=>p.by.length===N):[];
+ const maj=pairs.filter(p=>p.by.length>=2&&p.by.length<N);
+ const solo=pairs.filter(p=>p.by.length===1&&!clashSet.has(p.a)&&!clashSet.has(p.b));
+ const touched=new Set(Object.keys(FO));const none=all_().filter(f=>!touched.has(f.id));
+ /* agreement: of fighters matched by 2+ coaches, how many got the same opponent from all of them */
+ const multi=Object.keys(FO).filter(x=>Object.values(FO[x]).flat().length>=2);
+ const same=multi.filter(x=>Object.keys(FO[x]).length===1);
+ const pct=multi.length?Math.round(same.length/multi.length*100):0;
+ return {bs,us,N,pairs,all,maj,solo,clashF,FO,none,pct,multi:multi.length}}
+const all_=()=>all();
+function pRow(p,extra){const A=F(p.a),B=F(p.b),v=p.v||score(A,B);
+ return '<div class="prow"><div class="pf"><img class="av" src="'+img(p.a)+'" alt=""><span class="nm">'+esc(A.n)+'</span><span class="v">v</span><span class="nm">'+esc(B.n)+'</span><img class="av" src="'+img(p.b)+'" alt=""></div><div class="pwho2">'+(S.promo?'':'<span class="chip '+v.cls+'">'+v.s+'</span>')+(p.by||[]).map(chip).join('')+(extra||'')+'</div></div>'}
+/* pool: agreed pairs first, then majority, then the best-scoring idea for each clash, never using a fighter twice; confirmed team fights are kept */
+function buildPool(R){const keep=(TEAM?TEAM.bouts:S.bouts).filter(b=>b.locked&&F(b.a)&&F(b.b));const used=new Set(keep.flatMap(b=>[b.a,b.b]));
+ const cand=R.pairs.filter(p=>!p.v.block).sort((x,y)=>y.by.length-x.by.length||y.firm-x.firm||y.v.s-x.v.s);const out=[];
+ cand.forEach(p=>{if(used.has(p.a)||used.has(p.b))return;used.add(p.a);used.add(p.b);out.push(p)});return{keep,out}}
+function applyPool(){if(!POOLV)return;const base=BOARD==='mine'?TEAM:{bouts:S.bouts,n:S.n};let n=base.n||1;
+ const nb=POOLV.keep.concat(POOLV.out.map(p=>({id:'b'+(n++),a:p.a,b:p.b,locked:false,rounds:'3 x 2 min',pooled:p.by.length})));
+ if(BOARD==='mine'){toTeam()}S.bouts=nb;S.n=n;S.stage='pools';save();POOLV=null;view='board';flip(render,{stagger:40,dur:520,onLand:sparkBout});
+ toast('Pooled '+nb.length+' bouts onto the team board. Confirm the ones you’re happy with')}
+function cmpText(R){const L=[];const pn=p=>F(p.a).n+' v '+F(p.b).n;
+ L.push('FIGHT CLUB MATCHMAKER · COACH COMPARISON · '+new Date().toLocaleString('en-AU'));
+ L.push('Boards in: '+R.us.map(u=>cnm(u)+' ('+R.bs[u].length+')').join(', ')+'. Agreement '+R.pct+'%.');
+ if(R.all.length)L.push('\nEVERYONE AGREES\n'+R.all.map(p=>'- '+pn(p)).join('\n'));
+ if(R.maj.length)L.push('\nMAJORITY\n'+R.maj.map(p=>'- '+pn(p)+' ('+p.by.map(cnm).join(', ')+')').join('\n'));
+ if(R.clashF.length)L.push('\nCLASHES\n'+R.clashF.map(x=>'- '+F(x).n+': '+Object.keys(R.FO[x]).map(y=>F(y).n+' ('+R.FO[x][y].map(cnm).join(', ')+')').join(' / ')).join('\n'));
+ if(R.solo.length)L.push('\nONE COACH ONLY\n'+R.solo.map(p=>'- '+pn(p)+' ('+cnm(p.by[0])+')').join('\n'));
+ if(R.none.length)L.push('\nNOBODY HAS MATCHED\n'+R.none.map(f=>'- '+f.n).join('\n'));
+ return L.join('\n')}
+function renderCmp(){const me=window.MMUID,R=analyse(),open=!!(REVEAL&&REVEAL.open),isJ=me===JAKE;
+ const coachCards='<div class="coaches">'+COACHES.filter(u=>u!=="09e6788d-f0cd-4c7a-a0b0-2dd9db75bbeb"||R.bs[u]).map(u=>{const bd=BOARDS[u],n=validB((bd||{}).bouts).length;
+  return '<div class="coach" style="--cc:'+CCOL[u]+'"><span class="n">'+n+'</span><b>'+esc(cnm(u))+'</b><small>'+(n?n+' bout'+(n>1?'s':'')+' · '+(bd&&bd.at?tAgo(bd.at):''):'Not started')+(u===me?' · you':'')+'</small></div>'}).join('')+'</div>';
+ let h='<div class="cmph"><div><div class="lab">Coaches’ boards</div><h2 class="d">Compare</h2><p>Everyone builds their own matches under <b>My matches</b>. When the time is right, reveal them here to see where you agree, where you clash, and pool the best into the team board.</p></div><div class="left">'+
+  (isJ?(open?'<button type="button" class="btn" data-seal>Hide boards again</button>':'<button type="button" class="btn p" data-reveal>Reveal everyone’s matches</button>'):'')+
+  '<button type="button" class="btn" data-mymatch>Open my matches</button></div></div>'+coachCards;
+ if(!open){const mineB=validB((BOARDS[me]||{}).bouts);
+  h+='<div class="sealed"><b>Boards are sealed</b>'+(isJ?'Reveal when everyone’s had a go. Until then nobody sees anyone else’s picks, so the ideas stay independent.':'Jake reveals everyone’s matches when the time is right. Until then your picks are private.')+'</div>';
+  if(mineB.length)h+='<div class="csec"><h3>Your matches <small>only you can see these</small></h3>'+mineB.map(b=>pRow({a:b.a,b:b.b,by:[me]})).join('')+'</div>';
+  $('#cmpv').innerHTML=h;return}
+ if(R.N<1){$('#cmpv').innerHTML=h+'<div class="sealed"><b>No boards yet</b>Nobody has started their own matches.</div>';return}
+ const col=R.pct>=75?'var(--good)':R.pct>=50?'var(--fair)':R.pct>=25?'var(--warn)':'var(--bad)';
+ h+='<div class="agree"><div class="ringg" style="--v:'+R.pct+';--c:'+col+'"><span>'+R.pct+'%</span></div><p><b>'+R.all.length+' agreed by everyone, '+R.maj.length+' by a majority, '+R.clashF.length+' fighter'+(R.clashF.length===1?'':'s')+' in a clash.</b><br>Of the fighters two or more coaches have matched, '+R.pct+'% have the same opponent from everyone.</p></div>';
+ const pool=buildPool(R);
+ h+='<div class="pool"><h3>Pool the matches</h3><p class="hint" style="margin:0">Builds a card from everyone’s boards: agreed fights first, then majority picks, then the strongest idea for each clash. No fighter is used twice and confirmed team fights stay. It goes onto the team board as pencilled bouts.</p>'+
+  (POOLV?'<div class="csec">'+(POOLV.keep.length?'<div class="empty2">Kept: '+POOLV.keep.length+' confirmed team fight'+(POOLV.keep.length>1?'s':'')+'</div>':'')+POOLV.out.map(p=>pRow(p)).join('')+'</div><div class="acts"><button type="button" class="btn p" data-poolgo>Put these '+POOLV.out.length+' on the team board</button><button type="button" class="btn" data-poolx>Cancel</button></div>':
+  '<div class="acts"><button type="button" class="btn p" data-poolprev>Preview the pooled card ('+pool.out.length+' bout'+(pool.out.length===1?'':'s')+')</button><button type="button" class="btn" data-cmpcopy>Copy summary</button></div>')+'</div>';
+ const sec=(cls,t,sub,rows)=>'<div class="csec '+cls+'"><h3>'+t+' <small>'+sub+'</small></h3>'+(rows||'<div class="empty2">None</div>')+'</div>';
+ if(R.N>=2)h+=sec('all','Everyone agrees',R.all.length+' bout'+(R.all.length===1?'':'s'),R.all.map(p=>pRow(p)).join(''));
+ h+=sec('maj','Majority',R.maj.length+' bout'+(R.maj.length===1?'':'s'),R.maj.sort((x,y)=>y.by.length-x.by.length).map(p=>pRow(p)).join(''));
+ h+=sec('clash','Clashes','same fighter, different opponents',R.clashF.map(x=>{const f=F(x);return '<div class="cbox"><div class="who"><img class="av" src="'+img(x)+'" alt=""><span class="nm">'+esc(f.n)+'</span></div>'+Object.keys(R.FO[x]).map(y=>pRow({a:x,b:y,by:R.FO[x][y]})).join('')+'</div>'}).join(''));
+ h+=sec('solo','One coach only','ideas nobody else has',R.solo.map(p=>pRow(p)).join(''));
+ if(R.none.length)h+=sec('','Nobody has matched',R.none.length+' fighter'+(R.none.length===1?'':'s'),'<div class="empty2">'+R.none.map(f=>esc(f.n)).join(', ')+'</div>');
+ $('#cmpv').innerHTML=h}
+document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
+ if(t.id==='bdMine'){toMine();return}if(t.id==='bdTeam'){toTeam();return}
+ if(t.id==='tCmp'){view='cmp';sel=null;POOLV=null;render();scrollTo({top:0});return}
+ if(t.dataset.mymatch!==undefined){toMine();return}
+ if(t.dataset.reveal!==undefined){DB&&DB.doc('state/reveal').set({open:true,by:MMUID,at:Date.now()}).then(()=>{REVEAL={open:true};render();toast('Everyone’s matches are revealed')});return}
+ if(t.dataset.seal!==undefined){DB&&DB.doc('state/reveal').set({open:false,by:MMUID,at:Date.now()}).then(()=>{REVEAL={open:false};render()});return}
+ if(t.dataset.poolprev!==undefined){POOLV=buildPool(analyse());render();return}
+ if(t.dataset.poolx!==undefined){POOLV=null;render();return}
+ if(t.dataset.poolgo!==undefined){applyPool();return}
+ if(t.dataset.cmpcopy!==undefined){const tx=cmpText(analyse());try{navigator.clipboard.writeText(tx);toast('Summary copied')}catch(x){toast('Couldn’t copy')}return}
+});
+
 /* ===== Ping the team: push a note to Joe, Sarsha, Ali (and Kelly) with a link straight back here ===== */
 let PINGS=[],SEEN={},PINGFROM=null,PSEL=null,PRES=null;const pingDone=new Set();
 const pname=u=>MM_USERS[u]||'Someone';
@@ -1110,6 +1255,9 @@ window.MMSB=sb;window.MMUID=uid;
  db.collection('notes').onSnapshot(q=>{const n={};q.docs.forEach(d=>{const x=d.data();n[d.id]=(x&&x.entries)||[]});NOTES=n;render();if(sheetId&&$('#dlg').open)profile(sheetId,true);else reFace()},()=>{});
  db.collection('interclub').onSnapshot(q=>{const n={};q.docs.forEach(d=>{const x=d.data();if(x&&typeof x.pct==='number')n[d.id]=x.pct});ICL=n;render();if(sheetId&&$('#dlg').open&&document.activeElement.id!=='iclR')profile(sheetId,true)},()=>{});
  db.doc('state/board').onSnapshot(onRemote,()=>{});
+ db.collection('boards').onSnapshot(q=>{const n={};q.docs.forEach(d=>{n[d.id]=d.data()});const me=window.MMUID;const prev=BOARDS[me];BOARDS=n;
+  if(BOARD==='mine'&&me&&n[me]&&n[me].cid!==CID&&(!prev||n[me].at>(prev.at||0))){S.bouts=JSON.parse(JSON.stringify(n[me].bouts||[]));S.n=n[me].n||1;render()}else if(view==='cmp')render();else bdUI()});
+ db.doc('state/reveal').onSnapshot(sn=>{REVEAL=sn&&sn.exists?sn.data():null;if(view==='cmp')render()});
  db.collection('pings').onSnapshot(q=>{PINGS=q.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>b.at-a.at);markSeen();pingNote();if($('#pingWrap'))pingRender(true)});
  db.collection('pingseen').onSnapshot(q=>{SEEN={};q.docs.forEach(d=>{SEEN[d.id]=d.data()});markSeen();if($('#pingWrap'))pingRender(true)});
  PINGFROM=q.get('ping')||null;
