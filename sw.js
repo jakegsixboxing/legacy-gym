@@ -39,7 +39,13 @@ self.addEventListener("notificationclick", e => {
   const url = (e.notification.data && e.notification.data.url) || "/";
   e.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
-      for (const c of list) { if ("focus" in c) return c.focus(); }
+      for (const c of list) {
+        if ("focus" in c) {
+          // tell the open app where the notification points (e.g. the Matchmaker tab), then bring it forward
+          try { c.postMessage({ type: "lg-open", url }); } catch (err) {}
+          return c.focus();
+        }
+      }
       if (clients.openWindow) return clients.openWindow(url);
     })
   );

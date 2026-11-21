@@ -256,6 +256,30 @@ body.tv #tools,body.tv footer,body.tv .lh .btn,body.tv .rhead p{display:none!imp
 .callf textarea{min-height:4.375rem}
 @media (min-width:761px){body.promo .fo.show .fobody{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
 
+/* ping the team */
+body.tv #tPing{display:none!important}
+#pingWrap{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.78);display:flex;align-items:flex-end;justify-content:center}
+#pingBox{width:min(34rem,100%);max-height:92dvh;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:1.125rem 1.125rem 0 0;padding:1.125rem 1rem calc(1.125rem + env(safe-area-inset-bottom,0px));position:relative;box-shadow:0 0 3.75rem rgba(31,182,230,.2)}
+@media (min-width:700px){#pingWrap{align-items:center}#pingBox{border-radius:1.125rem}}
+#pingBox h3{font:400 1.75rem/1 var(--disp);text-transform:uppercase;margin:0.25rem 2.5rem 0 0}
+.pwho{display:flex;flex-wrap:wrap;gap:0.375rem;margin-top:0.5rem}
+.pwho label{display:flex;align-items:center;gap:0.375rem;border:1px solid var(--line);background:var(--panel);border-radius:62rem;padding:0.4375rem 0.75rem;font-weight:700;font-size:0.875rem;cursor:pointer}
+.pwho label.on{border-color:var(--cy);color:var(--cy2);background:color-mix(in srgb,var(--cy) 12%,var(--panel))}
+.pwho input{accent-color:var(--cy)}
+.ptpl{display:flex;flex-direction:column;gap:0.375rem;margin-top:0.5rem}
+.ptpl button{text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:0.625rem;padding:0.625rem 0.75rem;font-size:0.875rem}
+.ptpl button:hover{border-color:var(--cy)}
+#pingMsg{min-height:5rem;margin-top:0.5rem}
+.pres{margin-top:0.75rem;display:flex;flex-direction:column;gap:0.375rem;font-size:0.875rem}
+.pres div{display:flex;justify-content:space-between;gap:0.5rem;background:var(--panel);border:1px solid var(--line);border-radius:0.5rem;padding:0.5rem 0.625rem}
+.pres .y{color:var(--good)}.pres .n{color:var(--warn)}
+.plog{margin-top:1rem;border-top:1px solid var(--line);padding-top:0.75rem;display:flex;flex-direction:column;gap:0.5rem}
+.plog .pi{background:var(--panel);border:1px solid var(--line);border-radius:0.625rem;padding:0.5625rem 0.6875rem;font-size:0.8125rem}
+.plog .pi b{color:var(--ink);font-weight:600}
+.plog .pi small{display:block;color:var(--mute);margin-top:0.25rem}
+.pingNote{position:fixed;left:50%;top:calc(0.75rem + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:65;max-width:calc(100vw - 1.5rem);background:var(--cy);color:var(--oncy);border-radius:0.875rem;padding:0.625rem 0.875rem;font-weight:700;font-size:0.9375rem;box-shadow:0 0 2rem rgba(31,182,230,.6);display:flex;gap:0.75rem;align-items:center}
+.pingNote button{border:0;background:rgba(2,16,24,.2);color:var(--oncy);border-radius:0.5rem;padding:0.375rem 0.625rem;font-weight:700}
+
 /* dialogs */
 dialog{border:1px solid var(--line);padding:0;background:var(--bg);color:var(--ink);border-radius:1.125rem;width:min(57.5rem,calc(100vw - 1.25rem));max-height:calc(100dvh - 1.25rem);box-shadow:0 1.875rem 5rem rgba(0,0,0,.7),0 0 3.75rem rgba(31,182,230,.2)}
 dialog::backdrop{background:rgba(0,0,0,.78)}
@@ -363,6 +387,7 @@ footer .wrap{padding-block:1rem 1.5rem}
   <div><div class="lab">Fight Club Central Coast · Fight Night Sat 19 Dec 2026</div><h1 class="d">Match<em>maker</em></h1></div>
   <div class="right">
    <a class="tog" href="/" style="text-decoration:none" id="tApp">&lsaquo; App</a>
+   <button type="button" class="tog" id="tPing" style="border-color:var(--cy);color:var(--cy2)">Ping the team</button>
    <button type="button" class="tog" id="tTv" aria-pressed="false">TV mode</button>
    <button type="button" class="tog" id="tPromo" aria-pressed="false">Promo mode</button>
    <button type="button" class="tog" id="tSound" aria-pressed="true">Sound</button>
@@ -1020,15 +1045,58 @@ function makeDB(sb,uid){const docL={},colL={},seen={};let rows={};
  const api={doc:p=>({set:async d=>{rows[p]={path:p,data:d,updated_at:new Date().toISOString()};const r=await sb.from('mm_docs').upsert({path:p,data:d,updated_at:new Date().toISOString(),updated_by:uid});if(r.error)throw r.error},
    delete:async()=>{delete rows[p];const r=await sb.from('mm_docs').delete().eq('path',p);if(r.error)throw r.error},
    onSnapshot:(cb)=>{(docL[p]=docL[p]||[]).push(cb);if(rows[p])cb({exists:true,data:()=>rows[p].data})}}),
-  collection:c=>({onSnapshot:(cb)=>{(colL[c]=colL[c]||[]).push(cb)}}),poll};
+  collection:c=>({onSnapshot:(cb)=>{(colL[c]=colL[c]||[]).push(cb)}}),get:p=>rows[p]?rows[p].data:null,poll};
  return api}
 const DLX={save:async({filename,data})=>{const u=URL.createObjectURL(data);const a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},1500)}};
 function gate(msg,btn){document.body.insertAdjacentHTML('beforeend','<div id="mmGate" style="position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:var(--bg);padding:24px;text-align:center"><div style="max-width:440px"><div class="lab">Fight Club Central Coast</div><h1 class="d" style="font-size:2.6rem;margin:8px 0 12px">Match<em style="font-style:normal;color:var(--cy)">maker</em></h1><p style="color:var(--mute);font-size:1.05rem;line-height:1.5">'+msg+'</p>'+(btn||'')+'</div></div>')}
+/* ===== Ping the team: push a note to Joe, Sarsha, Ali (and Kelly) with a link straight back here ===== */
+let PINGS=[],SEEN={},PINGFROM=null,PSEL=null,PRES=null;const pingDone=new Set();
+const pname=u=>MM_USERS[u]||'Someone';
+const tAgo=t=>{const m=Math.round((Date.now()-t)/60000);if(m<1)return 'just now';if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<24)return h+' h ago';return new Date(t).toLocaleDateString('en-AU',{day:'numeric',month:'short'})};
+const seenOf=(p,u)=>SEEN[p.id+'~'+u];
+function markSeen(){if(!DB||!window.MMUID)return;PINGS.forEach(p=>{if((p.to||[]).includes(MMUID)&&!seenOf(p,MMUID)&&!pingDone.has(p.id)){pingDone.add(p.id);DB.doc('pingseen/'+p.id+'~'+MMUID).set({at:Date.now()}).catch(()=>{})}})}
+function pingNote(){const p=PINGFROM&&PINGS.find(x=>x.id===PINGFROM);if(!p||$('.pingNote'))return;const n=document.createElement('div');n.className='pingNote';n.innerHTML='<span>'+esc(pname(p.by))+': '+esc(p.msg)+'</span><button type="button">Got it</button>';n.querySelector('button').onclick=()=>n.remove();document.body.appendChild(n);setTimeout(()=>n.remove(),12000);PINGFROM=null}
+const TPL=['I’ve made changes to the matchmaking. Have a look and tell me what you think.','Need your input on a match before I lock it in.','Fight card has been updated. Check the order.','New fighters added. Have a look at the pairings.'];
+function pingRender(keep){const me=window.MMUID;let w=$('#pingWrap');const draft=keep&&$('#pingMsg')?$('#pingMsg').value:null;
+ if(!w){w=document.createElement('div');w.id='pingWrap';document.body.appendChild(w);w.addEventListener('click',e=>{if(e.target===w)pingClose()})}
+ if(!PSEL){PSEL=new Set(Object.keys(MM_USERS).filter(u=>u!==me&&MM_USERS[u]!=='Kelly'))}
+ const people=Object.keys(MM_USERS).filter(u=>u!==me);
+ const log=PINGS.slice(0,6).map(p=>'<div class="pi"><b>'+esc(pname(p.by))+'</b> · '+esc(p.msg)+'<small>'+tAgo(p.at)+' · '+(p.to||[]).map(u=>esc(pname(u))+(seenOf(p,u)?' ✓ seen':' • not yet')).join(', ')+'</small></div>').join('');
+ w.innerHTML='<div id="pingBox" role="dialog" aria-modal="true" aria-label="Ping the team"><button class="x" type="button" data-pclose aria-label="Close">×</button><div class="lab">Fight Club Matchmaker</div><h3>Ping the team</h3><p class="hint" style="margin-top:0.375rem">Sends a notification to their phones. Tapping it opens the Matchmaker.</p>'+
+  '<div class="sect" style="margin-top:0.875rem">Who</div><div class="pwho">'+people.map(u=>'<label class="'+(PSEL.has(u)?'on':'')+'"><input type="checkbox" data-pu="'+u+'" '+(PSEL.has(u)?'checked':'')+'>'+esc(MM_USERS[u])+'</label>').join('')+'</div>'+
+  '<div class="sect" style="margin-top:0.875rem">Message</div><div class="ptpl">'+TPL.map((t,i)=>'<button type="button" data-ptpl="'+i+'">'+esc(t)+'</button>').join('')+'</div>'+
+  '<textarea id="pingMsg" placeholder="Or write your own">'+esc(draft!=null?draft:'')+'</textarea>'+
+  '<div class="acts" style="margin-top:0.625rem"><button type="button" class="btn p go" data-psend style="font:400 1.25rem/1 var(--disp);letter-spacing:.06em;padding:0.875rem">Send ping</button></div>'+
+  (PRES?'<div class="pres">'+PRES+'</div>':'')+
+  (log?'<div class="plog"><div class="sect">Recent pings</div>'+log+'</div>':'')+'</div>'}
+function pingClose(){const w=$('#pingWrap');if(w)w.remove();PRES=null}
+async function pingSend(){const msg=($('#pingMsg').value||'').trim(),to=[...PSEL];
+ if(!msg){toast('Pick or write a message');return}if(!to.length){toast('Pick who to ping');return}
+ const btn=$('[data-psend]');btn.disabled=true;btn.textContent='Sending…';
+ const id='p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);const link=location.origin+'/?open=mm&ping='+id;
+ try{await DB.doc('pings/'+id).set({by:MMUID,to,msg:msg.slice(0,300),at:Date.now()})}catch(e){}
+ let res=null;try{const ss=await MMSB.auth.getSession();const tok=ss.data.session.access_token;
+  res=await fetch('/api/notify-staff',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({token:tok,group:'mm',to,title:'Matchmaker · '+pname(MMUID),body:msg.slice(0,300),url:'/?open=mm&ping='+id})}).then(r=>r.json())}catch(e){res=null}
+ const bu=(res&&res.byUser)||{};const miss=to.filter(u=>!(bu[u]&&bu[u].sent));
+ PRES=to.map(u=>'<div><span>'+esc(pname(u))+'</span>'+(bu[u]&&bu[u].sent?'<span class="y">✓ Sent to phone</span>':'<span class="n">Notifications off on their phone</span>')+'</div>').join('')+
+  (miss.length?'<div style="display:block"><span>Text '+esc(miss.map(pname).join(' and '))+' the link instead:</span> <button type="button" class="lnk" data-pshare="'+esc(msg+' '+link)+'">Share link</button></div>':'');
+ if(!miss.length)toast('Pinged '+to.map(pname).join(', '));
+ const keepMsg=$('#pingMsg');if(keepMsg)keepMsg.value='';pingRender(true)}
+document.addEventListener('click',e=>{const t=e.target;let b;
+ if(t.id==='tPing'){PRES=null;pingRender();return}
+ if(!$('#pingWrap'))return;
+ if(t.closest('[data-pclose]')){pingClose();return}
+ if(b=t.closest('[data-ptpl]')){$('#pingMsg').value=TPL[+b.dataset.ptpl];return}
+ if(b=t.closest('[data-psend]')){pingSend();return}
+ if(b=t.closest('[data-pshare]')){const txt=b.dataset.pshare;if(navigator.share)navigator.share({text:txt}).catch(()=>{});else{try{navigator.clipboard.writeText(txt);toast('Link copied')}catch(x){}}return}
+});
+document.addEventListener('change',e=>{const u=e.target&&e.target.dataset&&e.target.dataset.pu;if(!u)return;if(e.target.checked)PSEL.add(u);else PSEL.delete(u);pingRender(true)});
 async function start(){
  S=Object.assign(fresh(),load()||{});
  const sb=supabase.createClient(SBURL,SBKEY);
  let uid=null;try{const r=await sb.auth.getSession();uid=r&&r.data&&r.data.session?r.data.session.user.id:null}catch(e){}
  if(!uid){gate('Sign in to the Legacy app in this browser first, then come back to this page. On the big screen, open the app once, sign in, then open /matchmaker.','<a class="btn p" style="display:inline-block;margin-top:18px;text-decoration:none" href="/">Open the Legacy app</a>');return}
+window.MMSB=sb;window.MMUID=uid;
  if(!MM_USERS[uid]){gate('This page is private to Jake, Ali, Sarsha, Joe and Kelly.','<a class="btn" style="display:inline-block;margin-top:18px;text-decoration:none" href="/">Back to the app</a>');return}
  try{const r=await sb.rpc('mm_roster');if(!r.error)applyRoster(r.data)}catch(e){}
  /* drop anything saved that no longer matches the roster */
@@ -1042,6 +1110,9 @@ async function start(){
  db.collection('notes').onSnapshot(q=>{const n={};q.docs.forEach(d=>{const x=d.data();n[d.id]=(x&&x.entries)||[]});NOTES=n;render();if(sheetId&&$('#dlg').open)profile(sheetId,true);else reFace()},()=>{});
  db.collection('interclub').onSnapshot(q=>{const n={};q.docs.forEach(d=>{const x=d.data();if(x&&typeof x.pct==='number')n[d.id]=x.pct});ICL=n;render();if(sheetId&&$('#dlg').open&&document.activeElement.id!=='iclR')profile(sheetId,true)},()=>{});
  db.doc('state/board').onSnapshot(onRemote,()=>{});
+ db.collection('pings').onSnapshot(q=>{PINGS=q.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>b.at-a.at);markSeen();pingNote();if($('#pingWrap'))pingRender(true)});
+ db.collection('pingseen').onSnapshot(q=>{SEEN={};q.docs.forEach(d=>{SEEN[d.id]=d.data()});markSeen();if($('#pingWrap'))pingRender(true)});
+ PINGFROM=q.get('ping')||null;
  await db.poll();setInterval(db.poll,2500);
  setInterval(async()=>{try{const r=await sb.rpc('mm_roster');if(!r.error){applyRoster(r.data);render()}}catch(e){}},5*60*1000);
 }
