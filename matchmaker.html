@@ -991,7 +991,7 @@ document.addEventListener('dragend',()=>{drag=null;document.querySelectorAll('.d
 try{NOTES=JSON.parse(localStorage.getItem('fc_notes_local')||'{}')||{}}catch(e){NOTES={}}
 /* ===== Legacy app wiring (20 Nov 2026): Supabase login, live roster, shared board (mm_docs) ===== */
 const SBURL="https://jyslqxepodrseyhoppce.supabase.co",SBKEY="sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we";
-const MM_USERS={"15a011b9-e222-45f0-8eb9-d5338da935d1":"Jake","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce":"Ali","2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139":"Sarsha","8ddade7e-691b-4c56-9f8d-8594a1c9755f":"Joe"};
+const MM_USERS={"15a011b9-e222-45f0-8eb9-d5338da935d1":"Jake","f0cbff5d-db5c-4b86-8d35-9b94ad8a38ce":"Ali","2d223b5e-0dd2-47ee-8e3f-54e1b1c3e139":"Sarsha","8ddade7e-691b-4c56-9f8d-8594a1c9755f":"Joe","09e6788d-f0cd-4c7a-a0b0-2dd9db75bbeb":"Kelly"};
 const SEX={};BASE.forEach(f=>SEX[f.id]=f.sx);
 const slugN=n=>String(n||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 const dLab=t=>{const d=new Date(t);return d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]};
@@ -1029,12 +1029,13 @@ async function start(){
  const sb=supabase.createClient(SBURL,SBKEY);
  let uid=null;try{const r=await sb.auth.getSession();uid=r&&r.data&&r.data.session?r.data.session.user.id:null}catch(e){}
  if(!uid){gate('Sign in to the Legacy app in this browser first, then come back to this page. On the big screen, open the app once, sign in, then open /matchmaker.','<a class="btn p" style="display:inline-block;margin-top:18px;text-decoration:none" href="/">Open the Legacy app</a>');return}
- if(!MM_USERS[uid]){gate('This page is private to Jake, Ali, Sarsha and Joe.','<a class="btn" style="display:inline-block;margin-top:18px;text-decoration:none" href="/">Back to the app</a>');return}
+ if(!MM_USERS[uid]){gate('This page is private to Jake, Ali, Sarsha, Joe and Kelly.','<a class="btn" style="display:inline-block;margin-top:18px;text-decoration:none" href="/">Back to the app</a>');return}
  try{const r=await sb.rpc('mm_roster');if(!r.error)applyRoster(r.data)}catch(e){}
  /* drop anything saved that no longer matches the roster */
  S.pools.forEach(p=>p.ids=p.ids.filter(id=>BASE.some(f=>f.id===id)));S.bouts=S.bouts.filter(b=>F(b.a)&&F(b.b));
  S.pools=[];
  const q=new URLSearchParams(location.search);if(q.get('tv')==='1'){S.tv=true}
+ if(q.get('embed')==='1'){const ap=document.getElementById('tApp');if(ap)ap.remove()}
  render();
  DL=DLX;$('#pvPng').hidden=false;if(window.MediaRecorder&&HTMLCanvasElement.prototype.captureStream)$('#pvClip').hidden=false;
  const db=makeDB(sb,uid);DB=db;

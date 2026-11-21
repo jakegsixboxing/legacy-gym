@@ -211,7 +211,7 @@ window.renderHome=function(){
    ((window.lgHuskyIsHer&&lgHuskyIsHer())?card({go:"husky",cc:"#7cb8ff",k:"Only you can see this",t:"Husky 125",s:(window.lgHuskySub?lgHuskySub():"Rides, money, tracks, videos"),ic:"compete"}):"")+
    ((window.lgTomIsHim&&lgTomIsHim())?card({go:"tomsbox",cc:"#c9a44c",k:"Only you can see this",t:"Tom\'s Boxing",s:(window.lgTomSub?lgTomSub():"Your three sessions for the week."),ic:"spar"}):"")+
    ((window.lgSfoOk&&lgSfoOk())?card({go:"sfo",cc:"#d8b24f",k:"Only Jake and Sarsha can see this",t:"Sarsha\'s Fight Office",s:(window.lgSfoSub?lgSfoSub():"Sponsors, payments, promoters and fight dates."),ic:"spar"}):"")+
-   ((window.lgMmOk&&lgMmOk())?card({go:"mm",cc:"#1fb6e6",k:"Only Jake, Ali, Sarsha and Joe can see this",t:"Fight Club Matchmaker",s:"Bouts, weights and the fight card. Opens full screen, big-screen ready.",ic:"spar"}):"")+
+   ((window.lgMmOk&&lgMmOk())?card({go:"mm",cc:"#1fb6e6",k:"Only Jake, Ali, Sarsha, Joe and Kelly can see this",t:"Fight Club Matchmaker",s:"Bouts, weights, fighter notes and the fight card. Big-screen ready.",ic:"spar"}):"")+
    ((window.lgYspOk&&lgYspOk())?card({go:"ysp",cc:"#1fb6e6",k:"Only you can see this",t:"Youth Boxing Sponsorship",s:(window.lgYspSub?lgYspSub():"Who\'s paid and who to contact."),ic:"spar"}):"")+
   '</div><div style="margin-top:22px;text-align:center"><a href="#" onclick="go(\'sponsorship\');return false;" style="color:var(--lgold);text-decoration:none;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase">★ Sponsorship</a><div style="font-size:10.5px;color:var(--lmuted);margin-top:5px">Fight Night ring sponsorship for local kids</div></div>';
   $id("main").innerHTML=wrap(h);settle();sweep();
