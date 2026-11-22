@@ -590,7 +590,7 @@ try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew",
 const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611211330";
+const LG_BUILD="202611221030";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -10608,73 +10608,65 @@ var _pt=window.miaTimerPaint;window.miaTimerPaint=function(){_pt();var ph=docume
 <script>
 /*__CLASS_CANCEL__*/
 (function(){
-/* One-off class cancellations. Each entry: date (YYYY-MM-DD local), times to cancel, reason, and when to stop showing the notice.
-   To clear: empty the array. */
-var CANCELLED=[];
-function isoLocal(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-function isCancelled(dateIso,time){return CANCELLED.some(function(c){return c.date===dateIso&&c.times.indexOf(time)>=0;});}
-function active(){var now=new Date();return CANCELLED.filter(function(c){return now<new Date(c.showUntil);});}
-var css=document.createElement("style");css.textContent=`
-@keyframes ccFlash{0%,100%{background:#3a0d0d;border-color:#ff4d4d;box-shadow:0 0 0 0 rgba(255,77,77,.0)}50%{background:#5a1414;border-color:#ffd166;box-shadow:0 0 18px 2px rgba(255,77,77,.55)}}
-@keyframes ccBlink{0%,100%{opacity:1}50%{opacity:.25}}
-.ccNotice{border:2px solid #ff4d4d;border-radius:14px;padding:14px 16px;margin:0 0 14px;background:#3a0d0d;color:#fff;animation:ccFlash 1.4s ease-in-out infinite}
-.ccNotice .k{font-size:10.5px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#ffd166;display:flex;align-items:center;gap:8px}
-.ccNotice .k i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff4d4d;animation:ccBlink .9s steps(1) infinite}
-.ccNotice h3{font-family:Oswald,sans-serif;font-size:20px;line-height:1.15;text-transform:uppercase;letter-spacing:.5px;margin:6px 0 4px;color:#fff}
-.ccNotice p{margin:0;font-size:13.5px;line-height:1.5;color:#ffe9e9}
-.ccNotice p b{color:#ffd166}
-.ccCard{border:2px dashed #ff4d4d;border-radius:14px;padding:14px 16px;margin-bottom:10px;background:#1a0a0a;color:#ffb3b3}
-.ccCard b{color:#ff4d4d;letter-spacing:2px;font-size:11px;text-transform:uppercase}
-@media (prefers-reduced-motion:reduce){.ccNotice,.ccNotice .k i{animation:none}}
-`;document.head.appendChild(css);
-function fmt(iso){var d=new Date(iso+"T12:00:00");return d.toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"short"});}
+/* One-off class cancellations. Each entry: date (YYYY-MM-DD local), times, and when to stop showing anything.
+   The class stays on the list; tapping it shows MSG instead of booking. Empty the array to clear. */
+var MSG="This class is cancelled this week. Our coaches are at the Australian titles in Melbourne. Back to normal next week.";
+var CANCELLED=[
+  {date:"2026-11-27",times:["05:15"],label:"Friday 5:15am Boxing",showUntil:"2026-11-27T07:00:00+11:00"},
+  {date:"2026-11-28",times:["07:30"],label:"Saturday 7:30am Boxing",showUntil:"2026-11-28T09:00:00+11:00"}
+];
+function live(){var now=new Date();return CANCELLED.filter(function(c){return now<new Date(c.showUntil);});}
+function isCancelled(dateIso,time){return live().some(function(c){return c.date===dateIso&&c.times.indexOf(time)>=0;});}
+function say(){try{toast(MSG);var t=document.getElementById("toast");if(t){clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove("show");},7000);}}catch(e){}}
+window.lgClassCancelled=function(){say();};
+var css=document.createElement("style");css.textContent=
+".ccNotice{border:2px solid #ff4d4d;border-radius:14px;padding:14px 16px;margin:0 0 14px;background:#3a0d0d;color:#fff}"+
+".ccNotice .k{font-size:10.5px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:#ffd166}"+
+".ccNotice h3{font-family:Oswald,sans-serif;font-size:19px;line-height:1.15;text-transform:uppercase;letter-spacing:.5px;margin:6px 0 4px;color:#fff}"+
+".ccNotice p{margin:0;font-size:13.5px;line-height:1.5;color:#ffe9e9}"+
+".cbBtn.ccOff{background:#3a0d0d!important;border-color:#ff4d4d!important;color:#ffb3b3!important}";
+document.head.appendChild(css);
 function noticeHtml(){
-  return active().map(function(c){
-    return '<div class="ccNotice" role="alert"><div class="k"><i></i>Class cancellation</div>'+
-      '<h3>No '+c.label+' this week</h3>'+
-      '<p><b>'+fmt(c.date)+'</b> — '+c.times.map(function(t){return fmtClassTime(t)}).join(" and ")+' classes are <b>cancelled</b> ('+c.reason+'). '+
-      'Friday <b>morning</b> classes run as normal. Sorry for the short notice — back to normal Saturday.</p></div>';
-  }).join("");
+  var l=live();if(!l.length)return"";
+  return '<div class="ccNotice" role="status"><div class="k">Class cancelled this week</div>'+
+    '<h3>'+l.map(function(c){return c.label;}).join(" &amp; ")+'</h3>'+
+    '<p>'+MSG+'</p></div>';
 }
 function inject(){
   try{
-    if(!active().length)return;
-    var m=document.getElementById("main");if(!m)return;
-    if(m.querySelector(".ccNotice"))return;
-    var el=document.createElement("div");el.innerHTML=noticeHtml();
+    if(!live().length)return;
+    if(typeof view!=="undefined"&&view!=="classes"&&view!=="timetable")return;
+    var m=document.getElementById("main");if(!m||m.querySelector(".ccNotice"))return;
+    var el=document.createElement("div");el.innerHTML=noticeHtml();if(!el.firstChild)return;
     var back=m.querySelector(".backBtn");
     if(back&&back.nextSibling)m.insertBefore(el.firstChild,back.nextSibling);else m.insertBefore(el.firstChild,m.firstChild);
   }catch(e){}
 }
-/* remove cancelled classes from booking lists */
-["upcomingClasses48","upcomingClasses"].forEach(function(fn){
-  if(typeof window[fn]==="function"){var o=window[fn];window[fn]=function(){return o.apply(this,arguments).filter(function(c){return !isCancelled(c.date,c.t);});};}
-});
-/* notice on Home, Classes, Timetable */
-["renderHome","renderClasses","renderTimetable"].forEach(function(fn){
-  if(typeof window[fn]!=="function")return;var o=window[fn];
-  window[fn]=function(){var r=o.apply(this,arguments);inject();if(r&&typeof r.then==="function")r.then(inject);setTimeout(inject,50);setTimeout(inject,600);return r;};
-});
-/* cancelled card in the Classes list on the day */
-if(typeof window.renderClasses==="function"){
-  var mo=new MutationObserver(function(){
-    try{
-      var list=document.getElementById("classList");if(!list||list.querySelector(".ccCard"))return;
-      active().forEach(function(c){
-        var today=isoLocal(new Date());
-        if(c.date<today)return;
-        var titles=[].slice.call(list.querySelectorAll(".secTitle"));
-        var t=titles.find(function(s){return s.textContent.indexOf(fmt(c.date).split(",")[0])===0||s.textContent.indexOf(c.date.slice(8,10))>-1&&/Fri/.test(s.textContent);});
-        var card=document.createElement("div");card.className="ccCard";card.innerHTML='<b>Cancelled</b><div style="font-weight:800;color:#fff;margin-top:4px">'+fmt(c.date)+' — '+c.times.map(function(x){return fmtClassTime(x)}).join(" &amp; ")+'</div><div style="font-size:13px;margin-top:2px">'+c.label.charAt(0).toUpperCase()+c.label.slice(1)+' are off ('+c.reason+'). Morning classes run as normal.</div>';
-        if(t&&t.nextSibling)t.parentNode.insertBefore(card,t.nextSibling);else list.appendChild(card);
+/* relabel every button for a cancelled class, wherever it is rendered */
+function mark(){
+  try{
+    live().forEach(function(c){c.times.forEach(function(t){
+      var key="'"+c.date+"','"+t+"'";
+      [].slice.call(document.querySelectorAll("button[onclick]")).forEach(function(b){
+        var oc=b.getAttribute("onclick")||"";
+        if(oc.indexOf(key)<0||b.dataset.cc)return;
+        if(!/attendClass|joinWaitlist|leaveWaitlist|unattendClass/.test(oc))return;
+        b.dataset.cc="1";b.classList.add("ccOff");
+        b.textContent="Cancelled this week — coaches at Australian titles";
+        b.setAttribute("onclick","lgClassCancelled()");
       });
-    }catch(e){}
-  });
-  mo.observe(document.body,{childList:true,subtree:true});
+    });});
+  }catch(e){}
 }
-/* block booking a cancelled class even if a stale list is open */
-if(typeof window.attendClass==="function"){var oa=window.attendClass;window.attendClass=function(date,time,name){if(isCancelled(date,time)){toast("That class is cancelled this week — coaches away.");return;}return oa.apply(this,arguments);};}
-setTimeout(inject,800);
+["renderClasses","renderTimetable","renderHome"].forEach(function(fn){
+  if(typeof window[fn]!=="function")return;var o=window[fn];
+  window[fn]=function(){var r=o.apply(this,arguments);var f=function(){inject();mark();};f();if(r&&typeof r.then==="function")r.then(f);setTimeout(f,50);setTimeout(f,600);return r;};
+});
+new MutationObserver(function(){if(live().length)mark();}).observe(document.body,{childList:true,subtree:true});
+/* block booking a cancelled class even from a stale screen */
+if(typeof window.attendClass==="function"){var oa=window.attendClass;window.attendClass=function(date,time){if(isCancelled(date,time)){say();return;}return oa.apply(this,arguments);};}
+if(typeof window.joinWaitlist==="function"){var ow=window.joinWaitlist;window.joinWaitlist=function(date,time){if(isCancelled(date,time)){say();return;}return ow.apply(this,arguments);};}
+setTimeout(function(){inject();mark();},800);
 })();
 
 </script>
