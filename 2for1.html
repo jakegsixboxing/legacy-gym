@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#060606">
-<title>2 for 1 Membership · Xmas / New Year special · Legacy Gym</title>
-<meta name="description" content="Bring a mate. You both pay half price for your first 3 months at Legacy Gym Kincumber. Offer closes December 1st.">
-<meta property="og:title" content="2 for 1 Membership · Xmas / New Year special">
-<meta property="og:description" content="Bring a mate. You both pay half price for your first 3 months at Legacy Gym Kincumber. Offer closes December 1st.">
+<meta name="theme-color" content="#050505">
+<title>2 for 1 Memberships · Christmas / New Year special · Legacy Gym</title>
+<meta name="description" content="Two for one memberships at Legacy Gym Kincumber. Any membership of your choice. Your mate joins on the same one for $1 a week for their first 3 months. Available until December 31st.">
+<meta property="og:title" content="2 for 1 Memberships · Legacy Gym">
+<meta property="og:description" content="Any membership of your choice. Your mate joins for $1 a week for their first 3 months. Available until December 31st.">
 <meta property="og:image" content="https://legacygym-app.vercel.app/2for1-og.jpg">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
@@ -15,124 +15,177 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap">
 <style>
-:root{--bg:#060606;--p:#0f0f10;--p2:#161617;--l:#242426;--l2:#37373a;--fg:#f4efe6;--mid:#cfc8bb;--m:#948e83;--gold:#c9a45c;--gold2:#e2c383;
+:root{--bg:#050505;--ink:#f4f1ec;--mid:#c9c4bb;--m:#8a857d;--l:#1f1f1f;--l2:#2e2e2e;--gold:#c9a24f;--gold2:#dcb867;
 --disp:'Oswald','Arial Narrow',Impact,sans-serif;--body:'Montserrat',system-ui,-apple-system,'Segoe UI',sans-serif;color-scheme:dark}
 *{box-sizing:border-box}
 html{background:var(--bg)}
-body{margin:0;background:radial-gradient(720px 360px at 50% -110px,rgba(201,164,92,.17),transparent 70%),var(--bg);color:var(--mid);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--mid);font-family:var(--body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 a{color:inherit}
-:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
-h1,h2,h3{font-family:var(--disp);color:var(--fg);text-transform:uppercase;margin:0;line-height:1;letter-spacing:.02em;font-weight:600;text-wrap:balance}
-.wrap{max-width:600px;margin:0 auto;padding:max(22px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
-.brand{text-align:center;font-weight:500;font-size:13px;letter-spacing:.46em;text-transform:uppercase;color:var(--gold);padding-left:.46em}
-.hero{text-align:center;padding:30px 0 0}
-.special{display:inline-block;border:1px solid var(--gold);border-radius:99px;padding:7px 16px;font-size:11.5px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--gold2)}
-.hero h1{font-size:clamp(92px,27vw,164px);font-weight:700;line-height:.86;margin-top:20px;color:var(--gold2);letter-spacing:0}
-.hero h1 small{display:block;font-size:.2em;letter-spacing:.34em;color:var(--fg);font-weight:500;margin-top:.5em;padding-left:.34em}
-.lede{font-size:clamp(16px,4.2vw,19px);color:var(--fg);max-width:24em;margin:22px auto 0;text-wrap:balance}
-.cta{display:inline-block;border:0;border-radius:12px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#17130a;font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:.08em;text-transform:uppercase;padding:15px 32px;margin-top:24px;min-height:54px}
-.cta[disabled]{opacity:.6;cursor:default}
-.closes{margin-top:16px;font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--fg)}
-.closes span{display:block;color:var(--gold2);margin-top:5px}
-.sec{margin-top:52px}
-.sec h2{font-size:clamp(26px,6.6vw,34px)}
-.sec>p{margin:8px 0 0}
-.how{list-style:none;margin:20px 0 0;padding:0;display:grid;gap:12px;counter-reset:s}
-.how li{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:baseline;font-size:15px}
-.how li::before{counter-increment:s;content:counter(s);font-family:var(--disp);font-weight:600;font-size:20px;line-height:1;color:var(--gold2);width:14px}
-.how b{color:var(--fg)}
-.prices{display:grid;gap:8px;margin-top:16px}
-.price{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;background:var(--p);border:1px solid var(--l);border-radius:12px;padding:12px 14px}
-.price b{display:block;font-size:14px;color:var(--fg);line-height:1.25}
-.price small{display:block;font-size:11.5px;line-height:1.4;color:var(--m);margin-top:3px}
-.price .pr{text-align:right;font-family:var(--disp);font-weight:600;font-size:24px;color:var(--gold2);line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
-.price .pr small{font:600 10.5px var(--body);margin-top:4px}
-.card{background:var(--p);border:1px solid var(--l2);border-radius:18px;padding:18px;margin-top:18px}
-.who{font-family:var(--disp);font-weight:600;font-size:17px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg)}
+:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
+h1,h2{font-family:var(--disp);color:var(--ink);text-transform:uppercase;margin:0;line-height:.95;font-weight:700;letter-spacing:.01em;text-wrap:balance}
+.lbl{font-size:11px;font-weight:600;letter-spacing:.32em;text-transform:uppercase;color:var(--m)}
+.gold{color:var(--gold2)}
+.wrap{max-width:560px;margin:0 auto;padding:0 max(20px,env(safe-area-inset-right)) 56px max(20px,env(safe-area-inset-left))}
+
+/* hero */
+.hero{position:relative;text-align:center;padding:max(26px,env(safe-area-inset-top)) 20px 44px;overflow:hidden;isolation:isolate}
+.hero::before{content:"";position:absolute;inset:0;z-index:-2;background:url("/img/2for1/hero.jpg") center 62%/cover no-repeat;opacity:.5}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(5,5,5,.92) 0%,rgba(5,5,5,.45) 38%,rgba(5,5,5,.7) 70%,var(--bg) 100%)}
+.brand{font-weight:600;font-size:13px;letter-spacing:.5em;padding-left:.5em;color:var(--ink)}
+.brand span{color:var(--gold2)}
+.eyebrow{margin-top:44px}
+.hero h1{font-size:clamp(68px,21vw,124px);margin-top:14px;line-height:.86}
+.hero h1 small{display:block;font-size:.34em;letter-spacing:.14em;padding-left:.14em;color:var(--gold2);font-weight:600;margin-top:.28em}
+.lede{font-size:clamp(16px,4.3vw,19px);line-height:1.5;color:var(--ink);max-width:23em;margin:22px auto 0;text-wrap:balance}
+.cta{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:4px;background:var(--gold2);color:#120f08;font-family:var(--disp);font-weight:600;font-size:18px;letter-spacing:.14em;text-transform:uppercase;padding:15px 34px;min-height:54px;text-decoration:none}
+.cta:hover{background:#e6c57a}
+.cta[disabled]{opacity:.55;cursor:default}
+.hero .cta{margin-top:28px}
+.until{margin-top:16px}
+.until b{display:block;font-weight:600;color:var(--gold2);letter-spacing:.28em;margin-top:6px}
+
+/* sections */
+.sec{margin-top:56px}
+.sec h2{font-size:clamp(28px,7.4vw,38px)}
+.sec .lbl{display:block;margin-bottom:10px}
+.steps{list-style:none;margin:18px 0 0;padding:0;counter-reset:s}
+.steps li{display:grid;grid-template-columns:44px 1fr;gap:4px;padding:18px 0;border-top:1px solid var(--l)}
+.steps li:last-child{border-bottom:1px solid var(--l)}
+.steps li::before{counter-increment:s;content:"0" counter(s);font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.1;color:var(--gold2)}
+.steps b{display:block;font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink);line-height:1.2;margin-bottom:4px}
+
+.plans{margin-top:18px;border-top:1px solid var(--l)}
+.plan{display:grid;grid-template-columns:1fr auto;gap:4px 16px;align-items:baseline;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--l);padding:18px 4px 18px 0}
+.plan .n{font-family:var(--disp);font-weight:600;font-size:21px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink);line-height:1.15}
+.plan .p{font-family:var(--disp);font-weight:600;font-size:21px;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}
+.plan .d{font-size:13px;color:var(--m);line-height:1.45}
+.plan .m{font-size:12.5px;color:var(--mid);text-align:right;white-space:nowrap}
+.plan .s{grid-column:1/-1;margin-top:6px;font-size:11.5px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2)}
+button.plan{cursor:pointer;padding-left:14px;border-left:3px solid transparent;transition:background .15s}
+button.plan:hover{background:#0c0c0c}
+button.plan.on{border-left-color:var(--gold2);background:#0e0d0a}
+
+/* form */
+.form{margin-top:8px}
+.who{font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);margin-top:30px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
-label.f,.f{display:block;font-size:10.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--m);margin:12px 0 5px}
-.card input{width:100%;background:var(--bg);border:1px solid var(--l2);border-radius:12px;padding:12px 13px;font-size:16px;color:var(--fg);min-height:48px}
+label.f,.f{display:block;font-size:10.5px;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--m);margin:14px 0 6px}
+.form input{width:100%;background:#0b0b0b;border:1px solid var(--l2);border-radius:4px;padding:12px 13px;font-size:16px;color:var(--ink);min-height:48px}
+.form input:focus{border-color:var(--gold)}
 .age{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.age button{background:var(--bg);border:1px solid var(--l2);border-radius:12px;min-height:48px;font-weight:700;font-size:15px;color:var(--mid)}
-.age button.on{border-color:var(--gold);background:var(--gold);color:#17130a}
-.rule{border:0;border-top:1px solid var(--l);margin:22px 0 18px}
-.card .cta{width:100%;margin-top:20px}
-.err{color:#ff8f8f;font-size:14px;font-weight:600;margin-top:10px}
+.age button{background:#0b0b0b;border:1px solid var(--l2);border-radius:4px;min-height:48px;font-weight:600;letter-spacing:.08em;color:var(--mid)}
+.age button.on{border-color:var(--gold2);background:var(--gold2);color:#120f08}
+.picked{margin-top:30px;padding:16px 0;border-top:1px solid var(--l);border-bottom:1px solid var(--l);display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:baseline}
+.picked .n{font-family:var(--disp);font-weight:600;font-size:19px;text-transform:uppercase;color:var(--ink)}
+.picked .x{font-size:12px;color:var(--gold2);background:none;border:0;letter-spacing:.16em;text-transform:uppercase;font-weight:600;padding:0}
+.picked small{grid-column:1/-1;color:var(--m);font-size:13px}
+.form .cta{width:100%;margin-top:26px}
+.err{color:#ff9a8f;font-size:14px;font-weight:600;margin-top:12px}
 .err:empty{display:none}
-.done{text-align:center;padding:14px 4px}
-.done .tick{width:64px;height:64px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;font-size:28px;color:#17130a;background:linear-gradient(180deg,var(--gold2),var(--gold))}
-.done h3{font-size:30px}
-.fine{margin:22px 0 0;padding:0 2px;font-size:12.5px;color:var(--m)}
-.foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--l);font-size:12px;color:var(--m);text-align:center}
+.done{padding:6px 0 0}
+.done h2{font-size:clamp(30px,8vw,40px)}
+.done ol{list-style:none;margin:18px 0 0;padding:0}
+.done li{padding:16px 0;border-top:1px solid var(--l)}
+.done li:last-child{border-bottom:1px solid var(--l)}
+.done li b{display:block;font-family:var(--disp);font-weight:600;font-size:18px;text-transform:uppercase;color:var(--ink);letter-spacing:.03em}
+.done .cta{width:100%;margin-top:22px}
+.fine{margin:30px 0 0;font-size:12.5px;line-height:1.6;color:var(--m)}
+.foot{margin-top:44px;padding-top:20px;border-top:1px solid var(--l);text-align:center}
+.foot .brand{font-size:11px}
+.foot p{margin:8px 0 0;font-size:12px;color:var(--m)}
+
 @media (max-width:420px){.g2{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
-<div class="wrap" id="view"></div>
-<noscript><div class="wrap"><p>2 for 1 Membership at Legacy Gym Kincumber. Call in to the gym to sign up.</p></div></noscript>
+<div id="view"></div>
+<noscript><div class="wrap"><p>2 for 1 Memberships at Legacy Gym Kincumber. Call in to the gym to sign up.</p></div></noscript>
 <script>
 (()=>{
+const DEMO=false;
 const $=s=>document.querySelector(s);
 const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=n=>{n=Math.round(n*100)/100;return '$'+n.toLocaleString('en-AU',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})};
 const SB='https://jyslqxepodrseyhoppce.supabase.co',KEY='sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we';
-/* weekly prices from legacygym.net; half price for the first 3 months */
-const PLANS=[{n:'Gym Membership',d:'Unlimited swipe pass access to the entire gym',p:19.99,h:9.99},{n:'Gym + S&C',d:'S&C classes plus swipe pass access to the gym',p:45,h:22.5},{n:'Unlimited Classes + Gym',d:'Unlimited classes plus unlimited swipe pass access to the gym',p:55,h:27.5},{n:'Classes + Sparring + Gym',d:'Unlimited sparring plus classes plus swipe pass access to the gym',p:65,h:32.5}];
-const CLOSE='2026-12-01';
-function daysLeft(){let t;try{t=new Date().toLocaleDateString('en-CA',{timeZone:'Australia/Sydney'})}catch(e){t=new Date().toISOString().slice(0,10)}return Math.round((Date.parse(CLOSE)-Date.parse(t))/864e5)}
-const U={done:null,f:{},over18:null,busy:false};
+const DS='https://oc.debitsuccess.com/DirectEntry/DirectDebitRequest/Form?templateid=';
+/* weekly prices and DebitSuccess join forms from legacygym.net */
+const PLANS=[
+ {id:'gym',n:'Gym Membership',d:'Unlimited swipe pass access to the whole gym.',p:19.99,t:'5b74ba91-75aa-4402-80c0-95e23a699b4b'},
+ {id:'snc',n:'Gym + S&C',d:'Grunt S&C classes plus swipe pass access to the gym.',p:45,t:'0d2c0a1c-430f-4b05-a6ff-b886063c63dd'},
+ {id:'classes',n:'Unlimited Classes + Gym',d:'Every boxing and S&C class, plus the gym.',p:55,t:'9646131e-a07f-4f53-868c-542e463c8b2a'},
+ {id:'spar',n:'Classes + Sparring + Gym',d:'Everything, plus sparring.',p:65,t:'0a0f1460-273e-4622-bdb2-79ffba02a95f'}];
+const WEEKS=13,MATE=1,saves=p=>(p-MATE)*WEEKS;
+const CLOSE='2026-12-31';
+function today(){try{return new Date().toLocaleDateString('en-CA',{timeZone:'Australia/Sydney'})}catch(e){return new Date().toISOString().slice(0,10)}}
+function daysLeft(){return Math.round((Date.parse(CLOSE)-Date.parse(today()))/864e5)}
+const U={done:null,f:{},over18:null,plan:null,busy:false};
 function keep(){['a1','a2','a3','b1','b2'].forEach(k=>{const i=$('#'+k);if(i)U.f[k]=i.value})}
 async function rpc(fn,args){const r=await fetch(SB+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+KEY,'content-type':'application/json'},body:JSON.stringify(args||{})});const j=await r.json().catch(()=>null);if(!r.ok)throw new Error((j&&j.message)||'failed');return j}
 
+function planRows(pick){return PLANS.map((x,i)=>{const inner=`<span class="n">${E(x.n)}</span><span class="p">${money(x.p)}<span style="font-size:.6em;color:var(--m)"> /wk</span></span>
+  <span class="d">${E(x.d)}</span><span class="m">Your mate $1/wk</span>
+  <span class="s">You guys save ${money(saves(x.p))}</span>`;
+ return pick?`<button type="button" class="plan${U.plan===i?' on':''}" data-a="plan" data-v="${i}" aria-pressed="${U.plan===i}">${inner}</button>`:`<div class="plan">${inner}</div>`}).join('')}
+
+function formHtml(){const P=PLANS[U.plan];
+ if(U.plan===null)return `<span class="lbl">Step 1</span><h2>Pick your membership</h2><p style="margin:10px 0 0">Your mate goes on the same one.</p><div class="plans">${planRows(true)}</div>`;
+ return `<span class="lbl">Step 2</span><h2>Your details</h2>
+ <div class="picked"><span class="n">${E(P.n)}</span><button type="button" class="x" data-a="change">Change</button><small>You ${money(P.p)} a week. Your mate $1 a week for 3 months. You guys save ${money(saves(P.p))}.</small></div>
+ <form class="form" id="f" novalidate>
+  <div class="who">You</div>
+  <label class="f" for="a1">Full name</label><input id="a1" type="text" autocomplete="name" maxlength="80" value="${E(U.f.a1||'')}">
+  <div class="g2"><div><label class="f" for="a2">Mobile</label><input id="a2" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" value="${E(U.f.a2||'')}"></div>
+  <div><label class="f" for="a3">Email</label><input id="a3" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${E(U.f.a3||'')}"></div></div>
+  <div class="f" id="ageL">Are you both over 18?</div>
+  <div class="age" role="group" aria-labelledby="ageL"><button type="button" data-a="age" data-v="yes" class="${U.over18===true?'on':''}" aria-pressed="${U.over18===true}">Yes</button><button type="button" data-a="age" data-v="no" class="${U.over18===false?'on':''}" aria-pressed="${U.over18===false}">No</button></div>
+  <div class="who">Your mate</div>
+  <div class="g2"><div><label class="f" for="b1">Their name</label><input id="b1" type="text" maxlength="80" autocomplete="off" value="${E(U.f.b1||'')}"></div>
+  <div><label class="f" for="b2">Their mobile</label><input id="b2" type="tel" inputmode="tel" maxlength="20" autocomplete="off" value="${E(U.f.b2||'')}"></div></div>
+  <button class="cta" id="send">Continue to sign up</button><div class="err" id="err" role="alert">${U.over18===false?MSG.under18:''}</div>
+ </form>`}
+
+function doneHtml(){const d=U.done,P=PLANS[d.i];
+ return `<span class="lbl">Step 3</span><h2>Sign up now, ${E(d.a)}</h2>
+ <ol>
+  <li><b>You: sign up today</b>Your ${E(P.n)} membership at ${money(P.p)} a week. It takes a couple of minutes.</li>
+  <li><b>Then ${E(d.b)} comes in</b>Once your membership is through, we'll text you both to book ${E(d.b)} in to sign their $1 a week agreement at the gym.</li>
+ </ol>
+ <a class="cta" href="${DS+P.t}" target="_blank" rel="noopener">Sign up for ${E(P.n)}</a>
+ ${DEMO?'<p class="fine" style="margin-top:12px">Demo: your details were not saved.</p>':''}`}
+
 function page(){const d=daysLeft(),open=d>=0;
  const left=d>1?d+' days left':d===1?'1 day left':d===0?'Last day today':'';
- return `<div class="brand">Legacy Gym</div>
+ return `${DEMO?'<div class="demo">Demo. Nothing on this page is saved.</div>':''}
  <header class="hero">
-  <div class="special">Xmas / New Year special</div>
-  <h1>2 for 1<small>Membership</small></h1>
-  <p class="lede">Bring a mate. You both pay half price for your first 3 months.</p>
-  ${open?`<button class="cta" data-a="go">Claim 2 for 1</button>
-  <div class="closes">Offer closes December 1st${left?`<span>${left}</span>`:''}</div>`:`<div class="closes" style="margin-top:26px">This offer closed on December 1st</div>`}
+  <div class="brand">LEGACY <span>GYM</span></div>
+  <div class="lbl eyebrow">Christmas / New Year special</div>
+  <h1>Two for one<small>Memberships</small></h1>
+  <p class="lede">Any membership of your choice. Your mate joins on the same one for <span class="gold">$1 a week</span> for their first 3 months.</p>
+  ${open?`<button class="cta" data-a="go">Claim 2 for 1</button><div class="lbl until">Available until December 31st${left?`<b>${left}</b>`:''}</div>`:`<div class="lbl until" style="margin-top:26px">This offer closed on December 31st</div>`}
  </header>
-
- <section class="sec"><h2>How it works</h2>
-  <ol class="how">
-   <li><span><b>Put both names down.</b> Fill in the form below.</span></li>
-   <li><span><b>We contact you.</b> Then you and your friend come into the gym and we sign you both up.</span></li>
-   <li><span><b>Half price each for 3 months.</b> Then you both move to the normal price for 9 months.</span></li>
+ <main class="wrap">
+ <section class="sec" style="margin-top:20px"><span class="lbl">How it works</span><h2>One signs up today.<br><span class="gold">Your mate pays $1.</span></h2>
+  <ol class="steps">
+   <li><span><b>You sign up today</b>Pick your membership, sign up online and put your mate's name down.</span></li>
+   <li><span><b>Your mate comes in</b>Once your membership is locked in and through, your mate comes into the gym and signs their $1 a week agreement. That covers their first 3 months.</span></li>
+   <li><span><b>Then the normal price</b>After 3 months your mate moves to the normal price for the same membership, on the same agreement. No new paperwork.</span></li>
   </ol>
  </section>
+ ${open?`<section class="sec" id="join">${U.done?doneHtml():formHtml()}</section>`:`<section class="sec"><span class="lbl">Memberships</span><h2>What you pay</h2><div class="plans">${planRows(false)}</div><p style="margin-top:16px">Head to <a href="https://www.legacygym.net/pages/memberships">legacygym.net</a> for current memberships.</p></section>`}
+ <p class="fine">Christmas / New Year 2 for 1. For two people on the same membership. The first member signs up at the normal weekly price for their membership. Their mate then signs a 12-month agreement at the gym: $1 a week for the first 13 weeks, then the normal weekly price for the same membership for the remaining 39 weeks, on the same agreement. "You guys save" is the saving on your mate's first 13 weeks. Both members must be 18 or over. Open to new and returning members. Available until December 31st, 2026.</p>
+ <footer class="foot"><div class="brand">LEGACY <span>GYM</span></div><p>12 Bilinga Road, Kincumber NSW 2251 · <a href="https://www.legacygym.net">legacygym.net</a></p></footer>
+ </main>`}
 
- <section class="sec"><h2>What you pay</h2><p>Weekly price each for your first 3 months, on any membership.</p>
-  <div class="prices">${PLANS.map(x=>`<div class="price"><div><b>${E(x.n)}</b><small>${E(x.d)}</small></div><div class="pr">${money(x.h)}<small>then ${money(x.p)} a week</small></div></div>`).join('')}</div>
- </section>
-
- <section class="sec" id="join"><h2>Claim your 2 for 1</h2>
-  <div class="card">${!open?`<div class="done"><h3>Offer closed</h3><p style="margin:10px auto 0;max-width:34ch">The Xmas / New Year 2 for 1 closed on December 1st. Head to <a href="https://www.legacygym.net/pages/memberships">legacygym.net</a> for current memberships.</p></div>`
-  :U.done?`<div class="done"><div class="tick">✓</div><h3>You're on the list</h3><p style="margin:10px auto 0;max-width:34ch">Thanks ${E(U.done.a)}. We will be in touch to get you and ${E(U.done.b)} into the gym and signed up.</p></div>`
-  :`<form id="f" novalidate>
-   <div class="who">Your details</div>
-   <label class="f" for="a1">Full name</label><input id="a1" type="text" autocomplete="name" maxlength="80" value="${E(U.f.a1||'')}">
-   <div class="g2"><div><label class="f" for="a2">Mobile</label><input id="a2" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" value="${E(U.f.a2||'')}"></div>
-   <div><label class="f" for="a3">Email</label><input id="a3" type="email" inputmode="email" autocomplete="email" maxlength="120" value="${E(U.f.a3||'')}"></div></div>
-   <div class="f" id="ageL">Are you over 18?</div>
-   <div class="age" role="group" aria-labelledby="ageL"><button type="button" data-a="age" data-v="yes" class="${U.over18===true?'on':''}" aria-pressed="${U.over18===true}">Yes</button><button type="button" data-a="age" data-v="no" class="${U.over18===false?'on':''}" aria-pressed="${U.over18===false}">No</button></div>
-   <hr class="rule">
-   <div class="who">Your friend</div>
-   <div class="g2"><div><label class="f" for="b1">Their name</label><input id="b1" type="text" maxlength="80" autocomplete="off" value="${E(U.f.b1||'')}"></div>
-   <div><label class="f" for="b2">Their mobile</label><input id="b2" type="tel" inputmode="tel" maxlength="20" autocomplete="off" value="${E(U.f.b2||'')}"></div></div>
-   <button class="cta" id="send">Claim 2 for 1</button><div class="err" id="err" role="alert">${U.over18===false?MSG.under18:''}</div></form>`}</div>
-  <p class="fine">For two people joining together on the same 12-month membership. Each member pays half the normal weekly price for the first 3 months, then the normal weekly price for the next 9 months. Both members must be 18 or over. Sign-up is done in the gym. Open to new and returning members. Offer closes December 1st.</p>
- </section>
- <footer class="foot">Legacy Gym · Kincumber · <a href="https://www.legacygym.net">legacygym.net</a></footer>`}
-
-const MSG={name:'Please enter your full name.',mobile:'Please enter your mobile number.',email:'Please enter a valid email.',age:"Please tell us if you're over 18.",under18:'Sorry, the 2 for 1 special is for over 18s only.',friend_name:"Please enter your friend's name.",friend_mobile:"Please enter your friend's mobile.",same:'2 for 1 needs two different people.',closed:'Sorry, this offer has closed.',busy:'We are getting a lot of sign-ups right now. Please try again in a few minutes.'};
+const MSG={name:'Please enter your full name.',mobile:'Please enter your mobile number.',email:'Please enter a valid email.',age:'Please tell us if you are both over 18.',under18:'Sorry, the 2 for 1 special is for over 18s only.',friend_name:"Please enter your mate's name.",friend_mobile:"Please enter your mate's mobile.",same:'2 for 1 needs two different people.',closed:'Sorry, this offer has closed.',plan:'Please pick a membership.',busy:'We are getting a lot of sign-ups right now. Please try again in a few minutes.'};
 function render(){const y=scrollY;$('#view').innerHTML=page();scrollTo(0,y)}
+function toJoin(){const j=$('#join');if(j)j.scrollIntoView({behavior:'smooth',block:'start'})}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
- if(a==='go'){$('#join').scrollIntoView({behavior:'smooth',block:'start'})}
+ if(a==='go')toJoin();
+ else if(a==='plan'){U.plan=+b.dataset.v;render();toJoin()}
+ else if(a==='change'){keep();U.plan=null;render();toJoin()}
  else if(a==='age'){keep();U.over18=b.dataset.v==='yes';render()}
 });
 document.addEventListener('submit',async e=>{e.preventDefault();if(e.target.id!=='f'||U.busy)return;keep();const f=U.f,err=$('#err'),btn=$('#send');
@@ -146,12 +199,14 @@ document.addEventListener('submit',async e=>{e.preventDefault();if(e.target.id!=
  if(!nm(f.b1)){err.textContent=MSG.friend_name;return}
  if(!mob(f.b2)){err.textContent=MSG.friend_mobile;return}
  if(f.a1.trim().toLowerCase()===f.b1.trim().toLowerCase()||f.a2.replace(/\D/g,'')===f.b2.replace(/\D/g,'')){err.textContent=MSG.same;return}
- U.busy=true;btn.disabled=true;btn.textContent='Sending…';
- try{const r=await rpc('tfo_register',{p_name:f.a1.trim(),p_mobile:f.a2.trim(),p_email:f.a3.trim(),p_over18:true,p_friend_name:f.b1.trim(),p_friend_mobile:f.b2.trim()});
-  if(r&&r.ok){U.done={a:f.a1.trim().split(' ')[0],b:f.b1.trim().split(' ')[0]};U.f={};U.busy=false;render();$('#join').scrollIntoView({block:'start'});return}
+ U.busy=true;btn.disabled=true;btn.textContent='One moment…';
+ const ok=()=>{U.done={a:f.a1.trim().split(' ')[0],b:f.b1.trim().split(' ')[0],i:U.plan};U.f={};U.busy=false;render();toJoin()};
+ if(DEMO){setTimeout(ok,400);return}
+ try{const r=await rpc('tfo_join',{p_plan:PLANS[U.plan].id,p_name:f.a1.trim(),p_mobile:f.a2.trim(),p_email:f.a3.trim(),p_over18:true,p_friend_name:f.b1.trim(),p_friend_mobile:f.b2.trim()});
+  if(r&&r.ok){ok();return}
   err.textContent=MSG[r&&r.error]||'That did not go through. Please try again.';
  }catch(x){err.textContent='Could not send. Check your signal and try again.'}
- U.busy=false;btn.disabled=false;btn.textContent='Claim 2 for 1';
+ U.busy=false;btn.disabled=false;btn.textContent='Continue to sign up';
 });
 render();
 })();

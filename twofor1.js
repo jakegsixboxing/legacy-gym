@@ -46,14 +46,14 @@ function paint(){
   function tab(k,l){return '<button class="'+(f===k?"on":"")+'" onclick="tfF(\''+k+'\')">'+l+(c[k]?' '+c[k]:'')+'</button>';}
   var m=document.getElementById("main");if(!m)return;
   m.innerHTML='<div class="rtcPage tfPage"><button class="backBtn" onclick="go(\'home\')">‹ Home</button>'+
-   '<div class="tfHead"><div class="k">Xmas / New Year special · closes 1 Dec</div><h2>2 for 1 sign-ups</h2><div class="w">'+c.all+' pair'+(c.all===1?'':'s')+' registered · '+c.new+' to contact · <a href="#" onclick="tfReload();return false">refresh</a></div>'+
+   '<div class="tfHead"><div class="k">Christmas / New Year special · until 31 Dec</div><h2>2 for 1 sign-ups</h2><div class="w">'+c.all+' pair'+(c.all===1?'':'s')+' registered · '+c.new+' to contact · <a href="#" onclick="tfReload();return false">refresh</a></div>'+
    '<div class="do"><b>What to do:</b> contact the person, book them and their friend in, and sign them both up at the gym. Tap <b>Contacted</b> once you have reached them so nobody doubles up.</div></div>'+
    '<div class="tfTabs">'+tab("new","New")+tab("contacted","Contacted")+tab("signed","Signed up")+tab("all","All")+'</div>'+
    (TF.leads===null?'<div class="card"><p>Loading…</p></div>':list.length?list.map(function(x){var s=x.status;
      return '<div class="rtcLead '+(s==="new"?"new":"")+'"><div class="top"><div><div class="nm">'+E(x.a_name)+' + '+E(x.b_name)+'</div><div class="meta">'+ago(x.created_at)+' · '+new Date(x.created_at).toLocaleString("en-AU",{weekday:"short",day:"numeric",month:"short",hour:"numeric",minute:"2-digit"})+'</div></div></div>'+
      (s==="new"?'<div class="tfNeed">Needs contacting. Nobody has reached them yet.</div>':x.contacted_at?'<div class="tfDone">Contacted '+day(x.contacted_at)+(NAMES[x.contacted_by]?' by '+NAMES[x.contacted_by]:'')+'</div>':'')+
-     '<div class="tfWho">Main contact<b>'+E(x.a_name)+'</b></div>'+ct(x.a_mobile,x.a_email)+
-     '<div class="tfWho">Friend<b>'+E(x.b_name)+'</b></div>'+ct(x.b_mobile,"")+
+     (x.plan?'<div class="tfWho">Membership<b>'+E(x.plan)+(x.full_cents?' · $'+(x.full_cents/100).toFixed(2).replace(/\.00$/,'')+'/wk':'')+'</b></div>':'')+'<div class="tfWho">Signs up today (full price)<b>'+E(x.a_name)+'</b></div>'+ct(x.a_mobile,x.a_email)+
+     '<div class="tfWho">Mate · comes in to sign $1/wk agreement<b>'+E(x.b_name)+'</b></div>'+ct(x.b_mobile,"")+
      '<div class="st"><button class="'+(s==="new"?"on":"")+'" onclick="tfSt(\''+x.id+'\',\'new\')">New</button><button class="'+(s==="contacted"?"on":"")+'" onclick="tfSt(\''+x.id+'\',\'contacted\')">Contacted</button><button class="j '+(s==="signed"?"on":"")+'" onclick="tfSt(\''+x.id+'\',\'signed\')">Signed up</button><button class="x '+(s==="no"?"on":"")+'" onclick="tfSt(\''+x.id+'\',\'no\')">No</button></div>'+
      '<textarea placeholder="Note, e.g. texted, both coming in Tuesday 6pm" onblur="tfNote(\''+x.id+'\',this)">'+E(x.notes||"")+'</textarea></div>';}).join(""):'<div class="card"><p>'+(f==="new"?"Nobody waiting. All caught up.":"Nothing here yet.")+'</p></div>')+
    '<p style="text-align:center;font-size:11px;color:#9a9891;margin:8px 0 0">Jake, Alison, Jerson and Kelly can see this list.</p></div>';
