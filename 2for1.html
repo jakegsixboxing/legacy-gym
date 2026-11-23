@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#050505">
 <title>2 for 1 Memberships · Christmas / New Year special · Legacy Gym</title>
-<meta name="description" content="Two for one memberships at Legacy Gym Kincumber. Any membership of your choice. Your mate joins on the same one for $1 a week for their first 3 months. Available until December 31st.">
+<meta name="description" content="Two for one memberships at Legacy Gym Kincumber. Any membership of your choice. Your friend or family member joins on the same one for $1 a week for their first 12 weeks. Available until December 31st.">
 <meta property="og:title" content="2 for 1 Memberships · Legacy Gym">
-<meta property="og:description" content="Any membership of your choice. Your mate joins for $1 a week for their first 3 months. Available until December 31st.">
+<meta property="og:description" content="Any membership of your choice. Your mate joins for $1 a week for their first 12 weeks. Available until December 31st.">
 <meta property="og:image" content="https://legacygym-app.vercel.app/2for1-og.jpg">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
@@ -91,6 +91,9 @@ label.f,.f{display:block;font-size:10.5px;font-weight:600;letter-spacing:.24em;t
 .done li:last-child{border-bottom:1px solid var(--l)}
 .done li b{display:block;font-family:var(--disp);font-weight:600;font-size:18px;text-transform:uppercase;color:var(--ink);letter-spacing:.03em}
 .done .cta{width:100%;margin-top:22px}
+.terms ol{margin:16px 0 0;padding-left:20px;font-size:13px;line-height:1.6;color:var(--mid)}
+.terms li{padding:5px 0}
+.terms li::marker{color:var(--gold2);font-weight:600}
 .fine{margin:30px 0 0;font-size:12.5px;line-height:1.6;color:var(--m)}
 .foot{margin-top:44px;padding-top:20px;border-top:1px solid var(--l);text-align:center}
 .foot .brand{font-size:11px}
@@ -116,7 +119,7 @@ const PLANS=[
  {id:'gym',n:'Gym Membership',d:'Unlimited swipe pass access to the whole gym.',p:19.99,t:'5b74ba91-75aa-4402-80c0-95e23a699b4b'},
  {id:'classes',n:'Unlimited Classes + Gym',d:'Every boxing and S&C class, plus the gym.',p:55,t:'9646131e-a07f-4f53-868c-542e463c8b2a'},
  {id:'spar',n:'Classes + Sparring + Gym',d:'Everything, plus sparring.',p:65,t:'0a0f1460-273e-4622-bdb2-79ffba02a95f'}];
-const WEEKS=13,MATE=1,saves=p=>(p-MATE)*WEEKS;
+const WEEKS=12,MATE=1,saves=p=>(p-MATE)*WEEKS;
 const CLOSE='2026-12-31';
 function today(){try{return new Date().toLocaleDateString('en-CA',{timeZone:'Australia/Sydney'})}catch(e){return new Date().toISOString().slice(0,10)}}
 function daysLeft(){return Math.round((Date.parse(CLOSE)-Date.parse(today()))/864e5)}
@@ -130,9 +133,9 @@ function planRows(pick){return PLANS.map((x,i)=>{const inner=`<span class="n">${
  return pick?`<button type="button" class="plan${U.plan===i?' on':''}" data-a="plan" data-v="${i}" aria-pressed="${U.plan===i}">${inner}</button>`:`<div class="plan">${inner}</div>`}).join('')}
 
 function formHtml(){const P=PLANS[U.plan];
- if(U.plan===null)return `<span class="lbl">Step 1</span><h2>Pick your membership</h2><p style="margin:10px 0 0">Your mate goes on the same one.</p><div class="plans">${planRows(true)}</div>`;
+ if(U.plan===null)return `<span class="lbl">Step 1</span><h2>Pick your membership</h2><p style="margin:10px 0 0">Your friend or family member goes on the same one.</p><div class="plans">${planRows(true)}</div>`;
  return `<span class="lbl">Step 2</span><h2>Your details</h2>
- <div class="picked"><span class="n">${E(P.n)}</span><button type="button" class="x" data-a="change">Change</button><small>You ${money(P.p)} a week. Your mate $1 a week for 3 months. You guys save ${money(saves(P.p))}.</small></div>
+ <div class="picked"><span class="n">${E(P.n)}</span><button type="button" class="x" data-a="change">Change</button><small>You ${money(P.p)} a week. Your mate $1 a week for 12 weeks. You guys save ${money(saves(P.p))}.</small></div>
  <form class="form" id="f" novalidate>
   <div class="who">You</div>
   <label class="f" for="a1">Full name</label><input id="a1" type="text" autocomplete="name" maxlength="80" value="${E(U.f.a1||'')}">
@@ -150,7 +153,7 @@ function doneHtml(){const d=U.done,P=PLANS[d.i];
  return `<span class="lbl">Step 3</span><h2>Sign up now, ${E(d.a)}</h2>
  <ol>
   <li><b>You: sign up today</b>Your ${E(P.n)} membership at ${money(P.p)} a week. It takes a couple of minutes.</li>
-  <li><b>Then ${E(d.b)} comes in</b>Once your membership is through, we'll text you both to book ${E(d.b)} in to sign their $1 a week agreement at the gym.</li>
+  <li><b>Then ${E(d.b)} comes in within 72 hours</b>Once your membership is through, ${E(d.b)} has 72 hours to come into the gym and complete their membership to lock in the 2 for 1. We'll text you both.</li>
  </ol>
  <a class="cta" href="${DS+P.t}" target="_blank" rel="noopener">Sign up for ${E(P.n)}</a>
  ${DEMO?'<p class="fine" style="margin-top:12px">Demo: your details were not saved.</p>':''}`}
@@ -162,19 +165,30 @@ function page(){const d=daysLeft(),open=d>=0;
   <div class="brand">LEGACY <span>GYM</span></div>
   <div class="lbl eyebrow">Christmas / New Year special</div>
   <h1>Two for one<small>Memberships</small></h1>
-  <p class="lede">Any membership of your choice. Your mate joins on the same one for <span class="gold">$1 a week</span> for their first 3 months.</p>
+  <p class="lede">Any membership of your choice. Your friend or family member joins on the same one for <span class="gold">$1 a week</span> for their first 12 weeks.</p>
   ${open?`<button class="cta" data-a="go">Claim 2 for 1</button><div class="lbl until">Available until December 31st${left?`<b>${left}</b>`:''}</div>`:`<div class="lbl until" style="margin-top:26px">This offer closed on December 31st</div>`}
  </header>
  <main class="wrap">
  <section class="sec" style="margin-top:20px"><span class="lbl">How it works</span><h2>One signs up today.<br><span class="gold">Your mate pays $1.</span></h2>
   <ol class="steps">
-   <li><span><b>You sign up today</b>Pick your membership, sign up online and put your mate's name down.</span></li>
-   <li><span><b>Your mate comes in</b>Once your membership is locked in and through, your mate comes into the gym and signs their $1 a week agreement. That covers their first 3 months.</span></li>
-   <li><span><b>Then the normal price</b>After 3 months your mate moves to the normal price for the same membership, on the same agreement. No new paperwork.</span></li>
+   <li><span><b>You sign up today</b>Pick your membership and become a member. As you sign up, you nominate the friend or family member joining you.</span></li>
+   <li><span><b>Your mate comes in within 72 hours</b>Once your membership is through, they have 72 hours to come into the gym and complete their membership to get the 2 for 1.</span></li>
+   <li><span><b>$1 a week for 12 weeks</b>Their $1 a week keeps their membership active and live for their first 12 weeks. After that it moves to the normal price on the same agreement. No new paperwork.</span></li>
   </ol>
  </section>
  ${open?`<section class="sec" id="join">${U.done?doneHtml():formHtml()}</section>`:`<section class="sec"><span class="lbl">Memberships</span><h2>What you pay</h2><div class="plans">${planRows(false)}</div><p style="margin-top:16px">Head to <a href="https://www.legacygym.net/pages/memberships">legacygym.net</a> for current memberships.</p></section>`}
- <p class="fine">Christmas / New Year 2 for 1. For two people on the same membership. The first member signs up at the normal weekly price for their membership. Their mate then signs a 12-month agreement at the gym: $1 a week for the first 13 weeks, then the normal weekly price for the same membership for the remaining 39 weeks, on the same agreement. "You guys save" is the saving on your mate's first 13 weeks. Both members must be 18 or over. Open to new and returning members. Available until December 31st, 2026.</p>
+ <section class="sec terms"><span class="lbl">Terms and conditions</span><h2>The fine print</h2>
+  <ol>
+   <li>Christmas / New Year special. Available until December 31st, 2026.</li>
+   <li>For two people on the same membership: Gym, Unlimited Classes + Gym, or Classes + Sparring + Gym. Both must be 18 or over. Open to new and returning members.</li>
+   <li>The first person becomes a member on a 12-month membership at the normal weekly price. During sign-up they nominate the friend or family member joining them.</li>
+   <li>The nominated person has 72 hours from the first membership going through to come into the gym and complete their membership. After 72 hours the 2 for 1 no longer applies.</li>
+   <li>The nominated person signs a 12-month membership on the same plan. They pay $1 a week for their first 12 weeks, then the normal weekly price for the rest of their 12 months, on the same agreement.</li>
+   <li>Why $1 a week? It keeps their membership active and live during the first 12 weeks, so it carries straight on at the normal price with no new paperwork.</li>
+   <li>DebitSuccess, our direct debit provider, adds its own processing fee to each weekly payment (about $1.50 a week), plus its one-off setup fees. This applies to the $1 a week too.</li>
+   <li>"You guys save" is the saving on the nominated person's first 12 weeks compared with the normal weekly price.</li>
+  </ol>
+ </section>
  <footer class="foot"><div class="brand">LEGACY <span>GYM</span></div><p>12 Bilinga Road, Kincumber NSW 2251 · <a href="https://www.legacygym.net">legacygym.net</a></p></footer>
  </main>`}
 
