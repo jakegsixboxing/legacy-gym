@@ -111,10 +111,9 @@ const E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt
 const money=n=>{n=Math.round(n*100)/100;return '$'+n.toLocaleString('en-AU',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})};
 const SB='https://jyslqxepodrseyhoppce.supabase.co',KEY='sb_publishable_otcHJ5LC4yf-69CAoZghZA_yk_8h_we';
 const DS='https://oc.debitsuccess.com/DirectEntry/DirectDebitRequest/Form?templateid=';
-/* weekly prices and DebitSuccess join forms from legacygym.net */
+/* weekly prices and 12-month DebitSuccess join forms from legacygym.net (Gym + S&C removed: no 12-month form) */
 const PLANS=[
  {id:'gym',n:'Gym Membership',d:'Unlimited swipe pass access to the whole gym.',p:19.99,t:'5b74ba91-75aa-4402-80c0-95e23a699b4b'},
- {id:'snc',n:'Gym + S&C',d:'Grunt S&C classes plus swipe pass access to the gym.',p:45,t:'0d2c0a1c-430f-4b05-a6ff-b886063c63dd'},
  {id:'classes',n:'Unlimited Classes + Gym',d:'Every boxing and S&C class, plus the gym.',p:55,t:'9646131e-a07f-4f53-868c-542e463c8b2a'},
  {id:'spar',n:'Classes + Sparring + Gym',d:'Everything, plus sparring.',p:65,t:'0a0f1460-273e-4622-bdb2-79ffba02a95f'}];
 const WEEKS=13,MATE=1,saves=p=>(p-MATE)*WEEKS;
