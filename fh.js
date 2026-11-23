@@ -78,7 +78,7 @@ window.closeAll=function(){$("fhOv").classList.remove("on");};
 function open(h){$("fhSheet").innerHTML='<div class="shbar"><span>'+esc(first())+'\'s page</span><button type="button" onclick="closeAll()">‹ Back to page</button></div>'+h;$("fhOv").classList.add("on");$("fhSheet").scrollTop=0;}
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeAll();});
 window.fhGoto=function(id){closeAll();var el=document.getElementById(id);if(el)setTimeout(function(){el.scrollIntoView({behavior:"smooth",block:"start"});},60);};
-function nextHtml(skip){var L=[["tix",(S.d&&S.d.holds_closed)?"Tickets":"Hold a ticket"],["gear","Shirts & singlets"],["kit","Sponsor the fight gear"],["song","Walkout song"],["shareSec","Share the page"]].filter(function(x){return x[0]!==skip;});
+function nextHtml(skip){var L=[["tix",(S.d&&S.d.holds_closed)?"Tickets":"Hold a ticket"],["kit","Sponsor the fight gear"],["song","Walkout song"],["shareSec","Share the page"]].filter(function(x){return x[0]!==skip;});
   return '<div class="next"><div class="k">Keep going</div>'+L.map(function(x){return '<button type="button" onclick="fhGoto(\''+x[0]+'\')">'+x[1]+' ›</button>';}).join("")+'</div>';}
 
 function shell(){
@@ -122,7 +122,7 @@ function mainHtml(){
   if(d.holds_closed&&d.on_sale){
     var h='<div class="sec" id="tix"><h2>Tickets on sale now</h2><div class="sub">Come and watch '+esc(first())+' fight. Every ticket bought from this page counts for <b>'+esc(first())+'\'s crew</b>.</div>'
      +'<div class="tix2">'+["gold","ga"].filter(function(k){return d.tiers[k];}).map(tkSale).join("")+'</div>'
-     +'<div class="notice"><b>One checkout.</b> Add food &amp; drink packs and '+esc(team())+' supporter shirts on the same order. Pay securely by card, and your QR tickets come by email.</div></div>';
+     +'<div class="notice"><b>One checkout.</b> Pay securely by card, and your QR tickets come by email.</div></div>';
   } else if(d.holds_closed){
     var h='<div class="sec" id="tix"><h2>Ticket holds have closed</h2><div class="sub">Thanks to everyone who held a ticket to '+esc(first())+'\'s name. Holds are now closed so we can get tickets out to the people who put their name down.</div>'
      +'<div class="notice"><b>Already holding?</b> You\'ll get a personal link by text and email with the prices, your buying window and how to grab your tickets. Keep an eye on your phone.</div>'
@@ -135,11 +135,7 @@ function mainHtml(){
   if(S.me)h+='<div class="notice win"><b>You\'re '+(S.me.status==="waitlist"?"on the list":"holding "+(S.me.tier==="gold"?(S.me.seats===10?"a full table":S.me.seats+(S.me.seats>1?" seats":" seat")):"one"))+', '+esc(S.me.first)+'.</b> '+esc(d.tiers[S.me.tier].nm)+'. We\'ll email and text you the moment tickets are available to buy.</div>';
   h+='</div>';
   }
-  h+='<div class="sec" id="gear"><h2>Supporter shirts &amp; singlets</h2><div class="sub">Get around '+esc(first())+' on the night — grab yourself one of the colourful '+esc(team())+' supporter shirts or singlets. Fight Night has no dress code bar enclosed shoes, so singlets, shirts, it\'s all welcome. Sizing runs from XS right through to 6XL.</div>'
-   +'<div class="gear"><div class="gimgs">'+["indigenous","pink","yellow","grey","black"].map(function(c){return '<img src="'+MERCH+'shirt-'+c+'.jpg" alt="'+c+' shirt" onclick="fhGear(\'shirt\',\''+c+'\')">';}).join("")+'</div>'
-   +'<div class="grow"><div><div class="nm">'+esc(team())+' gear</div><div class="tag">Shirt or singlet · 5 colourways · XS – 6XL</div></div><div class="pr"><b>'+money(d.shirt_cents)+'</b><small>each</small></div></div>'
-   +(d.on_sale?'<p>Pick your style, colour and size, then <b style="color:var(--c2)">add it to your ticket order</b> — or buy shirts on their own. Same secure checkout.</p>':'<p>Pre-request only — <b style="color:var(--c2)">nothing to pay today</b>. Pick your style, colour, size and how many, and payment details will be sent to you with your ticket release. '+((d.shirts|0)>0?'<b style="color:var(--ink)">'+(d.shirts|0)+' requested so far.</b>':'')+'</p>')
-   +'<div class="gbtns"><button class="pick" onclick="fhGear(\'shirt\')">I want a shirt</button><button class="pick" onclick="fhGear(\'singlet\')">I want a singlet</button></div></div>';
+  h+='<div class="sec" id="gear"><h2>Supporter shirts &amp; singlets</h2><div class="notice warn"><b>Supporter shirt orders are now closed.</b> We\'re at capacity and the shirts have gone off to be made. If you\'ve already ordered one, it\'s locked in.</div></div>';
   h+=kitSecHtml();
   var sg=d.songs||[];
   h+='<div class="sec" id="song"><h2>Walkout song</h2><div class="sub">Nominate the song '+esc(first())+' should walk out to. '+esc(first())+' picks the winner.</div>'
@@ -202,12 +198,12 @@ function coloursHtml(){return COLOURS.map(function(c){return '<button type="butt
 function sizesHtml(){return SIZES.map(function(s){return '<button type="button" class="'+(shirt.size===s?"on":"")+'" onclick="fhSize(\''+s+'\')">'+s+'</button>';}).join("");}
 function gearSummary(){var c=COLOURS.filter(function(x){return x[0]===shirt.colour;})[0][1];return shirt.qty+' × '+c+' '+shirt.style+(shirt.qty>1?"s":"")+' · '+shirt.size+' · '+money(S.d.shirt_cents*shirt.qty);}
 function gearRefresh(){$("fStyles").innerHTML=styleHtml();$("fCols").innerHTML=coloursHtml();$("fSizes").innerHTML=sizesHtml();$("fQty").textContent=shirt.qty;$("fSum").textContent=gearSummary();$("fGo").textContent=S.d.on_sale?"Add to my order ›":"Request "+(shirt.qty>1?shirt.qty+" ":"my ")+shirt.style+(shirt.qty>1?"s":"");}
-window.fhGearBuy=function(){fhTix("&shirt="+[shirt.style,shirt.colour,shirt.size,shirt.qty].join("."));};
+window.fhGearBuy=function(){toast("Supporter shirt orders are now closed.");return;fhTix("&shirt="+[shirt.style,shirt.colour,shirt.size,shirt.qty].join("."));};
 window.fhStyle=function(st){shirt.style=st;gearRefresh();};
 window.fhColour=function(c){shirt.colour=c;gearRefresh();};
 window.fhSize=function(s){shirt.size=s;gearRefresh();};
 window.fhQty=function(d){shirt.qty=Math.min(10,Math.max(1,shirt.qty+d));gearRefresh();};
-window.fhGear=function(st,c){if(st)shirt.style=st;if(c)shirt.colour=c;
+window.fhGear=function(st,c){toast("Supporter shirt orders are now closed.");return;if(st)shirt.style=st;if(c)shirt.colour=c;
   if(S.d.on_sale){open('<h3>'+esc(team())+' supporter gear</h3><div class="sub"><b>'+money(S.d.shirt_cents)+' each.</b> Pick it here and it\'s added to your order on the ticket checkout. Buy it with tickets or on its own.</div>'
    +'<label>Shirt or singlet</label><div class="styles" id="fStyles">'+styleHtml()+'</div>'
    +'<label>Colour</label><div class="cols" id="fCols">'+coloursHtml()+'</div>'
@@ -222,7 +218,7 @@ window.fhGear=function(st,c){if(st)shirt.style=st;if(c)shirt.colour=c;
    +person()+'<div class="err" id="fErr"></div><button class="btn p" id="fGo" onclick="fhShirtGo()">Request my '+shirt.style+'</button><button class="cancel" onclick="closeAll()">‹ Back to '+esc(first())+'\'s page</button>');
 };
 window.fhShirt=function(){fhGear("shirt");};
-window.fhShirtGo=async function(){if(S.busy)return;var p=readPerson();if(!p)return;S.busy=true;var go=$("fGo");go.disabled=true;go.textContent="One sec…";
+window.fhShirtGo=async function(){toast("Supporter shirt orders are now closed.");return;if(S.busy)return;var p=readPerson();if(!p)return;S.busy=true;var go=$("fGo");go.disabled=true;go.textContent="One sec…";
   try{var j=await rpc("fh_shirt",{p_slug:SLUG,p_name:p.name,p_mobile:p.mobile,p_email:p.email,p_size:shirt.size,p_qty:shirt.qty,p_style:shirt.style,p_colour:shirt.colour});
     if(!j||!j.ok)throw new Error((j&&j.message)||"Couldn't save that. Try again.");
     await load(false);render();

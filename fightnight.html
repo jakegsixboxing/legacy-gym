@@ -222,7 +222,7 @@ function paintBill(){var el=$("bill");if(!el)return;if(!S.cfg){el.innerHTML="";r
  if(S.shirt)h+='<div class="r"><span>Team shirt \u00b7 size '+S.size+'</span><b>'+money(S.cfg.shirt_cents)+'</b></div>';
  h+='<div class="r tot"><span>Invoiced on release</span><b>'+money(price+(S.shirt?S.cfg.shirt_cents:0))+'</b></div>';
  el.innerHTML=h;}
-function paintShirt(){var el=$("shirt");if(!el)return;if(!S.cfg||!S.alloc){el.style.display="none";return;}
+function paintShirt(){var el=$("shirt");if(!el)return;S.shirt=false;el.style.display="none";return;/* shirts closed 23 Nov */if(!S.cfg||!S.alloc){el.style.display="none";return;}
  el.style.display="";var a=S.alloc,n=a.shirts+(S.shirt?1:0),th=S.cfg.shirt_threshold,last=a.name.split(" ").slice(-1)[0],first=a.name.split(" ")[0];
  $("teeArt").innerHTML=teeSvg(last);
  $("shTitle").innerHTML='Team <span>'+esc(last)+'</span> shirt';
@@ -233,7 +233,7 @@ function paintShirt(){var el=$("shirt");if(!el)return;if(!S.cfg||!S.alloc){el.st
  $("tgo").textContent=n>=th?"Printing \u00b7 more welcome":"Prints at "+th+" \u00b7 "+(th-n)+" to go";
  $("addb").textContent=S.shirt?("\u2713 Team "+last+" shirt added \u00b7 size "+S.size):("+ Add a Team "+last+" shirt");
  $("addb").classList.toggle("on",S.shirt);el.classList.toggle("on",S.shirt);}
-window.toggleShirt=function(){S.shirt=!S.shirt;paintShirt();paintBill();};
+window.toggleShirt=function(){return;S.shirt=!S.shirt;paintShirt();paintBill();};
 window.filt=function(v){var s=(v||"").trim().toLowerCase();var L=(S.fighters||[]).filter(function(f){return !s||f.name.toLowerCase().indexOf(s)>=0;});
  $("flist").innerHTML=L.map(function(f){return '<button class="fr'+(S.sel&&S.sel.id===f.id?' on':'')+'" onclick="pickF(\''+f.id+'\')"><span class="av">'+avHtml(f)+'</span><span><b>'+esc(f.name)+'</b><small>Legacy Fight Club · Fight Night 19 Dec</small></span></button>';}).join("")||'<div class="fine" style="padding:10px">No fighter by that name.</div>';};
 window.openPick=function(){$("ov").classList.add("on");$("fs").value="";filt("");setTimeout(function(){try{$("fs").focus();}catch(e){}},50);};

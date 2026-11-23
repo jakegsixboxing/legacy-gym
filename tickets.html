@@ -7,7 +7,7 @@
 <title>Fight Night tickets · Fight Club Central Coast</title>
 <meta name="description" content="Fight Night · Sat 19 Dec 2026 · Legacy Gym Kincumber. Pick your fighter and buy your tickets.">
 <meta property="og:title" content="Fight Night tickets · Sat 19 Dec · Legacy Gym">
-<meta property="og:description" content="Pick the fighter you're coming to see and grab your tickets. Table seats, GA, food and supporter shirts.">
+<meta property="og:description" content="Pick the fighter you're coming to see and grab your tickets. Table seats and GA.">
 <meta property="og:image" content="https://legacygym-app.vercel.app/img/fc/fc-logo.png">
 <link rel="icon" href="/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -216,10 +216,7 @@ function paint(){
  h+='<p class="lead">Pick the fighter you\'re coming to see, choose your tickets, and pay securely. Your tickets count towards their crew.</p>';
  h+='<h2>Who are you coming to see?</h2>'+pickHtml();
  h+='<h2>Your tickets</h2>'+OPTS.map(optHtml).join("");
- h+='<h2>Extras</h2>';
- h+='<div class="opt'+(C.meals?' on':'')+'"><div><div class="tag">GA only</div><div class="t">GA food + 1 drink</div><div class="s">Food plus one drink. One per GA ticket. Table seats already include food and drinks.</div><div class="p">'+$m(P.meal)+' <small>each</small></div></div>'
-  +'<div class="step"><button type="button" data-q="meals" data-d="-1"'+(C.meals?'':' disabled')+' aria-label="One less food pack">−</button><b>'+C.meals+'</b><button type="button" data-q="meals" data-d="1"'+(C.meals<C.ga1?'':' disabled')+' aria-label="One more food pack">+</button></div></div>';
- h+=merchHtml();
+ /* 23 Nov 2026: GA food packs and supporter shirts closed (at capacity, shirts gone to print). Tickets unchanged. */
  h+='<h2>Your details</h2><div class="you"><div class="row2"><input class="in" id="yf" placeholder="First name" autocomplete="given-name" value="'+E(S.you.first)+'"><input class="in" id="yl" placeholder="Last name" autocomplete="family-name" value="'+E(S.you.last)+'"></div><input class="in" id="ye" type="email" inputmode="email" placeholder="Email (your confirmation goes here)" autocomplete="email" value="'+E(S.you.email)+'"><input class="in" id="ym" type="tel" inputmode="tel" placeholder="Mobile" autocomplete="tel" value="'+E(S.you.mobile)+'"></div>';
  if(n){h+='<h2>Names on tickets</h2><p class="note" style="margin:-2px 0 10px">Optional now. Every ticket needs a name before <b>Wed 9 Dec</b>, when the QR tickets are emailed. You can add or change names on your confirmation link after you pay.</p><div class="names">'
   +Array.from({length:n},function(_,i){return '<input class="in" id="nm'+i+'" data-nm="'+i+'" value="'+E(C.names[i]||"")+'" placeholder="Ticket '+(i+1)+': first and last name (optional)" autocomplete="off">';}).join("")+'</div>';}
@@ -288,7 +285,7 @@ async function boot(){
  try{var q=new URLSearchParams(location.search),fs=(q.get("f")||"").toLowerCase().trim(),sl=function(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");};
   var fm=fs&&FIGHTERS.filter(function(n){return sl(n)===fs;})[0];if(fm)S.fighter=fm;
   if(q.get("t")==="table")S.C.ga1=0;
-  var sh=(q.get("shirt")||"").split(".");if(sh.length===4){var st=sh[0]==="singlet"?"singlet":"shirt",sc=sh[1].charAt(0).toUpperCase()+sh[1].slice(1),sn=Math.min(10,Math.max(1,+sh[3]||1));
+  var sh=[];/* shirts closed 23 Nov */if(sh.length===4){var st=sh[0]==="singlet"?"singlet":"shirt",sc=sh[1].charAt(0).toUpperCase()+sh[1].slice(1),sn=Math.min(10,Math.max(1,+sh[3]||1));
    if(COLS.indexOf(sc)>=0&&SIZES.indexOf(sh[2])>=0){for(var k=0;k<sn;k++)S.C.shirts.push({c:sc,s:sh[2],t:st});S.M={t:st,c:sc,s:sh[2]};if(q.get("t")!=="ga"&&!fs)S.C.ga1=0;}}
  }catch(e){}
  paint();
