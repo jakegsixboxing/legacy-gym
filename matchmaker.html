@@ -216,6 +216,20 @@ textarea{width:100%;min-height:9.375rem;background:var(--panel);border:1px solid
 #nt{min-height:5.25rem;margin-bottom:0.5rem}
 body.tv #tools,body.tv footer,body.tv .lh .btn,body.tv .rhead p{display:none!important}
 
+/* one-screen board: on the TV (and big landscape screens) every fighter fits without scrolling */
+body.fit footer,body.fit .board .gh p,body.fit .board .gh .lab{display:none!important}
+body.fit .top .wrap{padding-block:0.5rem;gap:0.5rem}
+body.fit .board{flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:0.75rem 1.75rem;padding-block:0.625rem 0.75rem}
+body.fit:not(.tv) .board{padding-bottom:4.75rem}
+body.fit .board .grp{gap:0.4375rem;min-width:0}
+body.fit .board .grp:first-child{flex:1 1 100%}
+body.fit .board .grp.lo{flex:0 1 auto}
+body.fit .board .gh{padding-bottom:0.3125rem}
+body.fit .board .gh h2{font-size:1.75rem;margin:0}
+body.fit .rgrid{gap:0.4375rem}
+body.fit .grp.lo .rgrid{grid-template-columns:repeat(var(--n,4),var(--tw,8rem))}
+body.fit .grp.lo .empty{max-width:24rem}
+
 /* inter-club ready list */
 .icl{margin-top:1rem;border:1px solid color-mix(in srgb,var(--cy) 45%,var(--line));border-radius:0.875rem;background:linear-gradient(100deg,color-mix(in srgb,var(--cy) 12%,var(--panel)),var(--panel) 60%);padding:0.875rem;display:flex;flex-direction:column;gap:0.75rem}
 .iclh{display:flex;justify-content:space-between;align-items:flex-end;gap:0.875rem;flex-wrap:wrap}
@@ -744,8 +758,18 @@ function render(){
  if(bo)renderBoard();else $('#board').innerHTML='';
  if(view==='card')renderCard();else $('#cardv').innerHTML='';
  $('#cmpv').hidden=view!=='cmp';if(view==='cmp')renderCmp();else $('#cmpv').innerHTML='';
- renderSel();
+ renderSel();fitScreen();
 }
+/* shrink the whole page (it is all sized in rem) until the board fits the screen with no scrolling */
+function fitOn(){return view==='board'&&S&&S.stage==='pools'&&(S.tv||(innerWidth>=1700&&innerWidth>innerHeight*1.2))}
+function fitScreen(){const de=document.documentElement,on=fitOn();document.body.classList.toggle('fit',on);de.style.fontSize='';$('#board').style.removeProperty('--tw');if(!on)return;
+ const base=parseFloat(getComputedStyle(de).fontSize),floor=S.tv?7:11;
+ const bd=$('#board'),fits=px=>{de.style.fontSize=px+'px';bd.style.removeProperty('--tw');const t=bd.querySelector('.grp:first-child .rgrid>.ft');if(t)bd.style.setProperty('--tw',t.getBoundingClientRect().width+'px');return de.scrollHeight<=innerHeight+1};
+ if(fits(base))return;if(!fits(floor))return;
+ let lo=floor,hi=base;for(let i=0;i<10;i++){const m=(lo+hi)/2;if(fits(m))lo=m;else hi=m}
+ fits(+lo.toFixed(2))}
+let fitT=null;addEventListener('resize',()=>{clearTimeout(fitT);fitT=setTimeout(fitScreen,150)});
+try{document.fonts.ready.then(()=>fitScreen())}catch(e){}
 function renderRoster(){
  $('#rost').innerHTML=`<div class="rhead"><div><div class="lab">Step one</div><h2 class="d">The roster</h2><p>${BASE.length} fighters are signed up for Fight Night. Line the men up lightest to heaviest, put the women’s team together, then pair them off.</p></div><button type="button" class="btn p big" id="bDeal">Start matchmaking</button></div>
  <div class="rgrid">${S.bouts.map(boutTile).join('')}${byW(BASE.map(f=>f.id).filter(id=>!boutOf(id))).map(id=>tileHTML(F(id))).join('')}</div>`;
@@ -757,9 +781,9 @@ function renderBoard(){
  const busy=all().filter(f=>outside(f)&&boutOf(f.id)).map(f=>last(f.n));
  const cnt=n=>`<b class="${n?'':'ok'}">${n?n+' to match':'All matched'}</b>`;
  $('#board').innerHTML=`<section class="grp" aria-label="Men’s Fight Club team"><div class="gh"><div><div class="lab">Lightest to heaviest</div><h2 class="d">Men’s Fight Club team</h2></div>${cnt(men.length)}</div><div class="rgrid">${mb.map(boutTile).join('')}${men.map(id=>tileHTML(F(id))).join('')}</div></section>
-  <section class="grp o" aria-label="Men’s Fight Club team, possible outside match"><div class="gh"><div><div class="lab">Men’s Fight Club team</div><h2 class="d">Possible outside match</h2><p>At, or close to, the level for a first fight against an outside gym.<span class="pv"> The percentage is how ready each one is.</span></p></div>${out.length?`<b class="ok">${out.length} listed</b>`:''}</div>
-   <div class="rgrid">${out.map(tileHTML).join('')}${!out.length?`<div class="empty">${busy.length?busy.join(', ')+(busy.length>1?' are':' is')+' matched in Fight Club above.':'Nobody listed yet. Open a fighter’s Notes &amp; data to add him.'}</div>`:''}</div></section>
-  <section class="grp w" aria-label="Women’s team"><div class="gh"><div><div class="lab pv">${S.wshow?'Weights shown':'Weights hidden'}</div><h2 class="d">Women’s team</h2></div>${cnt(wom.length)}</div><div class="rgrid">${wb.map(boutTile).join('')}${wom.map(id=>tileHTML(F(id))).join('')}</div></section>`;
+  <section class="grp o lo" aria-label="Men’s Fight Club team, possible outside match"><div class="gh"><div><div class="lab">Men’s Fight Club team</div><h2 class="d">Possible outside match</h2><p>At, or close to, the level for a first fight against an outside gym.<span class="pv"> The percentage is how ready each one is.</span></p></div>${out.length?`<b class="ok">${out.length} listed</b>`:''}</div>
+   <div class="rgrid" style="--n:${Math.max(out.length,1)}">${out.map(tileHTML).join('')}${!out.length?`<div class="empty">${busy.length?busy.join(', ')+(busy.length>1?' are':' is')+' matched in Fight Club above.':'Nobody listed yet. Open a fighter’s Notes &amp; data to add him.'}</div>`:''}</div></section>
+  <section class="grp w lo" aria-label="Women’s team"><div class="gh"><div><div class="lab pv">${S.wshow?'Weights shown':'Weights hidden'}</div><h2 class="d">Women’s team</h2></div>${cnt(wom.length)}</div><div class="rgrid" style="--n:${Math.max(wb.length*2+wom.length,1)}">${wb.map(boutTile).join('')}${wom.map(id=>tileHTML(F(id))).join('')}</div></section>`;
 }
 function renderCard(){
  const need=all().filter(f=>!boutOf(f.id)),nL=S.bouts.filter(b=>b.locked).length;
