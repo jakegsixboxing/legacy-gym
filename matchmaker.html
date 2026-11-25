@@ -937,7 +937,8 @@ async function askClaude(a,b){const el=$('#aiOut');if(!el||!SM)return;const A=F(
 function editSheet(id){const f=F(id);const o=(v,c)=>`<option${v===c?' selected':''}>${v}</option>`;
  $('#dlgBody').innerHTML=`<form class="sheet" id="ef" data-id="${id}"><div class="hd"><img class="av" src="${img(id)}" alt=""><div><div class="lab">Edit fighter</div><h2 class="d">${f.n}</h2></div></div>
   <div class="form">
-   <label>Weight now (kg)<input id="e_kg" type="number" step="0.1" min="30" max="200" value="${f.kg}" required></label>
+   <label>Weight now (kg)<input id="e_kg" type="number" step="0.1" min="30" max="200" value="${f.kg??''}" required></label>
+   ${DIV==='am'?`<label>Club / gym<input id="e_club" type="text" maxlength="60" value="${esc(f.xpTxt||'')}"></label>`:''}
    <label>Fight weight (kg)<input id="e_fw" type="number" step="0.1" min="30" max="200" value="${f.fw??''}"></label>
    <label>Age<input id="e_age" type="number" min="10" max="80" value="${f.age??''}"></label>
    <label>Stance<select id="e_st"><option value="">Not recorded</option>${o('Orthodox',f.st)}${o('Southpaw',f.st)}${o('Switch',f.st)}</select></label>
@@ -1130,7 +1131,7 @@ $('#dlg').addEventListener('close',()=>{sheetId=null});
 document.addEventListener('input',e=>{if(e.target.id==='iclR'){$('#iclV').textContent=e.target.value+'%';$('#iclW').textContent=iclWord(+e.target.value)+' to fight an outside gym'}});
 document.addEventListener('submit',e=>{if(e.target.id!=='ef')return;e.preventDefault();const id=e.target.dataset.id,g=k=>$('#e_'+k).value,nz=v=>v===''?null:+v,base=BASE.find(f=>f.id===id);
  const kg=+g('kg');if(!(kg>=30&&kg<=200))return toast('Enter a weight between 30 and 200 kg');
- S.edits[id]=Object.assign({},S.edits[id],{kg,fw:nz(g('fw')),age:nz(g('age')),st:g('st'),xp:+g('xp'),sx:g('sx'),w:+g('w')||0,l:+g('l')||0,dr:+g('dr')||0,kd:kg!==base.kg?'Edited':base.kd});
+ S.edits[id]=Object.assign({},S.edits[id],$('#e_club')?{xpTxt:$('#e_club').value.trim()||undefined}:{},{kg,fw:nz(g('fw')),age:nz(g('age')),st:g('st'),xp:+g('xp'),sx:g('sx'),w:+g('w')||0,l:+g('l')||0,dr:+g('dr')||0,kd:kg!==base.kg?'Edited':base.kd});
  save();render();profile(id);toast('Saved')});
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('#pv').hidden)closePoster();else if(sel&&!$('#dlg').open){sel=null;render()}});
 /* drag and drop (mouse): onto a lane moves pools, onto a fighter opens the face-off */
