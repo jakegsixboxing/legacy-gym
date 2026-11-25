@@ -434,13 +434,20 @@ footer .wrap{padding-block:1rem 1.5rem}
  .selbar .hint{font-size:0.75rem}
  .cap b{font-size:0.9375rem}
 }
+.divrow{display:flex;gap:10px;margin:14px 0 4px;flex-wrap:wrap}
+.divrow button{font-family:var(--disp);font-size:1.25rem;letter-spacing:.04em;text-transform:uppercase;padding:.45em 1.1em;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);cursor:pointer;display:inline-flex;gap:.5em;align-items:center}
+.divrow button i{font-style:normal;font-family:var(--ui);font-size:.8rem;font-weight:700;padding:.1em .55em;border-radius:20px;background:rgba(255,255,255,.08)}
+.divrow button[aria-selected="true"]{background:var(--cy);border-color:var(--cy);color:var(--oncy)}
+.divrow button[aria-selected="true"] i{background:rgba(0,0,0,.18)}
+.divrow button:focus-visible{outline:2px solid var(--cy2);outline-offset:2px}
+body.fit .divrow{margin:6px 0 2px}body.fit .divrow button{font-size:1rem}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
 <div class="beams" aria-hidden="true"></div>
 <div class="top"><div class="wrap">
  <div class="brand">
-  <div><div class="lab">Fight Club Central Coast · Fight Night Sat 19 Dec 2026</div><h1 class="d">Match<em>maker</em></h1></div>
+  <div><div class="lab">Fight Club Central Coast · Fight Night Sat 19 Dec 2026 · <span id="dvLab">Fight Club</span></div><h1 class="d">Match<em>maker</em></h1></div>
   <div class="right">
    <a class="tog" href="/" style="text-decoration:none" id="tApp">&lsaquo; App</a>
    <button type="button" class="tog" id="tPing" style="border-color:var(--cy);color:var(--cy2)">Ping the team</button>
@@ -450,6 +457,7 @@ footer .wrap{padding-block:1rem 1.5rem}
    <div class="tabs" role="group" aria-label="View"><button type="button" id="tBoard" aria-pressed="true">Matchmaking</button><button type="button" id="tCard" aria-pressed="false">Fight card</button><button type="button" id="tCmp" aria-pressed="false">Compare</button></div>
   </div>
  </div>
+ <div class="divrow" role="tablist" aria-label="Division"><button type="button" role="tab" id="dvFc" data-div="fc" aria-selected="true">Fight Club <i></i></button><button type="button" role="tab" id="dvAm" data-div="am" aria-selected="false">Amateur Boxers <i></i></button></div>
  <div class="bdrow" id="bdRow"><div class="seg bdseg" role="group" aria-label="Whose board"><button type="button" id="bdTeam" aria-pressed="true">Team board</button><button type="button" id="bdMine" aria-pressed="false">My matches</button></div><span class="bdnote" id="bdNote"></span></div>
  <div class="stats" id="stats"></div>
  <div class="prog" aria-hidden="true"><i id="prog" style="width:0"></i></div>
@@ -562,14 +570,15 @@ let S=null, sel=null, view='board', DL=null, DB=null, SM=null, NOTES={}, freshLa
 const CID=Math.random().toString(36).slice(2);let pushT=null,remoteAt=0;
 
 function fresh(){return{stage:'roster',pools:[],bouts:[],edits:{},calls:{},basis:'kg',n:1,rules:'league',tol:1.5,range:5,wshow:false,promo:false,sound:true,tv:false,at:0}}
-function load(){try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j&&j.pools&&j.bouts&&j.stage)return j}catch(e){}return null}
+function load(){try{const j=JSON.parse(localStorage.getItem(DKEY())||'null');if(j&&j.pools&&j.bouts&&j.stage)return j}catch(e){}return null}
 const core=()=>({stage:S.stage,pools:S.pools,bouts:S.bouts,edits:S.edits,calls:S.calls||{},basis:S.basis,n:S.n,rules:S.rules,tol:S.tol,range:S.range});
-function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function saveLocal(){try{localStorage.setItem(DKEY(),JSON.stringify(S))}catch(e){}}
 /* the board is also kept in the page's shared store, so a second screen (the TV) follows along live */
-function save(local){saveLocal();if(local||!DB)return;S.at=Date.now();saveLocal();clearTimeout(pushT);pushT=setTimeout(()=>{
- if(BOARD==='mine'&&window.MMUID){const mine={bouts:S.bouts,n:S.n,at:S.at,cid:CID};BOARDS[MMUID]=mine;DB.doc('boards/'+MMUID).set(mine).catch(()=>{});
-  const c=core();c.bouts=TEAM.bouts;c.n=TEAM.n;DB.doc('state/board').set({json:JSON.stringify(c),cid:CID,at:S.at}).catch(()=>{})}
- else DB.doc('state/board').set({json:JSON.stringify(core()),cid:CID,at:S.at}).catch(()=>{})},450)}
+function pushNow(){pushT=null;if(!DB)return;
+ if(BOARD==='mine'&&window.MMUID){const mine={bouts:S.bouts,n:S.n,at:S.at,cid:CID};BOARDS[MMUID]=mine;DB.doc('boards/'+BID(MMUID)).set(mine).catch(()=>{});
+  const c=core();c.bouts=TEAM.bouts;c.n=TEAM.n;DB.doc(SPATH()).set({json:JSON.stringify(c),cid:CID,at:S.at}).catch(()=>{})}
+ else DB.doc(SPATH()).set({json:JSON.stringify(core()),cid:CID,at:S.at}).catch(()=>{})}
+function save(local){saveLocal();if(local||!DB)return;S.at=Date.now();saveLocal();clearTimeout(pushT);pushT=setTimeout(pushNow,450)}
 function onRemote(snap){if(!snap||!snap.exists)return;const d=snap.data();if(!d||d.cid===CID||!d.json||!(d.at>remoteAt)||!(d.at>(S.at||0)))return;remoteAt=d.at;let c;try{c=JSON.parse(d.json)}catch(e){return}
  if(BOARD==='mine'){TEAM={bouts:c.bouts||[],n:c.n||1};delete c.bouts;delete c.n;delete c.stage}
  const had=new Set(S.bouts.filter(b=>b.locked).map(b=>b.id));Object.assign(S,c);S.at=d.at;saveLocal();const nw=S.bouts.filter(b=>b.locked&&!had.has(b.id));
@@ -578,6 +587,32 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const r1=n=>Math.round(n*10)/10;
 const F=id=>{const b=BASE.find(f=>f.id===id);return b?Object.assign({},b,S.edits[id]||{}):null};
 const all=()=>BASE.map(b=>F(b.id));
+/* ===== Divisions: Fight Club and Amateur Boxers. Each has its own roster, board, coach boards and reveal. Who sits in Amateur lives in the shared doc divisions/am ===== */
+let DIV=(()=>{try{return localStorage.getItem('mm_div')==='am'?'am':'fc'}catch(e){return 'fc'}})();
+let ALLF=null,AMDOC={ids:[],extra:[]},RAWB={};const LASTR={},LASTRV={};
+const DKEY=()=>DIV==='am'?KEY+'_am':KEY;
+const SPATH=()=>DIV==='am'?'state/board-am':'state/board';
+const RPATH=()=>DIV==='am'?'state/reveal-am':'state/reveal';
+const BID=u=>DIV==='am'?u+'~am':u;
+function boardsFor(){const n={};Object.keys(RAWB).forEach(k=>{const am=/~am$/.test(k);if(DIV==='am'&&am)n[k.slice(0,-3)]=RAWB[k];else if(DIV!=='am'&&k.indexOf('~')<0)n[k]=RAWB[k]});return n}
+function divApply(){if(!ALLF)ALLF=BASE.slice();const am=new Set((AMDOC&&AMDOC.ids)||[]);
+ const extra=((AMDOC&&AMDOC.extra)||[]).filter(x=>x&&x.id&&x.n).map(x=>({id:String(x.id),n:String(x.n),sx:x.sx==='f'?'f':'m',age:x.age!=null?+x.age:null,kg:x.kg!=null?+x.kg:null,kd:x.kd||'',fw:x.fw!=null?+x.fw:null,st:x.st||'',w:+x.w||0,l:+x.l||0,dr:+x.dr||0,xp:x.xp!=null?+x.xp:2,xpTxt:x.xpTxt||'Amateur boxer',recTxt:x.recTxt||undefined}));
+ extra.forEach(x=>{am.add(x.id);try{SEX[x.id]=x.sx}catch(e){}});const ex=new Set(extra.map(x=>x.id));
+ const list=ALLF.filter(f=>!ex.has(f.id)).concat(extra);
+ BASE.length=0;list.filter(f=>DIV==='am'?am.has(f.id):!am.has(f.id)).forEach(f=>BASE.push(f))}
+function divUI(){const a=document.getElementById('dvFc'),b=document.getElementById('dvAm');if(!a)return;a.setAttribute('aria-selected',DIV!=='am');b.setAttribute('aria-selected',DIV==='am');document.body.classList.toggle('div-am',DIV==='am');
+ const n=id=>{const am=new Set((AMDOC&&AMDOC.ids)||[]);((AMDOC&&AMDOC.extra)||[]).forEach(x=>x&&x.id&&am.add(x.id));const src=ALLF||BASE;const ex=((AMDOC&&AMDOC.extra)||[]).filter(x=>x&&x.id&&!src.some(f=>f.id===x.id)).length;return id==='am'?src.filter(f=>am.has(f.id)).length+ex:src.filter(f=>!am.has(f.id)).length};
+ a.querySelector('i').textContent=n('fc');b.querySelector('i').textContent=n('am');const lab=document.getElementById('dvLab');if(lab)lab.textContent=DIV==='am'?'Amateur Boxers':'Fight Club'}
+function setDiv(d){if(d===DIV||!S)return;if(S.tv){toast('Turn TV mode off first');return}
+ if(BOARD==='mine')toTeam();if(pushT){clearTimeout(pushT);pushNow()}saveLocal();
+ const keep={wshow:S.wshow,promo:S.promo,sound:S.sound,tv:S.tv};
+ DIV=d;try{localStorage.setItem('mm_div',d)}catch(e){}
+ divApply();S=Object.assign(fresh(),load()||{},keep);S.pools=[];S.bouts=S.bouts.filter(b=>F(b.a)&&F(b.b));
+ remoteAt=0;sel=null;BOARDS=boardsFor();REVEAL=LASTRV[d]&&LASTRV[d].exists?LASTRV[d].data():null;
+ if(LASTR[d])onRemote(LASTR[d]);divUI();render();try{bdUI()}catch(e){}window.scrollTo(0,0);toast(d==='am'?'Amateur Boxers':'Fight Club')}
+function onDivDoc(sn){AMDOC=(sn&&sn.exists&&sn.data())||{ids:[],extra:[]};divApply();if(S){S.pools.forEach(p=>p.ids=p.ids.filter(id=>BASE.some(f=>f.id===id)));S.bouts=S.bouts.filter(b=>F(b.a)&&F(b.b));render()}divUI()}
+document.addEventListener('error',e=>{const t=e.target;if(t&&t.tagName==='IMG')t.style.visibility='hidden'},true);
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-div]');if(b)setDiv(b.dataset.div)});
 const LOCALIMG=new Set(['alexis-rose','alivia-steane','braiden-griggs','braith-bright','chris-simpson','cooper-hubbard','corey-mear','dan-wilson','erin-sheehy','hadrian-caacbay','henry-matthews','hunta-ewings','hussein-mouhanna','jake-mcwilliams','jaxson-steinwede','joshua-oliveira','koby-beecham','krisstofer-monsalve','kyle-stokes','liam-wade','lorenzo-perez','mathew-sturt','mick-egan','oliver-irvine','sophie-duruz','taylor-hammond','tom-williams','travis-walsh','william-miles']);
 const PHOTO={};
 const img=id=>LOCALIMG.has(id)?'/img/mm/'+id+'.jpg':(PHOTO[id]||'/img/mm/'+id+'.jpg');
@@ -1100,7 +1135,7 @@ function applyRoster(rows){if(!Array.isArray(rows)||!rows.length)return;
   const wi0=(r.wi||[]).filter(w=>w&&w.kg!=null).map(w=>({kg:+w.kg,t:Date.parse(w.at)})).filter(w=>w.t).sort((a,b)=>a.t-b.t);
   const byDay={};wi0.forEach(w=>{byDay[new Date(w.t).toDateString()]=w});const wi=Object.values(byDay).sort((a,b)=>a.t-b.t);
   const camp=wi.filter(w=>w.t>=CAMP0),lw=wi[wi.length-1];
-  const old=BASE.find(f=>f.id===id)||{};
+  const old=(ALLF||BASE).find(f=>f.id===id)||{};
   nb.push({id,n:old.n||n,sx:SEX[id]||'m',age:r.age!=null?r.age:old.age,kg:lw?lw.kg:(r.kg!=null?+r.kg:old.kg),kd:lw?dLab(lw.t):'',fw:r.fw!=null?+r.fw:null,st:r.stance||'',w:r.w||0,l:r.l||0,dr:r.d||0,xp:XPMAP[r.xp]!=null?XPMAP[r.xp]:(old.xp||0)});
   if(r.photo)PHOTO[id]=r.photo;
   /* keep the 19 Nov snapshot when it knows more than the live tables (never go backwards) */
@@ -1109,7 +1144,7 @@ function applyRoster(rows){if(!Array.isArray(rows)||!rows.length)return;
   else if(!snapN&&lw)APP[id]={kg:lw.kg,kd:dLab(lw.t),kg0:null,d0:null,days:null,sp:[]};
   const A2=APP[id]||{};const cur=nb[nb.length-1];if(A2.kg!=null){cur.kg=A2.kg;cur.kd=A2.kd}
  });
- if(nb.length){BASE.length=0;nb.forEach(f=>BASE.push(f))}}
+ if(nb.length){ALLF=nb.slice();divApply();try{divUI()}catch(e){}}}
 /* a small stand-in for the old shared store, kept in Supabase table mm_docs (only Jake, Ali, Sarsha and Joe can read or write it) */
 function makeDB(sb,uid){const docL={},colL={},seen={};let rows={};
  function emit(){Object.keys(docL).forEach(p=>{const r=rows[p];docL[p].forEach(cb=>cb({exists:!!r,data:()=>r?r.data:null}))});
@@ -1143,7 +1178,7 @@ function toMine(){if(BOARD==='mine'||!window.MMUID)return;if(S.tv){toast('Turn T
  if(S.stage!=='pools'){S.stage='pools'}
  view='board';flip(render,{stagger:10,dur:420});
  if(!m)toast('Your own board. Tap two fighters to match them, or use Suggest all matches');}
-function toTeam(){if(BOARD==='team')return;clearTimeout(pushT);if(window.MMUID){const mine={bouts:S.bouts,n:S.n,at:Date.now(),cid:CID};BOARDS[MMUID]=mine;DB&&DB.doc('boards/'+MMUID).set(mine).catch(()=>{})}
+function toTeam(){if(BOARD==='team')return;clearTimeout(pushT);if(window.MMUID){const mine={bouts:S.bouts,n:S.n,at:Date.now(),cid:CID};BOARDS[MMUID]=mine;DB&&DB.doc('boards/'+BID(MMUID)).set(mine).catch(()=>{})}
  BOARD='team';sel=null;S.bouts=TEAM?TEAM.bouts:S.bouts;S.n=TEAM?TEAM.n:S.n;TEAM=null;flip(render,{stagger:10,dur:420})}
 /* who matched what */
 function boardsIn(){const out={};COACHES.forEach(u=>{const bt=validB((BOARDS[u]||{}).bouts);if(bt.length)out[u]=bt});return out}
@@ -1210,8 +1245,8 @@ document.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)r
  if(t.id==='bdMine'){toMine();return}if(t.id==='bdTeam'){toTeam();return}
  if(t.id==='tCmp'){view='cmp';sel=null;POOLV=null;render();scrollTo({top:0});return}
  if(t.dataset.mymatch!==undefined){toMine();return}
- if(t.dataset.reveal!==undefined){DB&&DB.doc('state/reveal').set({open:true,by:MMUID,at:Date.now()}).then(()=>{REVEAL={open:true};render();toast('Everyone’s matches are revealed')});return}
- if(t.dataset.seal!==undefined){DB&&DB.doc('state/reveal').set({open:false,by:MMUID,at:Date.now()}).then(()=>{REVEAL={open:false};render()});return}
+ if(t.dataset.reveal!==undefined){DB&&DB.doc(RPATH()).set({open:true,by:MMUID,at:Date.now()}).then(()=>{REVEAL={open:true};render();toast('Everyone’s matches are revealed')});return}
+ if(t.dataset.seal!==undefined){DB&&DB.doc(RPATH()).set({open:false,by:MMUID,at:Date.now()}).then(()=>{REVEAL={open:false};render()});return}
  if(t.dataset.poolprev!==undefined){POOLV=buildPool(analyse());render();return}
  if(t.dataset.poolx!==undefined){POOLV=null;render();return}
  if(t.dataset.poolgo!==undefined){applyPool();return}
@@ -1267,6 +1302,7 @@ async function start(){
  if(!uid){gate('Sign in to the Legacy app in this browser first, then come back to this page. On the big screen, open the app once, sign in, then open /matchmaker.','<a class="btn p" style="display:inline-block;margin-top:18px;text-decoration:none" href="/">Open the Legacy app</a>');return}
 window.MMSB=sb;window.MMUID=uid;
  if(!MM_USERS[uid]){gate('This page is private to Jake, Ali, Sarsha, Joe and Kelly.','<a class="btn" style="display:inline-block;margin-top:18px;text-decoration:none" href="/">Back to the app</a>');return}
+ divApply();divUI();
  try{const r=await sb.rpc('mm_roster');if(!r.error)applyRoster(r.data)}catch(e){}
  /* drop anything saved that no longer matches the roster */
  S.pools.forEach(p=>p.ids=p.ids.filter(id=>BASE.some(f=>f.id===id)));S.bouts=S.bouts.filter(b=>F(b.a)&&F(b.b));
@@ -1278,10 +1314,11 @@ window.MMSB=sb;window.MMUID=uid;
  const db=makeDB(sb,uid);DB=db;
  db.collection('notes').onSnapshot(q=>{const n={};q.docs.forEach(d=>{const x=d.data();n[d.id]=(x&&x.entries)||[]});NOTES=n;render();if(sheetId&&$('#dlg').open)profile(sheetId,true);else reFace()},()=>{});
  db.collection('interclub').onSnapshot(q=>{const n={};q.docs.forEach(d=>{const x=d.data();if(x&&typeof x.pct==='number')n[d.id]=x.pct});ICL=n;render();if(sheetId&&$('#dlg').open&&document.activeElement.id!=='iclR')profile(sheetId,true)},()=>{});
- db.doc('state/board').onSnapshot(onRemote,()=>{});
- db.collection('boards').onSnapshot(q=>{const n={};q.docs.forEach(d=>{n[d.id]=d.data()});const me=window.MMUID;const prev=BOARDS[me];BOARDS=n;
+ ['fc','am'].forEach(d=>db.doc(d==='am'?'state/board-am':'state/board').onSnapshot(sn=>{LASTR[d]=sn;if(DIV===d)onRemote(sn)},()=>{}));
+ db.doc('divisions/am').onSnapshot(onDivDoc,()=>{});
+ db.collection('boards').onSnapshot(q=>{RAWB={};q.docs.forEach(d=>{RAWB[d.id]=d.data()});const n=boardsFor();const me=window.MMUID;const prev=BOARDS[me];BOARDS=n;
   if(BOARD==='mine'&&me&&n[me]&&n[me].cid!==CID&&(!prev||n[me].at>(prev.at||0))){S.bouts=JSON.parse(JSON.stringify(n[me].bouts||[]));S.n=n[me].n||1;render()}else if(view==='cmp')render();else bdUI()});
- db.doc('state/reveal').onSnapshot(sn=>{REVEAL=sn&&sn.exists?sn.data():null;if(view==='cmp')render()});
+ ['fc','am'].forEach(d=>db.doc(d==='am'?'state/reveal-am':'state/reveal').onSnapshot(sn=>{LASTRV[d]=sn;if(DIV===d){REVEAL=sn&&sn.exists?sn.data():null;if(view==='cmp')render()}}));
  db.collection('pings').onSnapshot(q=>{PINGS=q.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>b.at-a.at);markSeen();pingNote();if($('#pingWrap'))pingRender(true)});
  db.collection('pingseen').onSnapshot(q=>{SEEN={};q.docs.forEach(d=>{SEEN[d.id]=d.data()});markSeen();if($('#pingWrap'))pingRender(true)});
  PINGFROM=q.get('ping')||null;
