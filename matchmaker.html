@@ -441,6 +441,7 @@ footer .wrap{padding-block:1rem 1.5rem}
  .selbar .hint{font-size:0.75rem}
  .cap b{font-size:0.9375rem}
 }
+body.div-am .grp.o{display:none}
 .divrow{display:flex;gap:10px;margin:14px 0 4px;flex-wrap:wrap}
 .divrow button{font-family:var(--disp);font-size:1.25rem;letter-spacing:.04em;text-transform:uppercase;padding:.45em 1.1em;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--mute);cursor:pointer;display:inline-flex;gap:.5em;align-items:center}
 .divrow button i{font-style:normal;font-family:var(--ui);font-size:.8rem;font-weight:700;padding:.1em .55em;border-radius:20px;background:rgba(255,255,255,.08)}
@@ -610,7 +611,7 @@ function divApply(){if(!ALLF)ALLF=BASE.slice();const am=new Set((AMDOC&&AMDOC.id
 function divUI(){const a=document.getElementById('dvFc'),b=document.getElementById('dvAm');if(!a)return;a.setAttribute('aria-selected',DIV!=='am');b.setAttribute('aria-selected',DIV==='am');document.body.classList.toggle('div-am',DIV==='am');
  const n=id=>{const am=new Set((AMDOC&&AMDOC.ids)||[]);((AMDOC&&AMDOC.extra)||[]).forEach(x=>x&&x.id&&am.add(x.id));const src=ALLF||BASE;const ex=((AMDOC&&AMDOC.extra)||[]).filter(x=>x&&x.id&&!src.some(f=>f.id===x.id)).length;return id==='am'?src.filter(f=>am.has(f.id)).length+ex:src.filter(f=>!am.has(f.id)).length};
  a.querySelector('i').textContent=n('fc');b.querySelector('i').textContent=n('am');const lab=document.getElementById('dvLab');if(lab)lab.textContent=DIV==='am'?'Amateur Boxers':'Fight Club'}
-function setDiv(d){if(d===DIV||!S)return;if(S.tv){toast('Turn TV mode off first');return}
+function setDiv(d){if(d===DIV||!S)return;
  if(BOARD==='mine')toTeam();if(pushT){clearTimeout(pushT);pushNow()}saveLocal();
  const keep={wshow:S.wshow,promo:S.promo,sound:S.sound,tv:S.tv};
  DIV=d;try{localStorage.setItem('mm_div',d)}catch(e){}
@@ -768,7 +769,7 @@ function tileHTML(f){let chip='',cl='';
  if(sel===f.id)cl=' sel';
  const tg=[],nn=(NOTES[f.id]||[]).length,fg=flags(f).length;if(fights(f))tg.push(`<span class="tag pv num">${rec(f)}</span>`);else if(f.xp===3)tg.push('<span class="tag x3">Fought</span>');
  if(f.st==='Southpaw')tg.push('<span class="tag sp">Southpaw</span>');if(f.age!=null&&f.age<18)tg.push('<span class="tag u18 pv">U18</span>');
- const rd=ICL[f.id]!=null?ICL[f.id]:null;if(rd!=null&&(f.sx==='f'||chip))tg.push(`<span class="tag ic pv num">Outside gym ${rd}%</span>`);
+ const rd=DIV!=='am'&&ICL[f.id]!=null?ICL[f.id]:null;if(rd!=null&&(f.sx==='f'||chip))tg.push(`<span class="tag ic pv num">Outside gym ${rd}%</span>`);
  const rdy=rd!=null&&f.sx==='m'?`${chip?'':`<span class="rdc ${iclCls(rd)} pv num">${rd}%</span>`}<span class="rdb pv"><i class="${iclCls(rd)}" style="width:${rd}%"></i></span>`:'';
  if(nn)tg.push(`<span class="tag nt pv">Notes ${nn}</span>`);if(fg)tg.push(`<span class="tag wn pv">Flag ${fg}</span>`);
  return `<button type="button" class="ft${cl}" draggable="true" data-f="${f.id}" data-fl="${f.id}" aria-label="${f.n}"><img src="${img(f.id)}" alt="" loading="lazy" draggable="false"><span class="tg">${tg.join('')}</span>${chip}${rdy}<span class="cap"><small>${first(f.n)}</small><b>${last(f.n)}</b><i class="pv num">${maskW(f)?kgF(f):(mw(f)>0?kgf(mw(f))+' · '+divOf(f).n:'Weight TBC')}</i></span></button>`}
@@ -830,7 +831,7 @@ function wcRows(){const all=BASE.map(f=>F(f.id)).filter(Boolean),noW=f=>!(mw(f)>
  return groups.map(g=>{const open=byW(g.list.filter(f=>!boutOf(f.id)).map(f=>f.id)),done=g.list.filter(f=>boutOf(f.id));
   const chips=done.map(f=>{const b=boutOf(f.id),o=F(b.a===f.id?b.b:b.a);return `<span class="wcm">${esc(f.n)}${o?' v '+esc(o.n):''}</span>`}).join('');
   return `<div class="wcl" data-wc="${g.key}"><div class="wch"><b>${esc(g.title)}</b>${g.sub?`<span class="pv">${esc(g.sub)}</span>`:''}<span class="num">${g.list.length} fighter${g.list.length>1?'s':''}${done.length?' · '+done.length+' matched':''}</span></div>${chips?`<div class="wcms">${chips}</div>`:''}${open.length?`<div class="rgrid">${open.map(id=>tileHTML(F(id))).join('')}</div>`:''}</div>`}).join('')}
-const outside=f=>f.sx==='m'&&ICL[f.id]!=null;
+const outside=f=>DIV!=='am'&&f.sx==='m'&&ICL[f.id]!=null;
 function renderBoard(){
  const mb=S.bouts.filter(b=>F(b.a).sx==='m'),wb=S.bouts.filter(b=>F(b.a).sx==='f');
  const free=all().filter(f=>!boutOf(f.id)),men=byW(free.filter(f=>f.sx==='m'&&!outside(f)).map(f=>f.id)),out=free.filter(outside).sort((a,b)=>ICL[b.id]-ICL[a.id]||mw(a)-mw(b)),wom=byW(free.filter(f=>f.sx==='f').map(f=>f.id));
