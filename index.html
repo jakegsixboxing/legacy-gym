@@ -590,7 +590,7 @@ try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew",
 const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611221500";
+const LG_BUILD="202611272130";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -9603,9 +9603,10 @@ try{ if(typeof HOME_CARDS!=="undefined"){ for(var i=0;i<HOME_CARDS.length;i++){ 
 /* ---- state ---- */
 var tcTab="tip"; var tcData=null;
 
-function tcLocked(){ return !!(tcData&&tcData.week.lock_at&&new Date()>=new Date(tcData.week.lock_at)); }
+var TC_CLOSE_MS=20*60*1000; /* tips close 20 min before kick-off */
+function tcLocked(){ return !!(tcData&&tcData.week.lock_at&&Date.now()>=new Date(tcData.week.lock_at).getTime()-TC_CLOSE_MS); }
 /* each game locks at its own kickoff (kickoff_at); games with no kickoff_at fall back to the week lock */
-function tcGameLocked(g){ if(!g)return tcLocked(); if(g.winner)return true; if(g.kickoff_at)return new Date()>=new Date(g.kickoff_at); return tcLocked(); }
+function tcGameLocked(g){ if(!g)return tcLocked(); if(g.winner)return true; if(g.kickoff_at)return Date.now()>=new Date(g.kickoff_at).getTime()-TC_CLOSE_MS; return tcLocked(); }
 function tcOpenGames(){ return tcData?tcData.games.filter(function(g){return !tcGameLocked(g);}):[]; }
 function tcMyTips(){ var m={}; if(!tcData)return m; var uid=session.user.id; tcData.tips.forEach(function(t){ if(t.user_id===uid)m[t.game_id]=t.pick; }); return m; }
 function tcConfirmed(uid){ if(!tcData||!tcData.confirms)return false; uid=uid||session.user.id; return tcData.confirms.some(function(c){return c.user_id===uid;}); }
@@ -9638,7 +9639,7 @@ function tcRender(){
   if(isStaff)tabs.push(["manage","Manage"]);
   var h='<button class="backBtn" onclick="go(\'home\')">‹ Back To Home</button>';
   h+='<div class="tcHero"><div class="turf"></div><div class="in">'+tcHelmet(false)+
-     '<div class="mid"><span class="k">'+esc(tcData.week.title)+' · '+tcData.games.length+' Games</span><span class="t">Legacy NFL <b>Tipping</b></span><span class="k">'+(tcLocked()?"Tips locked — results in":(tcOpenGames().length<tcData.games.length?"Tips open until each game kicks off":"Pick ’em &amp; lock ’em in"))+'</span></div>'+
+     '<div class="mid"><span class="k">'+esc(tcData.week.title)+' · '+tcData.games.length+' Games</span><span class="t">Legacy NFL <b>Tipping</b></span><span class="k">'+(tcLocked()?"Tips locked — results in":(tcOpenGames().length<tcData.games.length?"Each game closes 20 min before kick-off":"Pick ’em &amp; lock ’em in"))+'</span></div>'+
      tcHelmet(true)+'</div></div>';
   h+='<div class="tcTabs">'+tabs.map(function(t){return '<button class="'+(tcTab===t[0]?"on":"")+'" onclick="tcGo(\''+t[0]+'\')">'+t[1]+'</button>';}).join("")+'</div>';
   if(tcTab==="tip")h+=tcTipHtml();
@@ -9668,7 +9669,7 @@ function tcTipHtml(){
     var m=mine[g.id]; var w=g.winner;
     function cls(code){ if(w){ if(code===w)return "correct"; if(code===m&&m!==w)return "wrong"; return "miss"; } return code===m?"sel":""; }
     var gl=tcGameLocked(g);
-    var meta = w ? (m?(m===w?'<span class="ok">✓ +1</span>':'<span class="no">✗ 0</span>'):'<span class="no">no tip</span>') : (gl?(m?'Tipped '+m+' · started':'<span class="no">Started — no tip</span>'):(m?'Tipped '+m:'Tap a team'));
+    var meta = w ? (m?(m===w?'<span class="ok">✓ +1</span>':'<span class="no">✗ 0</span>'):'<span class="no">no tip</span>') : (gl?(m?'Tipped '+m+' · closed':'<span class="no">Closed — away team</span>'):(m?'Tipped '+m:'Tap a team'));
     var mid = w?'<span>FT</span><span class="ft">'+w+'</span>':'<span>@</span>';
     h+='<div class="tcMatch"><div class="tcRow">'+tcPanel(g.home,"home",cls(g.home),g.id,frozen||gl)+
        '<div class="tcVs">'+mid+'</div>'+tcPanel(g.away,"away",cls(g.away),g.id,frozen||gl)+
@@ -9681,7 +9682,7 @@ function tcTipHtml(){
     h+='<div class="tcDone">✓ Your tips are confirmed &amp; locked in. Good luck!</div>'+
        '<button class="tcEdit" onclick="tcEditTips()">Need to change something? Re-open my tips</button>';
   } else {
-    h+='<p class="tcHint">Your picks are saved as you go — hit <b>Confirm Tips</b> to lock them in as final. Each game stays open until it kicks off.</p>';
+    h+='<p class="tcHint">Your picks are saved as you go — hit <b>Confirm Tips</b> to lock them in as final. Each game closes 20 minutes before kick-off. Miss one and you get the away team.</p>';
     if(allTipped){
       h+='<button class="tcConfirm" onclick="tcConfirmTips()">Confirm Tips · Lock In All '+openG.length+'</button>';
     } else {
@@ -9693,7 +9694,7 @@ function tcTipHtml(){
 window.tcPick=async function(gid,code){
   if(tcLocked()){toast("Tips are locked for this week.");return;}
   var g=tcData.games.find(function(x){return x.id===gid;}); if(g&&g.winner){return;}
-  if(tcGameLocked(g)){toast("That game has already kicked off — tips are closed for it.");return;}
+  if(tcGameLocked(g)){toast("Tips for that game closed 20 minutes before kick-off.");return;}
   if(tcConfirmed()){toast("Your tips are confirmed. Re-open them to make a change.");return;}
   var uid=session.user.id;
   var ex=tcData.tips.find(function(t){return t.user_id===uid&&t.game_id===gid;});
@@ -9744,7 +9745,7 @@ function tcBoardHtml(){
 function tcHowHtml(){
   return '<div class="secTitle" style="margin-top:0">How it works</div>'+
    '<div class="tcInfo"><span class="q">1 · Tip each game</span><p>Every week, tap the team you reckon wins. One tap per game. Your tips save automatically.</p></div>'+
-   '<div class="tcInfo"><span class="q">2 · Lock in before kickoff</span><p>Tips lock when the first game of the week starts. Miss a game? Just no points for it.</p></div>'+
+   '<div class="tcInfo"><span class="q">2 · Lock in before kickoff</span><p>Each game closes 20 minutes before it kicks off, so you can still tip the later games. Miss a tip and you get the away team.</p></div>'+
    '<div class="tcInfo"><span class="q">3 · Auto-scored</span><p><b>1 point per correct tip</b>, and a <b>+5 bonus</b> for a perfect week (all games right). Climb the leaderboard all season.</p></div>'+
    '<div class="secTitle">New to the NFL?</div>'+
    '<div class="tcInfo"><span class="q">Conferences</span><p>The 32 teams split into two conferences — <b>AFC</b> &amp; <b>NFC</b>, 16 each, four divisions apiece (East/North/South/West).</p></div>'+
