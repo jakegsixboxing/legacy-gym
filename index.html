@@ -590,7 +590,7 @@ try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew",
 const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611281215";
+const LG_BUILD="202611281245";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -11172,49 +11172,44 @@ setInterval(tick,800);tick();
 })();
 </script>
 <script>
-/*__COMPSPAR_DEMO__  Jake-only demo (28 Nov 2026): the pop-up a Fight Club fighter will get for Monday comp spar.
-   Shows as if Jake is Chris Simpson (Bout 05). Shows until Jake taps "Got it", then never again. Remove this whole block after the demo. */
+/*__COMPSPAR__  Competition sparring pop-up (Mon 30 Nov 2026). Each Fight Club fighter on the card sees their own bout
+   (rows in comp_spar_bouts, RLS: own row only). Pops up on Home every time the app opens until show_until (9pm Mon).
+   "Save to my photos" shares their personal card image. Views logged to comp_spar_views. Remove this block after the night. */
 (function(){
-var JAKE="15a011b9-e222-45f0-8eb9-d5338da935d1",EV="cs-demo-2026-11-30",IMG="/img/fc/cs-demo-bout05.jpg",ICS="/img/fc/cs-demo-bout05.ics",KEY="cs_demo_done_v1";
-var shown=false;
-function done(){try{return localStorage.getItem(KEY)==="1";}catch(e){return false;}}
-function log(a){try{sb.from("comp_spar_views").insert({user_id:session.user.id,event:EV,action:a}).then(function(){});}catch(e){}}
+var EV="cs-2026-11-30",END=Date.parse("2026-11-30T21:00:00+11:00"),ROW=null,shown=false;
+function uid(){try{return (typeof session!=="undefined"&&session&&session.user)?session.user.id:null;}catch(e){return null;}}
+function log(a){try{sb.from("comp_spar_views").insert({user_id:uid(),event:EV,action:a}).then(function(){});}catch(e){}}
+function E(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 var css=document.createElement("style");css.textContent=
 ".csD{position:fixed;inset:0;z-index:99999;background:rgba(3,6,9,.86);display:flex;align-items:flex-end;justify-content:center;padding:16px;animation:csIn .3s ease-out}"+
 "@keyframes csIn{from{opacity:0}}"+
 ".csD .b{width:100%;max-width:420px;max-height:calc(100vh - 32px);overflow-y:auto;background:#0b1114;border:2px solid #5fd39b;border-radius:22px;padding:16px 16px 14px;box-shadow:0 0 40px rgba(95,211,155,.25);color:#f2f0eb;font-family:Montserrat,sans-serif}"+
-".csD .demo{display:inline-block;background:#f0b04a;color:#1d1300;font-size:10px;font-weight:800;letter-spacing:1px;border-radius:99px;padding:3px 9px;margin-bottom:8px}"+
 ".csD .k{font-size:10.5px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#5fd39b}"+
 ".csD h2{font-family:Oswald,sans-serif;font-weight:700;font-size:25px;line-height:1.05;text-transform:uppercase;margin:4px 0 4px}"+
 ".csD p{font-size:13.5px;line-height:1.5;color:#cfd6da;margin:0 0 12px}.csD p b{color:#fff}"+
 ".csD img{width:100%;border-radius:12px;display:block;margin-bottom:12px}"+
 ".csD .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;margin-top:8px;font:800 13px/1 Montserrat,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer}"+
-".csD .g{background:#5fd39b;color:#05221a}.csD .o{background:transparent;border:1px solid #5fd39b;color:#5fd39b}.csD .x{background:transparent;color:#9aa6ad;font-weight:700;letter-spacing:.5px}"+
-".csD .tip{font-size:11.5px;color:#9aa6ad;text-align:center;margin-top:8px}";
+".csD .g{background:#5fd39b;color:#05221a}.csD .x{background:transparent;color:#9aa6ad;font-weight:700;letter-spacing:.5px}";
 document.head.appendChild(css);
-function close(a){var el=document.getElementById("csDemo");if(el)el.remove();}
-window.csSave=async function(){log("save-photo");
-  try{var r=await fetch(IMG,{cache:"no-store"});var bl=await r.blob();var f=new File([bl],"Comp-Spar-Bout-05.jpg",{type:"image/jpeg"});
-    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Comp Spar · Bout 05"});return;}}catch(e){if(e&&e.name==="AbortError")return;}
-  window.open(IMG,"_blank");try{toast("Hold the image and tap Save to Photos");}catch(e){}};
-window.csCal=function(){log("add-calendar");window.open(ICS,"_blank");};
-window.csDone=function(){try{localStorage.setItem(KEY,"1");}catch(e){}log("done");close();try{toast("Demo closed. It won't show again.");}catch(e){}};
-function show(){if(shown||done())return;shown=true;log("shown");
-  var d=document.createElement("div");d.className="csD";d.id="csDemo";
-  d.innerHTML='<div class="b" role="dialog" aria-modal="true"><span class="demo">DEMO · WHAT CHRIS SIMPSON SEES</span>'+
+window.csSave=async function(){if(!ROW)return;log("save-photo");
+  try{var r=await fetch(ROW.img,{cache:"no-store"});var bl=await r.blob();var f=new File([bl],"Comp-Spar-Bout-"+ROW.bout+".jpg",{type:"image/jpeg"});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:"Comp Spar · Bout "+ROW.bout});return;}}catch(e){if(e&&e.name==="AbortError")return;}
+  window.open(ROW.img,"_blank");try{toast("Hold the image and tap Save to Photos");}catch(e){}};
+window.csClose=function(){var el=document.getElementById("csPop");if(el)el.remove();log("closed");};
+function show(){if(shown||!ROW||Date.now()>END)return;shown=true;log("shown");
+  var d=document.createElement("div");d.className="csD";d.id="csPop";
+  d.innerHTML='<div class="b" role="dialog" aria-modal="true">'+
   '<div class="k">Fight Club · Monday 30 November</div><h2>You\'re on for comp spar</h2>'+
-  '<p><b>Bout 05 at 7:17 pm</b> against <b>Mick Egan</b>. 3 × 2 minute rounds.</p>'+
-  '<img src="'+IMG+'" alt="Bout 05, Chris Simpson v Mick Egan, 7:17 pm, Monday 30 November">'+
-  '<button class="btn g" onclick="csSave()">Save to my photos</button>'+
-  '<button class="btn o" onclick="csCal()">Add to my calendar</button>'+
-  '<button class="btn x" onclick="csDone()">Got it</button>'+
-  '<div class="tip">The calendar reminder pops up 3 hours and 45 minutes before your bout.</div></div>';
+  '<p><b>Bout '+E(ROW.bout)+' at '+E(ROW.bout_time.toLowerCase())+'</b> against <b>'+E(ROW.partner)+'</b>. 3 × 2 minute rounds.</p>'+
+  '<img src="'+E(ROW.img)+'" alt="Bout '+E(ROW.bout)+' v '+E(ROW.partner)+', '+E(ROW.bout_time)+', Monday 30 November">'+
+  '<button class="btn g" onclick="csSave()">Save to my phone</button>'+
+  '<button class="btn x" onclick="csClose()">Got it</button></div>';
   document.body.appendChild(d);}
 var t=setInterval(function(){
-  if(Date.now()>Date.parse("2026-12-01T00:00:00+11:00")){clearInterval(t);return;}
-  var ok=false;try{ok=!!(typeof session!=="undefined"&&session&&session.user&&session.user.id===JAKE&&typeof sb!=="undefined"&&sb);}catch(e){}
-  if(!ok||done())return;clearInterval(t);
-  try{sb.from("comp_spar_views").select("id").eq("event",EV).eq("action","done").limit(1).then(function(r){if(r&&r.data&&r.data.length){try{localStorage.setItem(KEY,"1");}catch(e){}return;}setTimeout(show,900);});}catch(e){setTimeout(show,900);}
+  if(Date.now()>END){clearInterval(t);return;}
+  var u=uid();if(!u||typeof sb==="undefined")return;clearInterval(t);
+  try{sb.from("comp_spar_bouts").select("bout,bout_time,partner,img,show_until").eq("event",EV).eq("user_id",u).maybeSingle().then(function(r){
+    if(r&&r.data&&Date.now()<Date.parse(r.data.show_until)){ROW=r.data;setTimeout(show,900);}});}catch(e){}
 },700);
 })();
 </script>
