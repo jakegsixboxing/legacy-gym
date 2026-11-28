@@ -590,7 +590,7 @@ try{if(/[?&]crew=legacy2/.test(location.search)){localStorage.setItem("lg_crew",
 const MAINTENANCE=(function(){try{if(localStorage.getItem("lg_crew")==="1")return false;}catch(e){}return Date.now()<new Date("2026-11-08T17:00:00+11:00").getTime();})(); /* holding screen until 5pm Sun 8 Nov, then opens on its own; crew bypass above */
 
 /* ===== AUTO-UPDATE (front-end only). Bump LG_BUILD on every deploy. ===== */
-const LG_BUILD="202611281205";
+const LG_BUILD="202611281215";
 (function(){
  var checking=false;
  async function latestBuild(){
@@ -11212,7 +11212,7 @@ function show(){if(shown||done())return;shown=true;log("shown");
   document.body.appendChild(d);}
 var t=setInterval(function(){
   if(Date.now()>Date.parse("2026-12-01T00:00:00+11:00")){clearInterval(t);return;}
-  var ok=false;try{ok=!!(window.session&&session.user&&session.user.id===JAKE&&window.sb);}catch(e){}
+  var ok=false;try{ok=!!(typeof session!=="undefined"&&session&&session.user&&session.user.id===JAKE&&typeof sb!=="undefined"&&sb);}catch(e){}
   if(!ok||done())return;clearInterval(t);
   try{sb.from("comp_spar_views").select("id").eq("event",EV).eq("action","done").limit(1).then(function(r){if(r&&r.data&&r.data.length){try{localStorage.setItem(KEY,"1");}catch(e){}return;}setTimeout(show,900);});}catch(e){setTimeout(show,900);}
 },700);
